@@ -52,6 +52,7 @@ AVR_STRING = -e TARGET=$(AVR_PREFIX) -e CC=$(AVR_CC) -e BUILD=$(AVR_BUILD) -e CF
 	rm -rf $(@D)/*.o
 	rm -rf $(@D)/core*
 	rm -rf $(@D)/*~
+	rm -f tags
 
 ###########################
 # tags 
