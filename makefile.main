@@ -21,3 +21,4 @@ utils/linktest.out: utils/linktest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET
 umouse.elf: umouse.out
 
 ############################
+umouse.out: kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o

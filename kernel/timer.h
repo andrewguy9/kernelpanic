@@ -1,7 +1,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include"utils/link.h"
+#include"../utils/link.h"
 
 typedef unsigned long int TIME;
 

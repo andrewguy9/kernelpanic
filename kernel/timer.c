@@ -1,6 +1,6 @@
 #include"timer.h"
-#include"utils/utils.h"
-#include"utils/heap.h"
+#include"../utils/utils.h"
+#include"../utils/heap.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>

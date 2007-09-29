@@ -15,5 +15,3 @@ board:
 motortest: motortest.hex
 	avrdude -p m128 -U f:w:motortest.hex
 
-clean:
-	make -f makefile.main clean
