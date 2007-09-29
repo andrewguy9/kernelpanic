@@ -40,13 +40,3 @@ umouse.out: kernel/$(TARGET)_timer.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_loc
 
 umouse.elf: umouse.out
 ############################
-#clean
-
-clean: umouse/cleanup motor/cleanup utils/cleanup map/cleanup kernel/cleanup 
-	rm -rf *.out
-	rm -rf *.o
-	rm -rf core*
-	rm -rf *~
-	rm -rf *.hex
-	rm -rf *.elf
-

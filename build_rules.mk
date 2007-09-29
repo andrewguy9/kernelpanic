@@ -46,12 +46,14 @@ AVR_STRING = -e TARGET=$(AVR_PREFIX) -e CC=$(AVR_CC) -e BUILD=$(AVR_BUILD) -e CF
 	
 #########################################
 #clean
-.phony: cleanup ctags
-%cleanup:
-	rm -rf $(@D)/*.out
-	rm -rf $(@D)/*.o
-	rm -rf $(@D)/core*
-	rm -rf $(@D)/*~
+.phony: clean ctags
+clean:
+	rm -f *.out
+	rm -f *.o
+	rm -f core*
+	rm -f *~
+	rm -f *.hex
+	rm -f *.elf
 	rm -f tags
 
 ###########################
