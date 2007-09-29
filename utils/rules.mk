@@ -6,5 +6,4 @@ utils/$(TARGET)_heap.o: utils/heap.c utils/heap.h
 
 ###################3
 #tests
-utils/linktest.o: utils/linktest.c
-	
+utils/linktest.o: utils/linktest.c 

@@ -107,11 +107,11 @@ int main()
 {
 	InitLinkedList( & queueList );
 	InitLinkedList( & stackList );
-	InitHeap( & heap );
+	HeapInit( & heap );
 	int data;
 	do
 	{
-		printf("enter a data value, 0 to exit, 1 or a larger number to add a node.\n");
+		printf("enter a data value:\n0 to exit\n1 to remove a node\n2 to print the data structures\nor a larger number to add a node.\n");
 		scanf("%d", &data );
 		if( data == 0 )
 			return;
