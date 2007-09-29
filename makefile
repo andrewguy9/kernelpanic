@@ -15,3 +15,4 @@ board:
 motortest: motortest.hex
 	avrdude -p m128 -U f:w:motortest.hex
 
+clean: utils/cleandir kernel/cleandir ./cleandir
