@@ -1,0 +1,59 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.7	//
+ASSERT	utils.h	13;"	d
+Add	linktest.c	/^void Add( int value )$/;"	f
+COUNT	utils.h	/^typedef unsigned int COUNT;$/;"	t
+Data	linktest.c	/^	int Data;$/;"	m	struct:ELEMENT	file:
+DumpHeap	linktest.c	/^void DumpHeap( struct HEAP * heap )$/;"	f
+DumpList	linktest.c	/^void DumpList( struct LINKED_LIST * list )$/;"	f
+ELEMENT	linktest.c	/^struct ELEMENT$/;"	s	file:
+FALSE	utils.h	8;"	d
+HEAP	heap.h	/^struct HEAP$/;"	s
+HEAP_H	heap.h	2;"	d
+Head	heap.h	/^	struct WEIGHTED_LINK * Head;$/;"	m	struct:HEAP	typeref:struct:HEAP::WEIGHTED_LINK
+Head	linkedlist.h	/^	struct LINKED_LIST_LINK * Head;$/;"	m	struct:LINKED_LIST	typeref:struct:LINKED_LIST::LINKED_LIST_LINK
+HeapAdd	heap.c	/^void HeapAdd( struct WEIGHTED_LINK * node, struct HEAP * heap )$/;"	f
+HeapFindElement	heap.c	/^struct WEIGHTED_LINK * HeapFindElement( INDEX index, struct HEAP * heap )$/;"	f
+HeapHeadWeight	heap.c	/^WEIGHT HeapHeadWeight( struct HEAP * heap )$/;"	f
+HeapPop	heap.c	/^struct WEIGHTED_LINK * HeapPop( struct HEAP * heap )$/;"	f
+HeapPromote	heap.c	/^void HeapPromote( struct WEIGHTED_LINK * node )$/;"	f
+HeapSize	heap.c	/^COUNT HeapSize( struct HEAP * heap )$/;"	f
+HeapSmallest	heap.c	/^struct WEIGHTED_LINK * HeapSmallest( struct WEIGHTED_LINK *n1, struct WEIGHTED_LINK *n2, struct WEIGHTED_LINK *n3 )$/;"	f
+INDEX	utils.h	/^typedef unsigned int INDEX;$/;"	t
+InitHeap	heap.c	/^void InitHeap( struct HEAP * heap )$/;"	f
+InitLinkedList	linkedlist.c	/^void InitLinkedList( struct LINKED_LIST * list )$/;"	f
+LINK	link.h	/^union LINK$/;"	u
+LINKEDLIST_H	linkedlist.h	2;"	d
+LINKED_LIST	linkedlist.h	/^struct LINKED_LIST $/;"	s
+LINKED_LIST_LINK	link.h	/^struct LINKED_LIST_LINK $/;"	s
+LINK_H	link.h	2;"	d
+Left	link.h	/^	struct WEIGHTED_LINK * Left;$/;"	m	struct:WEIGHTED_LINK	typeref:struct:WEIGHTED_LINK::WEIGHTED_LINK
+Link	linktest.c	/^	union LINK Link;$/;"	m	struct:ELEMENT	typeref:union:ELEMENT::LINK	file:
+LinkedListEnqueue	linkedlist.c	/^void LinkedListEnqueue( struct LINKED_LIST_LINK * node, struct LINKED_LIST * list )$/;"	f
+LinkedListInsert	linkedlist.c	/^void LinkedListInsert( struct LINKED_LIST_LINK * node, struct LINKED_LIST_LINK * list )$/;"	f
+LinkedListLink	link.h	/^	struct LINKED_LIST_LINK LinkedListLink;$/;"	m	union:LINK	typeref:struct:LINK::LINKED_LIST_LINK
+LinkedListPop	linkedlist.c	/^struct LINKED_LIST_LINK * LinkedListPop( struct LINKED_LIST * list )$/;"	f
+LinkedListPush	linkedlist.c	/^void LinkedListPush( struct LINKED_LIST_LINK * node, struct LINKED_LIST * list )$/;"	f
+LinkedListRemove	linkedlist.c	/^void LinkedListRemove( struct LINKED_LIST_LINK * node )$/;"	f
+NULL	utils.h	5;"	d
+Next	link.h	/^	struct LINKED_LIST_LINK * Next;$/;"	m	struct:LINKED_LIST_LINK	typeref:struct:LINKED_LIST_LINK::LINKED_LIST_LINK
+Parent	link.h	/^	struct WEIGHTED_LINK * Parent;$/;"	m	struct:WEIGHTED_LINK	typeref:struct:WEIGHTED_LINK::WEIGHTED_LINK
+Pop	linktest.c	/^void Pop()$/;"	f
+Prev	link.h	/^	struct LINKED_LIST_LINK * Prev;$/;"	m	struct:LINKED_LIST_LINK	typeref:struct:LINKED_LIST_LINK::LINKED_LIST_LINK
+Right	link.h	/^	struct WEIGHTED_LINK * Right;$/;"	m	struct:WEIGHTED_LINK	typeref:struct:WEIGHTED_LINK::WEIGHTED_LINK
+Size	heap.h	/^	COUNT Size;$/;"	m	struct:HEAP
+TRUE	utils.h	9;"	d
+TraverseHeap	linktest.c	/^void TraverseHeap( struct WEIGHTED_LINK *link, int tab )$/;"	f
+UTILS_H	utils.h	2;"	d
+WEIGHT	link.h	/^typedef unsigned long int WEIGHT;$/;"	t
+WEIGHTED_LINK	link.h	/^struct WEIGHTED_LINK$/;"	s
+Weight	link.h	/^	WEIGHT Weight;$/;"	m	struct:WEIGHTED_LINK
+WeightedLink	link.h	/^	struct WEIGHTED_LINK WeightedLink;$/;"	m	union:LINK	typeref:struct:LINK::WEIGHTED_LINK
+heap	linktest.c	/^struct HEAP heap;$/;"	v	typeref:struct:HEAP
+main	linktest.c	/^int main()$/;"	f
+queueList	linktest.c	/^struct LINKED_LIST queueList;$/;"	v	typeref:struct:LINKED_LIST
+stackList	linktest.c	/^struct LINKED_LIST stackList;$/;"	v	typeref:struct:LINKED_LIST
