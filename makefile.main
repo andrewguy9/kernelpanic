@@ -1,42 +1,23 @@
 include build_rules.mk
 
 include utils/rules.mk
-include map/rules.mk
 include kernel/rules.mk
-include umouse/rules.mk
-include sensor/rules.mk
-include motor/rules.mk
-include print/rules.mk
 
 .PHONY: tests umouse board motortest clean
 
 #########################
 
-tests:  map/floodfilltest.out map/maptest.out utils/settest.out utils/linkedlistsingletest.out utils/linkedlistdoubletest.out utils/linkedlistweighttest.out
+tests: utils/linktest.out
 
 umouse: umouse.elf
 
 #########################
 #utils tests
 
-utils/settest.out: utils/settest.o utils/$(TARGET)_set.o
-   
-utils/linkedlistsingletest.out: utils/linkedlistsingletest.o utils/$(TARGET)_linkedlist.o
-
-utils/linkedlistdoubletest.out: utils/linkedlistdoubletest.o utils/$(TARGET)_linkedlist.o
-
-utils/linkedlistweighttest.out: utils/linkedlistweighttest.o utils/$(TARGET)_linkedlist.o
-
-##########################
-#map tests
-
-map/floodfilltest.out: map/floodfilltest.o map/maz.o map/$(TARGET)_map.o map/$(TARGET)_floodfill.o map/$(TARGET)_move.o utils/$(TARGET)_set.o kernel/$(TARGET)_panic.o utils/$(TARGET)_utils.o
-
-map/maptest.out: map/maptest.o map/$(TARGET)_map.o utils/$(TARGET)_set.o utils/$(TARGET)_utils.o
+utils/linktest.out: utils/linktest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_heap.o
 
 ############################
-#mouse build
-umouse.out: kernel/$(TARGET)_timer.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_lock.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_schedule.o utils/$(TARGET)_utils.o utils/$(TARGET)_queue.o utils/$(TARGET)_linkedlist.o umouse/serial.o umouse/main.o sensor/sensor.o map/$(TARGET)_map.o map/$(TARGET)_floodfill.o map/$(TARGET)_move.o utils/$(TARGET)_set.o motor/motor.o print/$(TARGET)_print.o motor/$(TARGET)_bham.o umouse/control.o
 
 umouse.elf: umouse.out
+
 ############################
