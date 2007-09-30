@@ -15,4 +15,7 @@ board:
 motortest: motortest.hex
 	avrdude -p m128 -U f:w:motortest.hex
 
-clean: utils/cleandir kernel/cleandir ./cleandir
+clean: 
+	make -e DIR=. cleandir
+	make -e DIR=utils cleandir
+	make -e DIR=kernel cleandir

@@ -46,15 +46,14 @@ AVR_STRING = -e TARGET=$(AVR_PREFIX) -e CC=$(AVR_CC) -e BUILD=$(AVR_BUILD) -e CF
 	
 #########################################
 #clean dir
-.phony: 
-cleandir:
-	rm -f $(@D)/*.out
-	rm -f $(@D)/*.o
-	rm -f $(@D)/core*
-	rm -f $(@D)/*~
-	rm -f $(@D)/*.hex
-	rm -f $(@D)/*.elf
-	rm -f $(@D)/tags
+.phony cleandir:
+	rm -f $(DIR)/*.out
+	rm -f $(DIR)/*.o
+	rm -f $(DIR)/core*
+	rm -f $(DIR)/*~
+	rm -f $(DIR)/*.hex
+	rm -f $(DIR)/*.elf
+	rm -f $(DIR)/tags
 
 ###########################
 # tags 
