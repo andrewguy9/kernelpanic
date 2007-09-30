@@ -2,5 +2,6 @@
 
 void main()
 {//entry point for kernel...
-	
+	TimerInit( );
+
 }

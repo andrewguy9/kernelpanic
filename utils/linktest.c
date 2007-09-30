@@ -114,7 +114,7 @@ int main()
 		printf("enter a data value:\n0 to exit\n1 to remove a node\n2 to print the data structures\nor a larger number to add a node.\n");
 		scanf("%d", &data );
 		if( data == 0 )
-			return;
+			return 0;
 		else if( data == 1 )
 			Pop();
 		else if( data == 2 )

@@ -1,6 +1,7 @@
 #include"timer.h"
 #include"../utils/utils.h"
 #include"../utils/heap.h"
+#include"hal.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -16,6 +17,7 @@ void TimerInit( )
 {
 	Time = 0;
 	HeapInit( &Timers );
+	HalInitClock();
 }
 
 void TimerRegisterASR( struct TIMER * newTimer, TIME wait, TIMER_HANDLER handler )
