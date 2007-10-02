@@ -32,14 +32,14 @@ void HalInitClock();
  * This is to be used as a strong critial section
  * and only used for very very short sections.
  */
-#define DISABLE_INTERRUPTS() (asm(" cli"))
-#define ENABLE_INTERRUPTS() (asm(" sei"))
+#define DISABLE_INTERRUPTS() asm(" cli")
+#define ENABLE_INTERRUPTS() asm(" sei")
 
 //Redefinition of DISABLE_INTERRUPTS and ENABLE_INTERRUPTS for ease of use. 
-#define START_CRITICAL() (DISABLE_INTERRUPTS())
-#define END_CRITICAL() (ENABLE_INTERRUPTS())
+#define START_CRITICAL() DISABLE_INTERRUPTS()
+#define END_CRITICAL() ENABLE_INTERRUPTS()
 
-
+#define IS_ATOMIC() (SREG&SREG_I)
 
 void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 #define TimerInterrupt TIMER0_OVF_vect
