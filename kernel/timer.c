@@ -22,6 +22,7 @@ void TimerInit( )
 
 void TimerRegisterASR( struct TIMER * newTimer, TIME wait, TIMER_HANDLER handler )
 {
+	//TODO: must be run from critical section.
 	ASSERT( newTimer != NULL, "null argument" );
 	newTimer->Link.Weight = Time + wait;
 	HeapAdd( (struct WEIGHTED_LINK * ) newTimer, &Timers );
@@ -29,6 +30,7 @@ void TimerRegisterASR( struct TIMER * newTimer, TIME wait, TIMER_HANDLER handler
 
 void RunTimers( )
 {
+	//TODO: must be called from ISR
 	Time++;
 	while( HeapSize( &Timers) > 0 && 
 			HeapHeadWeight( &Timers ) >= Time )
@@ -40,6 +42,7 @@ void RunTimers( )
 
 void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void) 
 {
+	//TODO: Actual timer interrupt.
 	//Call the timer utility
 	RunTimers( );
 
