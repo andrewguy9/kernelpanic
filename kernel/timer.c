@@ -3,10 +3,6 @@
 #include"../utils/heap.h"
 #include"hal.h"
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/sfr_defs.h>
-
 //Keep track of system time for timers.
 TIME Time;
 
@@ -22,7 +18,8 @@ void TimerInit( )
 
 void TimerRegisterASR( struct TIMER * newTimer, TIME wait, TIMER_HANDLER handler )
 {
-	//TODO: must be run from critical section.
+	ASSERT( HalIsAtomic(), "timer structures can only be added from \
+			interrupt level");
 	ASSERT( newTimer != NULL, "null argument" );
 	newTimer->Link.Weight = Time + wait;
 	HeapAdd( (struct WEIGHTED_LINK * ) newTimer, &Timers );
@@ -30,7 +27,7 @@ void TimerRegisterASR( struct TIMER * newTimer, TIME wait, TIMER_HANDLER handler
 
 void RunTimers( )
 {
-	//TODO: must be called from ISR
+	ASSERT( HalIsAtomic(), "timers can only be run from interrupt level.");
 	Time++;
 	while( HeapSize( &Timers) > 0 && 
 			HeapHeadWeight( &Timers ) >= Time )

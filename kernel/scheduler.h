@@ -15,4 +15,7 @@ struct THREAD
 	void * Stack;
 };
 
+void StartCritical( );
+void EndCritical( );
+
 #endif

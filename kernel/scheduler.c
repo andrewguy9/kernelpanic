@@ -2,6 +2,7 @@
 #include"../utils/heap.h"
 #include"timer.h"
 #include"hal.h"
+#include"../utils/utils.h"
 
 #define SCHEDULER_QUANTUM 10
 
@@ -9,17 +10,46 @@ struct THREAD * ActiveThread;
 struct THREAD * NextThread;
 struct HEAP ThreadHeap;
 struct TIMER ScheduleTimer;
+unsigned char SchedulerEnabled;
+
+void SchedulerStartCritical( )
+{
+	DISABLE_INTERRUPTS();
+	ASSERT( SchedulerEnabled, 
+			"Scheduler was not enabled at start of \
+			critical section.");
+	SchedulerEnabled = FALSE;
+	ENABLE_INTERRUPTS();
+}
+
+void SchedulerEndCritical()
+{
+	DISABLE_INTERRUPTS();
+	ASSERT( ! SchedulerEnabled, 
+			"Scheduler was not disabled at end \
+			of Critical section");
+	SchedulerEnabled = TRUE;
+	ENABLE_INTERRUPTS();
+}
+
+BOOL SchedulerIsCritical()
+{
+	DISABLE_INTERRUPTS();
+	BOOL value = SchedulerEnabled;
+	ENABLE_INTERRUPTS();
+	return value;
+}
 
 void SchedulerResumeThread( struct THREAD * thread )
 {
 	ASSERT( thread != NULL, "thread cannot be null" );
-	ASSERT( thread->State == THREAD_STATE_BLOCKED,
-		   	"Only activate blocked threads" );
 
-	START_CRITICAL();
+	SchedulerStartCritical();
+	ASSERT( thread->State == THREAD_STATE_BLOCKED,
+			"Only activate blocked threads" );
 	thread->State = THREAD_STATE_RUNNING;
 	HeapAdd( (struct WEIGHTED_LINK *) thread, &ThreadHeap );
-	END_CRITICAL();
+	SchedulerEndCritical();
 }
 
 void SchedulerBlockThread( )
@@ -28,15 +58,15 @@ void SchedulerBlockThread( )
 	ASSERT( ActiveThread->State == THREAD_STATE_RUNNING, 
 			"Cant stop a thread that isn't running." );
 
-	START_CRITICAL();
+	SchedulerStartCritical();
 	ActiveThread->State = THREAD_STATE_BLOCKED;
 	//TODO: Force a Scheduling event.
-	END_CRITICAL();
+	SchedulerEndCritical();
 }
 
 void Schedule( ) 
 {
-	//TODO: Run only from critical section.
+	ASSERT( SchedulerIsCritical(), "scheduler must be run atomically");
 	
 	//If there is an active thread, add him back
 	//into the heap with some penalty.
@@ -68,5 +98,6 @@ void SchedulerInit()
 	HeapInit( & ThreadHeap );
 	//Initialize the timer
 	TimerRegisterASR( & ScheduleTimer, 0, Schedule );
-
+	//Enable Scheduler
+	SchedulerEnabled = TRUE;
 }

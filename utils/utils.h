@@ -15,5 +15,6 @@
 
 typedef unsigned int COUNT;
 typedef unsigned int INDEX;
+typedef unsigned char BOOL;
 
 #endif
