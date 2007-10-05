@@ -16,12 +16,17 @@ void TimerInit( )
 	HalInitClock();
 }
 
-void TimerRegisterASR( struct TIMER * newTimer, TIME wait, TIMER_HANDLER handler )
+void TimerRegisterASR( struct TIMER * newTimer, 
+		TIME wait, 
+		TIMER_HANDLER * handler )
 {
 	ASSERT( HalIsAtomic(), "timer structures can only be added from \
 			interrupt level");
 	ASSERT( newTimer != NULL, "null argument" );
+	ASSERT( hanlder != NULL, "null handler" );
+
 	newTimer->Link.Weight = Time + wait;
+	newTimer->Handler = handler;
 	HeapAdd( (struct WEIGHTED_LINK * ) newTimer, &Timers );
 }
 
