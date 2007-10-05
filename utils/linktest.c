@@ -80,7 +80,7 @@ void TraverseHeap( struct WEIGHTED_LINK *link, int tab )
 
 	if( link != NULL )
 	{
-		printf("%d\n", link->Weight);
+		printf("%ld\n", link->Weight);
 
 		TraverseHeap( link->Left, tab+1 );
 		TraverseHeap( link->Right, tab+1 );
