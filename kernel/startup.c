@@ -4,10 +4,12 @@
 
 void main()
 {//entry point for kernel...
+	HalInit();
+
 	TimerInit( );
 
 	SchedulerInit();
 
-	ENABLE_INTERRUPTS();
+	HalEnableInterrupts();
 
 }
