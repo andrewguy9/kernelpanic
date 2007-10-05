@@ -4,7 +4,7 @@
 BOOL ASRLock( ASR_LOCK * lock )
 {
 	BOOL success;
-	DISABLE_INTERRUPTS();
+	HalDisableInterrupts();
 	if( lock->Locked )
 	{
 		success = FALSE;
@@ -14,23 +14,23 @@ BOOL ASRLock( ASR_LOCK * lock )
 		success = TRUE;
 		lock->Locked = TRUE;
 	}
-	ENABLE_INTERRUPTS();
+	HalEnableInterrupts();
 	return success;
 }
 
 void ASRUnlock( ASR_LOCK * lock )
 {
-	DISABLE_INTERRUPTS();
+	HalDisableInterrupts();
 	lock->Locked = FALSE;
-	ENABLE_INTERRUPTS();
+	HalEnableInterrupts();
 }
 
 BOOL ASRIsLocked( ASR_LOCK * lock )
 {
 	BOOL value;
-	DISABLE_INTERRUPTS();
+	HalDisableInterrupts();
 	value = lock->Locked;
-	ENABLE_INTERUPTS();
+	HalEnableInterrupts();
 	return value;
 }
 
