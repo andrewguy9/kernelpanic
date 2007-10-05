@@ -1,7 +1,7 @@
-#include"asrlock.h"
+#include"mutex.h"
 #include"hal.h"
 
-BOOL ASRLock( ASR_LOCK * lock )
+BOOL MutexLock( struct MUTEX * lock )
 {
 	BOOL success;
 	HalDisableInterrupts();
@@ -18,14 +18,14 @@ BOOL ASRLock( ASR_LOCK * lock )
 	return success;
 }
 
-void ASRUnlock( ASR_LOCK * lock )
+void MutexUnlock( struct MUTEX * lock )
 {
 	HalDisableInterrupts();
 	lock->Locked = FALSE;
 	HalEnableInterrupts();
 }
 
-BOOL ASRIsLocked( ASR_LOCK * lock )
+BOOL MutexIsLocked( struct MUTEX * lock )
 {
 	BOOL value;
 	HalDisableInterrupts();
@@ -34,7 +34,7 @@ BOOL ASRIsLocked( ASR_LOCK * lock )
 	return value;
 }
 
-void ASRLockInit( ASR_LOCK * lock )
+void MutexLockInit( struct MUTEX * lock )
 {
 	lock->Locked = FALSE; 
 }

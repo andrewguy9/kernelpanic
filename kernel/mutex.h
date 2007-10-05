@@ -1,16 +1,16 @@
-#ifndef ASRLOCK_H
-#define ASRLOCK_H
+#ifndef MUTEX_H
+#define MUTEX_H
 
 #include"../utils/utils.h"
 
-struct ASR_LOCK
+struct MUTEX
 {
 	BOOL Locked;
 };
 
-BOOL ASRLock( ASR_LOCK * lock );
-void ASRUnlock( ASR_LOCK * lock );
-BOOL ASRIsLocked( ASR_LOCK * lock );
-void ASRLockInit( ASR_LOCK * lock );
+BOOL MutexLock( struct MUTEX * lock );
+void MutexUnlock( struct MUTEX * lock );
+BOOL MutexIsLocked( struct MUTEX * lock );
+void MutexLockInit( struct MUTEX * lock );
 
 #endif

@@ -1,8 +1,8 @@
 #include"scheduler.h"
+#include"../utils/utils.h"
 #include"../utils/heap.h"
 #include"timer.h"
-#include"hal.h"
-#include"../utils/utils.h"
+#include"mutex.h"
 
 #define SCHEDULER_QUANTUM 10
 
@@ -10,41 +10,28 @@ struct THREAD * ActiveThread;
 struct THREAD * NextThread;
 struct HEAP ThreadHeap;
 struct TIMER ScheduleTimer;
-unsigned char SchedulerEnabled;
+
+struct MUTEX SchedulerLock;
 
 void SchedulerStartCritical( )
 {
-	DISABLE_INTERRUPTS();
-	ASSERT( SchedulerEnabled, 
+	BOOL worked = MutexLock( & SchedulerLock );
+	ASSERT( worked, 
 			"Scheduler was not enabled at start of \
 			critical section.");
-	SchedulerEnabled = FALSE;
-	ENABLE_INTERRUPTS();
 }
 
 void SchedulerEndCritical()
 {
-	DISABLE_INTERRUPTS();
-	ASSERT( ! SchedulerEnabled, 
-			"Scheduler was not disabled at end \
-			of Critical section");
-	SchedulerEnabled = TRUE;
-	ENABLE_INTERRUPTS();
-}
-
-BOOL SchedulerIsCritical()
-{
-	DISABLE_INTERRUPTS();
-	BOOL value = SchedulerEnabled;
-	ENABLE_INTERRUPTS();
-	return value;
+	MutexUnlock( & SchedulerLock );
 }
 
 void SchedulerResumeThread( struct THREAD * thread )
 {
-	ASSERT( thread != NULL, "thread cannot be null" );
+	ASSERT( thread != NULL, "Thread cannot be null" );
 
 	SchedulerStartCritical();
+
 	ASSERT( thread->State == THREAD_STATE_BLOCKED,
 			"Only activate blocked threads" );
 	thread->State = THREAD_STATE_RUNNING;
@@ -66,8 +53,11 @@ void SchedulerBlockThread( )
 
 void Schedule( ) 
 {
-	ASSERT( SchedulerIsCritical(), "scheduler must be run atomically");
-	
+	if( ! MutexLock( &SchedulerLock ) )
+	{
+		return;
+	}
+
 	//If there is an active thread, add him back
 	//into the heap with some penalty.
 	if( ActiveThread != NULL )
@@ -88,6 +78,10 @@ void Schedule( )
 	TimerRegisterASR( & ScheduleTimer,
 		   	SCHEDULER_QUANTUM, 
 			Schedule );
+
+	MutexUnlock( &SchedulerLock );
+
+	return;
 }
 
 void SchedulerInit()
@@ -98,6 +92,6 @@ void SchedulerInit()
 	HeapInit( & ThreadHeap );
 	//Initialize the timer
 	TimerRegisterASR( & ScheduleTimer, 0, Schedule );
-	//Enable Scheduler
-	SchedulerEnabled = TRUE;
+	//Set up Schedule Resource
+	MutexLockInit( & SchedulerLock );
 }

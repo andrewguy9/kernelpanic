@@ -7,3 +7,5 @@ kernel/timer.o: kernel/timer.c kernel/timer.h
 kernel/hal.o: kernel/hal.c kernel/hal.h
 
 kernel/scheduler.o: kernel/scheduler.c kernel/scheduler.h
+
+kernel/mutex.o: kernel/mutex.c kernel/mutex.h

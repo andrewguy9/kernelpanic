@@ -23,7 +23,7 @@ void TimerRegisterASR( struct TIMER * newTimer,
 	ASSERT( HalIsAtomic(), "timer structures can only be added from \
 			interrupt level");
 	ASSERT( newTimer != NULL, "null argument" );
-	ASSERT( hanlder != NULL, "null handler" );
+	ASSERT( handler != NULL, "null handler" );
 
 	newTimer->Link.Weight = Time + wait;
 	newTimer->Handler = handler;
