@@ -7,6 +7,9 @@
 //Prototypes ( For all Builds )
 void HalInitClock();
 BOOL HalIsAtomic();
+void HalInit();
+void HalEnableInterrupts();
+void HalDisableInterrupts();
 //-----------------------------------------------------------------------------
 #ifdef AVR_BUILD
 
@@ -27,14 +30,6 @@ BOOL HalIsAtomic();
 #define DEBUG_SW           PINA
 #define DEBUG_SW_PORT      PORTA
 #define DEBUG_SW_DDR       DDRA
-
-/*
- * Disables and enables all interrupts globally.
- * This is to be used as a strong critial section
- * and only used for very very short sections.
- */
-#define DISABLE_INTERRUPTS() asm(" cli")
-#define ENABLE_INTERRUPTS() asm(" sei")
 
 void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 #define TimerInterrupt TIMER0_OVF_vect

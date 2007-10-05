@@ -23,3 +23,22 @@ BOOL HalIsAtomic()
 {
 	return SREG&SREG_I;
 }
+
+COUNT InterruptLevel;
+void HalDisableInterrupts()
+{
+	asm(" cli");
+	InterruptLevel++;
+}
+
+void HalEnableInterrupts()
+{
+	InterruptLevel--;
+	if( InterruptLevel = 0 )
+		asm(" sei");
+}
+
+void HalInit()
+{
+	InterruptLevel = 1;
+}
