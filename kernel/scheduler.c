@@ -55,6 +55,7 @@ void Schedule( )
 {
 	if( ! MutexLock( &SchedulerLock ) )
 	{
+		//TODO so, maybe we should try again, since we failed...
 		return;
 	}
 
