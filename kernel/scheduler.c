@@ -35,18 +35,23 @@
 struct THREAD * ActiveThread;
 struct THREAD * NextThread;
 struct HEAP ThreadHeap;
-struct TIMER ScheduleTimer;
+struct TIMER SchedulerTimer;
 
 struct MUTEX SchedulerLock;
 
+/*
+ * Thread function to start a 
+ * critical section. 
+ */
 void SchedulerStartCritical( )
 {
-	BOOL worked = MutexLock( & SchedulerLock );
-	ASSERT( worked, "Could not start critical section" );
+	BOOL aquired = MutexLock( & SchedulerLock );
+	ASSERT( aquired, "Start Critical should always stop the scheduler");
 }
 
 void SchedulerEndCritical()
 {
+	ASSERT( MutexIsLocked( & SchedulerLock ), "Critical section not started");
 	MutexUnlock( & SchedulerLock );
 }
 
@@ -57,17 +62,44 @@ void SchedulerForceSwitch()
 
 void SchedulerResumeThread( struct THREAD * thread )
 {
-	//TODO
+	ASSERT( MutexIsLocked( & SchedulerLock ), 
+			"Only run from critical section" );
+	ASSERT( thread->State == THREAD_STATE_BLOCKED, 
+			"Thread not blocked" );
+	thread->State = THREAD_STATE_RUNNING;
+	thread->Link.WeightedLink.Weight = 0;//TODO MAKE FORMULA BIATCH
+	HeapAdd( thread, & ThreadHeap );
 }
 
 void SchedulerBlockThread( )
 {
-	//TODO
+	ASSERT( MutexIsLocked( &SchedulerLock ), 
+			"Only block thread from critical section");
+	ActiveThread->State = THREAD_STATE_BLOCKED;
 }
 
 void Schedule( ) 
 {
-	//TODO
+	ASSERT( HalIsAtomic(), 
+			"Only run schedule in interrupt mode");
+
+	//See if we are allowed to schedule (not in crit section)
+	if( Mutex( & SchedulerLock ) )
+	{
+		//save old thread
+		if( ActiveThread->State == THREAD_STATE_RUNNING )
+		{
+			//TODO COME UP WITH A FORMULA
+			HeapAdd( (struct WEIGHTED_LINK *) &ActiveThread );
+		}
+		//fetch new thread.
+		NextThread = ( struct THREAD *) HeapPop( & ThreadHeap );
+	}
+
+	//reschedule the scheduler to run.
+	TimerRegisterASR( &SchedulerTimer,
+			SCHEDULER_QUANTUM,
+			Schedule);
 }
 
 void SchedulerInit()
