@@ -105,8 +105,8 @@ void DumpHeap( struct HEAP * heap )
 
 int main()
 {
-	InitLinkedList( & queueList );
-	InitLinkedList( & stackList );
+	LinkedListInit( & queueList );
+	LinkedListInit( & stackList );
 	HeapInit( & heap );
 	int data;
 	do
