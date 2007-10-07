@@ -2,7 +2,7 @@
 #define LINKEDLIST_H
 
 #include"link.h"
-
+#include"utils.h"
 //Simple insert at the end of list.
 void LinkedListInsert( struct LINKED_LIST_LINK * node, struct LINKED_LIST_LINK * list );
 //Simple remove of a node from a list.
@@ -20,5 +20,7 @@ struct LINKED_LIST_LINK * LinkedListPop( struct LINKED_LIST * list );
 //Add to the end of list.
 void LinkedListEnqueue( struct LINKED_LIST_LINK * node, struct LINKED_LIST * list );
 
-void InitLinkedList( struct LINKED_LIST * list );
+BOOL LinkedListIsEmpty( struct LINKED_LIST * list );
+
+void LinkedListInit( struct LINKED_LIST * list );
 #endif
