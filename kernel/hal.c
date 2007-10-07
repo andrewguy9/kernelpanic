@@ -34,7 +34,7 @@ void HalDisableInterrupts()
 void HalEnableInterrupts()
 {
 	InterruptLevel--;
-	if( InterruptLevel = 0 )
+	if( InterruptLevel == 0 )
 		asm(" sei");
 }
 
