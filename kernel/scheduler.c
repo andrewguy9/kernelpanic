@@ -3,6 +3,7 @@
 #include"../utils/heap.h"
 #include"timer.h"
 #include"mutex.h"
+#include"hal.h"
 
 #define SCHEDULER_QUANTUM 10
 
@@ -68,7 +69,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 			"Thread not blocked" );
 	thread->State = THREAD_STATE_RUNNING;
 	thread->Link.WeightedLink.Weight = 0;//TODO MAKE FORMULA BIATCH
-	HeapAdd( thread, & ThreadHeap );
+	HeapAdd( (struct WEIGHTED_LINK *) thread, & ThreadHeap );
 }
 
 void SchedulerBlockThread( )
@@ -84,13 +85,14 @@ void Schedule( )
 			"Only run schedule in interrupt mode");
 
 	//See if we are allowed to schedule (not in crit section)
-	if( Mutex( & SchedulerLock ) )
+	if( MutexIsLocked( & SchedulerLock ) )
 	{
 		//save old thread
 		if( ActiveThread->State == THREAD_STATE_RUNNING )
 		{
 			//TODO COME UP WITH A FORMULA
-			HeapAdd( (struct WEIGHTED_LINK *) &ActiveThread );
+			HeapAdd( (struct WEIGHTED_LINK *) &ActiveThread,
+				  & ThreadHeap );
 		}
 		//fetch new thread.
 		NextThread = ( struct THREAD *) HeapPop( & ThreadHeap );
@@ -110,7 +112,9 @@ void SchedulerInit()
 	//Initialize heap
 	HeapInit( & ThreadHeap );
 	//Initialize the timer
-	TimerRegisterASR( & ScheduleTimer, 0, Schedule );
+	TimerRegisterASR( & SchedulerTimer,
+		   	0, 
+			Schedule );
 	//Set up Schedule Resource
 	MutexLockInit( & SchedulerLock );
 }

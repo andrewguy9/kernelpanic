@@ -15,7 +15,11 @@ struct THREAD
 	void * Stack;
 };
 
-void StartCritical( );
-void EndCritical( );
-
+void SchedulerStartCritical( );
+void SchedulerEndCritical();
+void SchedulerForceSwitch();
+void SchedulerResumeThread( struct THREAD * thread );
+void SchedulerBlockThread( );
+void Schedule( ) ;
+void SchedulerInit();
 #endif
