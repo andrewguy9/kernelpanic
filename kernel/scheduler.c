@@ -1,6 +1,6 @@
 #include"scheduler.h"
 #include"../utils/utils.h"
-#include"../utils/heap.h"
+#include"../utils/linkedlist.h"
 #include"timer.h"
 #include"mutex.h"
 #include"hal.h"
@@ -35,8 +35,14 @@
 
 struct THREAD * ActiveThread;
 struct THREAD * NextThread;
-struct HEAP ThreadHeap;
+
+struct LINKED_LIST Queue1;
+struct LINKED_LIST Queue2;
+struct LINKED_LIST * RunQueue;
+struct LINKED_LIST * DoneQueue;
+
 struct TIMER SchedulerTimer;
+BOOL QuantumExpired;
 
 struct MUTEX SchedulerLock;
 
@@ -68,8 +74,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 	ASSERT( thread->State == THREAD_STATE_BLOCKED, 
 			"Thread not blocked" );
 	thread->State = THREAD_STATE_RUNNING;
-	thread->Link.WeightedLink.Weight = 0;//TODO MAKE FORMULA BIATCH
-	HeapAdd( (struct WEIGHTED_LINK *) thread, & ThreadHeap );
+	LinkedListEnqueue( (struct LINKED_LIST_LINK *) thread, DoneQueue );
 }
 
 void SchedulerBlockThread( )
@@ -86,22 +91,37 @@ void Schedule( )
 
 	//See if we are allowed to schedule (not in crit section)
 	if( MutexIsLocked( & SchedulerLock ) )
-	{
+	{//We are allowed to schedule.
 		//save old thread
 		if( ActiveThread->State == THREAD_STATE_RUNNING )
 		{
 			//TODO COME UP WITH A FORMULA
-			HeapAdd( (struct WEIGHTED_LINK *) &ActiveThread,
-				  & ThreadHeap );
+			LinkedListEnqueue( (struct LINKED_LIST_LINK *) ActiveThread,
+				  DoneQueue);
 		}
 		//fetch new thread.
-		NextThread = ( struct THREAD *) HeapPop( & ThreadHeap );
-	}
+		if( LinkedListIsEmpty( RunQueue ) )
+		{
+			struct LINKED_LIST * temp = RunQueue;
+			RunQueue = DoneQueue;
+			DoneQueue = temp;
+		}
+		ASSERT( ! LinkedListIsEmpty( RunQueue ),
+			   "there are no threads to run!");
+		NextThread = 
+			(struct THREAD * ) LinkedListPop( RunQueue );
 
-	//reschedule the scheduler to run.
-	TimerRegisterASR( &SchedulerTimer,
-			SCHEDULER_QUANTUM,
+		//restart the scheduler timer.
+		TimerRegisterASR( &SchedulerTimer,
+			NextThread->Priority,
 			Schedule);
+		QuantumExpired = FALSE;
+	}
+	else
+	{
+		//mark the quantum as expired.
+		QuantumExpired = TRUE;
+	}
 }
 
 void SchedulerInit()
@@ -109,8 +129,11 @@ void SchedulerInit()
 	//Initialize ActiveThread
 	ActiveThread = NULL;//TODO Cannot be null, ever.
 	NextThread = NULL;
-	//Initialize heap
-	HeapInit( & ThreadHeap );
+	//Initialize queues
+	LinkedListInit( & Queue1 );
+	LinkedListInit( & Queue2 );
+	RunQueue = & Queue1;
+	DoneQueue = & Queue2;
 	//Initialize the timer
 	TimerRegisterASR( & SchedulerTimer,
 		   	0, 
