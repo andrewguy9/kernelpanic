@@ -128,4 +128,5 @@ int main()
 		else
 			Add(data);
 	}while( data != 0 );
+	return 0;
 }
