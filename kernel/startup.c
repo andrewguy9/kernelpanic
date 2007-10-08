@@ -2,7 +2,7 @@
 #include"scheduler.h"
 #include"hal.h"
 
-void main()
+void KernelInit()
 {//entry point for kernel...
 	HalInit();
 
@@ -10,6 +10,13 @@ void main()
 
 	SchedulerInit();
 
-	HalEnableInterrupts();
+}
 
+void KernelStart()
+{
+	HalEnableInterrupts();
+}
+
+int main()
+{
 }
