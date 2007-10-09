@@ -19,4 +19,7 @@ void KernelStart()
 
 int main()
 {
+	KernelInit();
+	KernelStart();
+	return 0;
 }
