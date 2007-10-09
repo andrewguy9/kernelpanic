@@ -5,8 +5,6 @@
 #include"mutex.h"
 #include"hal.h"
 
-#define SCHEDULER_QUANTUM 10
-
 /*
  * Scheduler Unit:
  * The Scheduler unit has three tasks:
@@ -36,15 +34,20 @@
 struct THREAD * ActiveThread;
 struct THREAD * NextThread;
 
+struct MUTEX SchedulerLock;
+//variables protected by SchedulerLock
 struct LINKED_LIST Queue1;
 struct LINKED_LIST Queue2;
 struct LINKED_LIST * RunQueue;
 struct LINKED_LIST * DoneQueue;
 
 struct TIMER SchedulerTimer;
+
+//Variables that need to be atomic.
 BOOL QuantumExpired;
 
-struct MUTEX SchedulerLock;
+//Thread for idle loop ( the start of thread too )
+struct THREAD IdleThread;
 
 /*
  * Thread function to start a 
@@ -56,15 +59,34 @@ void SchedulerStartCritical( )
 	ASSERT( aquired, "Start Critical should always stop the scheduler");
 }
 
-void SchedulerEndCritical()
-{
-	ASSERT( MutexIsLocked( & SchedulerLock ), "Critical section not started");
-	MutexUnlock( & SchedulerLock );
-}
-
+/*Ends a critical section and forces an immediate context switch*/
 void SchedulerForceSwitch()
 {
-	//TODO
+
+	HalDisableInterrupts();
+	HalSaveState();	
+	ActiveThread->Stack = (void *) SP;
+	Schedule();
+	if( NextThread != NULL )
+	{
+		ActiveThread = NextThread;
+		NextThread = NULL;
+	}
+	SP = (int) ActiveThread->Stack;
+	HalRestoreState();
+	return;//TODO MAKE SURE THAT STACK STAY'S ALIGNED.
+}
+
+void SchedulerEndCritical()
+{
+	ASSERT( MutexIsLocked( & SchedulerLock ), "Critical section cannot start.");
+	MutexUnlock( & SchedulerLock );
+	//Check to see if the quantum has expired...
+	HalDisableInterrupts();
+	if( QuantumExpired )
+	{//Quantum has expired while in crit section, fire manually.
+		SchedulerForceSwitch();
+	}
 }
 
 void SchedulerResumeThread( struct THREAD * thread )
@@ -93,23 +115,29 @@ void Schedule( )
 	if( MutexIsLocked( & SchedulerLock ) )
 	{//We are allowed to schedule.
 		//save old thread
-		if( ActiveThread->State == THREAD_STATE_RUNNING )
+		if( ActiveThread->State == THREAD_STATE_RUNNING &&
+				ActiveThread != &IdleThread)
 		{
-			//TODO COME UP WITH A FORMULA
 			LinkedListEnqueue( (struct LINKED_LIST_LINK *) ActiveThread,
 				  DoneQueue);
 		}
 		//fetch new thread.
 		if( LinkedListIsEmpty( RunQueue ) )
-		{
+		{//there are no threads in first queue.
 			struct LINKED_LIST * temp = RunQueue;
 			RunQueue = DoneQueue;
 			DoneQueue = temp;
 		}
-		ASSERT( ! LinkedListIsEmpty( RunQueue ),
-			   "there are no threads to run!");
-		NextThread = 
-			(struct THREAD * ) LinkedListPop( RunQueue );
+
+		if( LinkedListIsEmpty( RunQueue ) )
+		{//there are no threads in 2nd queue, use idle loop
+			NextThread = &IdleThread;
+		}
+		else
+		{//there was a thread in 2nd queue, run it
+			NextThread = 
+				(struct THREAD * ) LinkedListPop( RunQueue );
+		}
 
 		//restart the scheduler timer.
 		TimerRegisterASR( &SchedulerTimer,
@@ -126,9 +154,6 @@ void Schedule( )
 
 void SchedulerInit()
 {
-	//Initialize ActiveThread
-	ActiveThread = NULL;//TODO Cannot be null, ever.
-	NextThread = NULL;
 	//Initialize queues
 	LinkedListInit( & Queue1 );
 	LinkedListInit( & Queue2 );
@@ -138,6 +163,35 @@ void SchedulerInit()
 	TimerRegisterASR( & SchedulerTimer,
 		   	0, 
 			Schedule );
+	QuantumExpired = FALSE;
 	//Set up Schedule Resource
 	MutexLockInit( & SchedulerLock );
+	//Create a thread for idle loop.
+	SchedulerCreateThread( &IdleThread, 1, 0, 500, NULL );
+	//Initialize ActiveThread
+	ActiveThread = & IdleThread;
+	NextThread = NULL;
 }
+
+void SchedulerCreateThread( 
+		struct THREAD * thread,
+		unsigned char priority,
+		char * stack,
+		unsigned int stackSize,
+		THREAD_MAIN main)
+{
+	//Populate thread struct
+	thread->Priority = priority;
+	//initialize stack
+	thread->State = (unsigned int ) stack + stackSize;
+	//create initial stack frame
+	thread->Stack -= sizeof( void * );
+	*(thread->Stack + 1) = (int) main;
+    *((unsigned char *)(thread->Stack)) = 
+		(unsigned char)((unsigned int)(main)>>8);
+	thread->Stack -= 34*sizeof(char);
+	//Add thread to done queue.
+	LinkedListEnqueue( (struct LINKED_LIST_LINK *) thread, DoneQueue );
+}
+
+		
