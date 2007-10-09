@@ -10,6 +10,7 @@ BOOL HalIsAtomic();
 void HalInit();
 void HalEnableInterrupts();
 void HalDisableInterrupts();
+void HalPrepareRETI();
 //-----------------------------------------------------------------------------
 #ifdef AVR_BUILD
 
@@ -30,6 +31,9 @@ void HalDisableInterrupts();
 #define DEBUG_SW           PINA
 #define DEBUG_SW_PORT      PORTA
 #define DEBUG_SW_DDR       DDRA
+
+void inline HalRestoreState();
+void inline HalSaveState();
 
 void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 #define TimerInterrupt TIMER0_OVF_vect
