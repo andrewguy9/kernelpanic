@@ -36,7 +36,7 @@ AVR_STRING = -e TARGET=$(AVR_PREFIX) -e CC=$(AVR_CC) -e BUILD=$(AVR_BUILD) -e CF
 	$(CC) $(CFLAGS) -D $(BUILD) -o $@ -c $<
 
 %.out:
-	$(CC) $(CFLAGS) -D $(BUILD) -o $@ $^
+	$(CC) $(CFLAGS) -D $(BUILD) -Wl,-Map,$@.asm -o $@ $^
 
 %.hex: %.out
 	avr-objcopy -j .text -j .data -O ihex $< $@
@@ -47,6 +47,7 @@ AVR_STRING = -e TARGET=$(AVR_PREFIX) -e CC=$(AVR_CC) -e BUILD=$(AVR_BUILD) -e CF
 #########################################
 #clean dir
 .phony cleandir:
+	rm -f $(DIR)/*.asm
 	rm -f $(DIR)/*.out
 	rm -f $(DIR)/*.o
 	rm -f $(DIR)/core*
