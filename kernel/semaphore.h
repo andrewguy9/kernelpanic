@@ -1,7 +1,7 @@
 #ifndef SEMAPHORE_H
 #define SEMAPHORE_H
 
-#include"utils.h"
+#include"../utils/utils.h"
 #include"../utils/linkedlist.h"
 
 struct SEMAPHORE
