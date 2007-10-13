@@ -74,7 +74,7 @@ void SchedulerForceSwitch()
 	}
 	SP = (int) ActiveThread->Stack;
 	HalRestoreState();
-	return;//TODO MAKE SURE THAT STACK STAY'S ALIGNED.
+	return;//TODO MAKE SURE THAT STACK STACK IS ALIGNED.
 }
 
 void SchedulerEndCritical()
@@ -171,6 +171,11 @@ void SchedulerInit()
 	//Initialize ActiveThread
 	ActiveThread = & IdleThread;
 	NextThread = NULL;
+}
+
+struct THREAD * SchedulerGetActiveThread()
+{
+	return ActiveThread;
 }
 
 void SchedulerCreateThread( 
