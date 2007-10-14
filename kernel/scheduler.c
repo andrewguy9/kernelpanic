@@ -59,24 +59,6 @@ void SchedulerStartCritical( )
 	ASSERT( aquired, "Start Critical should always stop the scheduler");
 }
 
-/*Ends a critical section and forces an immediate context switch*/
-void SchedulerForceSwitch()
-{
-
-	HalDisableInterrupts();
-	HalSaveState
-	ActiveThread->Stack = (void *) SP;
-	Schedule();
-	if( NextThread != NULL )
-	{
-		ActiveThread = NextThread;
-		NextThread = NULL;
-	}
-	SP = (int) ActiveThread->Stack;
-	HalRestoreState
-	return;//TODO MAKE SURE THAT STACK STACK IS ALIGNED.
-}
-
 void SchedulerEndCritical()
 {
 	ASSERT( MutexIsLocked( & SchedulerLock ), "Critical section cannot start.");
@@ -87,6 +69,34 @@ void SchedulerEndCritical()
 	{//Quantum has expired while in crit section, fire manually.
 		SchedulerForceSwitch();
 	}
+	else
+	{
+		HalEnableInterrupts();
+	}
+}
+
+/*Ends a critical section and forces an immediate context switch*/
+void SchedulerForceSwitch()
+{
+//TODO FIX
+	HalDisableInterrupts();
+
+	HalSaveState
+	
+	ActiveThread->Stack = (void *) SP;
+	Schedule();
+	if( NextThread != NULL )
+	{
+		ActiveThread = NextThread;
+		NextThread = NULL;
+	}
+
+	//make sure we are ready to context switch
+	HalPrepareRETI();
+
+	SP = (int) ActiveThread->Stack;
+	
+	HalRestoreState
 }
 
 void SchedulerResumeThread( struct THREAD * thread )
