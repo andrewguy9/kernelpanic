@@ -11,25 +11,30 @@ char TestThreadStackDivide[500];
 struct SEMAPHORE ValueLock;
 unsigned int Value = 0;
 
-void TestMainIncrament()
+void TestMainIncrement()
 {
 	int a = 0;
-	for( a=0; a<10000; a++)
+	while( 1 )
 	{
 		SemaphoreLock( & ValueLock );
+		for( a=0; a<0xffff; a++);
 		Value++;
+		for( a=0; a<0xffff; a++);
 		SemaphoreUnlock( & ValueLock );
+
 	}
 }
 
 void TestMainDivide()
 {
 	int a = 0;
-	for( a=0; a<10000; a++)
+	while( 1 )
 	{
-		SemaphoreLock( &ValueLock );
-		Value/=2;
-		Semaphoreunlock( &ValueLock );
+		SemaphoreLock( & ValueLock );
+		for( a=0; a<0xffff; a++);
+		Value/2;
+		for( a=0; a<0xffff; a++);
+		SemaphoreUnlock( & ValueLock );
 	}
 }
 
@@ -42,13 +47,13 @@ int main()
 			2,
 			TestThreadStackIncrement,
 			500,
-			TestMain );
-	ScheduerCreateThread(
+			TestMainIncrement );
+	SchedulerCreateThread(
 			&TestThreadDivide,
 			10,
 			TestThreadStackDivide,
 			500,
-			TestMain);
+			TestMainDivide);
 	KernelStart();
 	return 0;
 }
