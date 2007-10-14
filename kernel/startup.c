@@ -15,11 +15,6 @@ void KernelInit()
 void KernelStart()
 {
 	HalEnableInterrupts();
+	while(1);
 }
 
-int main()
-{
-	KernelInit();
-	KernelStart();
-	return 0;
-}

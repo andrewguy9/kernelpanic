@@ -50,6 +50,7 @@ void HalInit()
 	InterruptLevel = 1;
 }
 
+/*
 void inline HalSaveState()
 {
 	asm( 
@@ -89,7 +90,8 @@ void inline HalSaveState()
 			"push r0\n\t"
 			);
 }
-
+*/
+/*
 void inline HalRestoreState()
 {
 	asm( 
@@ -130,3 +132,4 @@ void inline HalRestoreState()
 			"reti\n\t"
 			);
 }
+*/

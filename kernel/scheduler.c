@@ -64,7 +64,7 @@ void SchedulerForceSwitch()
 {
 
 	HalDisableInterrupts();
-	HalSaveState();	
+	HalSaveState
 	ActiveThread->Stack = (void *) SP;
 	Schedule();
 	if( NextThread != NULL )
@@ -73,7 +73,7 @@ void SchedulerForceSwitch()
 		NextThread = NULL;
 	}
 	SP = (int) ActiveThread->Stack;
-	HalRestoreState();
+	HalRestoreState
 	return;//TODO MAKE SURE THAT STACK STACK IS ALIGNED.
 }
 
@@ -112,31 +112,32 @@ void Schedule( )
 			"Only run schedule in interrupt mode");
 
 	//See if we are allowed to schedule (not in crit section)
-	if( MutexIsLocked( & SchedulerLock ) )
+	if( ! MutexIsLocked( & SchedulerLock ) )
 	{//We are allowed to schedule.
 		//save old thread
-		if( ActiveThread->State == THREAD_STATE_RUNNING &&
-				ActiveThread != &IdleThread)
+		if( ActiveThread != &IdleThread && 
+				ActiveThread->State == THREAD_STATE_RUNNING)
 		{
 			LinkedListEnqueue( (struct LINKED_LIST_LINK *) ActiveThread,
 				  DoneQueue);
 		}
-		//fetch new thread.
+
+		//Switch job queue if needed
 		if( LinkedListIsEmpty( RunQueue ) )
-		{//there are no threads in first queue.
+		{//no threads in RunQueue, swap queues.
 			struct LINKED_LIST * temp = RunQueue;
 			RunQueue = DoneQueue;
 			DoneQueue = temp;
 		}
 
-		if( LinkedListIsEmpty( RunQueue ) )
-		{//there are no threads in 2nd queue, use idle loop
-			NextThread = &IdleThread;
-		}
-		else
-		{//there was a thread in 2nd queue, run it
+		if( ! LinkedListIsEmpty( RunQueue ) )
+		{//there are threads waiting, run one
 			NextThread = 
 				(struct THREAD * ) LinkedListPop( RunQueue );
+		}
+		else
+		{//there were no threads at all, use idle loop.
+			NextThread = &IdleThread;
 		}
 
 		//restart the scheduler timer.
@@ -146,11 +147,11 @@ void Schedule( )
 		QuantumExpired = FALSE;
 	}
 	else
-	{
+	{//we are not allowed to schedule.
 		//mark the quantum as expired.
 		QuantumExpired = TRUE;
 	}
-}
+}//end Schedule
 
 void SchedulerInit()
 {

@@ -26,7 +26,6 @@ void SemaphoreLock( struct SEMAPHORE * lock )
 		//then cause the scheduler to fire, so that this thread is switched out.
 		SchedulerForceSwitch();
 	}
-
 	//at this point the thread has acquired the lock, continue execution
 	return;
 }

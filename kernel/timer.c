@@ -40,7 +40,7 @@ void RunTimers( )
 	ASSERT( HalIsAtomic(), "timers can only be run from interrupt level.");
 	Time++;
 	while( HeapSize( &Timers) > 0 && 
-			HeapHeadWeight( &Timers ) >= Time )
+			HeapHeadWeight( &Timers ) <= Time )
 	{
 		struct TIMER * timer = (struct TIMER *) HeapPop( & Timers );
 		timer->Handler();
@@ -55,7 +55,7 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	
 
 	//Save state
-	HalSaveState();
+	HalSaveState
 
 	//Save the stack pointer
     ActiveThread->Stack = (void *) SP;
@@ -79,6 +79,6 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	//Restore stack
 	SP = (int) ActiveThread->Stack;
 
-	HalRestoreState();
+	HalRestoreState
 }
 
