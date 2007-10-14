@@ -8,7 +8,7 @@ char TestThreadStackIncrement[500];
 struct THREAD TestThreadDivide;
 char TestThreadStackDivide[500];
 
-SEMAPHORE ValueLock;
+struct SEMAPHORE ValueLock;
 unsigned int Value = 0;
 
 void TestMainIncrament()
