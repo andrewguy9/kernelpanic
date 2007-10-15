@@ -192,7 +192,7 @@ void SchedulerInit()
 	//Set up Schedule Resource
 	MutexLockInit( & SchedulerLock );
 	//Create a thread for idle loop.
-	SchedulerCreateThread( &IdleThread, 1, 0, 500, NULL );
+	SchedulerCreateThread( &IdleThread, 1, NULL, NULL, NULL );
 	//Initialize ActiveThread
 	ActiveThread = & IdleThread;
 	NextThread = NULL;
