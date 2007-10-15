@@ -28,13 +28,13 @@ void SeldomHandler( )
 
 //Tests of the multithreading system
 struct SEMAPHORE ValueLock;
-unsigned int Value = 0;
+volatile unsigned int Value = 0;
 
 struct THREAD TestThreadIncrement;
 char TestThreadStackIncrement[500];
 void TestMainIncrement()
 {
-	unsigned long int a = 0;
+	volatile unsigned long int a = 0;
 	while( 1 )
 	{
 		//SemaphoreLock( & ValueLock );
@@ -50,7 +50,7 @@ struct THREAD TestThreadDivide;
 char TestThreadStackDivide[500];
 void TestMainDivide()
 {
-	unsigned long int a = 0;
+	volatile unsigned long int a = 0;
 	while( 1 )
 	{
 		//SemaphoreLock( & ValueLock );
