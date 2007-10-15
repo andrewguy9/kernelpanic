@@ -38,9 +38,18 @@ void HalEnableInterrupts()
 		asm(" sei");
 }
 
-void HalPrepareRETI()
+void HalStartInterrupt()
 {
-	InterruptLevel = 0;
+	InterruptLevel++;
+}
+
+void HalEndInterrupt()
+{
+	InterruptLevel--;
+	ASSERT( InterruptLevel == 0,
+			HAL_END_INTERRUPT_WRONG_LEVEL,
+			"Interrupt level is not balanced at end of interrupt."
+		  );
 }
 
 void HalInit()

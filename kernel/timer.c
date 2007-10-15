@@ -57,6 +57,9 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	//Save the stack pointer
     ActiveThread->Stack = (void *) SP;
 
+	//update interrupt level to represent that we are in inerrupt
+	HalStartInterrupt();
+
 	//Call the timer utility
 	RunTimers( );
 
@@ -70,8 +73,8 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	//reset the clock
     TCNT0 = 0xff-1*16; //1 ms
 
-	//make sure we are ready to context switch
-	HalPrepareRETI();
+	//Restore the interrupt level, since we are ready to restore state.
+	HalEndInterrupt();
 
 	//Restore stack
 	SP = (int) ActiveThread->Stack;

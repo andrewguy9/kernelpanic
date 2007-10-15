@@ -86,8 +86,10 @@ void SchedulerEndCritical()
 /*Ends a critical section and forces an immediate context switch*/
 void SchedulerForceSwitch()
 {
-//TODO FIX: See if this is causing a coruption...
-	HalDisableInterrupts();
+
+	ASSERT( HalIsAtomic(),
+			SCHEDULER_FORCE_SWITCH_NOT_ATOMIC,
+			"Can only force context switch in interrupt level");
 
 	HalSaveState
 	
@@ -99,12 +101,12 @@ void SchedulerForceSwitch()
 		NextThread = NULL;
 	}
 
-	//make sure we are ready to context switch
-	HalPrepareRETI();
+	HalEndInterrupt(); //we have to 
 
 	SP = (int) ActiveThread->Stack;
 	
 	HalRestoreState
+		//TODO this function is broken: verify that InterruptLevel is 0, and that reti clears the interrupt but.
 }
 
 void SchedulerResumeThread( struct THREAD * thread )

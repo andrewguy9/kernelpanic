@@ -10,7 +10,7 @@ BOOL HalIsAtomic();
 void HalInit();
 void HalEnableInterrupts();
 void HalDisableInterrupts();
-void HalPrepareRETI();
+void HalStartInterrupt();
 //-----------------------------------------------------------------------------
 #ifdef AVR_BUILD
 
