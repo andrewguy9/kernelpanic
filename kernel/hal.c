@@ -21,7 +21,7 @@ void HalInitClock()
 //-----------------------------------------------------------------------------
 BOOL HalIsAtomic()
 {
-	return SREG&SREG_I;
+	return ! (SREG&SREG_I);
 }
 
 COUNT InterruptLevel;
@@ -40,8 +40,6 @@ void HalEnableInterrupts()
 
 void HalPrepareRETI()
 {
-	ASSERT( InterruptLevel <= 1, 
-			"Interrupt level cannot be greater than 1" );
 	InterruptLevel = 0;
 }
 

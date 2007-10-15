@@ -5,6 +5,7 @@ void HeapPromote( struct WEIGHTED_LINK * node )
 	//NOTE: this function does not protect the heap->Head value. 
 	//You must fix the head value after calling this function.
 	ASSERT( node->Parent != NULL, 
+			HEAP_PROMOTE_TOP,
 			"can not promote the top node" );
 
 	struct WEIGHTED_LINK * parent = node->Parent;
@@ -87,8 +88,8 @@ struct WEIGHTED_LINK * HeapSmallest( struct WEIGHTED_LINK *n1, struct WEIGHTED_L
 
 struct WEIGHTED_LINK * HeapFindElement( INDEX index, struct HEAP * heap )
 {//TODO BROKEN FUNCTION!!!
-	ASSERT( heap != NULL, "heap was null" );
 	ASSERT( index <= heap-> Size && index != 0, 
+			HEAP_FIND_ELEMENT_OUT_OF_BOUNDS,
 			"index is not within bounds" );
 
 	//Find the number of steps go from head to index.
@@ -123,9 +124,6 @@ void HeapAdd( struct WEIGHTED_LINK * node, struct HEAP * heap )
 
 	struct WEIGHTED_LINK * parent;
 	
-	ASSERT( node != NULL && heap != NULL, 
-			"HeapAdd recieved null pointer");
-
 	//node will be a leaf, so set pointers to null.
 	node->Left = NULL;
 	node->Right = NULL;
@@ -143,6 +141,7 @@ void HeapAdd( struct WEIGHTED_LINK * node, struct HEAP * heap )
 		//find parent of node and add.
 		parent = HeapFindElement( heap->Size/2, heap );
 		ASSERT( parent->Left == NULL || parent->Right == NULL, 
+				HEAP_ADD_PARENT_FULL,
 				"parent must have a spot for node");
 		if( parent->Left == NULL )
 			parent->Left = node;
@@ -162,8 +161,6 @@ void HeapAdd( struct WEIGHTED_LINK * node, struct HEAP * heap )
 
 struct WEIGHTED_LINK * HeapPop( struct HEAP * heap )
 {
-	ASSERT( heap != NULL, "heap was not null" );
-
 	if( heap->Size == 0 )
 		return NULL;
 
@@ -171,8 +168,12 @@ struct WEIGHTED_LINK * HeapPop( struct HEAP * heap )
 	//we need an element to replace head.	
 	struct WEIGHTED_LINK * tail = HeapFindElement( heap->Size, heap );
 	//make sure tail is a leaf.
-	ASSERT( tail != NULL, "tail was null" );
-	ASSERT( tail->Left == NULL && tail->Right == NULL, "tail is not a leaf" );
+	ASSERT( tail != NULL, 
+			HEAP_POP_TAIL_NULL,
+			"tail was null" );
+	ASSERT( tail->Left == NULL && tail->Right == NULL,
+			HEAP_POP_TAIL_NOT_LEAF,
+		   	"tail is not a leaf" );
 	//remove tail from heap (from its parent)
 	if( tail->Parent != NULL )
 	{//if parent exists: i.e. we are in middle of heap
@@ -231,6 +232,5 @@ void HeapInit( struct HEAP * heap )
 
 COUNT HeapSize( struct HEAP * heap )
 {
-	ASSERT( heap != NULL, "heap was null");
 	return heap->Size;
 }

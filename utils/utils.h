@@ -8,10 +8,21 @@
 #define FALSE 0
 #define TRUE (! FALSE )
 
+#ifdef PC_BUILD
+
 #include<stdio.h>
 #include<stdlib.h>
-#define ASSERT( condition, error ) ( condition ? :  \
+#define ASSERT( condition, errornum, error ) ( condition ? :  \
 		printf("ASSERT FAILED: %s\n", error))
+
+#endif
+
+#ifdef AVR_BUILD
+#include"../kernel/panic.h"
+#define ASSERT( condition, errornum, error ) ( condition ? : \
+		KernelPanic( errornum ) )
+
+#endif
 
 typedef unsigned int COUNT;
 typedef unsigned int INDEX;

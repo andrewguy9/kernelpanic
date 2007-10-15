@@ -7,7 +7,9 @@
  */
 void LinkedListInsert( struct LINKED_LIST_LINK * node, struct LINKED_LIST_LINK * list )
 {
-	ASSERT( node != NULL, "cannot insert null node" );
+	ASSERT( node != NULL, 
+			LINKED_LIST_INSERT_NULL_NODE,
+			"cannot insert null node" );
 	if( list == NULL )
 	{//list is empty, so node is now only value.
 		node->Next = node;
@@ -28,7 +30,9 @@ void LinkedListInsert( struct LINKED_LIST_LINK * node, struct LINKED_LIST_LINK *
  */
 void LinkedListRemove( struct LINKED_LIST_LINK * node )
 {
-	ASSERT( node != NULL, "can not remove node" );
+	ASSERT( node != NULL, 
+			LINKED_LIST_REMOVE_NULL_NODE,
+			"can not remove node" );
 	node->Prev->Next = node->Next;
 	node->Next->Prev = node->Prev;
 	node->Next = node;
@@ -38,7 +42,6 @@ void LinkedListRemove( struct LINKED_LIST_LINK * node )
 //Add to front of list.
 void LinkedListPush( struct LINKED_LIST_LINK * node, struct LINKED_LIST * list )
 {
-	ASSERT( list != NULL, "list is null" );
 	LinkedListInsert( node, list->Head );
 	list->Head = node;
 }
@@ -46,7 +49,6 @@ void LinkedListPush( struct LINKED_LIST_LINK * node, struct LINKED_LIST * list )
 //Pop next value off list.
 struct LINKED_LIST_LINK * LinkedListPop( struct LINKED_LIST * list )
 {
-	ASSERT( list != NULL, "cannot remove from null list." );
 	struct LINKED_LIST_LINK * top;
 	if( list->Head == NULL )
 		return NULL;
@@ -67,7 +69,6 @@ struct LINKED_LIST_LINK * LinkedListPop( struct LINKED_LIST * list )
 //Add to the end of list.
 void LinkedListEnqueue( struct LINKED_LIST_LINK * node, struct LINKED_LIST * list )
 {
-	ASSERT( list != NULL, "cannot add to null list." );
 	LinkedListInsert( node, list->Head );
 	list->Head = node->Next;
 }

@@ -13,3 +13,5 @@ kernel/mutex.o: kernel/mutex.c kernel/mutex.h
 kernel/semaphore.o: kernel/semaphore.c kernel/semaphore.h
 
 kernel/resource.o: kernel/resource.c kernel/resource.h
+
+kernel/panic.o: kernel/panic.c kernel/panic.h

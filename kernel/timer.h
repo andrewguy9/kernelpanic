@@ -15,7 +15,7 @@ struct TIMER
 
 void TimerInit( );
 
-void TimerRegisterASR( struct TIMER * newTimer,
+void TimerRegister( struct TIMER * newTimer,
 		TIME wait,
 		TIMER_HANDLER * handler );
 

@@ -34,7 +34,9 @@ BOOL MutexLock( struct MUTEX * lock )
 void MutexUnlock( struct MUTEX * lock )
 {
 	HalDisableInterrupts();
-	ASSERT( lock->Locked == TRUE, "Tried to unlock an unlocked mutex");
+	ASSERT( lock->Locked == TRUE,
+			MUTEX_UNLOCK_WHILE_UNLOCKED,
+		   	"Tried to unlock an unlocked mutex");
 	lock->Locked = FALSE;
 	HalEnableInterrupts();
 }

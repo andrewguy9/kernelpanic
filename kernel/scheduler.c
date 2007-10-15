@@ -10,8 +10,8 @@
  * The Scheduler unit has three tasks:
  * 1) Provide a thread scheduler which
  * picks when threads run.
- * 2) Provide mechanisms to start and stop
- * threads.
+ * 2) Provide a mechanism for a thread
+ * to stop itself, and for others to wake it.
  * 3) Provide mechanism to prevent the sceduler
  * from splitting thread level atomic
  * operations.
@@ -56,15 +56,23 @@ struct THREAD IdleThread;
 void SchedulerStartCritical( )
 {
 	BOOL aquired = MutexLock( & SchedulerLock );
-	ASSERT( aquired, "Start Critical should always stop the scheduler");
+	ASSERT( aquired, 
+			SCHEDULER_START_CRITICAL_MUTEX_NOT_AQUIRED,
+			"Start Critical should always stop the scheduler");
 }
 
 void SchedulerEndCritical()
 {
-	ASSERT( MutexIsLocked( & SchedulerLock ), "Critical section cannot start.");
-	MutexUnlock( & SchedulerLock );
+	ASSERT( MutexIsLocked( & SchedulerLock ),
+			SCHEDULER_END_CRITICAL_NOT_CRITICAL,
+		   	"Critical section cannot start.");
+	MutexUnlock( & SchedulerLock );//protects queues from scheduling interrupt
+
+	//TODO Is this hole an issue?
+
 	//Check to see if the quantum has expired...
-	HalDisableInterrupts();
+	HalDisableInterrupts();//protects quantum and context switch
+
 	if( QuantumExpired )
 	{//Quantum has expired while in crit section, fire manually.
 		SchedulerForceSwitch();
@@ -78,7 +86,7 @@ void SchedulerEndCritical()
 /*Ends a critical section and forces an immediate context switch*/
 void SchedulerForceSwitch()
 {
-//TODO FIX
+//TODO FIX: See if this is causing a coruption...
 	HalDisableInterrupts();
 
 	HalSaveState
@@ -102,8 +110,10 @@ void SchedulerForceSwitch()
 void SchedulerResumeThread( struct THREAD * thread )
 {
 	ASSERT( MutexIsLocked( & SchedulerLock ), 
+			SCHEDULER_RESUME_THREAD_MUST_BE_CRIT,
 			"Only run from critical section" );
 	ASSERT( thread->State == THREAD_STATE_BLOCKED, 
+			SCHEDULER_RESUME_THREAD_NOT_BLOCKED,
 			"Thread not blocked" );
 	thread->State = THREAD_STATE_RUNNING;
 	LinkedListEnqueue( (struct LINKED_LIST_LINK *) thread, DoneQueue );
@@ -112,6 +122,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 void SchedulerBlockThread( )
 {
 	ASSERT( MutexIsLocked( &SchedulerLock ), 
+			SCHEDULER_BLOCK_THREAD_MUST_BE_CRIT,
 			"Only block thread from critical section");
 	ActiveThread->State = THREAD_STATE_BLOCKED;
 }
@@ -119,6 +130,7 @@ void SchedulerBlockThread( )
 void Schedule( ) 
 {
 	ASSERT( HalIsAtomic(), 
+			SCHEDULE_MUST_BE_ATOMIC,
 			"Only run schedule in interrupt mode");
 
 	//See if we are allowed to schedule (not in crit section)
@@ -151,7 +163,7 @@ void Schedule( )
 		}
 
 		//restart the scheduler timer.
-		TimerRegisterASR( &SchedulerTimer,
+		TimerRegister( &SchedulerTimer,
 			NextThread->Priority,
 			Schedule);
 		QuantumExpired = FALSE;
@@ -171,7 +183,7 @@ void SchedulerInit()
 	RunQueue = & Queue1;
 	DoneQueue = & Queue2;
 	//Initialize the timer
-	TimerRegisterASR( & SchedulerTimer,
+	TimerRegister( & SchedulerTimer,
 		   	0, 
 			Schedule );
 	QuantumExpired = FALSE;

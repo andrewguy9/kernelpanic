@@ -21,14 +21,14 @@ void TimerInit( )
 	HalInitClock();
 }
 
-void TimerRegisterASR( struct TIMER * newTimer, 
+void TimerRegister( struct TIMER * newTimer, 
 		TIME wait, 
 		TIMER_HANDLER * handler )
 {
-	ASSERT( HalIsAtomic(), "timer structures can only be added from \
-			interrupt level");
-	ASSERT( newTimer != NULL, "null argument" );
-	ASSERT( handler != NULL, "null handler" );
+	ASSERT( HalIsAtomic(), 
+			TIMER_REGISTER_MUST_BE_ATOMIC,
+			"timer structures can only be \
+		   	added from interrupt level");
 
 	newTimer->Link.Weight = Time + wait;
 	newTimer->Handler = handler;
@@ -37,7 +37,9 @@ void TimerRegisterASR( struct TIMER * newTimer,
 
 void RunTimers( )
 {
-	ASSERT( HalIsAtomic(), "timers can only be run from interrupt level.");
+	ASSERT( HalIsAtomic(), 
+			TIMER_RUN_TIMERS_MUST_BE_ATOMIC,
+			"timers can only be run from interrupt level.");
 	Time++;
 	while( HeapSize( &Timers) > 0 && 
 			HeapHeadWeight( &Timers ) <= Time )
@@ -49,11 +51,6 @@ void RunTimers( )
 
 void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void) 
 {
-	//TODO: Make this function only context switch when needed.
-	//PLAN: Map out and only push registers that we _need_ unil we
-	//know there was a context change. 
-	
-
 	//Save state
 	HalSaveState
 

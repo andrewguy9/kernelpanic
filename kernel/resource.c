@@ -104,9 +104,11 @@ void ResourceUnlockShared( struct RESOURCE * lock )
 	struct THREAD * sleeper;
 
 	SchedulerStartCritical();
-	ASSERT( lock->State != RESOURCE_EXCLUSIVE, 
+	ASSERT( lock->State != RESOURCE_EXCLUSIVE,
+			RESOURCE_SHARED_UNLOCK_WHILE_EXCLUSIVE,
 			"Someone unlocked shared when lock was held exclusively." );
 	ASSERT( lock->NumShared > 0, 
+			RESOURCE_SHARED_UNLOCK_WHEN_UNLOCKED,
 			"Someone unlocked shared when no one had it locked shared");
 
 	lock->NumShared--;
@@ -127,6 +129,7 @@ void ResourceUnlockExclusive( struct RESOURCE * lock )
 	struct THREAD * sleeper;
 	SchedulerStartCritical();
 	ASSERT( lock->State == RESOURCE_EXCLUSIVE,
+			RESOURCE_EXCLUSIVE_UNLOCK_WHILE_SHARED,
 		   	"Someone tried to unlock exclusive while the lock was not exclusive.");
 
 	if( ! LinkedListIsEmpty( & lock->ExclusiveQueue ) )
