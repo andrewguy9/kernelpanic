@@ -2,6 +2,19 @@
 #include"scheduler.h"
 #include"../utils/utils.h"
 
+/*
+ * TODO: there is a possible way to starve shared resources 
+ * if you request exclusive you get to skip over any shared 
+ * requests which are waiting ahead of you. 
+ *
+ * The only way to fix this is to have one queue, and pull 
+ * differently depending on your mode.
+ *
+ * But to do this you have to mark the nature of the request
+ * you have to move to 1 single queue and have a variable in 
+ * a thread that marks what situation the thread is in.
+ */
+
 void ResourceInit( struct RESOURCE * lock )
 {
 	lock->State = RESOURCE_SHARED;
