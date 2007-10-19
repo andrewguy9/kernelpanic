@@ -11,6 +11,7 @@ void HalInit();
 void HalEnableInterrupts();
 void HalDisableInterrupts();
 void HalStartInterrupt();
+void HalEndInterrupt();
 //-----------------------------------------------------------------------------
 #ifdef AVR_BUILD
 
@@ -18,7 +19,8 @@ void HalStartInterrupt();
 #include <avr/interrupt.h>
 #include <avr/sfr_defs.h>
 
-#define GET_SP() ((void *) SP)
+#define HAL_SAVE_SP(dest) (dest = (void *) SP)
+#define HAL_SET_SP(value) (SP = (int) (value) )
 
 #define TMR_PRESCALE_NONE  0xF4
 #define TMR_PRESCALE_1024  0x07

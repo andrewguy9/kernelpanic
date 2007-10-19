@@ -13,6 +13,7 @@ struct THREAD
 	union LINK Link;
 	unsigned char Priority;
 	enum THREAD_STATE State;
+	int BlockingContext;
 	char * Stack;
 };
 

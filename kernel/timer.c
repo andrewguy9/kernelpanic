@@ -55,7 +55,7 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	HalSaveState
 
 	//Save the stack pointer
-    ActiveThread->Stack = (void *) SP;
+	HAL_SAVE_SP( ActiveThread->Stack );
 
 	//update interrupt level to represent that we are in inerrupt
 	HalStartInterrupt();
@@ -77,7 +77,7 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	HalEndInterrupt();
 
 	//Restore stack
-	SP = (int) ActiveThread->Stack;
+	HAL_SET_SP( ActiveThread->Stack );
 
 	HalRestoreState
 }
