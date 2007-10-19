@@ -53,3 +53,13 @@ void HalInit()
 	InterruptLevel = 1;
 }
 
+void HalCreateStackFrame( struct THREAD * thread, THREAD_MAIN main )
+{	
+	//create initial stack frame
+	thread->Stack -= sizeof( void * );
+	*(thread->Stack + 1) = (int) main;
+    *((unsigned char *)(thread->Stack)) = 
+		(unsigned char)((unsigned int)(main)>>8);
+	thread->Stack -= 34*sizeof(char);
+}
+

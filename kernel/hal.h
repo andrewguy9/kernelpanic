@@ -3,6 +3,7 @@
 
 //Includes for all builds
 #include"../utils/utils.h"
+#include"scheduler.h"
 //-----------------------------------------------------------------------------
 //Prototypes ( For all Builds )
 void HalInitClock();
@@ -12,6 +13,7 @@ void HalEnableInterrupts();
 void HalDisableInterrupts();
 void HalStartInterrupt();
 void HalEndInterrupt();
+void HalCreateStackFrame( struct THREAD * thread, THREAD_MAIN main );
 //-----------------------------------------------------------------------------
 #ifdef AVR_BUILD
 
