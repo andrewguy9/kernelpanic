@@ -22,6 +22,10 @@ void HalEndInterrupt();
 #define HAL_SAVE_SP(dest) (dest = (void *) SP)
 #define HAL_SET_SP(value) (SP = (int) (value) )
 
+#define HalIsAtomic() ( !SREG&SREG_I )
+#define HAL_DISABLE_INTERRUPTS() asm(" cli")
+#define HAL_ENABLE_INTERRUPTS() asm(" sei")
+
 #define TMR_PRESCALE_NONE  0xF4
 #define TMR_PRESCALE_1024  0x07
 #define TMR_PRESCALE_MASK  0x07
