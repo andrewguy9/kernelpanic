@@ -151,7 +151,9 @@ void ResourceUnlockExclusive( struct RESOURCE * lock )
 		SchedulerResumeThread( sleeper );
 	}
 	else
-	{//there are NO more threads waiting for exclusive. We should wake every shared thread
+	{
+		//there are NO more threads waiting for exclusive. 
+		//We should wake every shared thread.
 		while( !LinkedListIsEmpty( & lock->SharedQueue ) )
 		{
 			sleeper = (struct THREAD *) LinkedListPop( & lock->SharedQueue );

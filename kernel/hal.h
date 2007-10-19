@@ -37,7 +37,7 @@ void HalEndInterrupt();
 //void inline HalRestoreState();
 //void inline HalSaveState();
 
-#define HalSaveState\
+#define HAL_SAVE_STATE \
 		asm( \
 			"push r0\n\t" \
 			"push r1\n\t" \
@@ -75,7 +75,7 @@ void HalEndInterrupt();
 			"push r0\n\t" \
 			);
 
-#define HalRestoreState \
+#define HAL_RESTORE_STATE \
 	asm( \
             "pop r0\n\t" \
             "out 0x3F, r0\n\t" \

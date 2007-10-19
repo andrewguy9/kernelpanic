@@ -91,9 +91,10 @@ void SchedulerForceSwitch()
 			SCHEDULER_FORCE_SWITCH_NOT_ATOMIC,
 			"Can only force context switch in interrupt level");
 
-	HalSaveState
+	HAL_SAVE_STATE
 	
-	ActiveThread->Stack = (void *) SP;
+	HAL_SAVE_SP( ActiveThread->Stack );
+
 	Schedule();
 	if( NextThread != NULL )
 	{
@@ -103,10 +104,12 @@ void SchedulerForceSwitch()
 
 	HalEndInterrupt(); //we have to 
 
-	SP = (int) ActiveThread->Stack;
+	HAL_SET_SP( ActiveThread->Stack );
 	
-	HalRestoreState
-		//TODO this function is broken: verify that InterruptLevel is 0, and that reti clears the interrupt but.
+	HAL_RESTORE_STATE
+		//TODO this function is broken: 
+		//verify that InterruptLevel is 0, 
+		//and that reti clears the interrupt but.
 }
 
 void SchedulerResumeThread( struct THREAD * thread )
@@ -210,6 +213,7 @@ void SchedulerCreateThread(
 		unsigned int stackSize,
 		THREAD_MAIN main)
 {
+	//TODO: Move the stack generation code into the hal.
 	//Populate thread struct
 	thread->Priority = priority;
 	//initialize stack

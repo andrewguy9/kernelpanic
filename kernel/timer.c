@@ -52,7 +52,7 @@ void RunTimers( )
 void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void) 
 {
 	//Save state
-	HalSaveState
+	HAL_SAVE_STATE
 
 	//Save the stack pointer
 	HAL_SAVE_SP( ActiveThread->Stack );
@@ -79,6 +79,6 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	//Restore stack
 	HAL_SET_SP( ActiveThread->Stack );
 
-	HalRestoreState
+	HAL_RESTORE_STATE
 }
 
