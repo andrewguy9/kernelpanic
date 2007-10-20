@@ -15,6 +15,10 @@ void HalStartInterrupt();
 void HalEndInterrupt();
 void HalCreateStackFrame( struct THREAD * thread, THREAD_MAIN main );
 //-----------------------------------------------------------------------------
+
+//
+//AVR DEFINES
+//
 #ifdef AVR_BUILD
 
 #include <avr/io.h>
@@ -125,4 +129,5 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 
 #endif //end if #ifdef AVR_BUILD
 //-----------------------------------------------------------------------------
+
 #endif //end of #ifndef HAL_H
