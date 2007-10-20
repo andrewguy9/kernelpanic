@@ -34,8 +34,12 @@
 struct THREAD * ActiveThread;
 struct THREAD * NextThread;
 
+//Used to mark critical sections...
 struct MUTEX SchedulerLock;
-//variables protected by SchedulerLock
+
+//Scheduler variables: Only edit atomically.
+//This is because the scheduler is an interrupt
+//level entitiy.
 struct LINKED_LIST Queue1;
 struct LINKED_LIST Queue2;
 struct LINKED_LIST * RunQueue;
@@ -66,19 +70,20 @@ void SchedulerEndCritical()
 	ASSERT( MutexIsLocked( & SchedulerLock ),
 			SCHEDULER_END_CRITICAL_NOT_CRITICAL,
 		   	"Critical section cannot start.");
-	MutexUnlock( & SchedulerLock );//protects queues from scheduling interrupt
 
-	//TODO Is this hole an issue?
+	//We may have to fire the scheduler
+	//so we need to be atomic.
+	HalDisableInterrupts();
 
-	//Check to see if the quantum has expired...
-	HalDisableInterrupts();//protects quantum and context switch
+	//End the critical section
+	MutexUnlock( & SchedulerLock );
 
 	if( QuantumExpired )
 	{//Quantum has expired while in crit section, fire manually.
 		SchedulerForceSwitch();
 	}
 	else
-	{
+	{//Quantum has not expired, so we'll just end the critical section. 
 		HalEnableInterrupts();
 	}
 }
@@ -90,26 +95,31 @@ void SchedulerForceSwitch()
 	ASSERT( HalIsAtomic(),
 			SCHEDULER_FORCE_SWITCH_NOT_ATOMIC,
 			"Can only force context switch in interrupt level");
+	ASSERT( MutexIsLocked( & SchedulerLock ),
+			SCHEDULER_FORCE_SWITCH_IS_CRITICAL,
+			"Schedule will not run when in critical section");
 
 	HAL_SAVE_STATE
 	
 	HAL_SAVE_SP( ActiveThread->Stack );
 
 	Schedule();
+
 	if( NextThread != NULL )
 	{
 		ActiveThread = NextThread;
 		NextThread = NULL;
 	}
 
-	HalEndInterrupt(); //we have to 
+	HalEndInterrupt(); 
 
 	HAL_SET_SP( ActiveThread->Stack );
 	
 	HAL_RESTORE_STATE
-		//TODO this function is broken: 
+		//TODO this function may be broken: 
 		//verify that InterruptLevel is 0, 
-		//and that reti clears the interrupt but.
+		//and that reti clears the interrupt bit.
+		//Having the stack line up would be nice too.
 }
 
 void SchedulerResumeThread( struct THREAD * thread )
@@ -120,8 +130,11 @@ void SchedulerResumeThread( struct THREAD * thread )
 	ASSERT( thread->State == THREAD_STATE_BLOCKED, 
 			SCHEDULER_RESUME_THREAD_NOT_BLOCKED,
 			"Thread not blocked" );
+
+	HalDisableInterrupts();
 	thread->State = THREAD_STATE_RUNNING;
 	LinkedListEnqueue( (struct LINKED_LIST_LINK *) thread, DoneQueue );
+	HalEnableInterrupts();
 }
 
 void SchedulerBlockThread( )
@@ -129,10 +142,14 @@ void SchedulerBlockThread( )
 	ASSERT( MutexIsLocked( &SchedulerLock ), 
 			SCHEDULER_BLOCK_THREAD_MUST_BE_CRIT,
 			"Only block thread from critical section");
+	//We only look at this value when we are actually running the scheduler!
+	//which can never happen when in a critical section.
+	//So we dont have to be at interrupt level.
 	ActiveThread->State = THREAD_STATE_BLOCKED;
+
 }
 
-void Schedule( ) 
+void Schedule( )
 {
 	ASSERT( HalIsAtomic(), 
 			SCHEDULE_MUST_BE_ATOMIC,
@@ -213,7 +230,6 @@ void SchedulerCreateThread(
 		unsigned int stackSize,
 		THREAD_MAIN main)
 {
-	//TODO: Move the stack generation code into the hal.
 	//Populate thread struct
 	thread->Priority = priority;
 	//initialize stack
@@ -221,6 +237,4 @@ void SchedulerCreateThread(
 	HalCreateStackFrame( thread, main );
 	//Add thread to done queue.
 	LinkedListEnqueue( (struct LINKED_LIST_LINK *) thread, DoneQueue );
-}
-
-		
+}	

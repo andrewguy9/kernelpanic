@@ -18,13 +18,13 @@ struct THREAD
 };
 
 void SchedulerStartCritical( );
-void SchedulerEndCritical();
-void SchedulerForceSwitch();
+void SchedulerEndCritical( );
+void SchedulerForceSwitch( );
 void SchedulerResumeThread( struct THREAD * thread );
 void SchedulerBlockThread( );
 void Schedule( ) ;
-void SchedulerInit();
-struct THREAD * SchedulerGetActiveThread();
+void SchedulerInit( );
+struct THREAD * SchedulerGetActiveThread( );
 void SchedulerCreateThread( 
 		struct THREAD * thread,
 		unsigned char priority,
