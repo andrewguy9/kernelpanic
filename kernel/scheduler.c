@@ -232,8 +232,9 @@ void SchedulerCreateThread(
 {
 	//Populate thread struct
 	thread->Priority = priority;
+	thread->State = THREAD_STATE_RUNNING;
 	//initialize stack
-	thread->State = (unsigned int) stack + stackSize;
+	thread->Stack = (char*)((unsigned int) stack + stackSize);
 	HalCreateStackFrame( thread, main );
 	//Add thread to done queue.
 	LinkedListEnqueue( (struct LINKED_LIST_LINK *) thread, DoneQueue );

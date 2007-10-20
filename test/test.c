@@ -83,6 +83,7 @@ int main()
 			
 
 	//Initialize Threads
+	/*
 	SemaphoreInit( &ValueLock, 1 );
 	SchedulerCreateThread(
 			&TestThreadIncrement,
@@ -96,7 +97,7 @@ int main()
 			TestThreadStackDivide,
 			500,
 			TestMainDivide);
-
+*/
 	KernelStart();
 	return 0;
 }

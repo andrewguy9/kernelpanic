@@ -3,12 +3,14 @@
 
 void GeneralPanic( enum ERROR_CODE error )
 {
+	volatile char failed = 1;
 	HalDisableInterrupts();
-	while(1);
+	while(failed);
 }
 
 void KernelPanic( enum ERROR_CODE error )
 {
+	volatile char failed = 1;
 	HalDisableInterrupts();
-	while(1);
+	while(failed);
 }
