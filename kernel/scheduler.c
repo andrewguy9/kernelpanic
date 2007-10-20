@@ -108,23 +108,11 @@ void SchedulerForceSwitch()
 
 	MutexUnlock( & SchedulerLock ); //End the critical Section.
 
-	HAL_SAVE_STATE
-	
-	HAL_SAVE_SP( ActiveThread->Stack );
-
-	Schedule();
-
-	if( NextThread != NULL )
-	{
-		ActiveThread = NextThread;
-		NextThread = NULL;
-	}
+	Schedule(); //Schedule next thread manually...
 
 	HalEndInterrupt(); 
 
-	HAL_SET_SP( ActiveThread->Stack );
-	
-	HAL_RESTORE_STATE
+	TimerInterrupt();
 }
 
 void SchedulerResumeThread( struct THREAD * thread )
@@ -189,10 +177,13 @@ void Schedule( )
 			NextThread = &IdleThread;
 		}
 
-		//restart the scheduler timer.
-		TimerRegister( &SchedulerTimer,
-			NextThread->Priority,
-			Schedule);
+		//restart the scheduler timer if its turned off.
+		if( ! SchedulerTimer.Enabled )
+		{
+			TimerRegister( &SchedulerTimer,
+					NextThread->Priority,
+					Schedule);
+		}
 		QuantumExpired = FALSE;
 	}
 	else

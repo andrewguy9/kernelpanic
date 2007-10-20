@@ -28,8 +28,12 @@ void TimerRegister( struct TIMER * newTimer,
 	ASSERT( HalIsAtomic(), 
 			TIMER_REGISTER_MUST_BE_ATOMIC,
 			"timer structures can only be \
-		   	added from interrupt level");
+			added from interrupt level");
+	ASSERT( ! newTimer->Enabled,
+			TIMER_REGISTER_TIMER_ALREADY_ACTIVE,
+			"timers cannot be double registered");
 
+	newTimer->Enabled = TRUE;
 	newTimer->Link.Weight = Time + wait;
 	newTimer->Handler = handler;
 	HeapAdd( (struct WEIGHTED_LINK * ) newTimer, &Timers );
@@ -45,6 +49,7 @@ void RunTimers( )
 			HeapHeadWeight( &Timers ) <= Time )
 	{
 		struct TIMER * timer = (struct TIMER *) HeapPop( & Timers );
+		timer->Enabled = FALSE;
 		timer->Handler();
 	}
 }
@@ -56,6 +61,9 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 
 	//Save the stack pointer
 	HAL_SAVE_SP( ActiveThread->Stack );
+
+	//reset the clock
+    TCNT0 = 0xff-1*16; //1 ms
 
 	//update interrupt level to represent that we are in inerrupt
 	HalStartInterrupt();
@@ -70,15 +78,13 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 		NextThread = NULL;
 	}
 
-	//reset the clock
-    TCNT0 = 0xff-1*16; //1 ms
-
 	//Restore the interrupt level, since we are ready to restore state.
 	HalEndInterrupt();
 
-	//Restore stack
+	//Restore stack pointer
 	HAL_SET_SP( ActiveThread->Stack );
 
+	//Restore the thread state
 	HAL_RESTORE_STATE
 }
 

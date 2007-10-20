@@ -157,6 +157,7 @@ void HeapAdd( struct WEIGHTED_LINK * node, struct HEAP * heap )
 		if( node->Parent == NULL )
 			heap->Head = node;
 	}
+	return ;
 }
 
 struct WEIGHTED_LINK * HeapPop( struct HEAP * heap )
