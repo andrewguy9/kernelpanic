@@ -28,7 +28,7 @@ void HalCreateStackFrame( struct THREAD * thread, THREAD_MAIN main );
 #define HAL_SAVE_SP(dest) (dest = (void *) SP)
 #define HAL_SET_SP(value) (SP = (int) (value) )
 
-#define HalIsAtomic() ( !SREG&SREG_I )
+#define HalIsAtomic() ( !(SREG&SREG_I) )
 #define HAL_DISABLE_INTERRUPTS() asm(" cli")
 #define HAL_ENABLE_INTERRUPTS() asm(" sei")
 

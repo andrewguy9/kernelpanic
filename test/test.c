@@ -28,8 +28,8 @@ void SeldomHandler( )
 
 //Tests of the multithreading system
 struct SEMAPHORE ValueLock;
-volatile unsigned int Value = 0;
-
+volatile unsigned int Value1 = 0;
+volatile unsigned int Value2 = 0;
 struct THREAD TestThreadIncrement;
 char TestThreadStackIncrement[500];
 void TestMainIncrement()
@@ -38,9 +38,9 @@ void TestMainIncrement()
 	while( 1 )
 	{
 		//SemaphoreLock( & ValueLock );
-		for( a=0; a<0xffffffff; a++);
-		Value++;
-		for( a=0; a<0xffffffff; a++);
+		Value1++;
+		SchedulerStartCritical();
+		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
 
 	}
@@ -55,7 +55,7 @@ void TestMainDivide()
 	{
 		//SemaphoreLock( & ValueLock );
 		for( a=0; a<0xffffffff; a++);
-		Value/2;
+		Value2++;
 		for( a=0; a<0xffffffff; a++);
 		//SemaphoreUnlock( & ValueLock );
 	}
@@ -70,6 +70,7 @@ int main()
 	KernelInit();
 
 	//Initialize timers.
+	/*
 	FrequentCount = 0;
 	TimerRegister( 
 			&FrequentTimer,
@@ -80,10 +81,9 @@ int main()
 			&SeldomTimer,
 			3,
 			SeldomHandler );
-			
+	*/		
 
 	//Initialize Threads
-	/*
 	SemaphoreInit( &ValueLock, 1 );
 	SchedulerCreateThread(
 			&TestThreadIncrement,
@@ -91,6 +91,7 @@ int main()
 			TestThreadStackIncrement,
 			500,
 			TestMainIncrement );
+	/*
 	SchedulerCreateThread(
 			&TestThreadDivide,
 			10,
