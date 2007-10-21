@@ -159,14 +159,18 @@ void Schedule( )
 				  DoneQueue);
 		}
 
-		//Switch job queue if needed
 		if( LinkedListIsEmpty( RunQueue ) )
-		{//no threads in RunQueue, swap queues.
+		{
+			//There are no threads in run queue.
+			//This is a sign we have run through
+			//all threads, so well pull from done
+			//queue now
 			struct LINKED_LIST * temp = RunQueue;
 			RunQueue = DoneQueue;
 			DoneQueue = temp;
 		}
 
+		//Pick the next thread
 		if( ! LinkedListIsEmpty( RunQueue ) )
 		{//there are threads waiting, run one
 			NextThread = 
@@ -183,8 +187,8 @@ void Schedule( )
 			TimerRegister( &SchedulerTimer,
 					NextThread->Priority,
 					Schedule);
+			QuantumExpired = FALSE;
 		}
-		QuantumExpired = FALSE;
 	}
 	else
 	{//we are not allowed to schedule.

@@ -54,9 +54,9 @@ void TestMainDivide()
 	while( 1 )
 	{
 		//SemaphoreLock( & ValueLock );
-		for( a=0; a<0xffffffff; a++);
 		Value2++;
-		for( a=0; a<0xffffffff; a++);
+		SchedulerStartCritical();
+		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
 	}
 }
@@ -81,24 +81,22 @@ int main()
 			&SeldomTimer,
 			3,
 			SeldomHandler );
-	*/		
-
+*/
 	//Initialize Threads
 	SemaphoreInit( &ValueLock, 1 );
 	SchedulerCreateThread(
 			&TestThreadIncrement,
-			2,
+			5,
 			TestThreadStackIncrement,
 			500,
 			TestMainIncrement );
-	/*
 	SchedulerCreateThread(
 			&TestThreadDivide,
-			10,
+			5,
 			TestThreadStackDivide,
 			500,
 			TestMainDivide);
-*/
+
 	KernelStart();
 	return 0;
 }
