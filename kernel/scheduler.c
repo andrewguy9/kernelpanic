@@ -110,7 +110,7 @@ void SchedulerForceSwitch()
 
 	Schedule(); //Schedule next thread manually...
 
-	HalEndInterrupt(); 
+	HalEndInterrupt(); //reduce interrupt level without enabling interrupts.
 
 	TimerInterrupt();
 }
