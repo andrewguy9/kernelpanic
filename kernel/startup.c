@@ -14,7 +14,16 @@ void KernelInit()
 
 void KernelStart()
 {
+	TIME lastTime=0xffff;
+	TIME curTime;
 	HalEnableInterrupts();
-	while(1);
+	while(1)
+	{
+		do
+		{
+			curTime = TimerGetTime();
+		}while( curTime == lastTime );
+		lastTime = curTime;
+	}
 }
 

@@ -213,6 +213,9 @@ void SchedulerInit()
 	MutexLockInit( & SchedulerLock );
 	//Create a thread for idle loop.
 	SchedulerCreateThread( &IdleThread, 1, NULL, NULL, NULL );
+	//Remove IdleThread from queues...
+	LinkedListInit( & Queue1 );
+	LinkedListInit( & Queue2 );
 	//Initialize ActiveThread
 	ActiveThread = & IdleThread;
 	NextThread = NULL;

@@ -16,7 +16,7 @@ struct TIMER
 };
 
 void TimerInit( );
-
+TIME TimerGetTime();
 void TimerRegister( struct TIMER * newTimer,
 		TIME wait,
 		TIMER_HANDLER * handler );

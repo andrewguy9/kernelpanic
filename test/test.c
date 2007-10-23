@@ -30,6 +30,7 @@ void SeldomHandler( )
 struct SEMAPHORE ValueLock;
 volatile unsigned int Value1 = 0;
 volatile unsigned int Value2 = 0;
+volatile unsigned int Value3 = 0;
 struct THREAD TestThreadIncrement;
 char TestThreadStackIncrement[500];
 void TestMainIncrement()
@@ -61,6 +62,20 @@ void TestMainDivide()
 	}
 }
 
+struct THREAD TestThreadExp;
+char TestThreadStackExp[500];
+void TestMainExp()
+{
+	volatile unsigned long int a = 0;
+	while( 1 )
+	{
+		//SemaphoreLock( & ValueLock );
+		Value3++;
+		SchedulerStartCritical();
+		SchedulerForceSwitch();
+		//SemaphoreUnlock( & ValueLock );
+	}
+}
 
 
 
@@ -96,7 +111,13 @@ int main()
 			TestThreadStackDivide,
 			500,
 			TestMainDivide);
-
+	SchedulerCreateThread(
+			&TestThreadExp,
+			5,
+			TestThreadStackExp,
+			500,
+			TestMainExp);
+		
 	KernelStart();
 	return 0;
 }

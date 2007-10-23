@@ -54,6 +54,15 @@ void RunTimers( )
 	}
 }
 
+TIME TimerGetTime()
+{
+	TIME value;
+	HalDisableInterrupts();
+	value = Time;
+	HalEnableInterrupts();
+	return value;
+}
+
 void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void) 
 {
 	//Save state
