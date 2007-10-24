@@ -33,6 +33,10 @@ void HalEndInterrupt()
 
 void HalInit()
 {
+	DEBUG_LED_DDR = 0xff;
+    DEBUG_SW_DDR = 0x00;
+    DEBUG_SW_PORT = 0xff;
+
 	InterruptLevel = 1;
 }
 

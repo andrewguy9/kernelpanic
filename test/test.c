@@ -3,6 +3,12 @@
 #include"../kernel/semaphore.h"
 #include"../kernel/timer.h"
 
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/sfr_defs.h>
+#define DEBUG_LED          PORTC
+#define DEBUG_LED_DDR      DDRC
+
 //Tests of the Timer subsystem.
 struct TIMER FrequentTimer;
 COUNT FrequentCount;
@@ -40,8 +46,8 @@ void TestMainIncrement()
 	{
 		//SemaphoreLock( & ValueLock );
 		Value1++;
+		DEBUG_LED = ((DEBUG_LED & (0XFF-1)) | (~DEBUG_LED));
 		SchedulerStartCritical();
-		HalDisableInterrupts();
 		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
 
@@ -57,8 +63,8 @@ void TestMainDivide()
 	{
 		//SemaphoreLock( & ValueLock );
 		Value2++;
+		DEBUG_LED = ((DEBUG_LED & (0XFF-2)) | (~DEBUG_LED));
 		SchedulerStartCritical();
-		HalDisableInterrupts();
 		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
 	}
@@ -73,8 +79,8 @@ void TestMainExp()
 	{
 		//SemaphoreLock( & ValueLock );
 		Value3++;
+		DEBUG_LED = ((DEBUG_LED & (0XFF-4)) | (~DEBUG_LED));
 		SchedulerStartCritical();
-		HalDisableInterrupts();
 		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
 	}
