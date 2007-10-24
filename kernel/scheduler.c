@@ -89,12 +89,19 @@ void SchedulerEndCritical()
 }
 
 /*Ends a critical section and forces an immediate context switch*/
-void SchedulerForceSwitch()
+void  
+__attribute__((naked,signal,__INTR_ATTRS)) 
+SchedulerForceSwitch()
 {
 	//TODO this function may be broken: 
 	//verify that InterruptLevel is 0, 
 	//and that reti clears the interrupt bit.
 	//Having the stack line up would be nice too.
+
+	//perfrom context switch
+	HAL_SAVE_STATE
+	HAL_SAVE_SP( ActiveThread->Stack );
+
 
 	//ASSERT( ! HalIsAtomic(),
 	//		SCHEDULER_FORCE_SWITCH_IS_ATOMIC,
@@ -104,23 +111,19 @@ void SchedulerForceSwitch()
 			SCHEDULER_FORCE_SWITCH_IS_CRITICAL,
 			"Schedule will not run when in critical section");
 
-	HalDisableInterrupts();
-
 	MutexUnlock( & SchedulerLock ); //End the critical Section.
 
 	Schedule(); //Schedule next thread manually...
-
-	HalEndInterrupt(); //reduce interrupt level without enabling interrupts.
-
-	//perfrom context switch
-	HAL_SAVE_STATE
-	HAL_SAVE_SP( ActiveThread->Stack );
+	
 	//Check for scheduling event
 	if( NextThread != NULL )
 	{
 		ActiveThread = NextThread;
 		NextThread = NULL;
 	}
+
+	HalEndInterrupt(); //reduce interrupt level without enabling interrupts.
+
 	HAL_SET_SP( ActiveThread->Stack );
 	HAL_RESTORE_STATE
 }

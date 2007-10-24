@@ -41,6 +41,7 @@ void TestMainIncrement()
 		//SemaphoreLock( & ValueLock );
 		Value1++;
 		SchedulerStartCritical();
+		HalDisableInterrupts();
 		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
 
@@ -57,6 +58,7 @@ void TestMainDivide()
 		//SemaphoreLock( & ValueLock );
 		Value2++;
 		SchedulerStartCritical();
+		HalDisableInterrupts();
 		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
 	}
@@ -72,6 +74,7 @@ void TestMainExp()
 		//SemaphoreLock( & ValueLock );
 		Value3++;
 		SchedulerStartCritical();
+		HalDisableInterrupts();
 		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
 	}
