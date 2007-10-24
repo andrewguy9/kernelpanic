@@ -41,12 +41,14 @@ struct THREAD TestThreadIncrement;
 char TestThreadStackIncrement[500];
 void TestMainIncrement()
 {
-	volatile unsigned long int a = 0;
+	volatile unsigned int a = 0;
+	DEBUG_LED ^= 1<<3;
 	while( 1 )
 	{
 		//SemaphoreLock( & ValueLock );
 		Value1++;
 		DEBUG_LED ^= 1<<0;
+		for(a=1;a>0;a++);
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
@@ -58,12 +60,13 @@ struct THREAD TestThreadDivide;
 char TestThreadStackDivide[500];
 void TestMainDivide()
 {
-	volatile unsigned long int a = 0;
+	volatile unsigned int a = 0;
 	while( 1 )
 	{
 		//SemaphoreLock( & ValueLock );
 		Value2++;
 		DEBUG_LED ^= 1<<1;
+		for(a=1;a>0;a++);
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
@@ -74,12 +77,13 @@ struct THREAD TestThreadExp;
 char TestThreadStackExp[500];
 void TestMainExp()
 {
-	volatile unsigned long int a = 0;
+	volatile unsigned int a = 0;
 	while( 1 )
 	{
 		//SemaphoreLock( & ValueLock );
 		Value3++;
 		DEBUG_LED ^= 1<<2;
+		for(a=1;a>0;a++);
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
