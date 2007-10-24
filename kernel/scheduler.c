@@ -112,7 +112,17 @@ void SchedulerForceSwitch()
 
 	HalEndInterrupt(); //reduce interrupt level without enabling interrupts.
 
-	TimerInterrupt();
+	//perfrom context switch
+	HAL_SAVE_STATE
+	HAL_SAVE_SP( ActiveThread->Stack );
+	//Check for scheduling event
+	if( NextThread != NULL )
+	{
+		ActiveThread = NextThread;
+		NextThread = NULL;
+	}
+	HAL_SET_SP( ActiveThread->Stack );
+	HAL_RESTORE_STATE
 }
 
 void SchedulerResumeThread( struct THREAD * thread )
@@ -173,6 +183,10 @@ void Schedule( )
 		//Pick the next thread
 		if( ! LinkedListIsEmpty( RunQueue ) )
 		{//there are threads waiting, run one
+			ASSERT( NextThread == NULL,
+					SCHEDULER_SCHEDULE_NEXT_THREAD_NOT_NULL,
+					"Scheduler is running even though NextThread\
+					Is not null, this causes thread dropping");
 			NextThread = 
 				(struct THREAD * ) LinkedListPop( RunQueue );
 		}
