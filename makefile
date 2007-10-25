@@ -19,3 +19,4 @@ clean:
 	make -e DIR=. cleandir
 	make -e DIR=utils cleandir
 	make -e DIR=kernel cleandir
+	make -e DIR=test cleandir
