@@ -12,24 +12,26 @@
 //Tests of the Timer subsystem.
 struct TIMER FrequentTimer;
 COUNT FrequentCount;
-void FrequentHandler( )
+void FrequentHandler( void * arg )
 {
 	FrequentCount++;
 	TimerRegister( 
 			&FrequentTimer,
 			2,
-			FrequentHandler );
+			FrequentHandler,
+		   NULL	);
 }
 
 struct TIMER SeldomTimer;
 COUNT SeldomCount;
-void SeldomHandler( )
+void SeldomHandler( void * arg )
 {
 	SeldomCount++;
 	TimerRegister(
 			&SeldomTimer,
 			3,
-			SeldomHandler );
+			SeldomHandler,
+		   NULL	);
 }
 
 //Tests of the multithreading system
@@ -98,18 +100,19 @@ int main()
 	KernelInit();
 
 	//Initialize timers.
-	/*
 	FrequentCount = 0;
 	TimerRegister( 
 			&FrequentTimer,
 			2,
-			FrequentHandler );
+			FrequentHandler,
+		   NULL	);
 	SeldomCount = 0;
 	TimerRegister( 
 			&SeldomTimer,
 			3,
-			SeldomHandler );
-*/
+			SeldomHandler,
+		   NULL	);
+
 	//Initialize Threads
 	SemaphoreInit( &ValueLock, 1 );
 	SchedulerCreateThread(

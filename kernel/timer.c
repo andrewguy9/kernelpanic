@@ -23,7 +23,8 @@ void TimerInit( )
 
 void TimerRegister( struct TIMER * newTimer, 
 		TIME wait, 
-		TIMER_HANDLER * handler )
+		TIMER_HANDLER * handler,
+		void * argument )
 {
 	ASSERT( HalIsAtomic(), 
 			TIMER_REGISTER_MUST_BE_ATOMIC,
@@ -36,6 +37,7 @@ void TimerRegister( struct TIMER * newTimer,
 	newTimer->Enabled = TRUE;
 	newTimer->Link.Weight = Time + wait;
 	newTimer->Handler = handler;
+	newTimer->Argument = argument;
 	HeapAdd( (struct WEIGHTED_LINK * ) newTimer, &Timers );
 }
 
@@ -50,7 +52,7 @@ void RunTimers( )
 	{
 		struct TIMER * timer = (struct TIMER *) HeapPop( & Timers );
 		timer->Enabled = FALSE;
-		timer->Handler();
+		timer->Handler(timer->Argument);
 	}
 }
 

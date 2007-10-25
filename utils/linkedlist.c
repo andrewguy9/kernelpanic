@@ -85,3 +85,8 @@ void LinkedListInit( struct LINKED_LIST * list )
 {
 	list->Head = NULL;
 }
+
+struct LINKED_LIST_LINK * LinkedListPeek( struct LINKED_LIST * list )
+{
+	return list->Head;
+}

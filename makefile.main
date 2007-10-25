@@ -25,7 +25,7 @@ test/pctest.out: test/pctest.o utils/$(TARGET)_linkedlist.o
 umouse.elf: umouse.out
 
 ############################
-umouse.out: kernel/panic.o test/test.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o 
+umouse.out: kernel/panic.o test/test.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o
 
 ###############################
 

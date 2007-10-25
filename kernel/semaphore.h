@@ -11,7 +11,6 @@ struct SEMAPHORE
 };
 
 void SemaphoreInit( struct SEMAPHORE * lock, COUNT count );
-void SemaphoreLock( struct SEMAPHORE * lock );
-BOOL SemaphoreLockNonBlocking( struct SEMAPHORE * lock);
-void SemaphoreUnlock( struct SEMAPHORE * lock );
+void SemaphoreLock( struct SEMAPHORE * lock, COUNT count );
+void SemaphoreUnlock( struct SEMAPHORE * lock, COUNT count );
 #endif

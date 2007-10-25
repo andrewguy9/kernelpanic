@@ -6,20 +6,22 @@
 
 typedef unsigned long int TIME;
 
-typedef void (TIMER_HANDLER) ();
+typedef void (TIMER_HANDLER) (void * Argument);
 
 struct TIMER
 {
 	struct WEIGHTED_LINK Link;
 	BOOL Enabled;
 	TIMER_HANDLER * Handler;
+	void * Argument;
 };
 
 void TimerInit( );
 TIME TimerGetTime();
 void TimerRegister( struct TIMER * newTimer,
 		TIME wait,
-		TIMER_HANDLER * handler );
+		TIMER_HANDLER * handler,
+		void * argument );
 
 
 #endif

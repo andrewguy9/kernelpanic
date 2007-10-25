@@ -152,19 +152,16 @@ void SchedulerResumeThread( struct THREAD * thread )
 	HalEnableInterrupts();
 }
 
-void SchedulerBlockThread( )
+void SchedulerBlockThread( union BLOCKING_CONTEXT context )
 {
 	ASSERT( MutexIsLocked( &SchedulerLock ), 
 			SCHEDULER_BLOCK_THREAD_MUST_BE_CRIT,
 			"Only block thread from critical section");
-	//We only look at this value when we are actually running the scheduler!
-	//which can never happen when in a critical section.
-	//So we dont have to be at interrupt level.
 	ActiveThread->State = THREAD_STATE_BLOCKED;
-
+	ActiveThread->BlockingContext = context;
 }
 
-void Schedule( )
+void Schedule( void *arg )
 {
 	ASSERT( HalIsAtomic(), 
 			SCHEDULE_MUST_BE_ATOMIC,
@@ -212,7 +209,8 @@ void Schedule( )
 		{
 			TimerRegister( &SchedulerTimer,
 					NextThread->Priority,
-					Schedule);
+					Schedule,
+					NULL);
 			QuantumExpired = FALSE;
 		}
 	}
@@ -233,7 +231,8 @@ void SchedulerInit()
 	//Initialize the timer
 	TimerRegister( & SchedulerTimer,
 		   	0, 
-			Schedule );
+			Schedule,
+			NULL	);
 	QuantumExpired = FALSE;
 	//Set up Schedule Resource
 	MutexLockInit( & SchedulerLock );

@@ -68,8 +68,8 @@ int main()
 {
 	char input;
 	//Init
-	LinkedListInit( & RunQueue );
-	LinkedListInit( & DoneQueue );
+	LinkedListInit( RunQueue );
+	LinkedListInit( DoneQueue );
 
 	RunQueue = & Queue1;
 	DoneQueue = & Queue2;

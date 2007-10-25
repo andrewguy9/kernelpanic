@@ -20,6 +20,8 @@ struct LINKED_LIST_LINK * LinkedListPop( struct LINKED_LIST * list );
 //Add to the end of list.
 void LinkedListEnqueue( struct LINKED_LIST_LINK * node, struct LINKED_LIST * list );
 
+struct LINKED_LIST_LINK * LinkedListPeek( struct LINKED_LIST * list );
+
 BOOL LinkedListIsEmpty( struct LINKED_LIST * list );
 
 void LinkedListInit( struct LINKED_LIST * list );

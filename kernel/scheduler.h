@@ -3,16 +3,24 @@
 
 #include"../utils/link.h"
 #include"../utils/utils.h"
+#include"timer.h"
 
 typedef void (*THREAD_MAIN) ();
 
 enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED };
+
+union BLOCKING_CONTEXT
+{
+	COUNT SemaphoreCountNeeded;
+	struct TIMER SleepTimer;
+};
 
 struct THREAD 
 {
 	union LINK Link;
 	unsigned char Priority;
 	enum THREAD_STATE State;
+	union BLOCKING_CONTEXT BlockingContext;
 	char * Stack;
 };
 

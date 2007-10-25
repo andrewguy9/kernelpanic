@@ -8,18 +8,24 @@ void SemaphoreInit( struct SEMAPHORE * lock, COUNT count )
 	LinkedListInit( & lock->WaitingThreads );
 }
 
-void SemaphoreLock( struct SEMAPHORE * lock )
+void SemaphoreLock( struct SEMAPHORE * lock, COUNT count )
 {
+	union BLOCKING_CONTEXT context;
 	SchedulerStartCritical( );
-	if( lock->Count > 0 )
-	{//We can acquire, there is space left.
-		lock->Count --;
+
+	if( lock->Count >= count )
+	{//We can acquire, there is enough space.
+		lock->Count -= count;
 		SchedulerEndCritical( );
 	}
 	else
-	{//We cannot acquire, add self to waiting threads.
-		//mark ActiveThread is no longer runnable
-		SchedulerBlockThread();
+	{
+		//We cannot acquire lock
+		//block the thread and save our 
+		//remaining request to the blocking context.
+		context.SemaphoreCountNeeded = count - lock->Count;
+		lock->Count = 0;
+		SchedulerBlockThread( context );
 		//then add it to the waiting threads list.
 		LinkedListEnqueue( (struct LINKED_LIST_LINK *) SchedulerGetActiveThread(), 
 				& lock->WaitingThreads);
@@ -30,35 +36,27 @@ void SemaphoreLock( struct SEMAPHORE * lock )
 	return;
 }
 
-BOOL SemaphoreLockNonBlocking( struct SEMAPHORE * lock)
+void SemaphoreUnlock( struct SEMAPHORE * lock, COUNT count )
 {
 	SchedulerStartCritical();
-	if( lock->Count > 0 )
+	lock->Count+=count;
+	//wake as many threads as we can...
+	while( LinkedListIsEmpty( & lock->WaitingThreads ) )
 	{
-		lock->Count--;
-		SchedulerEndCritical();
-		return TRUE;
-	}
-	else
-	{
-		SchedulerEndCritical();
-		return FALSE;
-	}
-}
-
-void SemaphoreUnlock( struct SEMAPHORE * lock )
-{
-	SchedulerStartCritical();
-	lock->Count++;
-	//Wake threads which were blocking on the lock
-	while( lock->Count > 0 &&
-			! LinkedListIsEmpty( & lock->WaitingThreads ) )
-	{
-		lock->Count--;
-		struct THREAD * thread = 
-			(struct THREAD *) LinkedListPop( & lock->WaitingThreads );
-		SchedulerResumeThread( thread );
+		struct THREAD * thread = (struct THREAD *) LinkedListPop( & lock->WaitingThreads );
+		if( lock->Count >= thread->BlockingContext.SemaphoreCountNeeded )
+		{//The thread can be awakened, there is room.
+			//remove count needed from pool.
+			lock->Count -= thread->BlockingContext.SemaphoreCountNeeded;
+			//the thread is satisfied, clear count needed
+			thread->BlockingContext.SemaphoreCountNeeded = 0;
+			//awaken the thread
+			SchedulerResumeThread( thread );
+		}
+		else
+		{//there is not enough room for this thread
+			break;
+		}
 	}
 	SchedulerEndCritical();
 }
-
