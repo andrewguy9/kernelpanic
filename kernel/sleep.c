@@ -13,17 +13,17 @@ void Sleep( COUNT time )
 {
 	//start critical section
 	SchedulerStartCritical();
-	//block thread ( no context now )
-	SchedulerBlockThread( 0 );
-	//initialize timer to wake thread.
-	HalDisableInterrupts();
+	//block thread
+	SchedulerBlockThread();
+	//Get data to build timer.
+	union BLOCKING_CONTEXT * context = SchedulerGetBlockingContext();
 	struct THREAD * thread = SchedulerGetActiveThread();
-	struct TIMER * timer = & thread->BlockingContext.SleepTimer;
-	TimerRegister( timer, time, SleepHandler, thread );
-
-	//re-enable interrupts
-	//NOTE:we can re-enable interrupts, the scheduler is still locked
-	//so it wont attempt to schedule this thread before we are ready.
+	//build timer into blocking context
+	HalDisableInterrupts();
+	TimerRegister( &context->SleepTimer,
+			time,
+			SleepHandler,
+			thread );
 	HalEnableInterrupts();
 
 	//go ahead and stop the thread.
