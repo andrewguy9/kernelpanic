@@ -25,14 +25,25 @@ struct THREAD
 };
 
 void SchedulerStartCritical( );
+
 void SchedulerEndCritical( );
+
 void SchedulerForceSwitch( );
+
 void SchedulerResumeThread( struct THREAD * thread );
+
 void SchedulerBlockThread( );
+
+union BLOCKING_CONTEXT * SchedulerGetBlockingContext( );
+
+struct THREAD * SchedulerGetActiveThread();
+
 void Schedule( ) ;
+
 void SchedulerInit( );
-struct THREAD * SchedulerGetActiveThread( );
-void SchedulerCreateThread( 
+
+void 
+SchedulerCreateThread( 
 		struct THREAD * thread,
 		unsigned char priority,
 		char * stack,
