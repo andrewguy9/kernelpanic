@@ -4,6 +4,13 @@
 //Includes for all builds
 #include"../utils/utils.h"
 #include"scheduler.h"
+
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/sfr_defs.h>
+
+#define DEBUG_LED          PORTC
+#define DEBUG_LED_DDR      DDRC
 //-----------------------------------------------------------------------------
 //Prototypes ( For all Builds )
 void HalInitClock();
@@ -43,9 +50,6 @@ void HalCreateStackFrame( struct THREAD * thread, THREAD_MAIN main );
 #define DEBUG_SW           PINA
 #define DEBUG_SW_PORT      PORTA
 #define DEBUG_SW_DDR       DDRA
-
-//void inline HalRestoreState();
-//void inline HalSaveState();
 
 #define HAL_SAVE_STATE \
 		asm( \
