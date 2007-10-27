@@ -66,7 +66,6 @@ void Schedule( )
 
 int main()
 {
-	char input;
 	//Init
 	LinkedListInit( RunQueue );
 	LinkedListInit( DoneQueue );

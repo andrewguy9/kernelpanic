@@ -36,7 +36,7 @@ AVR_STRING = -e TARGET=$(AVR_PREFIX) -e CC=$(AVR_CC) -e BUILD=$(AVR_BUILD) -e CF
 	$(CC) $(CFLAGS) -D $(BUILD) -o $@ -c $<
 
 %.out:
-	$(CC) $(CFLAGS) -D $(BUILD) -Wl,-Map,$@.asm -o $@ $^
+	$(CC) $(CFLAGS) -D $(BUILD) -o $@ $^
 
 %.hex: %.out
 	avr-objcopy -j .text -j .data -O ihex $< $@
