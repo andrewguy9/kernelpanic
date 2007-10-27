@@ -152,13 +152,24 @@ void SchedulerResumeThread( struct THREAD * thread )
 	HalEnableInterrupts();
 }
 
-void SchedulerBlockThread( union BLOCKING_CONTEXT context )
+void SchedulerBlockThread( )
 {
 	ASSERT( MutexIsLocked( &SchedulerLock ), 
 			SCHEDULER_BLOCK_THREAD_MUST_BE_CRIT,
 			"Only block thread from critical section");
 	ActiveThread->State = THREAD_STATE_BLOCKED;
-	ActiveThread->BlockingContext = context;
+}
+
+union BLOCKING_CONTEXT * SchedulerGetBlockingContext( )
+{
+	ASSERT( MutexIsLocked( & SchedulerLock ),
+			SCHEDULER_GET_BLOCKING_CONTEXT_NOT_CRITICAL,
+			"Scheduler is not in critical section, cant use blocking context");
+	ASSERT( ActiveThread->State == THREAD_STATE_BLOCKED,
+			SCHEDULER_GET_BLOCKING_CONTEXT_NOT_BLOCKED,
+			"The active thread must be blocked inorder to use the blocking context");
+
+	return & ActiveThread->BlockingContext;
 }
 
 void Schedule( void *arg )
