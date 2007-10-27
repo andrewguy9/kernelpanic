@@ -10,7 +10,6 @@ void SemaphoreInit( struct SEMAPHORE * lock, COUNT count )
 
 void SemaphoreLock( struct SEMAPHORE * lock, COUNT count )
 {
-	union BLOCKING_CONTEXT context;
 	SchedulerStartCritical( );
 
 	if( lock->Count >= count )
@@ -23,9 +22,10 @@ void SemaphoreLock( struct SEMAPHORE * lock, COUNT count )
 		//We cannot acquire lock
 		//block the thread and save our 
 		//remaining request to the blocking context.
-		context.SemaphoreCountNeeded = count - lock->Count;
+		SchedulerBlockThread( );
+		union BLOCKING_CONTEXT * context = SchedulerGetBlockingContext();
+		context->SemaphoreCountNeeded = count - lock->Count;
 		lock->Count = 0;
-		SchedulerBlockThread( context );
 		//then add it to the waiting threads list.
 		LinkedListEnqueue( (struct LINKED_LIST_LINK *) SchedulerGetActiveThread(), 
 				& lock->WaitingThreads);
