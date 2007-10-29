@@ -4,6 +4,7 @@
 #include"../utils/link.h"
 #include"../utils/utils.h"
 #include"timer.h"
+#include"resource.h"
 
 typedef void (*THREAD_MAIN) ();
 
@@ -13,6 +14,7 @@ union BLOCKING_CONTEXT
 {
 	COUNT SemaphoreCountNeeded;
 	struct TIMER SleepTimer;
+	enum RESOURCE_STATE ResourceWaitState;
 };
 
 struct THREAD 

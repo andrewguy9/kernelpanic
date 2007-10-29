@@ -3,26 +3,23 @@
 
 #include"../utils/linkedlist.h"
 
-enum RESOURCE_STATE { RESOURCE_SHARED, 
-	RESOURCE_ESCALATING, 
-	RESOURCE_EXCLUSIVE };
+enum RESOURCE_STATE 
+{ 
+	RESOURCE_SHARED, 
+	RESOURCE_EXCLUSIVE 
+};
 
 struct RESOURCE
 {
 	enum RESOURCE_STATE State;
-	struct LINKED_LIST ExclusiveQueue;
-	struct LINKED_LIST SharedQueue;
+	struct LINKED_LIST WaitingThreads;
 	COUNT NumShared;	
 };
 
 void ResourceInit( struct RESOURCE * lock );
 
-void ResourceLockShared( struct RESOURCE * lock );
-BOOL ResourceLockSharedNonBlocking( struct RESOURCE * lock );
-void ResourceLockExclusive( struct RESOURCE * lock );
-BOOL ResourceLockExclusiveNonBlocking( struct RESOURCE * lock );
+void ResourceLock( struct RESOURCE * lock, enum RESOURCE_STATE state );
 
-void ResourceUnlockShared( struct RESOURCE * lock );
-void ResourceUnlockExclusive( struct RESOURCE * lock );
+void ResourceUnlock( struct RESOURCE * lock, enum RESOURCE_STATE state );
 
 #endif

@@ -1,164 +1,111 @@
 #include"resource.h"
 #include"scheduler.h"
 #include"../utils/utils.h"
-
-/*
- * TODO: there is a possible way to starve shared resources 
- * if you request exclusive you get to skip over any shared 
- * requests which are waiting ahead of you. 
- *
- * The only way to fix this is to have one queue, and pull 
- * differently depending on your mode.
- *
- * But to do this you have to mark the nature of the request
- * you have to move to 1 single queue and have a variable in 
- * a thread that marks what situation the thread is in.
- */
+#include"panic.h"
 
 void ResourceInit( struct RESOURCE * lock )
 {
 	lock->State = RESOURCE_SHARED;
-	LinkedListInit( &lock->ExclusiveQueue );
-	LinkedListInit( &lock->SharedQueue );
+	LinkedListInit( &lock->WaitingThreads );
 	lock->NumShared = 0;
 }
 
-void ResourceLockShared( struct RESOURCE * lock )
+void ResourceLock( struct RESOURCE * lock, enum RESOURCE_STATE state )
 {
-	SchedulerStartCritical();
-	switch( lock->State )
-	{
-		case RESOURCE_SHARED:
-			lock->NumShared++;
-			SchedulerEndCritical();
-			return;
+	struct THREAD * thread;
 
-		case RESOURCE_ESCALATING:
-		case RESOURCE_EXCLUSIVE:
-			SchedulerBlockThread();
-			LinkedListEnqueue( 
-					(struct LINKED_LIST_LINK *) SchedulerGetActiveThread(),
-					& lock->SharedQueue);
-			SchedulerForceSwitch();
-			return;
-	}
-}
-
-BOOL ResourceLockSharedNonBlocking( struct RESOURCE * lock )
-{
 	SchedulerStartCritical();
+	
+	BOOL blocked = FALSE;
 	if( lock->State == RESOURCE_SHARED )
 	{
-		lock->NumShared++;
-		SchedulerEndCritical();
-		return TRUE;
+		if( state == RESOURCE_SHARED )
+		{
+			lock->NumShared++;
+		}
+		else if( state == RESOURCE_EXCLUSIVE && 
+				lock->NumShared == 0 )
+		{
+			lock->State = RESOURCE_EXCLUSIVE;
+		}
+		else
+		{//We cannot aquire the lock, now block the thread.
+			blocked = TRUE;
+		}
+	}
+	else if( lock->State == RESOURCE_EXCLUSIVE )
+	{//if lock is exclusive: block new thread
+		blocked = TRUE;	
+	}
+	else
+	{
+		KernelPanic(RESOURCE_INVALID_STATE);
+	}
+
+	if( blocked )
+	{
+		SchedulerBlockThread();
+		SchedulerGetBlockingContext()->ResourceWaitState = state;
+		thread = SchedulerGetActiveThread();
+		LinkedListEnqueue( (struct LINKED_LIST_LINK*) thread, 
+				& lock->WaitingThreads );
+		SchedulerForceSwitch();
 	}
 	else
 	{
 		SchedulerEndCritical();
-		return FALSE;
 	}
 }
 
-void ResourceLockExclusive( struct RESOURCE * lock )
+void ResourceUnlock( struct RESOURCE * lock, enum RESOURCE_STATE state )
 {
 	SchedulerStartCritical();
+
+	/*ASSERT( state == lock->State, 
+			"tried to unlock resource in wrong mode",
+			RESOURCE_SHARED_UNLOCK_WRONG_MODE);*/
+
 	switch( lock->State )
 	{
 		case RESOURCE_SHARED:
-			if( lock->NumShared == 0)
-			{//The lock is completely free, switch to exclusive
-				lock->State = RESOURCE_EXCLUSIVE;
-				SchedulerEndCritical();
-				return;
-			}
-			else
-			{
-				//The lock is held by shared threads, 
-				//we must wait until they finish.
-				lock->State = RESOURCE_ESCALATING;
-				SchedulerBlockThread();
-				LinkedListEnqueue( 
-						(struct LINKED_LIST_LINK *) SchedulerGetActiveThread(),
-						& lock->ExclusiveQueue );
-				SchedulerForceSwitch();
-				return;
-			}
-
-		case RESOURCE_ESCALATING:
+			/*
+			ASSERT( lock->NumShared > 0,
+					"too many unlocks for resource",
+					RESOURCE_SHARED_UNLOCK_WHEN_UNLOCKED);*/
+			lock->NumShared--;
+			break;
 		case RESOURCE_EXCLUSIVE:
-			//the lock is already escalating, add self to exclusive queue.
-			SchedulerBlockThread();
-			LinkedListEnqueue( 
-					(struct LINKED_LIST_LINK*) SchedulerGetActiveThread(),
-					& lock->ExclusiveQueue );
-			SchedulerForceSwitch();
-			return;
+			lock->State = RESOURCE_SHARED;
+			break;
 	}
-}
 
-BOOL ResourceLockExclusiveNonBlocking( struct RESOURCE * lock )
-{
-	SchedulerStartCritical();
-	if( lock->State == RESOURCE_SHARED && lock->NumShared == 0 )
+	struct THREAD * nextThread;
+	enum RESOURCE_STATE * nextThreadState;
+	while( ! LinkedListIsEmpty( & lock->WaitingThreads ) && 
+		lock->State == RESOURCE_SHARED )
 	{
-		lock->State = RESOURCE_EXCLUSIVE;
-		SchedulerEndCritical();
-		return TRUE;
-	}
-	
-	//Could not aquire lock immediatly.
-	SchedulerEndCritical();
-	return FALSE;
-}
-
-void ResourceUnlockShared( struct RESOURCE * lock )
-{
-	struct THREAD * sleeper;
-
-	SchedulerStartCritical();
-	ASSERT( lock->State != RESOURCE_EXCLUSIVE,
-			RESOURCE_SHARED_UNLOCK_WHILE_EXCLUSIVE,
-			"Someone unlocked shared when lock was held exclusively." );
-	ASSERT( lock->NumShared > 0, 
-			RESOURCE_SHARED_UNLOCK_WHEN_UNLOCKED,
-			"Someone unlocked shared when no one had it locked shared");
-
-	lock->NumShared--;
-	if( lock->State == RESOURCE_ESCALATING && lock->NumShared == 0)
-	{
-		//all of the threads we are waiting on have finished,
-		//switch to exclusive.
-		lock->State = RESOURCE_EXCLUSIVE;
-		//wake the first exclusive thread
-		sleeper = (struct THREAD *) LinkedListPop( & lock->ExclusiveQueue );
-		SchedulerResumeThread( sleeper );
-	}
-	SchedulerEndCritical();
-}
-
-void ResourceUnlockExclusive( struct RESOURCE * lock )
-{
-	struct THREAD * sleeper;
-	SchedulerStartCritical();
-	ASSERT( lock->State == RESOURCE_EXCLUSIVE,
-			RESOURCE_EXCLUSIVE_UNLOCK_WHILE_SHARED,
-		   	"Someone tried to unlock exclusive while the lock was not exclusive.");
-
-	if( ! LinkedListIsEmpty( & lock->ExclusiveQueue ) )
-	{//there are more exclusive threads waiting, pass off execution to them.
-		sleeper = (struct THREAD *) LinkedListPop( & lock->ExclusiveQueue );
-		SchedulerResumeThread( sleeper );
-	}
-	else
-	{
-		//there are NO more threads waiting for exclusive. 
-		//We should wake every shared thread.
-		while( !LinkedListIsEmpty( & lock->SharedQueue ) )
+		nextThread = (struct THREAD *) LinkedListPeek( & lock->WaitingThreads );
+		nextThreadState = (enum RESOURCE_STATE*) & nextThread->BlockingContext;
+		if( * nextThreadState == RESOURCE_EXCLUSIVE &&
+				lock->NumShared != 0 )
 		{
-			sleeper = (struct THREAD *) LinkedListPop( & lock->SharedQueue );
-			SchedulerResumeThread( sleeper );
+			//We cannnot wake nextThread, so break from loop
+			break;
 		}
+
+		//we can wake thread, so remove from list
+		LinkedListPop( & lock->WaitingThreads );
+
+		//add to scheduled thread pool
+		SchedulerResumeThread( nextThread );
+		
+		//apply changes to lock state
+		if( nextThreadState == RESOURCE_SHARED )
+			lock->NumShared ++;
+		else if( nextThreadState == RESOURCE_EXCLUSIVE )
+			lock->State = RESOURCE_EXCLUSIVE;
+		else
+			KernelPanic(RESOURCE_INVALID_STATE); 
 	}
 	SchedulerEndCritical();
 }
