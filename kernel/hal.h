@@ -5,12 +5,6 @@
 #include"../utils/utils.h"
 #include"scheduler.h"
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/sfr_defs.h>
-
-#define DEBUG_LED          PORTC
-#define DEBUG_LED_DDR      DDRC
 //-----------------------------------------------------------------------------
 //Prototypes ( For all Builds )
 void HalInitClock();
