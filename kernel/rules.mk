@@ -17,3 +17,5 @@ kernel/resource.o: kernel/resource.c kernel/resource.h
 kernel/panic.o: kernel/panic.c kernel/panic.h
 
 kernel/sleep.o: kernel/sleep.c kernel/sleep.h
+
+kernel/interrupt.o: kernel/interrupt.c kernel/interrupt.h

@@ -1,7 +1,7 @@
 #include"timer.h"
 #include"../utils/utils.h"
 #include"../utils/heap.h"
-#include"hal.h"
+#include"interrupt.h"
 #include"scheduler.h"
 
 extern struct THREAD * ActiveThread;
@@ -13,6 +13,8 @@ TIME Time;
 
 //Keep track of timers waiting to execute.
 struct HEAP Timers;
+
+//TODO OVERHAUL TO USE INTERRUPT LIBRARY
 
 void TimerInit( )
 {

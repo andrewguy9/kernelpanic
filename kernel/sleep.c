@@ -1,7 +1,7 @@
 #include"sleep.h"
 #include"scheduler.h"
 
-#include"hal.h"
+#include"interrupt.h"
 
 void SleepHandler(void * arg)
 {
@@ -19,12 +19,12 @@ void Sleep( COUNT time )
 	union BLOCKING_CONTEXT * context = SchedulerGetBlockingContext();
 	struct THREAD * thread = SchedulerGetActiveThread();
 	//build timer into blocking context
-	HalDisableInterrupts();
+	InterruptDisable();
 	TimerRegister( &context->SleepTimer,
 			time,
 			SleepHandler,
 			thread );
-	HalEnableInterrupts();
+	InterruptEnable();
 
 	//go ahead and stop the thread.
 	SchedulerForceSwitch();

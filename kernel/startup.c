@@ -1,6 +1,7 @@
 #include"timer.h"
-#include"scheduler.h"
 #include"hal.h"
+#include"scheduler.h"
+#include"interrupt.h"
 
 void KernelInit()
 {//entry point for kernel...
@@ -16,7 +17,7 @@ void KernelStart()
 {
 	TIME lastTime=0xffff;
 	TIME curTime;
-	HalEnableInterrupts();
+	InterruptEnable();
 	while(1)
 	{
 		do

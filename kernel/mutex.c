@@ -1,5 +1,5 @@
 #include"mutex.h"
-#include"hal.h"
+#include"interrupt.h"
 
 /*
  * The mutex library is a thread and asr safe syncronization mechanism.
@@ -14,7 +14,7 @@
 BOOL MutexLock( struct MUTEX * lock )
 {
 	BOOL success;
-	HalDisableInterrupts();
+	InterruptDisable();
 	if( lock->Locked )
 	{
 		success = FALSE;
@@ -24,7 +24,7 @@ BOOL MutexLock( struct MUTEX * lock )
 		success = TRUE;
 		lock->Locked = TRUE;
 	}
-	HalEnableInterrupts();
+	InterruptEnable();
 	return success;
 }
 
@@ -33,20 +33,20 @@ BOOL MutexLock( struct MUTEX * lock )
  */
 void MutexUnlock( struct MUTEX * lock )
 {
-	HalDisableInterrupts();
+	InterruptDisable();
 	ASSERT( lock->Locked == TRUE,
 			MUTEX_UNLOCK_WHILE_UNLOCKED,
 		   	"Tried to unlock an unlocked mutex");
 	lock->Locked = FALSE;
-	HalEnableInterrupts();
+	InterruptEnable();
 }
 
 BOOL MutexIsLocked( struct MUTEX * lock )
 {
 	BOOL value;
-	HalDisableInterrupts();
+	InterruptDisable();
 	value = lock->Locked;
-	HalEnableInterrupts();
+	InterruptEnable();
 	return value;
 }
 

@@ -3,6 +3,7 @@
 #include"../utils/linkedlist.h"
 #include"timer.h"
 #include"mutex.h"
+#include"interrupt.h"
 #include"hal.h"
 
 /*
@@ -73,7 +74,7 @@ void SchedulerEndCritical()
 
 	//We may have to fire the scheduler
 	//so we need to be atomic.
-	HalDisableInterrupts();
+	InterruptDisable();
 
 	//End the critical section
 	MutexUnlock( & SchedulerLock );
@@ -84,7 +85,7 @@ void SchedulerEndCritical()
 	}
 	else
 	{//Quantum has not expired, so we'll just end the critical section. 
-		HalEnableInterrupts();
+		InterruptEnable();
 	}
 }
 
@@ -93,12 +94,13 @@ void
 __attribute__((naked,__INTR_ATTRS)) 
 SchedulerContextSwitch()
 {
+	//TODO: Overhaul to use interrupt library
 	//perfrom context switch
 	HAL_SAVE_STATE
 	
 	HAL_SAVE_SP( ActiveThread->Stack );
 
-	ASSERT( HalIsAtomic(), 
+	ASSERT( InterruptIsAtomic(), 
 			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
 			"Context switch must be atomic");
 
@@ -111,7 +113,7 @@ SchedulerContextSwitch()
 		NextThread = NULL;
 	}
 
-	HalEndInterrupt(); //reduce interrupt level without enabling interrupts.
+	//HalEndInterrupt(); //reduce interrupt level without enabling interrupts.//TODO replace
 
 	HAL_SET_SP( ActiveThread->Stack );
 
@@ -127,7 +129,7 @@ SchedulerForceSwitch()
 			"Schedule will not run when in critical section");
 
 	//This needs to be an atomic operation.
-	HalDisableInterrupts();
+	InterruptDisable();
 
 	//End the critical Section
 	//so that we can schedule
@@ -146,10 +148,10 @@ void SchedulerResumeThread( struct THREAD * thread )
 			SCHEDULER_RESUME_THREAD_NOT_BLOCKED,
 			"Thread not blocked" );
 
-	HalDisableInterrupts();
+	InterruptDisable();
 	thread->State = THREAD_STATE_RUNNING;
 	LinkedListEnqueue( (struct LINKED_LIST_LINK *) thread, DoneQueue );
-	HalEnableInterrupts();
+	InterruptEnable();
 }
 
 void SchedulerBlockThread( )
@@ -174,7 +176,7 @@ union BLOCKING_CONTEXT * SchedulerGetBlockingContext( )
 
 void Schedule( void *arg )
 {
-	ASSERT( HalIsAtomic(), 
+	ASSERT( InterruptIsAtomic(), 
 			SCHEDULE_MUST_BE_ATOMIC,
 			"Only run schedule in interrupt mode");
 

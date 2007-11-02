@@ -8,10 +8,7 @@
 //-----------------------------------------------------------------------------
 //Prototypes ( For all Builds )
 void HalInitClock();
-BOOL HalIsAtomic();
 void HalInit();
-void HalEnableInterrupts();
-void HalDisableInterrupts();
 void HalStartInterrupt();
 void HalEndInterrupt();
 void HalCreateStackFrame( struct THREAD * thread, THREAD_MAIN main );
@@ -30,8 +27,8 @@ void HalCreateStackFrame( struct THREAD * thread, THREAD_MAIN main );
 #define HAL_SET_SP(value) (SP = (int) (value) )
 
 #define HalIsAtomic() ( !(SREG&SREG_I) )
-#define HAL_DISABLE_INTERRUPTS() asm(" cli")
-#define HAL_ENABLE_INTERRUPTS() asm(" sei")
+#define HalDisableInterrupts() asm(" cli")
+#define HalEnableInterrupts()  asm(" sei")
 
 #define TMR_PRESCALE_NONE  0xF4
 #define TMR_PRESCALE_1024  0x07

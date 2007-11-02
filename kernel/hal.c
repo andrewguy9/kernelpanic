@@ -3,41 +3,11 @@
 //
 //HARDWARE INDEPENDANT CODE
 //
-COUNT InterruptLevel;
-void HalDisableInterrupts()
-{
-	HAL_DISABLE_INTERRUPTS();
-	InterruptLevel++;
-}
-
-void HalEnableInterrupts()
-{
-	InterruptLevel--;
-	if( InterruptLevel == 0 )
-		HAL_ENABLE_INTERRUPTS();
-}
-
-void HalStartInterrupt()
-{
-	InterruptLevel++;
-}
-
-void HalEndInterrupt()
-{
-	InterruptLevel--;
-	ASSERT( InterruptLevel == 0,
-			HAL_END_INTERRUPT_WRONG_LEVEL,
-			"Interrupt level is not balanced at end of interrupt."
-		  );
-}
-
 void HalInit()
 {
 	DEBUG_LED_DDR = 0xff;
     DEBUG_SW_DDR = 0x00;
     DEBUG_SW_PORT = 0xff;
-
-	InterruptLevel = 1;
 }
 
 //

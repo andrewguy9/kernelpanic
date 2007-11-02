@@ -29,10 +29,11 @@ test2.elf: test2.out
 test3.elf: test3.out
 	cp -p test3.out test3.elf
 ############################
-test1.out: test/test1.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o
 
-test2.out: test/test2.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o
+test1.out: test/test1.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o kernel/interrupt.o
 
-test3.out: test/test3.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o
+test2.out: test/test2.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o kernel/interrupt.o
+
+test3.out: test/test3.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o kernel/interrupt.o
 
 ###############################
