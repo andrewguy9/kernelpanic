@@ -7,9 +7,9 @@ typedef void (HANDLER_FUNCTION)( void * Argument );
 
 struct HANDLER_OBJECT
 {
-	struct LINK Link;
+	union LINK Link;
 	BOOL Enabled;
-	TIMER_HANDLER * Handler;
+	HANDLER_FUNCTION * Handler;
 	void * Argument;
 };
 

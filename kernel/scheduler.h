@@ -13,7 +13,7 @@ enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED };
 union BLOCKING_CONTEXT
 {
 	COUNT SemaphoreCountNeeded;
-	struct TIMER SleepTimer;
+	struct HANDLER_OBJECT SleepTimer;
 	enum RESOURCE_STATE ResourceWaitState;
 };
 

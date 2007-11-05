@@ -10,7 +10,7 @@
 #define DEBUG_LED_DDR      DDRC
 
 //Tests of the Timer subsystem.
-struct TIMER FrequentTimer;
+struct HANDLER_OBJECT FrequentTimer;
 COUNT FrequentCount;
 void FrequentHandler( void * arg )
 {
@@ -22,7 +22,7 @@ void FrequentHandler( void * arg )
 		   NULL	);
 }
 
-struct TIMER SeldomTimer;
+struct HANDLER_OBJECT SeldomTimer;
 COUNT SeldomCount;
 void SeldomHandler( void * arg )
 {
