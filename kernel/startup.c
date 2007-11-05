@@ -7,7 +7,7 @@ void KernelInit()
 {//entry point for kernel...
 	HalInit();
 
-	TimerInit( );
+	TimerStartup( );
 
 	SchedulerInit();
 

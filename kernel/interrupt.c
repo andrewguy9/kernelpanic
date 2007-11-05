@@ -1,4 +1,4 @@
-#include"kernel/interrupt.h"
+#include"interrupt.h"
 #include"hal.h"
 
 //
@@ -7,7 +7,7 @@
 
 COUNT InterruptLevel;
 BOOL InPostInterruptHandler;
-struct LINKED_LIST PostInteruptHandlerList;
+struct LINKED_LIST PostInterruptHandlerList;
 
 //
 //Internal Helper Routines.
@@ -15,7 +15,33 @@ struct LINKED_LIST PostInteruptHandlerList;
 
 void InterruptRunPostHandlers()
 {
-	//TODO
+	struct HANDLER_OBJECT * handler;
+	void * argument;
+	HANDLER_FUNCTION * foo;
+	if( InPostInterruptHandler )
+	{
+		//Prevent recursion. Only the bottom level 
+		//interrupt sould run these handlers.
+		return;
+	}
+
+	InPostInterruptHandler = TRUE;
+	while( ! LinkedListIsEmpty( & PostInterruptHandlerList ) )
+	{
+		//fetch handler object
+		handler = (struct HANDLER_OBJECT*) LinkedListPop(
+				&PostInterruptHandlerList );
+		//fech values from object so we can reuse it.
+		argument = handler->Argument;
+		foo = handler->Handler;
+		//mark stucture so handler can reschedule itself.
+		handler->Enabled = FALSE;
+		//run handler.
+		HalEnableInterrupts();
+		foo( argument );
+		HalDisableInterrupts();
+	}
+	InPostInterruptHandler = FALSE;
 }
 
 //
@@ -25,8 +51,8 @@ void InterruptRunPostHandlers()
 void InterruptStartup()
 {
 	InterruptLevel = 1;//Will be reset to 0 when startup completes
-	InPostInterruptHanlder = FALSE;
-	LinkedListInit( & PostInteruptHanlderList );
+	InPostInterruptHandler = FALSE;
+	LinkedListInit( & PostInterruptHandlerList );
 }
 
 
@@ -36,9 +62,10 @@ void InterruptStartup()
 
 void InterruptStart()
 {
-	ASSERT( HalIsAtomic() && InterruptLevel == 0,
-			"Interrupt level is inconsistent with start of an ISR",
-			INTERRUPT_START_INTERRUPTS_INCONSISTENT);
+	ASSERT( (HalIsAtomic() && InterruptLevel == 0),
+			INTERRUPT_START_INTERRUPTS_INCONSISTENT,
+			"Interrupt level is inconsistent with \
+			start of an ISR");
 
 	InterruptLevel++;
 	
@@ -47,8 +74,8 @@ void InterruptStart()
 void InterruptEnd()
 {
 	ASSERT( HalIsAtomic() && InterruptLevel == 1,
-			"Interrupt level is inconsistent with end of an ISR",
-			INTERRUPT_END_INTERRUPTS_INCONSISTENT);
+			INTERRUPT_END_INTERRUPTS_INCONSISTENT,
+			"Interrupt level is inconsistent with end of an ISR");
 
 	InterruptLevel--;
 
@@ -61,18 +88,18 @@ void InterruptRegisterPostHandler(
 		HANDLER_FUNCTION handler,
 		void *arg)
 {
-	ASSERT( HalIsAtomic(), 
-			"Access to the Post handler list must be atomic.",
-			INTERRUPT_POST_HANDLER_REGISTER_NOT_ATOMIC);
-	ASSERT( ! object->Active.
-			"Adding already active post handler",
-			INTERRUPT_POST_HANDLER_REGISTER_ALREADY_ACTIVE);
+	ASSERT( HalIsAtomic(),
+			INTERRUPT_POST_HANDLER_REGISTER_NOT_ATOMIC,
+			"Access to the Post handler list must be atomic.");
+	ASSERT( ! object->Enabled,
+			INTERRUPT_POST_HANDLER_REGISTER_ALREADY_ACTIVE,
+			"Adding already active post handler");
 
-	object->Handler = Handler;
+	object->Handler = handler;
 	object->Argument = arg;
-	object->Active = TRUE;
-	LinkedListInsert( (struct LINKED_LIST_LINK *) object, 
-			PostInteruptHandlerList );
+	object->Enabled = TRUE;
+	LinkedListEnqueue( (struct LINKED_LIST_LINK *) object, 
+			& PostInterruptHandlerList );
 }
 
 //
@@ -87,8 +114,6 @@ void InterruptDisable()
 
 void InterruptEnable()
 {
-	struct POST_INTERRUPT_LIST_ITEM * listItem;
-
 	InterruptLevel--;
 	if( InterruptLevel == 0 )
 	{
@@ -97,7 +122,7 @@ void InterruptEnable()
 	}
 }
 
-void InterruptIsAtomic()
+BOOL InterruptIsAtomic()
 {
 	//
 	//If HalIsAtomic is true, 
@@ -110,8 +135,8 @@ void InterruptIsAtomic()
 	ASSERT( HalIsAtomic() ? 
 				InterruptLevel > 0 :
 			   	InterruptLevel == 0,
-			"InterruptIsAtomic wrong interrupt mode",
-			INTERRUPT_IS_ATOMIC_WRONG_STATE);
+			INTERRUPT_IS_ATOMIC_WRONG_STATE,
+			"InterruptIsAtomic wrong interrupt mode");
 
-	return HalIsAtomic;
+	return HalIsAtomic();
 }

@@ -70,7 +70,7 @@ void TimerRegister(
 			"timers cannot be double registered");
 
 	newTimer->Enabled = TRUE;
-	newTimer->Link.Weight = Time + wait;
+	newTimer->Link.WeightedLink.Weight = Time + wait;
 	newTimer->Handler = handler;
 	newTimer->Argument = argument;
 	HeapAdd( (struct WEIGHTED_LINK * ) newTimer, &Timers );
@@ -79,9 +79,9 @@ void TimerRegister(
 TIME TimerGetTime()
 {
 	TIME value;
-	HalDisableInterrupts();
+	InterruptDisable();
 	value = Time;
-	HalEnableInterrupts();
+	InterruptEnable();
 	return value;
 }
 
@@ -104,7 +104,7 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 
 	//Restore the interrupt level, 
 	//and run the timers that expired.
-	HalEndInterrupt();
+	InterruptEnd();
 
 	//Check for scheduling event
 	if( NextThread != NULL )

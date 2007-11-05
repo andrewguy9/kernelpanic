@@ -46,7 +46,7 @@ struct LINKED_LIST Queue2;
 struct LINKED_LIST * RunQueue;
 struct LINKED_LIST * DoneQueue;
 
-struct TIMER SchedulerTimer;
+struct HANDLER_OBJECT SchedulerTimer;
 
 //Variables that need to be atomic.
 BOOL QuantumExpired;

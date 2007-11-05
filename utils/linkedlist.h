@@ -3,10 +3,6 @@
 
 #include"link.h"
 #include"utils.h"
-//Simple insert at the end of list.
-void LinkedListInsert( struct LINKED_LIST_LINK * node, struct LINKED_LIST_LINK * list );
-//Simple remove of a node from a list.
-void LinkedListRemove( struct LINKED_LIST_LINK * node );
 
 struct LINKED_LIST 
 {
