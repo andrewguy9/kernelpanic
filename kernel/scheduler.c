@@ -68,23 +68,21 @@ void SchedulerStartCritical( )
 
 void SchedulerEndCritical()
 {
+	BOOL quantumHasExpired;
 	ASSERT( MutexIsLocked( & SchedulerLock ),
 			SCHEDULER_END_CRITICAL_NOT_CRITICAL,
 		   	"Critical section cannot start.");
 
-	//We may have to fire the scheduler
-	//so we need to be atomic.
+	//Cant check QuantumExpired unless atomic.
 	InterruptDisable();
-
-	//End the critical section
-	MutexUnlock( & SchedulerLock );
-
+	
 	if( QuantumExpired )
 	{//Quantum has expired while in crit section, fire manually.
 		SchedulerForceSwitch();
 	}
 	else
 	{//Quantum has not expired, so we'll just end the critical section. 
+		MutexUnlock( & SchedulerLock );
 		InterruptEnable();
 	}
 }
@@ -94,7 +92,6 @@ void
 __attribute__((naked,__INTR_ATTRS)) 
 SchedulerContextSwitch()
 {
-	//TODO: Overhaul to use interrupt library
 	//perfrom context switch
 	HAL_SAVE_STATE
 	
@@ -113,7 +110,7 @@ SchedulerContextSwitch()
 		NextThread = NULL;
 	}
 
-	//HalEndInterrupt(); //reduce interrupt level without enabling interrupts.//TODO replace
+	InterruptEnd(); //reduce interrupt level without enabling interrupts.
 
 	HAL_SET_SP( ActiveThread->Stack );
 
@@ -176,12 +173,8 @@ union BLOCKING_CONTEXT * SchedulerGetBlockingContext( )
 
 void Schedule( void *arg )
 {
-	ASSERT( InterruptIsAtomic(), 
-			SCHEDULE_MUST_BE_ATOMIC,
-			"Only run schedule in interrupt mode");
-
 	//See if we are allowed to schedule (not in crit section)
-	if( ! MutexIsLocked( & SchedulerLock ) )
+	if( MutexLock( & SchedulerLock ) )
 	{//We are allowed to schedule.
 		//save old thread
 		if( ActiveThread != &IdleThread && 
@@ -226,11 +219,15 @@ void Schedule( void *arg )
 					NULL);
 			QuantumExpired = FALSE;
 		}
+
+		MutexUnlock( &SchedulerLock );
 	}
 	else
 	{//we are not allowed to schedule.
 		//mark the quantum as expired.
+		InterruptDisable();
 		QuantumExpired = TRUE;
+		InterruptEnable();
 	}
 }//end Schedule
 

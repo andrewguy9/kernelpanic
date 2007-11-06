@@ -92,7 +92,7 @@ void Thread3Main()
 	ThreadMain( 3, 0x04, &Thread3SemaphoreCount );
 }
 
-struct TIMER VerificationTimer;
+struct HANDLER_OBJECT VerificationTimer;
 void VerifyState()
 {
 

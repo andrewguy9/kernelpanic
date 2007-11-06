@@ -20,7 +20,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #define ASSERT( condition, errornum, errorstr ) ( condition ? :  \
-		printf("ASSERT FAILED: %s\n", error))
+		printf("ASSERT FAILED: %s\n", errorstr))
 
 #endif
 
