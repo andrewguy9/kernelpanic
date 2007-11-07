@@ -42,7 +42,7 @@ struct THREAD * SchedulerGetActiveThread();
 
 void Schedule( ) ;
 
-void SchedulerInit( );
+void SchedulerStartup( );
 
 void 
 SchedulerCreateThread( 

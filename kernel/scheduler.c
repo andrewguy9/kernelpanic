@@ -231,7 +231,7 @@ void Schedule( void *arg )
 	}
 }//end Schedule
 
-void SchedulerInit()
+void SchedulerStartup()
 {
 	//Initialize queues
 	LinkedListInit( & Queue1 );

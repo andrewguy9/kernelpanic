@@ -3,17 +3,19 @@
 //
 //HARDWARE INDEPENDANT CODE
 //
-void HalInit()
+
+//
+//AVR CODE
+//
+#ifdef AVR_BUILD
+
+void HalStartup()
 {
 	DEBUG_LED_DDR = 0xff;
     DEBUG_SW_DDR = 0x00;
     DEBUG_SW_PORT = 0xff;
 }
 
-//
-//AVR CODE
-//
-#ifdef AVR_BUILD
 void HalInitClock()
 {
 	//preload the timer counter

@@ -5,11 +5,11 @@
 
 void KernelInit()
 {//entry point for kernel...
-	HalInit();
+	HalStartup();
 
-	TimerStartup( );
+	TimerStartup();
 
-	SchedulerInit();
+	SchedulerStartup();
 
 }
 

@@ -8,7 +8,7 @@
 //-----------------------------------------------------------------------------
 //Prototypes ( For all Builds )
 void HalInitClock();
-void HalInit();
+void HalStartup();
 void HalStartInterrupt();
 void HalEndInterrupt();
 void HalCreateStackFrame( struct THREAD * thread, THREAD_MAIN main );
