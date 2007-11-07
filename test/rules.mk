@@ -1,3 +1,5 @@
+test/test0.o: test/test0.c
+
 test/test1.o: test/test1.c
 
 test/test2.o: test/test2.c

@@ -34,66 +34,6 @@ void SeldomHandler( void * arg )
 		   NULL	);
 }
 
-//Tests of the multithreading system
-struct SEMAPHORE ValueLock;
-volatile unsigned int Value1 = 0;
-volatile unsigned int Value2 = 0;
-volatile unsigned int Value3 = 0;
-struct THREAD TestThreadIncrement;
-char TestThreadStackIncrement[500];
-void TestMainIncrement()
-{
-	volatile unsigned int a = 0;
-	DEBUG_LED ^= 1<<3;
-	while( 1 )
-	{
-		//SemaphoreLock( & ValueLock );
-		Value1++;
-		DEBUG_LED ^= 1<<0;
-		for(a=1;a>0;a++);
-		SchedulerStartCritical();
-		SchedulerForceSwitch();
-		//SemaphoreUnlock( & ValueLock );
-
-	}
-}
-
-struct THREAD TestThreadDivide;
-char TestThreadStackDivide[500];
-void TestMainDivide()
-{
-	volatile unsigned int a = 0;
-	while( 1 )
-	{
-		//SemaphoreLock( & ValueLock );
-		Value2++;
-		DEBUG_LED ^= 1<<1;
-		for(a=1;a>0;a++);
-		SchedulerStartCritical();
-		SchedulerForceSwitch();
-		//SemaphoreUnlock( & ValueLock );
-	}
-}
-
-struct THREAD TestThreadExp;
-char TestThreadStackExp[500];
-void TestMainExp()
-{
-	volatile unsigned int a = 0;
-	while( 1 )
-	{
-		//SemaphoreLock( & ValueLock );
-		Value3++;
-		DEBUG_LED ^= 1<<2;
-		for(a=1;a>0;a++);
-		SchedulerStartCritical();
-		SchedulerForceSwitch();
-		//SemaphoreUnlock( & ValueLock );
-	}
-}
-
-
-
 int main()
 {
 	//Initialize the kernel structures.
@@ -113,27 +53,6 @@ int main()
 			SeldomHandler,
 		   NULL	);
 
-	//Initialize Threads
-	SemaphoreInit( &ValueLock, 1 );
-	SchedulerCreateThread(
-			&TestThreadIncrement,
-			5,
-			TestThreadStackIncrement,
-			500,
-			TestMainIncrement );
-	SchedulerCreateThread(
-			&TestThreadDivide,
-			5,
-			TestThreadStackDivide,
-			500,
-			TestMainDivide);
-	SchedulerCreateThread(
-			&TestThreadExp,
-			5,
-			TestThreadStackExp,
-			500,
-			TestMainExp);
-		
 	KernelStart();
 	return 0;
 }

@@ -10,7 +10,6 @@ void KernelInit()
 	TimerStartup();
 
 	SchedulerStartup();
-
 }
 
 void KernelStart()
