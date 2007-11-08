@@ -77,9 +77,9 @@ void InterruptEnd()
 			INTERRUPT_END_INTERRUPTS_INCONSISTENT,
 			"Interrupt level is inconsistent with end of an ISR");
 
-	InterruptLevel--;
-
 	InterruptRunPostHandlers();
+
+	InterruptLevel--;
 
 }
 
@@ -129,14 +129,17 @@ BOOL InterruptIsAtomic()
 	//then the InterruptLevel should be positive,
 	//since we are physically atomic.
 	//If HalIsAtomic is false,
-	//then interrupt level should be 0, because we have interrupts
-	//enabled.
+	//then interrupt level should be 0, because we have 
+	//interrupts enabled.
 	//
-	ASSERT( HalIsAtomic() ? 
+	
+	BOOL atomic = HalIsAtomic();
+
+	ASSERT( atomic ? 
 				InterruptLevel > 0 :
 			   	InterruptLevel == 0,
 			INTERRUPT_IS_ATOMIC_WRONG_STATE,
 			"InterruptIsAtomic wrong interrupt mode");
 
-	return HalIsAtomic();
+	return atomic;
 }

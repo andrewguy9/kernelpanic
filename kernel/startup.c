@@ -7,6 +7,8 @@ void KernelInit()
 {//entry point for kernel...
 	HalStartup();
 
+	InterruptStartup();
+
 	TimerStartup();
 
 	SchedulerStartup();
@@ -14,16 +16,7 @@ void KernelInit()
 
 void KernelStart()
 {
-	TIME lastTime=0xffff;
-	TIME curTime;
 	InterruptEnable();
-	while(1)
-	{
-		do
-		{
-			curTime = TimerGetTime();
-		}while( curTime == lastTime );
-		lastTime = curTime;
-	}
+	while(1);
 }
 

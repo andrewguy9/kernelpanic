@@ -61,19 +61,17 @@ void TimerRegister(
 		HANDLER_FUNCTION * handler,
 		void * argument )
 {
-	ASSERT( InterruptIsAtomic(), 
-			TIMER_REGISTER_MUST_BE_ATOMIC,
-			"timer structures can only be \
-			added from interrupt level");
 	ASSERT( ! newTimer->Enabled,
 			TIMER_REGISTER_TIMER_ALREADY_ACTIVE,
 			"timers cannot be double registered");
 
+	InterruptDisable();
 	newTimer->Enabled = TRUE;
 	newTimer->Link.WeightedLink.Weight = Time + wait;
 	newTimer->Handler = handler;
 	newTimer->Argument = argument;
 	HeapAdd( (struct WEIGHTED_LINK * ) newTimer, &Timers );
+	InterruptEnable();
 }
 
 TIME TimerGetTime()
