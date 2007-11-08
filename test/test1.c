@@ -50,7 +50,7 @@ void TestMainIncrement()
 		//SemaphoreLock( & ValueLock );
 		Value1++;
 		DEBUG_LED ^= 1<<0;
-		for(a=1;a>0;a++);
+		//for(a=1;a>0;a++);
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
@@ -68,7 +68,7 @@ void TestMainDivide()
 		//SemaphoreLock( & ValueLock );
 		Value2++;
 		DEBUG_LED ^= 1<<1;
-		for(a=1;a>0;a++);
+		//for(a=1;a>0;a++);
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
@@ -85,7 +85,7 @@ void TestMainExp()
 		//SemaphoreLock( & ValueLock );
 		Value3++;
 		DEBUG_LED ^= 1<<2;
-		for(a=1;a>0;a++);
+		//for(a=1;a>0;a++);
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
