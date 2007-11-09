@@ -50,9 +50,9 @@ void TestMainIncrement()
 		//SemaphoreLock( & ValueLock );
 		Value1++;
 		DEBUG_LED ^= 1<<0;
-		//for(a=1;a>0;a++);
-		SchedulerStartCritical();
-		SchedulerForceSwitch();
+		for(a=1;a>0;a++);
+		//SchedulerStartCritical();
+		//SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
 
 	}
@@ -68,9 +68,9 @@ void TestMainDivide()
 		//SemaphoreLock( & ValueLock );
 		Value2++;
 		DEBUG_LED ^= 1<<1;
-		//for(a=1;a>0;a++);
-		SchedulerStartCritical();
-		SchedulerForceSwitch();
+		for(a=1;a>0;a++);
+		//SchedulerStartCritical();
+		//SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
 	}
 }
@@ -85,9 +85,9 @@ void TestMainExp()
 		//SemaphoreLock( & ValueLock );
 		Value3++;
 		DEBUG_LED ^= 1<<2;
-		//for(a=1;a>0;a++);
-		SchedulerStartCritical();
-		SchedulerForceSwitch();
+		for(a=1;a>0;a++);
+		//SchedulerStartCritical();
+		//SchedulerForceSwitch();
 		//SemaphoreUnlock( & ValueLock );
 	}
 }
@@ -123,13 +123,13 @@ int main()
 			TestMainIncrement );
 	SchedulerCreateThread(
 			&TestThreadDivide,
-			5,
+			10,
 			TestThreadStackDivide,
 			500,
 			TestMainDivide);
 	SchedulerCreateThread(
 			&TestThreadExp,
-			5,
+			20,
 			TestThreadStackExp,
 			500,
 			TestMainExp);

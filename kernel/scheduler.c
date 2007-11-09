@@ -32,23 +32,21 @@
  * thread 
  */
 
-struct THREAD * ActiveThread;
-struct THREAD * NextThread;
-
 //Used to mark critical sections...
 struct MUTEX SchedulerLock;
 
-//Scheduler variables: Only edit atomically.
-//This is because the scheduler is an interrupt
-//level entitiy.
+//Scheduler variables: Protected by SchedulerLock
 struct LINKED_LIST Queue1;
 struct LINKED_LIST Queue2;
 struct LINKED_LIST * RunQueue;
 struct LINKED_LIST * DoneQueue;
 
-struct HANDLER_OBJECT SchedulerTimer;
+struct THREAD * ActiveThread;
+struct THREAD * NextThread;
 
-//Variables that need to be atomic.
+
+//Variables that need to be edited atomically.
+struct HANDLER_OBJECT SchedulerTimer;
 BOOL QuantumExpired;
 
 //Thread for idle loop ( the start of thread too )
@@ -99,9 +97,7 @@ SchedulerContextSwitch()
 
 	ASSERT( InterruptIsAtomic(), 
 			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
-			"Context switch must be atomic");
-
-	Schedule(); //Schedule next thread manually...
+			"Context switch must save state atomically");
 
 	//Check for scheduling event
 	if( NextThread != NULL )
@@ -131,6 +127,8 @@ SchedulerForceSwitch()
 	//End the critical Section
 	//so that we can schedule
 	MutexUnlock( & SchedulerLock ); 
+
+	Schedule(); //Schedule next thread manually...
 
 	//Actually context switch.
 	SchedulerContextSwitch();
