@@ -114,6 +114,10 @@ void InterruptDisable()
 
 void InterruptEnable()
 {
+	ASSERT( InterruptLevel > 0,
+			INTERRUPT_ENABLE_OVER_ENABLED,
+			"We cannot enable interrupts when \
+		   	InterruptLevel is not positive");
 	InterruptLevel--;
 	if( InterruptLevel == 0 )
 	{
@@ -121,6 +125,10 @@ void InterruptEnable()
 		HalEnableInterrupts();
 	}
 }
+
+//
+//Functions for Sanity Checking
+//
 
 BOOL InterruptIsAtomic()
 {
@@ -142,4 +150,20 @@ BOOL InterruptIsAtomic()
 			"InterruptIsAtomic wrong interrupt mode");
 
 	return atomic;
+}
+
+BOOL InterruptIsInPostHandler()
+{
+	BOOL atomic = InterruptIsAtomic();
+
+	//
+	//If we are in a post handler, then we should not
+	//be atomic, but interrupt level should be positive.
+	//
+	ASSERT( InPostInterruptHandler ? ! HalIsAtomic() && InterruptLevel > 0 : TRUE,
+		INTERRUPT_IS_POST_HANDLER_WRONG_STATE,
+		"InterruptIsPostHandler is in handler, but\
+		interrupt flag or interrupt level invalid");
+
+	return InPostInterruptHandler;
 }

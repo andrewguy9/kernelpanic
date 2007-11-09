@@ -39,6 +39,12 @@ void InterruptDisable();
 
 void InterruptEnable();
 
+//
+//Functions for Sanity Checking
+//
+
 BOOL InterruptIsAtomic();
+
+BOOL InterruptIsInPostHandler();
 
 #endif
