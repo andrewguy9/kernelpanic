@@ -11,7 +11,7 @@ include test/rules.mk
 
 tests: utils/linktest.out test/pctest.out
 
-umouse: test0.elf test1.elf
+umouse: test0.elf test1.elf test2.elf
 
 #########################
 #utils on board tests
