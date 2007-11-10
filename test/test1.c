@@ -43,7 +43,7 @@ struct THREAD TestThreadIncrement;
 char TestThreadStackIncrement[500];
 void TestMainIncrement()
 {
-	volatile unsigned int a = 0;
+	volatile unsigned char a = 0;
 	DEBUG_LED ^= 1<<3;
 	while( 1 )
 	{
@@ -62,7 +62,7 @@ struct THREAD TestThreadDivide;
 char TestThreadStackDivide[500];
 void TestMainDivide()
 {
-	volatile unsigned int a = 0;
+	volatile unsigned char a = 0;
 	while( 1 )
 	{
 		//SemaphoreLock( & ValueLock );
@@ -79,7 +79,7 @@ struct THREAD TestThreadExp;
 char TestThreadStackExp[500];
 void TestMainExp()
 {
-	volatile unsigned int a = 0;
+	volatile unsigned char a = 0;
 	while( 1 )
 	{
 		//SemaphoreLock( & ValueLock );
@@ -106,6 +106,7 @@ int main()
 			2,
 			FrequentHandler,
 		   NULL	);
+
 	SeldomCount = 0;
 	TimerRegister( 
 			&SeldomTimer,
@@ -117,19 +118,21 @@ int main()
 	SemaphoreInit( &ValueLock, 1 );
 	SchedulerCreateThread(
 			&TestThreadIncrement,
-			5,
+			2,
 			TestThreadStackIncrement,
 			500,
 			TestMainIncrement );
+
 	SchedulerCreateThread(
 			&TestThreadDivide,
-			10,
+			4,
 			TestThreadStackDivide,
 			500,
 			TestMainDivide);
+
 	SchedulerCreateThread(
 			&TestThreadExp,
-			20,
+			8,
 			TestThreadStackExp,
 			500,
 			TestMainExp);
