@@ -5,6 +5,7 @@
 #include"../kernel/hal.h"
 #include"../kernel/sleep.h"
 #include"../kernel/panic.h"
+
 //
 //Tests whether semaphore ever admits more entries than it should.
 //
@@ -35,29 +36,29 @@ void ThreadMain( int index, char bit, int * semaphoreUsage )
 	while(1)
 	{
 		//turn on light
-		HalDisableInterrupts();
+		InterruptDisable();
 		DEBUG_LED = DEBUG_LED | bit;
-		HalEnableInterrupts();
+		InterruptEnable();
 
 		//aquire lock
 		SemaphoreLock( & Semaphore, HoldArray[index] );
-		HalDisableInterrupts();
+		InterruptDisable();
 		* semaphoreUsage = HoldArray[index];
-		HalEnableInterrupts();
+		InterruptEnable();
 
 		//do some "work"
 		Work( WorkArray[index] );
 
 		//relase the lock
-		HalDisableInterrupts();
+		InterruptDisable();
 		* semaphoreUsage = HoldArray[index];
-		HalEnableInterrupts();
+		InterruptEnable();
 		SemaphoreUnlock( & Semaphore, HoldArray[index] );
 
 		//turn off the light
-		HalDisableInterrupts();
+		InterruptDisable();
 		DEBUG_LED = DEBUG_LED & (~ bit);
-		HalEnableInterrupts();
+		InterruptEnable();
 
 		//change the index
 		index+=WorkArray[index]+HoldArray[index];

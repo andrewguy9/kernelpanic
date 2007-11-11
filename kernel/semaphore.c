@@ -4,12 +4,18 @@
 
 void SemaphoreInit( struct SEMAPHORE * lock, COUNT count )
 {
+	lock->MaxCount = count;
 	lock->Count = count;
 	LinkedListInit( & lock->WaitingThreads );
 }
 
 void SemaphoreLock( struct SEMAPHORE * lock, COUNT count )
 {
+	ASSERT( count <= lock->MaxCount,
+			SEMAHPORE_LOCK_COUNT_TOO_LARGE,
+			"We cannot lock the semaphore for more \
+			than its granted");
+
 	SchedulerStartCritical( );
 
 	if( lock->Count >= count )
@@ -40,6 +46,10 @@ void SemaphoreUnlock( struct SEMAPHORE * lock, COUNT count )
 {
 	SchedulerStartCritical();
 	lock->Count+=count;
+
+	ASSERT( lock->Count <= lock->MaxCount,
+			SEMAPHORE_UNLOCK_COUNT_TOO_LARGE,
+			"Somehow count exceeded max count");
 	//wake as many threads as we can...
 	while( LinkedListIsEmpty( & lock->WaitingThreads ) )
 	{

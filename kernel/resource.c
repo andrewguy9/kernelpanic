@@ -3,6 +3,10 @@
 #include"../utils/utils.h"
 #include"panic.h"
 
+/*
+ * Resource locks are a thread safe syncronization mechanism.
+ */
+
 void ResourceInit( struct RESOURCE * lock )
 {
 	lock->State = RESOURCE_SHARED;
@@ -23,14 +27,21 @@ void ResourceLock( struct RESOURCE * lock, enum RESOURCE_STATE state )
 		{
 			lock->NumShared++;
 		}
-		else if( state == RESOURCE_EXCLUSIVE && 
-				lock->NumShared == 0 )
+		else if( state == RESOURCE_EXCLUSIVE )
 		{
-			lock->State = RESOURCE_EXCLUSIVE;
+			 
+			if( lock->NumShared == 0 )
+			{
+				lock->State = RESOURCE_EXCLUSIVE;
+			}
+			else
+			{//We cannot aquire the lock, now block the thread.
+				blocked = TRUE;
+			}
 		}
 		else
-		{//We cannot aquire the lock, now block the thread.
-			blocked = TRUE;
+		{
+			KernelPanic( RESOURCE_INVALID_STATE );
 		}
 	}
 	else if( lock->State == RESOURCE_EXCLUSIVE )
@@ -61,20 +72,24 @@ void ResourceUnlock( struct RESOURCE * lock, enum RESOURCE_STATE state )
 {
 	SchedulerStartCritical();
 
-	/*ASSERT( state == lock->State, 
+	ASSERT( state == lock->State, 
 			"tried to unlock resource in wrong mode",
-			RESOURCE_SHARED_UNLOCK_WRONG_MODE);*/
+			RESOURCE_SHARED_UNLOCK_WRONG_MODE);
 
 	switch( lock->State )
 	{
 		case RESOURCE_SHARED:
-			/*
+
 			ASSERT( lock->NumShared > 0,
 					"too many unlocks for resource",
-					RESOURCE_SHARED_UNLOCK_WHEN_UNLOCKED);*/
+					RESOURCE_SHARED_UNLOCK_WHEN_UNLOCKED );
 			lock->NumShared--;
 			break;
 		case RESOURCE_EXCLUSIVE:
+
+			ASSERT( lock->NumShared == 0,
+					"Shared held while exclusive",
+					RESOURCE_SHARED_SHARED_WHILE_EXCLUSIVE );
 			lock->State = RESOURCE_SHARED;
 			break;
 	}

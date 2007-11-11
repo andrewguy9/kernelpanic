@@ -6,6 +6,7 @@
 
 struct SEMAPHORE
 {
+	COUNT MaxCount;
 	COUNT Count;
 	struct LINKED_LIST WaitingThreads;
 };
