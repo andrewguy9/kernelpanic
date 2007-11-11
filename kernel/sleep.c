@@ -6,6 +6,11 @@
 void SleepHandler(void * arg)
 {
 	struct THREAD * thread = (struct THREAD *) arg;
+
+	ASSERT( thread->State == THREAD_STATE_BLOCKED,
+			SLEEP_HANDLER_THREAD_AWAKE,
+			"Cannot wake a thread that is running.");
+
 	SchedulerResumeThread( thread );
 }
 
@@ -19,12 +24,10 @@ void Sleep( COUNT time )
 	union BLOCKING_CONTEXT * context = SchedulerGetBlockingContext();
 	struct THREAD * thread = SchedulerGetActiveThread();
 	//build timer into blocking context
-	InterruptDisable();
 	TimerRegister( &context->SleepTimer,
 			time,
 			SleepHandler,
 			thread );
-	InterruptEnable();
 
 	//go ahead and stop the thread.
 	SchedulerForceSwitch();
