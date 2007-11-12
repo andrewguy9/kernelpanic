@@ -5,6 +5,22 @@
 
 /*
  * Resource locks are a thread safe syncronization mechanism.
+ * These are also called duel mode locks. A thread can lock a 
+ * resource in two ways:
+ * Shared - RESOURCE_SHARED - Multiple threads can hold a lock in shared mode.
+ * Exclusive - RESOURCE_EXCLUSIVE - Only one thread can hold the lock exclusive
+ *  at a time.
+ *
+ * Resources are commonly used on buffers where multiple threads are interrested
+ * in data. Many threads shoud beable to share read access on a buffer, since 
+ * reading does not affect other readers. Write access to a buffer would require
+ * exclusive locking since readers would be confused if they saw a partial write.
+ *
+ * The resource unit enforces these rules by blocking threads which cannot aquire 
+ * the lock immediatly. 
+ *
+ * This unit is starvation safe and should only be called by threads.
+ *
  */
 
 void ResourceInit( struct RESOURCE * lock )

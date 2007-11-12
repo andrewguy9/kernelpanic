@@ -11,8 +11,8 @@
  * When exiting an atomic section, we reenable interrupts and run 
  * the post interrupt handlers with the interrupts off and then return.
  * This allows the heavy lifting in interrupts to be done with interrupts
- * enabled. The benefit is really short atomic sections, even for heavy
- * interrupts.
+ * enabled. The benefit is really short atomic sections, by running heavy
+ * operations in post interrupt handlers.
  *
  * To prevent infinite interrupt nesting we use the InPostInterruptHandler 
  * to only allow the bottom interrupt on the stack to process post handlers.

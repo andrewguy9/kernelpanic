@@ -5,6 +5,16 @@
 #include"scheduler.h"
 #include"hal.h"
 
+/*
+ * Timer Unit Description:
+ * Timers allow for function calls to be scheduled for specific time
+ * in the future. 
+ *
+ * Timers are registered with the system by calling TimerRegister.
+ * When the timer fires, the function and argument provided to TimerRegister
+ * are called as a post interrupt handler. (So interrupts will be ENABLED).
+ * Its perfectly save to have a timer re-register itself.
+ */
 //Variables that the Scheduler shared ONLY with the timer unit.
 extern struct THREAD * ActiveThread;
 extern struct THREAD * NextThread;

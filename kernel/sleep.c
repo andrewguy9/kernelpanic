@@ -3,6 +3,13 @@
 
 #include"interrupt.h"
 
+/*
+ * Sleep Unit Description
+ * Allows threads to request a time out from execution. 
+ * A timer is added to the timer heap which will wake the 
+ * thread when it expires. 
+ */
+
 void SleepHandler(void * arg)
 {
 	struct THREAD * thread = (struct THREAD *) arg;
