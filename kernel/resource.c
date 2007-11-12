@@ -73,23 +73,23 @@ void ResourceUnlock( struct RESOURCE * lock, enum RESOURCE_STATE state )
 	SchedulerStartCritical();
 
 	ASSERT( state == lock->State, 
-			"tried to unlock resource in wrong mode",
-			RESOURCE_SHARED_UNLOCK_WRONG_MODE);
+			RESOURCE_SHARED_UNLOCK_WRONG_MODE,
+			"tried to unlock resource in wrong mode");
 
 	switch( lock->State )
 	{
 		case RESOURCE_SHARED:
 
 			ASSERT( lock->NumShared > 0,
-					"too many unlocks for resource",
-					RESOURCE_SHARED_UNLOCK_WHEN_UNLOCKED );
+					RESOURCE_SHARED_UNLOCK_WHEN_UNLOCKED,
+					"too many unlocks for resource");
 			lock->NumShared--;
 			break;
 		case RESOURCE_EXCLUSIVE:
 
 			ASSERT( lock->NumShared == 0,
-					"Shared held while exclusive",
-					RESOURCE_SHARED_SHARED_WHILE_EXCLUSIVE );
+					RESOURCE_SHARED_SHARED_WHILE_EXCLUSIVE,
+					"Shared held while exclusive");
 			lock->State = RESOURCE_SHARED;
 			break;
 	}

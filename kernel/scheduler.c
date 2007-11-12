@@ -112,9 +112,9 @@ SchedulerContextSwitch()
 
 	HAL_RESTORE_STATE
 }
+
 /*Ends a critical section and forces an immediate context switch*/
 void  
-
 SchedulerForceSwitch()
 {
 	ASSERT( MutexIsLocked( & SchedulerLock ),

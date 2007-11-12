@@ -1,8 +1,18 @@
 #include "hal.h"
 
-//
-//HARDWARE INDEPENDANT CODE
-//
+/*
+ * HAL UNIT DESCRIPTION
+ *
+ * The code for each hardware type should be surrounded with #ifdef ... #endif.
+ *
+ * All hardware dependant code should be placed in the hal unit.
+ * Much of the hardware dependant code is impemented through macros.
+ *
+ * Functions should be hardware generic, placed once in the header and 
+ * implemented for each hardware type in the source file.
+ *
+ * Macros should be implemented in the header for each supported hardware type.
+ */
 
 //
 //AVR CODE
@@ -37,6 +47,7 @@ void HalCreateStackFrame( struct THREAD * thread, THREAD_MAIN main )
 		(unsigned char)((unsigned int)(main)>>8);
 	thread->Stack -= 34*sizeof(char);
 }
+
 #endif
 //-----------------------------------------------------------------------------
 

@@ -1,6 +1,23 @@
 #include"interrupt.h"
 #include"hal.h"
 
+/*
+ * Interrupt Unit Description
+ * The interrupt unit provides additional control to the interrupt flag.
+ *
+ * InterruptLevel is used to track the desired state of the interrupt flag.
+ * When its greater than 0, then interrupts should be diabled. 
+ *
+ * When exiting an atomic section, we reenable interrupts and run 
+ * the post interrupt handlers with the interrupts off and then return.
+ * This allows the heavy lifting in interrupts to be done with interrupts
+ * enabled. The benefit is really short atomic sections, even for heavy
+ * interrupts.
+ *
+ * To prevent infinite interrupt nesting we use the InPostInterruptHandler 
+ * to only allow the bottom interrupt on the stack to process post handlers.
+ */
+
 //
 //Interrupt Variables
 //
@@ -18,6 +35,8 @@ void InterruptRunPostHandlers()
 	struct HANDLER_OBJECT * handler;
 	void * argument;
 	HANDLER_FUNCTION * foo;
+
+	//Check to make sure we are bottom handler.
 	if( InPostInterruptHandler )
 	{
 		//Prevent recursion. Only the bottom level 
@@ -77,10 +96,9 @@ void InterruptEnd()
 			INTERRUPT_END_INTERRUPTS_INCONSISTENT,
 			"Interrupt level is inconsistent with end of an ISR");
 
-	InterruptRunPostHandlers();
-
 	InterruptLevel--;
 
+	InterruptRunPostHandlers();
 }
 
 void InterruptRegisterPostHandler( 
@@ -160,7 +178,7 @@ BOOL InterruptIsInPostHandler()
 	//If we are in a post handler, then we should not
 	//be atomic, but interrupt level should be positive.
 	//
-	ASSERT( InPostInterruptHandler ? ! HalIsAtomic() && InterruptLevel > 0 : TRUE,
+	ASSERT( InPostInterruptHandler ? ! HalIsAtomic() && InterruptLevel == 0 : TRUE,
 		INTERRUPT_IS_POST_HANDLER_WRONG_STATE,
 		"InterruptIsPostHandler is in handler, but\
 		interrupt flag or interrupt level invalid");
