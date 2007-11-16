@@ -9,7 +9,7 @@ include test/rules.mk
 
 #########################
 
-tests: utils/linktest.out test/pctest.out
+tests: utils/linktest.out test/pctest.out utils/ringtest.out
 
 umouse: test0.elf test1.elf test2.elf
 
@@ -19,6 +19,8 @@ umouse: test0.elf test1.elf test2.elf
 utils/linktest.out: utils/linktest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_heap.o
 
 test/pctest.out: test/pctest.o utils/$(TARGET)_linkedlist.o
+
+utils/ringtest.out: utils/ringtest.o utils/$(TARGET)_ringbuffer.o
 
 ############################
 test0.elf: test0.out

@@ -9,3 +9,5 @@ utils/$(TARGET)_ringbuffer.o: utils/ringbuffer.c utils/ringbuffer.h
 ###################
 #tests
 utils/linktest.o: utils/linktest.c 
+
+utils/ringtest.o: utils/ringtest.c

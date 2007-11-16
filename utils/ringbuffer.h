@@ -5,6 +5,7 @@
 
 struct RING_BUFFER {
 	char * Buffer;
+	COUNT Size;
 	INDEX ReadIndex;
 	INDEX WriteIndex;
 	BOOL Empty;
