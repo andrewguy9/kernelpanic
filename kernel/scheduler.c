@@ -85,6 +85,10 @@ void SchedulerEndCritical()
 	}
 }
 
+BOOL SchedulerIsCritical()
+{
+	return MutexIsLocked( & SchedulerLock );
+}
 
 void 
 __attribute__((naked,__INTR_ATTRS)) 

@@ -30,6 +30,8 @@ void SchedulerStartCritical( );
 
 void SchedulerEndCritical( );
 
+BOOL SchedulerIsCritical();
+
 void SchedulerForceSwitch( );
 
 void SchedulerResumeThread( struct THREAD * thread );
