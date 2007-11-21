@@ -5,8 +5,8 @@
 
 #define NUM_TESTS 4
 
-int TEST_SIZE;
-int RING_SIZE;
+COUNT TEST_SIZE;
+COUNT RING_SIZE; 
 
 struct RING_BUFFER Ring;
 char * Buffer;
@@ -22,7 +22,7 @@ void InitBuffers()
 {
 	int index;
 	TEST_SIZE = rand()%128;
-	RING_SIZE = rand()%32;
+	RING_SIZE = 1 << (rand()%5+1);
 
 	printf("Test on buffer size %d, ring size %d\n", 
 			TEST_SIZE, 
@@ -47,17 +47,24 @@ void InitBuffers()
 	printf("Initing buffers\n");
 	for( index=0; index<TEST_SIZE; index++ )
 	{
-		In[index] = index;
-		Out[index] = 0xFF;
+		In[index] = 'a'+rand()%26;
+		Out[index] = 'x';
 	}
 }
 
 void PrintRing( struct RING_BUFFER * ring )
 {
 	INDEX cur;
-	if( ring->Empty )
+	INDEX read = ring->ReadIndex & ring->SizeMask;
+	INDEX write = ring->WriteIndex & ring->SizeMask;
+
+	if( RingBufferIsEmpty(ring))
 	{
 		printf("E");
+	}
+	else if( RingBufferIsFull(ring))
+	{
+		printf("F");
 	}
 	else
 	{
@@ -67,22 +74,22 @@ void PrintRing( struct RING_BUFFER * ring )
 	printf("[");
 	for( cur=0; cur < RING_SIZE; cur++ )
 	{
-		if( ring->WriteIndex == cur &&
-				ring->ReadIndex == cur )
+		if( ring->WriteIndex % ring->Size == cur &&
+				ring->ReadIndex % ring->Size == cur )
 		{
 			printf("b");
 		}
-		else if( ring->WriteIndex == cur )
+		else if( ring->WriteIndex % ring->Size == cur )
 		{
 			printf("w");
 		}
-		else if( ring->ReadIndex == cur )
+		else if( ring->ReadIndex % ring->Size == cur )
 		{
 			printf("r");
 		}
 		else
 		{
-			if( ring->Empty )
+			if( RingBufferIsEmpty(ring) )
 			{//nothing in buffer.
 				printf("-");
 			}
@@ -117,8 +124,8 @@ int Test()
 
 	while( read < TEST_SIZE || write < TEST_SIZE )
 	{
-		writePart = rand()%TEST_SIZE;
-		readPart = rand()%TEST_SIZE;
+		writePart = rand()%(RING_SIZE+1);
+		readPart = rand()%(RING_SIZE+1);
 
 		if( write < TEST_SIZE )
 		{

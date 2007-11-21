@@ -4,98 +4,74 @@
 //Private Routines
 //
 
-COUNT RingBufferReadSmall( char *buff, COUNT size, struct RING_BUFFER * ring )
+COUNT RingBufferReadSmall( char *buff, COUNT buffSize, char * ring, COUNT ringSize, COUNT readIndex, COUNT writeIndex )
 {
-	INDEX cur = ring->ReadIndex;
-	INDEX end = ring->ReadIndex + size;
+	INDEX cur = readIndex;
+	INDEX end = readIndex + buffSize;
 	//find where we stop
-	if( ring->ReadIndex < ring->WriteIndex )
+	if( readIndex < writeIndex )
 	{
 		//We can read up to write index only 
 		//[     r-----------w???e  ]
-		if( end > ring->WriteIndex )
+		if( end > writeIndex )
 		{
 			//Make sure we don't go past WriteIndex
 			//[     r----------ew     ]
-			end = ring->WriteIndex;	
+			end = writeIndex;	
 		}
-		//Update the ReadIndex to its future position.
-		//[     c++++++er----w     ]
-		ring->ReadIndex = end;
 	}
 	else
 	{
 		//We can read to end of buffer
 		//[     w     r-----------]???e
-		if( end >= ring->Size )
+		if( end >= ringSize )
 		{
 			//Make sure we don't read past end of buffer
 			//[     w     r----------e]
-			end = ring->Size;
-			//Wrap the ReadIndex back to 0;
-			//[r    w     c----------e]
-			ring->ReadIndex = 0;
-		}
-		else
-		{
-			//Read isn't to end, so dont wrap.
-			//[     w     r-------e---]
-			ring->ReadIndex = end;
+			end = ringSize;
 		}
 	}
 	//do copy
 	INDEX index = 0;
 	for( ; cur != end; cur++ )
 	{
-		buff[index++] = ring->Buffer[cur];
+		buff[index++] = ring[cur];
 	}
 	return index;
 }
 
-COUNT RingBufferWriteSmall( char *buff, COUNT size, struct RING_BUFFER * ring )
+COUNT RingBufferWriteSmall( char *buff, COUNT buffSize, char * ring, COUNT ringSize, COUNT readIndex, COUNT writeIndex )
 {
-	INDEX cur = ring->WriteIndex;
-	INDEX end = ring->WriteIndex + size;
+	INDEX cur = writeIndex;
+	INDEX end = writeIndex + buffSize;
 	//find where we stop
-	if( ring->WriteIndex < ring->ReadIndex )
+	if( writeIndex < readIndex)
 	{
 		//We can write to the read index only
 		//[     w-----------r???e  ]
-		if( end > ring->ReadIndex )
+		if( end > readIndex )
 		{
 			//Make sure we don't go past ReadIndex
 			//[     w----------er     ]
-			end = ring->ReadIndex;
+			end = readIndex-1;
 		}
-		//Update the WriteIndex to its future position.
-		//[     c++++++ew----r     ]
-		ring->WriteIndex = end;
 	}
 	else
 	{
 		//We can write to end of buffer
 		//[     r     w-----------]???e
-		if( end >= ring->Size )
+		if( end >= ringSize )
 		{
 			//Make sure we don't write past end of buffer
 			//[     r     w----------e]
-			end = ring->Size;
-			//Wrap teh WriteIndex back to 0;
-			//[w    r     c----------e]
-			ring->WriteIndex = 0;
-		}
-		else
-		{
-			//Write isn't to end, so don't wrap.
-			//[     r     w-------e---]
-			ring->WriteIndex = end;
+			end = ringSize;
 		}
 	}
 	//do copy
 	INDEX index = 0;
 	for( ; cur != end; cur++ )
 	{
-		ring->Buffer[cur] = buff[index++];
+		ring[cur] = buff[index++];
 	}
 	return index;
 }	
@@ -106,14 +82,18 @@ COUNT RingBufferWriteSmall( char *buff, COUNT size, struct RING_BUFFER * ring )
 COUNT RingBufferRead( char * buff, COUNT size, struct RING_BUFFER * ring )
 {
 	COUNT read=0;
+	COUNT delta;
 	while( read < size && ! RingBufferIsEmpty( ring ) )
 	{
-		read += RingBufferReadSmall( buff+read, size-read, ring );
-		if( ring->ReadIndex == ring->WriteIndex )
-		{
-			ring->Empty = TRUE;
-		}
-
+		delta = RingBufferReadSmall( 
+				buff+read, 
+				size-read, 
+				ring->Buffer, 
+				ring->Size, 
+				ring->ReadIndex & ring->SizeMask, 
+				ring->WriteIndex & ring->SizeMask );
+		read += delta;
+		ring->ReadIndex += delta;
 	}
 	return read;
 }
@@ -121,29 +101,56 @@ COUNT RingBufferRead( char * buff, COUNT size, struct RING_BUFFER * ring )
 COUNT RingBufferWrite( char * buff, COUNT size, struct RING_BUFFER * ring )
 {
 	COUNT write = 0;
-	while( write < size && !RingBufferIsFull( ring ) )
+	COUNT delta;
+	while( write < size && ! RingBufferIsFull( ring ) )
 	{
-		write += RingBufferWriteSmall( buff+write, size-write, ring );
-		ring->Empty = FALSE;
+		delta = RingBufferWriteSmall( 
+				buff+write, 
+				size-write, 
+				ring->Buffer,
+				ring->Size,
+				ring->ReadIndex & ring->SizeMask,
+				ring->WriteIndex & ring->SizeMask);
+		write += delta;
+		ring->WriteIndex+=delta;
 	}
 	return write;
 }
 
 BOOL RingBufferIsEmpty( struct RING_BUFFER * ring )
 {
-	return ring->Empty;
+	return ring->ReadIndex == ring->WriteIndex;
 }
 
 BOOL RingBufferIsFull( struct RING_BUFFER * ring )
 {
-	return ! ring->Empty && ring->WriteIndex == ring->ReadIndex;
+	return (ring->WriteIndex - ring->ReadIndex) +1 >= ring->Size;
 }
 
 void RingBufferInit( char * buff, COUNT size, struct RING_BUFFER * ring )
 {
+	int bit;
+
 	ring->Buffer = buff;
 	ring->Size = size;
 	ring->ReadIndex=0;
 	ring->WriteIndex=0;
-	ring->Empty = TRUE;
+
+	ring->SizeMask = 0;//load ffff into SizeMask.
+	for( bit=0; bit < sizeof( COUNT ) * 8; bit++ )
+	{
+		if( 1 << bit >= ring->Size )
+			ring->SizeMask |= 1 << bit;//turn on bit if greater than or equal to size.
+	}
+		ASSERT(  ( ring->Size & ring->SizeMask ) == 0,
+			RING_BUFFER_INIT_INVALID_SIZE,
+			"Size must be a power of 2");
+
+	//Invert the size mask to put zeros in high part.
+	ring->SizeMask = ~ ring->SizeMask;
+
+
+	ASSERT( ring->Size < 1 << ( sizeof(COUNT) * 8 -1 ),
+			RING_BUFFER_INIT_SIZE_TOO_BIG,
+			"Ring buffer must have 0 for MSB");
 }
