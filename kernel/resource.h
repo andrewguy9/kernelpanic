@@ -22,4 +22,8 @@ void ResourceLock( struct RESOURCE * lock, enum RESOURCE_STATE state );
 
 void ResourceUnlock( struct RESOURCE * lock, enum RESOURCE_STATE state );
 
+void ResourceEscalate( struct RESOURCE * lock );
+
+void ResourceDeescalate( struct RESOURCE * lock );
+
 #endif
