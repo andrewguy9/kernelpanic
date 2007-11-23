@@ -41,7 +41,7 @@ void ThreadMain( int index, char bit, int * semaphoreUsage )
 		InterruptEnable();
 
 		//aquire lock
-		SemaphoreLock( & Semaphore, HoldArray[index] );
+		//SemaphoreLock( & Semaphore, HoldArray[index] );//TODO
 		InterruptDisable();
 		* semaphoreUsage = HoldArray[index];
 		InterruptEnable();
