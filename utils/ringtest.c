@@ -74,16 +74,15 @@ void PrintRing( struct RING_BUFFER * ring )
 	printf("[");
 	for( cur=0; cur < RING_SIZE; cur++ )
 	{
-		if( ring->WriteIndex % ring->Size == cur &&
-				ring->ReadIndex % ring->Size == cur )
+		if( write == cur && read == cur )
 		{
 			printf("b");
 		}
-		else if( ring->WriteIndex % ring->Size == cur )
+		else if( write == cur )
 		{
 			printf("w");
 		}
-		else if( ring->ReadIndex % ring->Size == cur )
+		else if( read == cur )
 		{
 			printf("r");
 		}
@@ -93,16 +92,16 @@ void PrintRing( struct RING_BUFFER * ring )
 			{//nothing in buffer.
 				printf("-");
 			}
-			else if( ring->ReadIndex < ring->WriteIndex )
+			else if( read < write )
 			{//data between is +
-				if( cur > ring->ReadIndex && cur < ring->WriteIndex )
+				if( cur > read && cur < write )
 					printf("+");
 				else
 					printf("-");
 			}
 			else
 			{//wrap around end.
-				if( cur > ring->ReadIndex || cur < ring->WriteIndex )
+				if( cur > read || cur < write )
 					printf("+");
 				else
 					printf("-");
