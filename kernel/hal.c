@@ -8,7 +8,7 @@
  * All hardware dependant code should be placed in the hal unit.
  * Much of the hardware dependant code is impemented through macros.
  *
- * Functions should be hardware generic, placed once in the header and 
+ * Functions prototypes should be hardware generic, placed once in the header and 
  * implemented for each hardware type in the source file.
  *
  * Macros should be implemented in the header for each supported hardware type.

@@ -23,6 +23,9 @@
  *
  * This unit is starvation safe and should only be called by threads.
  *
+ * The system does not store who holds the lock, so calls to this unit
+ * are on the honor system. It is up to each thread to make sure it holds the
+ * lock before calling ResourceUnlock, or ResourceEscalate or ResourceDeescalate.
  */
 
 //
@@ -76,6 +79,11 @@ void ResourceInit( struct RESOURCE * lock )
 	lock->NumShared = 0;
 }
 
+/*
+ * Locks the resource 'lock' in 'state' mode. 
+ * threads calling ResourceLock will block until they can
+ * obtain the lock.
+ */
 void ResourceLock( struct RESOURCE * lock, enum RESOURCE_STATE state )
 {
 	struct THREAD * thread;
@@ -130,6 +138,9 @@ void ResourceLock( struct RESOURCE * lock, enum RESOURCE_STATE state )
 	}
 }
 
+/*
+ * Releases lock 'lock' in mode 'state'.
+ */
 void ResourceUnlock( struct RESOURCE * lock, enum RESOURCE_STATE state )
 {
 	SchedulerStartCritical();
@@ -161,6 +172,11 @@ void ResourceUnlock( struct RESOURCE * lock, enum RESOURCE_STATE state )
 	SchedulerEndCritical();
 }
 
+/*
+ * If a thread is holding 'lock' in RESOURCE_SHARED mode,
+ * a thread can call ResourceEscalate to switch into 
+ * exclusive mode without having to unlock. 
+ */
 void ResourceEscalate( struct RESOURCE * lock )
 {
 	struct THREAD * thread;
@@ -195,6 +211,10 @@ void ResourceEscalate( struct RESOURCE * lock )
 	SchedulerEndCritical();
 }
 
+/*
+ * A thread holding resource 'lock' in RESOURCE_EXCLUSIVE mode can
+ * switch to RESOURCE_SHARED mode by calling ResourceDeescalate.
+ */
 void ResourceDeescalate( struct RESOURCE * lock )
 {
 	SchedulerStartCritical();

@@ -3,6 +3,10 @@
 #include"scheduler.h"
 #include"interrupt.h"
 
+/*
+ * Initializes the kernel structures.
+ * Should be called before any other kernel function.
+ */
 void KernelInit()
 {//entry point for kernel...
 	HalStartup();
@@ -14,6 +18,9 @@ void KernelInit()
 	SchedulerStartup();
 }
 
+/*
+ * Called to complete start up.
+ */
 void KernelStart()
 {
 	InterruptEnable();

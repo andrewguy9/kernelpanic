@@ -27,9 +27,14 @@
  * aquire the mutex, and then release it
  * at the end of their critical section. 
  *
- * Resuming and Blocking threads:
- * Resuming threads will require locking the waiting
- * thread 
+ * Blocking Contexts:
+ * There are many resons to block a thread. Some
+ * of them will need to save infomation about 
+ * the thread's state so we will know when to wake it.
+ * This information is stored in the thread's blocking context.
+ *
+ * Blocking contexts can only be used when a thread is blocked.
+ * Only one unit can block a thread at a time.
  */
 
 //Used to mark critical sections...
@@ -52,9 +57,15 @@ BOOL QuantumExpired;
 //Thread for idle loop ( the start of thread too )
 struct THREAD IdleThread;
 
+//
+//Public Functions
+//
+
 /*
- * Thread function to start a 
- * critical section. 
+ * Disables the scheduler so that the current stack will not be switched. This allows 
+ * threads level atomicy without having to turn interrupts off.
+ *
+ * SchedulerStartCritical CANNOT be called recursively. 
  */
 void SchedulerStartCritical( )
 {
@@ -64,6 +75,9 @@ void SchedulerStartCritical( )
 			"Start Critical should always stop the scheduler");
 }
 
+/*
+ * Re-enables the scheduler. 
+ */
 void SchedulerEndCritical()
 {
 	BOOL quantumHasExpired;
@@ -85,11 +99,19 @@ void SchedulerEndCritical()
 	}
 }
 
+/*
+ * Returns 'TRUE' if the scheduler is turned off (is critical section).
+ * returns 'FALSE' if the scheduler is turned on (not critical section).
+ * Should be used in ASSERTs only.
+ */
 BOOL SchedulerIsCritical()
 {
 	return MutexIsLocked( & SchedulerLock );
 }
 
+/*
+ * Function which does the actual switching of the stack pointer.
+ */
 void 
 __attribute__((naked,__INTR_ATTRS)) 
 SchedulerContextSwitch()
@@ -117,7 +139,9 @@ SchedulerContextSwitch()
 	HAL_RESTORE_STATE
 }
 
-/*Ends a critical section and forces an immediate context switch*/
+/*
+ * Ends a critical section and forces an immediate context switch
+ */
 void  
 SchedulerForceSwitch()
 {
@@ -138,6 +162,9 @@ SchedulerForceSwitch()
 	SchedulerContextSwitch();
 }
 
+/*
+ * Takes a blocked thread and adds it back into active circulation. 
+ */
 void SchedulerResumeThread( struct THREAD * thread )
 {
 	ASSERT( MutexIsLocked( & SchedulerLock ), 
@@ -153,6 +180,15 @@ void SchedulerResumeThread( struct THREAD * thread )
 	InterruptEnable();
 }
 
+/*
+ * A thread can call SchedulerBlockThread to prevent it from being
+ * added back into the thread queue when its switched out.
+ *
+ * Must be called in critical section.
+ * 
+ * Threads which call SchedulerBlockThread should have some
+ * mechanism to wake the thread later.
+ */
 void SchedulerBlockThread( )
 {
 	ASSERT( MutexIsLocked( &SchedulerLock ), 
@@ -161,6 +197,9 @@ void SchedulerBlockThread( )
 	ActiveThread->State = THREAD_STATE_BLOCKED;
 }
 
+/*
+ * Returns a pointer to the blocking context of the ActiveThread.
+ */
 union BLOCKING_CONTEXT * SchedulerGetBlockingContext( )
 {
 	ASSERT( MutexIsLocked( & SchedulerLock ),

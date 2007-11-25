@@ -6,7 +6,8 @@
 /*
  * Sleep Unit Description
  * Allows threads to request a time out from execution. 
- * A timer is added to the timer heap which will wake the 
+ * A timer is created from the blocking context on the thread.
+ * The timer is added to the timer heap which will wake the 
  * thread when it expires. 
  */
 

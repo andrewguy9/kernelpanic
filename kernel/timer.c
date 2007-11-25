@@ -33,11 +33,11 @@ struct HEAP Timers;
 //Unit Helper Routines
 //
 
-//
-//Takes expired timers off of the heap,
-//and adds them to the queue that will
-//be run by InterruptEnd.
-//
+/*
+ * Takes expired timers off of the heap,
+ * and adds them to the queue that will
+ * be run by InterruptEnd.
+ */
 void QueueTimers( )
 {
 	ASSERT( InterruptIsAtomic(), 

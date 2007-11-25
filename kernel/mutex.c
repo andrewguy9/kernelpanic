@@ -2,12 +2,15 @@
 #include"interrupt.h"
 
 /*
- * The mutex library is a thread and asr safe syncronization mechanism.
+ * The mutex library is a thread and asr safe primative syncronization mechanism.
  *
  * Mutexes should be used whenever threads and asr's need to access the same data.
- * Be aware that mutexes do not support blocking. This means that they are not starvation
- * safe. If a unit polls tightly on the mutex it could hold it forever. To make sure this 
- * does not happen only use mutexes when usage of the lock is gaurantted to be sparce. 
+ * Be aware that mutexes do not support blocking. This means that they are NOT starvation
+ * safe. If a unit polls tightly on the mutex it could hold it FOREVER. Or it may not ever 
+ * acquire the lock.
+ *
+ * To make sure this does not happen only use mutexes when usage of the lock is gauranteed
+ * to be sparce. 
  */
 
 
