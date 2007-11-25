@@ -11,7 +11,7 @@ struct SEMAPHORE
 };
 
 void SemaphoreInit( struct SEMAPHORE * lock, int count );
-void SemaphoreP( struct SEMAPHORE * lock );
-void SemaphoreV( struct SEMAPHORE * lock );
+void SemaphoreDown( struct SEMAPHORE * lock );
+void SemaphoreUp( struct SEMAPHORE * lock );
 
 #endif

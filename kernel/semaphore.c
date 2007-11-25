@@ -22,7 +22,7 @@ void SemaphoreInit( struct SEMAPHORE * lock, int count )
 	lock->Count = count;
 }
 
-void SemaphoreP( struct SEMAPHORE * lock )
+void SemaphoreDown( struct SEMAPHORE * lock )
 {//LOCK
 	struct THREAD * thread;
 
@@ -41,7 +41,7 @@ void SemaphoreP( struct SEMAPHORE * lock )
 	}
 }
 
-void SemaphoreV( struct SEMAPHORE * lock )
+void SemaphoreUp( struct SEMAPHORE * lock )
 {//UNLOCK
 	struct THREAD * thread;
 	SchedulerStartCritical();
