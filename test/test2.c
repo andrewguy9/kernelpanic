@@ -7,145 +7,97 @@
 #include"../kernel/panic.h"
 
 //
-//Tests whether semaphore ever admits more entries than it should.
+//Tests the Producer consumer model for the socket system. 
 //
 
-#define SEMAPHORE_SIZE 10
-struct SEMAPHORE Semaphore;
+char String1[] = "Notice that incrementing the variables must not be interrupted, and the P operation must not be interrupted after s is found to be non-zero. This can be done using a special instruction such as test-and-set (if the architecture's instruction set supports it), or (on uniprocessor systems) ignoring interrupts in order to prevent other processes from becoming active.The canonical names P and V come from the initials of Dutch words. V stands for verhoog, or \"increase\". Several explanations have been given for P (including passeer for \"pass\", probeer \"try\", and pakken \"grab\"), but in fact Dijkstra wrote that he intended P to stand for the made-up portmanteau word prolaag,[1] short for probeer te verlagen, or \try-and-decrease\" [2][3] (A less ambiguous, and more accurate, English translation would be \"try-to-decrease\".) This confusion stems from the unfortunate characteristic of the Dutch language that the words for increase and decrease both begin with the letter V, and the words spelled out in full would be impossibly confusing for non–Dutch-speakers. The value of a semaphore is the number of units of the resource which are free. (If there is only one resource, a \"binary semaphore\" with values 0 or 1 is used.) The P operation busy-waits (or maybe sleeps) until a resource is available, whereupon it immediately claims one. V is the inverse; it simply makes a resource available again after the process has finished using it. Init is only used to initialize the semaphore before any requests are made. The P and V operations must be atomic, which means that no process may ever be preempted in the middle of one of those operations to run another operation on the same semaphore. In the programming language ALGOL 68, in the Linux kernel,[1] and in some English textbooks, the P and V operations are called, respectively, down and up. In software engineering practice, they are often called wait and signal, or acquire and release, or pend and post. To avoid busy-waiting, a semaphore may have an associated queue of processes (usually a FIFO). If a process performs a P operation on a semaphore which has the value zero, the process is added to the semaphore's queue. When another process increments the semaphore by performing a V operation, and there are processes on the queue, one of them is removed from the queue and resumes execution."
 
-#define ARRAY_SIZE 16
-char WorkArray[ARRAY_SIZE] = {3,7,4,1,6,1,8,6,7,2,2,1,3,1,7,1};
-char HoldArray[ARRAY_SIZE] =  {5,4,3,6,2,9,1,6,1,4,2,5,8,7,4,9};
+char String2[] = "In computer science, the producer-consumer problem (also known as the bounded-buffer problem) is a classical example of a multi-process synchronization problem. The problem describes two processes, the producer and the consumer, who share a common, fixed-size buffer. The producer's job is to generate a piece of data, put it into the buffer and start again. At the same time the consumer is consuming the data (i.e. removing it from the buffer) one piece at a time. The problem is to make sure that the producer won't try to add data into the buffer if it's full and that the consumer won't try to remove data from an empty buffer. The solution for the producer is to go to sleep if the buffer is full. The next time the consumer removes an item from the buffer, it wakes up the producer who starts to fill the buffer again. In the same way the consumer goes to sleep if it finds the buffer to be empty. The next time the producer puts data into the buffer, it wakes up the sleeping consumer. The solution can be reached by means of inter-process communication, typically using semaphores. An inadequate solution could result in a deadlock where both processes are waiting to be awakened. The problem can also be generalized to have multiple producers and consumers."
 
-void Work( COUNT work)
+//Allocation for buffers.
+#define RING_SIZE
+char buff1[RING_SIZE];
+char buff2[RING_SIZE];
+
+struct PIPE Pipe1;
+struct PIPE Pipe2;
+
+//Allocation for workers. 
+#define STACK_SIZE 300
+char ProducerStack1[STACK_SIZE];
+char ProducerStack2[STACK_SIZE];
+char ConsumerStack1[STACK_SIZE];
+char ConsumerStack2[STACK_SIZE];
+char ConsumerStack3[STACK_SIZE];
+struct THREAD Producer1;
+struct THREAD Producer2;
+struct THREAD Consumer1;
+struct THREAD Consumer2;
+struct THREAD Consumer3;
+
+//Functions for test.
+void ProducerTest(char * string )
 {
-	COUNT done = 0;
-	TIME time = TimerGetTime();
-	while( done <= work  )
+	INDEX index = 0;
+	INDEX start=0;
+	while( string[index] != '\0')
 	{
-		//loop until time changes
-		while( time == TimerGetTime() );
-
-		time = TimerGetTime();
-		done++;
+		if( string[index] )
 	}
 }
 
-void ThreadMain( int index, char bit, int * semaphoreUsage )
+void ProducerMain1()
 {
-	while(1)
-	{
-		//turn on light
-		InterruptDisable();
-		DEBUG_LED = DEBUG_LED | bit;
-		InterruptEnable();
-
-		//aquire lock
-		//SemaphoreLock( & Semaphore, HoldArray[index] );//TODO
-		InterruptDisable();
-		* semaphoreUsage = HoldArray[index];
-		InterruptEnable();
-
-		//do some "work"
-		Work( WorkArray[index] );
-
-		//relase the lock
-		InterruptDisable();
-		* semaphoreUsage = HoldArray[index];
-		InterruptEnable();
-		SemaphoreUnlock( & Semaphore, HoldArray[index] );
-
-		//turn off the light
-		InterruptDisable();
-		DEBUG_LED = DEBUG_LED & (~ bit);
-		InterruptEnable();
-
-		//change the index
-		index+=WorkArray[index]+HoldArray[index];
-		index%=ARRAY_SIZE;
-	}
+	ProducerTest( String1 );
 }
 
-struct THREAD Thread1;
-char Thread1Stack[200];
-int Thread1SemaphoreCount;
-void Thread1Main()
+void ProducerMain2()
 {
-	Thread1SemaphoreCount = 0;
-	ThreadMain( 1, 0x01, &Thread1SemaphoreCount );
+	ProducerTest( String2 );
 }
 
-struct THREAD Thread2;
-char Thread2Stack[200];
-int Thread2SemaphoreCount;
-void Thread2Main()
+void ConsumerMain()
 {
-	Thread2SemaphoreCount = 0;
-	ThreadMain( 2, 0x02, &Thread2SemaphoreCount );
 }
 
-struct THREAD Thread3;
-char Thread3Stack[200];
-int Thread3SemaphoreCount;
-void Thread3Main()
-{
-	Thread3SemaphoreCount = 0;
-	ThreadMain( 3, 0x04, &Thread3SemaphoreCount );
-}
-
-struct HANDLER_OBJECT VerificationTimer;
-void VerifyState()
-{
-
-	//Check to make sure semaphore is utilized properly
-	int total = Thread1SemaphoreCount+
-		Thread2SemaphoreCount+
-		Thread3SemaphoreCount;
-	if( total > SEMAPHORE_SIZE )
-	{
-		KernelPanic( PANIC2_VALIDATE_STATE_SEMAPHORE_OVERUSED );
-	}
-
-	TimerRegister(
-		&VerificationTimer,
-		1,
-		VerifyState,
-		NULL);
-}
-
+//main
 int main()
 {
-	KernelInit();
+	//Initialize Pipes.
+	PipeInit( buff1, RING_SIZE, &Pipe1 );
+	PipeInit( buff2, RING_SIZE, &Pipe2 );
 
-	//initialize verificatio timer
-	TimerRegister(
-			&VerificationTimer,
+	//Initialize Threads
+	SchedulerCreateThread(
+			&Producer1,
 			1,
-			VerifyState,
-			NULL);
-
-	//intialize semaphore
-	SemaphoreInit( & Semaphore, SEMAPHORE_SIZE );
-
-	//create threads
+			ProducerStack1,
+			STACK_SIZE,
+			ProducerMain1);
 	SchedulerCreateThread(
-			&Thread1,
-			5,
-			Thread1Stack,
-			200,
-			Thread1Main);
+			&Producer2,
+			1,
+			ProducerStack2,
+			STACK_SIZE,
+			ProducerMain2);
 	SchedulerCreateThread(
-			&Thread2,
-			10,
-			Thread2Stack,
-			200,
-			Thread2Main);
+			&Consumer1,
+			1,
+			ConsumerStack1,
+			STACK_SIZE,
+			ConsumerMain);
 	SchedulerCreateThread(
-			&Thread3,
-			15,
-			Thread3Stack,
-			200,
-			Thread3Main);
-
+			&Consumer2,
+			1,
+			ConsumerStack2,
+			STACK_SIZE,
+			ConsumerMain);
+	SchedulerCreateThread(
+			&Consumer3,
+			1,
+			ConsumerStack3,
+			STACK_SIZE,
+			ConsumerMain);
+	//Kick off the kernel.
 	KernelStart();
 }
