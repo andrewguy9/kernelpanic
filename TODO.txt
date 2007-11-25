@@ -2,5 +2,8 @@ Test resources
 Test semaphores
 Test sleep
 Write RingBuffer -- DONE
+	Write Pipe Scheme - DONE
 	Write Serial Communication Unit
+		Interrupt Handler for serial in/out
+		Write Thread to fill/drain pipes.
 Fix Strings into program memory
