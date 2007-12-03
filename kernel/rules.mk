@@ -24,4 +24,4 @@ kernel/socket.o: kernel/socket.c kernel/socket.h
 
 kernel/io.o: kernel/io.c kernel/io.h
 
-
+kernel/pipe.o: kernel/pipe.c kernel/pipe.h
