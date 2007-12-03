@@ -11,8 +11,6 @@ umouse:
 board:
 	make $(AVR_STRING) -f makefile.main umouse.hex
 	avrdude -p m128 -U f:w:umouse.hex
-motortest: motortest.hex
-	avrdude -p m128 -U f:w:motortest.hex
 
 clean: 
 	make -e DIR=. cleandir
