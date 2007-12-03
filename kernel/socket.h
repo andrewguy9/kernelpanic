@@ -5,7 +5,8 @@
 #include"semaphore.h"
 #include"../utils/utils.h"
 
-struct PIPE{
+struct PIPE
+{
 	struct RING_BUFFER Ring;
 	struct SEMAPHORE Mutex;
 	struct SEMAPHORE EmptyLock;
@@ -16,13 +17,17 @@ void PipeInit( char * buff, COUNT size, struct PIPE * pipe );
 COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe );
 COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe );
 
-struct SOCKET {
+struct SOCKET
+{
 	struct PIPE * ReadPipe;
 	struct PIPE * WritePipe;
+	struct SEMAPHORE ReadLock;
+	struct SEMAPHORE WriteLock;
 };
 
 void SocketInit( struct PIPE * readPipe, struct PIPE * writePipe, struct SOCKET * socket );
-COUNT SocketRead( char * buff, COUNT size, struct SOCKET * socket );
+COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET * socket );
+COUNT SocketReadStruct( char * buff, COUNT size, struct SOCKET * socket );
 COUNT SocketWrite( char * buff, COUNT size, struct SOCKET * socket );
 
 #endif

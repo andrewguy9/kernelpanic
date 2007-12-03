@@ -40,21 +40,21 @@ COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
 {
 	BOOL wasEmtpy;
 	BOOL spaceLeft;
-	COUNT write;
+	COUNT write=0;
 
 	//Acquire locks
-	SemaphoreDown( pipe->FullLock );
-	SemaphoreDown( pipe->Mutex );
+	SemaphoreDown( pipe->FullLock ); //check not full
+	SemaphoreDown( pipe->Mutex ); //exclusive access
 	//Perform write
 	wasEmpty = RingBufferIsEmpty( pipe->Ring );
 	write = RingBufferWrite( buff, size, pipe->Ring );
 	spaceLeft = RingBufferIsFull( pipe->Ring );
 	//Release locks
-	SemaphoreUp( pipe->Mutex );
+	SemaphoreUp( pipe->Mutex );//end exclusive hold
 	if( spaceLeft )
-		SemaphoreUp( pipe->FullLock );
+		SemaphoreUp( pipe->FullLock );//pipe not full
 	if( wasEmpty && write > 0 )
-		SemaphoreUp( pipe->EmptyLock );
+		SemaphoreUp( pipe->EmptyLock );//pipe has data(wake reader)
 	//Return result
 	return write;
 }
@@ -63,14 +63,35 @@ void SocketInit( struct PIPE * readPipe, struct PIPE * writePipe, struct SOCKET 
 {
 	socket->ReadPipe = readPipe;
 	socket->WritePipe = writePipe;
+	SemaphoreInit( & socket->ReadLock, 1 );
+	SemaphoreInit( & socket->WriteLock, 1 );
 }
 
-COUNT SocketRead( char * buff, COUNT size, struct SOCKET * socket )
+COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET * socket )
 {
-	return PipeRead( buff, size, socket->ReadPipe );
+	COUNT read;
+	SemaphoreDown( & socket->ReadLock );
+	read = PipeRead( buff, size, socket->ReadPipe );
+	SemaphoreUp( & socket->WriteLock );
+	return read;
+}
+
+COUNT SocketReadStruct( char * buff, COUNT size, struct SOCKET * socket )
+{
+	COUNT read = 0;
+	SemaphoreDown( & socket->ReadLock );
+	while( read < size )
+		read += PipeRead( buff, size, socket->ReadPipe );
+	SemaphoreUp( & socket->ReadLock );
+	return COUNT;
 }
 
 COUNT SocketWrite( char * buff, COUNT size, struct SOCKET * socket )
 {
-	return PipeWrite( buff, size, socket->WritePipe );
+	COUNT write=0;
+	SemaphoreDown( & socket->WriteLock );
+	while( write < size )
+		write += PipeWrite( buff, size, socket->WritePipe );
+	SemaphoreUp( & socket->WriteLock );
+	return write;
 }
