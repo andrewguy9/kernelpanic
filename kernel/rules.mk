@@ -21,3 +21,7 @@ kernel/sleep.o: kernel/sleep.c kernel/sleep.h
 kernel/interrupt.o: kernel/interrupt.c kernel/interrupt.h
 
 kernel/socket.o: kernel/socket.c kernel/socket.h
+
+kernel/io.o: kernel/io.c kernel/io.h
+
+
