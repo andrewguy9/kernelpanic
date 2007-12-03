@@ -5,6 +5,7 @@
 #include"../kernel/hal.h"
 #include"../kernel/sleep.h"
 #include"../kernel/panic.h"
+#include"../kernel/socket.h"
 
 //
 //Tests the Producer consumer model for the socket system. 
@@ -43,12 +44,14 @@ struct THREAD Consumer3;
 void ProducerMain()
 {
 	COUNT write;
+	COUNT count = 0;
 	while(1)
 	{
-		write = SocketWrite( message, MESSAGE_LENGTH, &Socket );
+		write = SocketWrite( Message, MESSAGE_LENGTH, &Socket );
 
 		if( write != MESSAGE_LENGTH )
 			KernelPanic( 0 );
+		count++;
 	}
 }
 
@@ -58,7 +61,7 @@ void ConsumerMain()
 
 	COUNT read;
 	COUNT index;
-	write(1)
+	while(1)
 	{
 		read = SocketReadStruct( buff, MESSAGE_LENGTH, &Socket );
 		if( read != MESSAGE_LENGTH )
@@ -84,14 +87,14 @@ int main()
 			1,
 			ProducerStack1,
 			STACK_SIZE,
-			ProducerMain1);
+			ProducerMain);
 
 	SchedulerCreateThread(
 			&Producer2,
 			1,
 			ProducerStack2,
 			STACK_SIZE,
-			ProducerMain2);
+			ProducerMain);
 
 	SchedulerCreateThread(
 			&Consumer1,
@@ -116,4 +119,5 @@ int main()
 
 	//Kick off the kernel.
 	KernelStart();
+	return 0;
 }
