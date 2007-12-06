@@ -58,7 +58,7 @@ BOOL MutexIsLocked( struct MUTEX * lock )
 	return value;
 }
 
-void MutexLockInit( struct MUTEX * lock )
+void MutexInit( struct MUTEX * lock )
 {
 	lock->Locked = FALSE; 
 }

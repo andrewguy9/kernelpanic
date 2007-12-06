@@ -286,7 +286,7 @@ void SchedulerStartup()
 			NULL	);
 	QuantumExpired = FALSE;
 	//Set up Schedule Resource
-	MutexLockInit( & SchedulerLock );
+	MutexInit( & SchedulerLock );
 	//Create a thread for idle loop.
 	SchedulerCreateThread( &IdleThread, 1, NULL, NULL, NULL );
 	//Remove IdleThread from queues...
