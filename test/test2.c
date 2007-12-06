@@ -1,11 +1,7 @@
 #include"../kernel/startup.h"
 #include"../kernel/scheduler.h"
-#include"../kernel/semaphore.h"
-#include"../kernel/timer.h"
-#include"../kernel/hal.h"
-#include"../kernel/sleep.h"
-#include"../kernel/panic.h"
 #include"../kernel/socket.h"
+#include"../kernel/panic.h"
 
 //
 //Tests the Producer consumer model for the socket system. 

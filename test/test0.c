@@ -1,15 +1,13 @@
 #include"../kernel/startup.h"
-#include"../kernel/scheduler.h"
-#include"../kernel/semaphore.h"
 #include"../kernel/timer.h"
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/sfr_defs.h>
-#define DEBUG_LED          PORTC
-#define DEBUG_LED_DDR      DDRC
-
+//
 //Tests of the Timer subsystem.
+//FrequentTimer should be run more often than SeldomTimer.
+//So FequentCount should be larger than SeldomHandler.
+//Time should be greather than both.
+//
+
 struct HANDLER_OBJECT FrequentTimer;
 COUNT FrequentCount;
 void FrequentHandler( void * arg )
