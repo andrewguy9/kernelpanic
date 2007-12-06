@@ -3,7 +3,7 @@ Test semaphores
 Test sleep
 Write RingBuffer -- DONE
 	Write Pipe Scheme - DONE
-	Write Serial Communication Unit
-		Interrupt Handler for serial in/out
-		Write Thread to fill/drain pipes.
+	Write Serial Communication Unit - DONE
+		Interrupt Handler for serial in/out - DONE
+		Write Thread to fill/drain pipes. - DONE
 Fix Strings into program memory
