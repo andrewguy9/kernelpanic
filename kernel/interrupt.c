@@ -1,5 +1,6 @@
 #include"interrupt.h"
 #include"hal.h"
+#include"mutex.h"
 
 /*
  * Interrupt Unit Description
@@ -14,7 +15,7 @@
  * enabled. The benefit is really short atomic sections, by running heavy
  * operations in post interrupt handlers.
  *
- * To prevent infinite interrupt nesting we use the InPostInterruptHandler 
+ * To prevent infinite interrupt nesting we use the PostInterruptHandlerLock
  * to only allow the bottom interrupt on the stack to process post handlers.
  */
 
@@ -23,7 +24,7 @@
 //
 
 COUNT InterruptLevel;
-BOOL InPostInterruptHandler;
+struct MUTEX PostInterruptHandlerLock;
 struct LINKED_LIST PostInterruptHandlerList;
 
 //
@@ -37,30 +38,31 @@ void InterruptRunPostHandlers()
 	HANDLER_FUNCTION * foo;
 
 	//Check to make sure we are bottom handler.
-	if( InPostInterruptHandler )
+	if( MutexLock( & PostInterruptHandlerLock ) )
 	{
 		//Prevent recursion. Only the bottom level 
 		//interrupt sould run these handlers.
 		return;
 	}
-
-	InPostInterruptHandler = TRUE;
-	while( ! LinkedListIsEmpty( & PostInterruptHandlerList ) )
+	else
 	{
-		//fetch handler object
-		handler = (struct HANDLER_OBJECT*) LinkedListPop(
-				&PostInterruptHandlerList );
-		//fech values from object so we can reuse it.
-		argument = handler->Argument;
-		foo = handler->Handler;
-		//mark stucture so handler can reschedule itself.
-		handler->Enabled = FALSE;
-		//run handler.
-		HalEnableInterrupts();
-		foo( argument );
-		HalDisableInterrupts();
+		while( ! LinkedListIsEmpty( & PostInterruptHandlerList ) )
+		{
+			//fetch handler object
+			handler = (struct HANDLER_OBJECT*) LinkedListPop(
+					&PostInterruptHandlerList );
+			//fech values from object so we can reuse it.
+			argument = handler->Argument;
+			foo = handler->Handler;
+			//mark stucture so handler can reschedule itself.
+			handler->Enabled = FALSE;
+			//run handler.
+			HalEnableInterrupts();
+			foo( argument );
+			HalDisableInterrupts();
+		}
+		MutexUnlock( & PostInterruptHandlerLock );
 	}
-	InPostInterruptHandler = FALSE;
 }
 
 //
@@ -71,7 +73,7 @@ void InterruptRunPostHandlers()
 void InterruptStartup()
 {
 	InterruptLevel = 1;//Will be reset to 0 when startup completes
-	InPostInterruptHandler = FALSE;
+	MutexInit( & PostInterruptHandlerLock );
 	LinkedListInit( & PostInterruptHandlerList );
 }
 
@@ -100,7 +102,7 @@ void InterruptStart()
 			start of an ISR");
 
 	InterruptLevel++;
-	
+
 }
 
 /*
@@ -228,16 +230,14 @@ BOOL InterruptIsAtomic()
  */
 BOOL InterruptIsInPostHandler()
 {
-	BOOL atomic = InterruptIsAtomic();
-
 	//
 	//If we are in a post handler, then we should not
 	//be atomic, but interrupt level should be positive.
 	//
-	ASSERT( InPostInterruptHandler ? ! HalIsAtomic() && InterruptLevel == 0 : TRUE,
+	ASSERT( MutexIsLocked( & PostInterruptHandlerLock) ? ! HalIsAtomic() && InterruptLevel == 0 : TRUE,
 		INTERRUPT_IS_POST_HANDLER_WRONG_STATE,
 		"InterruptIsPostHandler is in handler, but\
 		interrupt flag or interrupt level invalid");
 
-	return InPostInterruptHandler;
+	return MutexIsLocked( & PostInterruptHandlerLock );
 }
