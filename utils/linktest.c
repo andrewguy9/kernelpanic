@@ -32,9 +32,9 @@ void Add( int value )
 
 void Pop()
 {
-	struct ELEMENT * queueNode = (struct ELEMENT *) LinkedListPop( &queueList );
-	struct ELEMENT * stackNode = (struct ELEMENT *) LinkedListPop( &stackList );
-	struct ELEMENT * heapNode = (struct ELEMENT *) HeapPop( &heap );
+	struct ELEMENT * queueNode =  BASE_OBJECT( LinkedListPop( &queueList ), struct ELEMENT, Link ) ;
+	struct ELEMENT * stackNode = BASE_OBJECT( LinkedListPop( &stackList ), struct ELEMENT, Link );
+	struct ELEMENT * heapNode = BASE_OBJECT( HeapPop( &heap ), struct ELEMENT, Link);
 	
 	if( queueNode != NULL )
 		printf("queue returned %d\n", queueNode->Data );

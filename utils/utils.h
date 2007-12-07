@@ -50,8 +50,8 @@ typedef unsigned char BOOL;
 #define MIN( A, B ) ((A)<(B) ? (A) : (B) )
 
 //Returns the byte offset of FIELD in TYPE
-#define OFFSET_OF( TYPE, FIELD ) (&(((TYPE *)0)->FIELD))
+#define OFFSET_OF( TYPE, FIELD ) ((int)(&(((TYPE *)0)->FIELD)))
 //Returns a pointer to the base structure 
 //given a pointer to a field.
-#define BASE_OBJECT( PTR, BASE, FIELD ) ((PTR) - OFFSET_OF(BASE,FIELD))
+#define BASE_OBJECT( PTR, BASE, FIELD ) ((BASE*)((int)(PTR) - OFFSET_OF(BASE,FIELD)))
 #endif
