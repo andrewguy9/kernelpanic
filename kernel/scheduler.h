@@ -3,18 +3,11 @@
 
 #include"../utils/link.h"
 #include"../utils/utils.h"
-#include"timer.h"
-#include"resource.h"
+#include"blockingcontext.h"
 
 typedef void (*THREAD_MAIN) ();
 
 enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED };
-
-union BLOCKING_CONTEXT
-{
-	struct HANDLER_OBJECT SleepTimer;
-	enum RESOURCE_STATE ResourceWaitState;
-};
 
 struct THREAD 
 {
