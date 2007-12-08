@@ -22,8 +22,8 @@
 //Interrupt Variables
 //
 
-volatile COUNT InterruptLevel;
-volatile BOOL InPostInterruptHandler;
+COUNT InterruptLevel;
+BOOL InPostInterruptHandler;
 struct LINKED_LIST PostInterruptHandlerList;
 
 //
@@ -48,25 +48,17 @@ void InterruptRunPostHandlers()
 	while( ! LinkedListIsEmpty( & PostInterruptHandlerList ) )
 	{
 		//fetch handler object
-		handler = BASE_OBJECT( 
-				LinkedListPop(&PostInterruptHandlerList), 
-				struct HANDLER_OBJECT, 
-				Link);
+		handler = (struct HANDLER_OBJECT*) LinkedListPop(
+				&PostInterruptHandlerList );
 		//fech values from object so we can reuse it.
 		argument = handler->Argument;
 		foo = handler->Handler;
 		//mark stucture so handler can reschedule itself.
 		handler->Enabled = FALSE;
-		//Change State to "not atomic"
-		InterruptLevel--;
+		//run handler.
 		HalEnableInterrupts();
-
-		//Run the handler
 		foo( argument );
-
-		//make atomic again.
 		HalDisableInterrupts();
-		InterruptLevel++;
 	}
 	InPostInterruptHandler = FALSE;
 }
@@ -108,6 +100,7 @@ void InterruptStart()
 			start of an ISR");
 
 	InterruptLevel++;
+	
 }
 
 /*
@@ -161,7 +154,7 @@ void InterruptRegisterPostHandler(
 	object->Handler = handler;
 	object->Argument = arg;
 	object->Enabled = TRUE;
-	LinkedListEnqueue( &object->Link.LinkedListLink, 
+	LinkedListEnqueue( (struct LINKED_LIST_LINK *) object, 
 			& PostInterruptHandlerList );
 }
 
@@ -188,16 +181,12 @@ void InterruptEnable()
 	ASSERT( InterruptLevel > 0,
 			INTERRUPT_ENABLE_OVER_ENABLED,
 			"We cannot enable interrupts when \
-			InterruptLevel is not positive");
-	if( InterruptLevel == 1 )
+		   	InterruptLevel is not positive");
+	InterruptLevel--;
+	if( InterruptLevel == 0 )
 	{
 		InterruptRunPostHandlers();
-		InterruptLevel--;
 		HalEnableInterrupts();
-	}
-	else
-	{
-		InterruptLevel--;
 	}
 }
 
@@ -219,12 +208,12 @@ BOOL InterruptIsAtomic()
 	//then interrupt level should be 0, because we have 
 	//interrupts enabled.
 	//
-
+	
 	BOOL atomic = HalIsAtomic();
 
 	ASSERT( atomic ? 
-			InterruptLevel > 0 :
-			InterruptLevel == 0,
+				InterruptLevel > 0 :
+			   	InterruptLevel == 0,
 			INTERRUPT_IS_ATOMIC_WRONG_STATE,
 			"InterruptIsAtomic wrong interrupt mode");
 
@@ -239,14 +228,16 @@ BOOL InterruptIsAtomic()
  */
 BOOL InterruptIsInPostHandler()
 {
+	BOOL atomic = InterruptIsAtomic();
+
 	//
 	//If we are in a post handler, then we should not
 	//be atomic, but interrupt level should be positive.
 	//
 	ASSERT( InPostInterruptHandler ? ! HalIsAtomic() && InterruptLevel == 0 : TRUE,
-			INTERRUPT_IS_POST_HANDLER_WRONG_STATE,
-			"InterruptIsPostHandler is in handler, but\
-			interrupt flag or interrupt level invalid");
+		INTERRUPT_IS_POST_HANDLER_WRONG_STATE,
+		"InterruptIsPostHandler is in handler, but\
+		interrupt flag or interrupt level invalid");
 
 	return InPostInterruptHandler;
 }
