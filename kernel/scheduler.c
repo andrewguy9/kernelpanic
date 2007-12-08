@@ -176,7 +176,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 
 	InterruptDisable();
 	thread->State = THREAD_STATE_RUNNING;
-	LinkedListEnqueue( (struct LINKED_LIST_LINK *) thread, DoneQueue );
+	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 	InterruptEnable();
 }
 
@@ -221,7 +221,7 @@ void Schedule( void *arg )
 		if( ActiveThread != &IdleThread && 
 				ActiveThread->State == THREAD_STATE_RUNNING)
 		{
-			LinkedListEnqueue( (struct LINKED_LIST_LINK *) ActiveThread,
+			LinkedListEnqueue( &ActiveThread->Link.LinkedListLink,
 				  DoneQueue);
 		}
 
@@ -243,8 +243,9 @@ void Schedule( void *arg )
 					SCHEDULER_SCHEDULE_NEXT_THREAD_NOT_NULL,
 					"Scheduler is running even though NextThread\
 					Is not null, this causes thread dropping");
-			NextThread = 
-				(struct THREAD * ) LinkedListPop( RunQueue );
+			NextThread = BASE_OBJECT( LinkedListPop( RunQueue ),
+					struct THREAD,
+					Link);
 		}
 		else
 		{//there were no threads at all, use idle loop.
@@ -316,5 +317,5 @@ void SchedulerCreateThread(
 	thread->Stack = (char*)((unsigned int) stack + stackSize);
 	HalCreateStackFrame( thread, main );
 	//Add thread to done queue.
-	LinkedListEnqueue( (struct LINKED_LIST_LINK *) thread, DoneQueue );
+	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 }	

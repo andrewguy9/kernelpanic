@@ -49,8 +49,10 @@ void InterruptRunPostHandlers()
 		while( ! LinkedListIsEmpty( & PostInterruptHandlerList ) )
 		{
 			//fetch handler object
-			handler = (struct HANDLER_OBJECT*) LinkedListPop(
-					&PostInterruptHandlerList );
+			handler = BASE_OBJECT( 
+					LinkedListPop(&PostInterruptHandlerList), 
+					struct HANDLER_OBJECT, 
+					Link);
 			//fech values from object so we can reuse it.
 			argument = handler->Argument;
 			foo = handler->Handler;
@@ -156,7 +158,7 @@ void InterruptRegisterPostHandler(
 	object->Handler = handler;
 	object->Argument = arg;
 	object->Enabled = TRUE;
-	LinkedListEnqueue( (struct LINKED_LIST_LINK *) object, 
+	LinkedListEnqueue( &object->Link.LinkedListLink, 
 			& PostInterruptHandlerList );
 }
 

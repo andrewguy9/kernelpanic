@@ -47,8 +47,10 @@ void QueueTimers( )
 	while( HeapSize( &Timers) > 0 && 
 			HeapHeadWeight( &Timers ) <= Time )
 	{
-		struct HANDLER_OBJECT * timer = (struct HANDLER_OBJECT *) 
-			HeapPop( & Timers );
+		struct HANDLER_OBJECT * timer = BASE_OBJECT( 
+				HeapPop( & Timers ),
+				struct HANDLER_OBJECT,
+				Link );
 		timer->Enabled = FALSE;
 		InterruptRegisterPostHandler(
 				timer,
@@ -80,7 +82,7 @@ void TimerRegister(
 	newTimer->Link.WeightedLink.Weight = Time + wait;
 	newTimer->Handler = handler;
 	newTimer->Argument = argument;
-	HeapAdd( (struct WEIGHTED_LINK * ) newTimer, &Timers );
+	HeapAdd( &newTimer->Link.WeightedLink, &Timers );
 	InterruptEnable();
 }
 

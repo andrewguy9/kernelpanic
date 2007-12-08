@@ -43,7 +43,10 @@ void ResourceWakeThreads( struct RESOURCE * lock )
 	while( ! LinkedListIsEmpty( & lock->WaitingThreads ) && 
 		lock->State == RESOURCE_SHARED )
 	{
-		nextThread = (struct THREAD *) LinkedListPeek( & lock->WaitingThreads );
+		nextThread = BASE_OBJECT( 
+				LinkedListPeek( & lock->WaitingThreads ),
+				struct THREAD,
+				Link);
 		nextThreadState = (enum RESOURCE_STATE*) & nextThread->BlockingContext;
 		if( * nextThreadState == RESOURCE_EXCLUSIVE &&
 				lock->NumShared != 0 )
@@ -128,7 +131,7 @@ void ResourceLock( struct RESOURCE * lock, enum RESOURCE_STATE state )
 		SchedulerBlockThread();
 		SchedulerGetBlockingContext()->ResourceWaitState = state;
 		thread = SchedulerGetActiveThread();
-		LinkedListEnqueue( (struct LINKED_LIST_LINK*) thread, 
+		LinkedListEnqueue( &thread->Link.LinkedListLink, 
 				& lock->WaitingThreads );
 		SchedulerForceSwitch();
 	}
@@ -204,7 +207,7 @@ void ResourceEscalate( struct RESOURCE * lock )
 		SchedulerBlockThread();
 		SchedulerGetBlockingContext()->ResourceWaitState = RESOURCE_EXCLUSIVE;
 		thread = SchedulerGetActiveThread();
-		LinkedListEnqueue( (struct LINKED_LIST_LINK*) thread,
+		LinkedListEnqueue( &thread->Link.LinkedListLink,
 				& lock->WaitingThreads );
 		SchedulerForceSwitch();
 	}

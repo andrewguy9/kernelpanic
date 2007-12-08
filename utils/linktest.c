@@ -25,9 +25,9 @@ void Add( int value )
 	heapNode->Data = value;
 	heapNode->Link.WeightedLink.Weight = value;
 
-	LinkedListPush( (struct LINKED_LIST_LINK *) stackNode, &stackList );
-	LinkedListEnqueue( (struct LINKED_LIST_LINK *) queueNode, &queueList );
-	HeapAdd( (struct WEIGHTED_LINK *) heapNode, &heap );
+	LinkedListPush( &stackNode->Link.LinkedListLink, &stackList );
+	LinkedListEnqueue( &queueNode->Link.LinkedListLink, &queueList );
+	HeapAdd( &heapNode->Link.WeightedLink, &heap );
 }
 
 void Pop()
