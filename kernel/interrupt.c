@@ -23,7 +23,8 @@
 //Interrupt Variables
 //
 
-COUNT InterruptLevel;
+volatile COUNT InterruptLevel;
+
 struct MUTEX PostInterruptHandlerLock;
 struct LINKED_LIST PostInterruptHandlerList;
 
@@ -58,10 +59,16 @@ void InterruptRunPostHandlers()
 			foo = handler->Handler;
 			//mark stucture so handler can reschedule itself.
 			handler->Enabled = FALSE;
-			//run handler.
+			//Change State to not atomic
+			InterruptLevel--;
 			HalEnableInterrupts();
+			
+			//Run the handler
 			foo( argument );
+			
+			//make atomic again.
 			HalDisableInterrupts();
+			InterruptLevel++;
 		}
 		MutexUnlock( & PostInterruptHandlerLock );
 	}
@@ -186,11 +193,15 @@ void InterruptEnable()
 			INTERRUPT_ENABLE_OVER_ENABLED,
 			"We cannot enable interrupts when \
 		   	InterruptLevel is not positive");
-	InterruptLevel--;
-	if( InterruptLevel == 0 )
+	if( InterruptLevel == 1 )
 	{
 		InterruptRunPostHandlers();
+		InterruptLevel--;
 		HalEnableInterrupts();
+	}
+	else
+	{
+		InterruptLevel--;
 	}
 }
 
