@@ -54,7 +54,6 @@ AVR_STRING = -e TARGET=$(AVR_PREFIX) -e CC=$(AVR_CC) -e BUILD=$(AVR_BUILD) -e CF
 	rm -f $(DIR)/*~
 	rm -f $(DIR)/*.hex
 	rm -f $(DIR)/*.elf
-	rm -f $(DIR)/tags
 
 ###########################
 # tags 
