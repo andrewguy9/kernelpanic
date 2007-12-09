@@ -22,7 +22,7 @@ void InitBuffers()
 {
 	int index;
 	TEST_SIZE = rand()%128;
-	RING_SIZE = 1 << (rand()%5+1);
+	RING_SIZE = rand()%32;
 
 	printf("Test on buffer size %d, ring size %d\n", 
 			TEST_SIZE, 
@@ -55,16 +55,9 @@ void InitBuffers()
 void PrintRing( struct RING_BUFFER * ring )
 {
 	INDEX cur;
-	INDEX read = ring->ReadIndex & ring->SizeMask;
-	INDEX write = ring->WriteIndex & ring->SizeMask;
-
-	if( RingBufferIsEmpty(ring))
+	if( ring->Empty )
 	{
 		printf("E");
-	}
-	else if( RingBufferIsFull(ring))
-	{
-		printf("F");
 	}
 	else
 	{
@@ -74,34 +67,35 @@ void PrintRing( struct RING_BUFFER * ring )
 	printf("[");
 	for( cur=0; cur < RING_SIZE; cur++ )
 	{
-		if( write == cur && read == cur )
+		if( ring->WriteIndex == cur &&
+				ring->ReadIndex == cur )
 		{
 			printf("b");
 		}
-		else if( write == cur )
+		else if( ring->WriteIndex == cur )
 		{
 			printf("w");
 		}
-		else if( read == cur )
+		else if( ring->ReadIndex == cur )
 		{
 			printf("r");
 		}
 		else
 		{
-			if( RingBufferIsEmpty(ring) )
+			if( ring->Empty )
 			{//nothing in buffer.
 				printf("-");
 			}
-			else if( read < write )
+			else if( ring->ReadIndex < ring->WriteIndex )
 			{//data between is +
-				if( cur > read && cur < write )
+				if( cur > ring->ReadIndex && cur < ring->WriteIndex )
 					printf("+");
 				else
 					printf("-");
 			}
 			else
 			{//wrap around end.
-				if( cur > read || cur < write )
+				if( cur > ring->ReadIndex || cur < ring->WriteIndex )
 					printf("+");
 				else
 					printf("-");
@@ -123,8 +117,8 @@ int Test()
 
 	while( read < TEST_SIZE || write < TEST_SIZE )
 	{
-		writePart = rand()%(RING_SIZE+1);
-		readPart = rand()%(RING_SIZE+1);
+		writePart = rand()%TEST_SIZE;
+		readPart = rand()%TEST_SIZE;
 
 		if( write < TEST_SIZE )
 		{

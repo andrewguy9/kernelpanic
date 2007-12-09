@@ -8,7 +8,7 @@ struct RING_BUFFER {
 	COUNT Size;
 	INDEX ReadIndex;
 	INDEX WriteIndex;
-	COUNT SizeMask;
+	BOOL Empty;
 };
 
 COUNT RingBufferRead( char * buff, COUNT size, struct RING_BUFFER * ring );
