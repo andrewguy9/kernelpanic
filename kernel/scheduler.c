@@ -80,15 +80,17 @@ void SchedulerStartCritical( )
  */
 void SchedulerEndCritical()
 {
-	BOOL quantumHasExpired;
+	BOOL quantum;
 	ASSERT( MutexIsLocked( & SchedulerLock ),
 			SCHEDULER_END_CRITICAL_NOT_CRITICAL,
 		   	"Critical section cannot start.");
 
 	//Cant check QuantumExpired unless atomic.
 	InterruptDisable();
-	
-	if( QuantumExpired )
+	quantum = QuantumExpired;
+	InterruptEnable();
+
+	if( quantum )
 	{//Quantum has expired while in crit section, fire manually.
 		SchedulerForceSwitch();
 	}
