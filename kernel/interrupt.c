@@ -126,9 +126,8 @@ void InterruptEnd()
 			INTERRUPT_END_INTERRUPTS_INCONSISTENT,
 			"Interrupt level is inconsistent with end of an ISR");
 
-	InterruptLevel--;
-
 	InterruptRunPostHandlers();
+	InterruptLevel--;
 }
 
 /*
