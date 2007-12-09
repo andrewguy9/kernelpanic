@@ -97,7 +97,6 @@ void SchedulerEndCritical()
 	else
 	{//Quantum has not expired, so we'll just end the critical section. 
 		MutexUnlock( & SchedulerLock );
-		InterruptEnable();
 	}
 }
 

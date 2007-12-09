@@ -48,7 +48,7 @@ COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
 	//Perform write
 	wasEmpty = RingBufferIsEmpty( & pipe->Ring );
 	write = RingBufferWrite( buff, size, & pipe->Ring );
-	spaceLeft = RingBufferIsFull( & pipe->Ring );
+	spaceLeft = ! RingBufferIsFull( & pipe->Ring );
 	//Release locks
 	SemaphoreUp( & pipe->Mutex );//end exclusive hold
 	if( spaceLeft )

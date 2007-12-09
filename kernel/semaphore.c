@@ -16,7 +16,7 @@
  * Resources are granted on a first come first serve basis.
  */
 
-void SemaphoreInit( struct SEMAPHORE * lock, int count )
+void SemaphoreInit( struct SEMAPHORE * lock, COUNT count )
 {
 	LinkedListInit( & lock->WaitingThreads );
 	lock->Count = count;
@@ -27,16 +27,17 @@ void SemaphoreDown( struct SEMAPHORE * lock )
 	struct THREAD * thread;
 
 	SchedulerStartCritical( );
-	lock->Count--;
-	if( lock->Count < 0 )
+	if( lock->Count == 0 )
 	{//block the thread
 		SchedulerBlockThread();
+		thread = SchedulerGetActiveThread();
 		LinkedListEnqueue( &thread->Link.LinkedListLink,
 			   	&lock->WaitingThreads);
 		SchedulerForceSwitch();
 	}
 	else
 	{
+		lock->Count--;
 		SchedulerEndCritical( );
 	}
 }
@@ -45,15 +46,16 @@ void SemaphoreUp( struct SEMAPHORE * lock )
 {//UNLOCK
 	struct THREAD * thread;
 	SchedulerStartCritical();
-	lock->Count++;
-	while( lock->Count > 0 && 
-		   	! LinkedListIsEmpty( & lock->WaitingThreads ) )
+	if( ! LinkedListIsEmpty( & lock->WaitingThreads ) )
 	{
-		lock->Count--;
 		thread = BASE_OBJECT( LinkedListPop( & lock->WaitingThreads),
 				struct THREAD,
 				Link );
 		SchedulerResumeThread( thread );
+	}
+	else
+	{
+		lock->Count++;
 	}
 	SchedulerEndCritical();
 }

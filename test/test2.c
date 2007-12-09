@@ -12,11 +12,9 @@ char Message[] = "Thread text message";
 
 //Allocation for buffers.
 #define RING_SIZE 64
-char buff1[RING_SIZE];
-char buff2[RING_SIZE];
+char RingBuff[RING_SIZE];
 
-struct PIPE Pipe1;
-struct PIPE Pipe2;
+struct PIPE Pipe;
 
 struct SOCKET Socket;
 
@@ -46,7 +44,7 @@ void ProducerMain()
 		write = SocketWrite( Message, MESSAGE_LENGTH, &Socket );
 
 		if( write != MESSAGE_LENGTH )
-			KernelPanic( 0 );
+			KernelPanic( TEST2_PRODUCER_WRITE_WRONG_LENGTH );
 		count++;
 	}
 }
@@ -61,11 +59,11 @@ void ConsumerMain()
 	{
 		read = SocketReadStruct( buff, MESSAGE_LENGTH, &Socket );
 		if( read != MESSAGE_LENGTH )
-			KernelPanic( 0 );
+			KernelPanic( TEST2_CONSUMER_READ_WRONG_LENGTH );
 		for( index = 0; index < read; index++ )
 		{
 			if( Message[index] != buff[index] )
-				KernelPanic(0);
+				KernelPanic( TEST2_CONSUMER_CHARACTER_MISMATCH );
 		}
 	}
 }
@@ -73,9 +71,12 @@ void ConsumerMain()
 //main
 int main()
 {
+	KernelInit();
 	//Initialize Pipes.
-	PipeInit( buff1, RING_SIZE, &Pipe1 );
-	PipeInit( buff2, RING_SIZE, &Pipe2 );
+	PipeInit( RingBuff, RING_SIZE, &Pipe );
+
+	//Initialize Socket
+	SocketInit( & Pipe, & Pipe, & Socket ); 
 
 	//Initialize Threads
 	SchedulerCreateThread(
@@ -84,21 +85,21 @@ int main()
 			ProducerStack1,
 			STACK_SIZE,
 			ProducerMain);
-
+/*
 	SchedulerCreateThread(
 			&Producer2,
 			1,
 			ProducerStack2,
 			STACK_SIZE,
 			ProducerMain);
-
+*/
 	SchedulerCreateThread(
 			&Consumer1,
 			1,
 			ConsumerStack1,
 			STACK_SIZE,
 			ConsumerMain);
-
+/*
 	SchedulerCreateThread(
 			&Consumer2,
 			1,
@@ -112,7 +113,7 @@ int main()
 			ConsumerStack3,
 			STACK_SIZE,
 			ConsumerMain);
-
+*/
 	//Kick off the kernel.
 	KernelStart();
 	return 0;

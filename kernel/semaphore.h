@@ -6,11 +6,11 @@
 
 struct SEMAPHORE
 {
-	int Count;
+	COUNT Count;
 	struct LINKED_LIST WaitingThreads;
 };
 
-void SemaphoreInit( struct SEMAPHORE * lock, int count );
+void SemaphoreInit( struct SEMAPHORE * lock, COUNT count );
 void SemaphoreDown( struct SEMAPHORE * lock );
 void SemaphoreUp( struct SEMAPHORE * lock );
 
