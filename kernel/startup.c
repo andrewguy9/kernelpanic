@@ -1,6 +1,7 @@
 #include"timer.h"
 #include"hal.h"
 #include"scheduler.h"
+#include"timer.h"
 #include"interrupt.h"
 
 /*

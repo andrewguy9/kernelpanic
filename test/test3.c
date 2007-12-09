@@ -89,5 +89,5 @@ int main()
 			Thread3Main);
 
 	KernelStart();
-
+	return 1;
 }

@@ -18,7 +18,7 @@ void InterruptStartup();
 
 typedef void (INTERRUPT_HANDLER) (void);
 
-void Interruptstart();
+void InterruptStart();
 
 void InterruptEnd();
 

@@ -11,7 +11,7 @@ typedef unsigned long int TIME;
 //Unit Management
 //
 
-void TimerStarup( );
+void TimerStartup( );
 
 //
 //Unit Servces
