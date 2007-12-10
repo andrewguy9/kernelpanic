@@ -1,93 +1,144 @@
 #include"../kernel/startup.h"
 #include"../kernel/scheduler.h"
-#include"../kernel/semaphore.h"
-#include"../kernel/timer.h"
+#include"../kernel/resource.h"
 #include"../kernel/hal.h"
 #include"../kernel/sleep.h"
 #include"../kernel/panic.h"
 
 //
-//Tests whether sleep ever wakes up early.
+//Tests Resources and sleep
 //
 
-#define ARRAY_SIZE 16
-char SleepArray[ARRAY_SIZE] = {3,7,4,1,6,1,8,6,7,2,2,1,3,1,7,1};
+#define BUFFER_SIZE 512
+int Buffer[BUFFER_SIZE];
+#define SEQUENCE_LENGTH 16
+int Sequence[SEQUENCE_LENGTH]={1,3,5,7,11,13,17,19,23,27,29,31,37,39,41,43};
 
-void ThreadMain( int index, char bit )
+struct RESOURCE BufferLock;
+
+COUNT TimesWritten;
+COUNT TimesRead;
+
+void Writer()
 {
+	INDEX sequenceIndex=0;
+	INDEX index;
 	while(1)
 	{
-		//turn on light
-		HalDisableInterrupts();
-		DEBUG_LED = DEBUG_LED | bit;
-		HalEnableInterrupts();
+		ResourceLock( &BufferLock, RESOURCE_EXCLUSIVE );
+	
+		sequenceIndex++;
+		sequenceIndex%=SEQUENCE_LENGTH;
 
-		//Sleep
-		TIME startTime = TimerGetTime();
-		Sleep( SleepArray[index] );
-		TIME endTime = TimerGetTime();
-
-		//turn off the light
-		HalDisableInterrupts();
-		DEBUG_LED = DEBUG_LED & (~ bit);
-		HalEnableInterrupts();
-
-		//verify time
-		if( endTime - startTime < SleepArray[ index ] )
+		for( index = 0; index < BUFFER_SIZE; index++ )
 		{
-			KernelPanic( PANIC3_THREAD_MAIN_SLEPT_TOO_LITTLE );
+			Buffer[index] = index + Sequence[ sequenceIndex ] ;
 		}
-		//change the index
-		index+=SleepArray[index];
-		index%=ARRAY_SIZE;
+		
+		ResourceUnlock( &BufferLock, RESOURCE_EXCLUSIVE );
+		
+		SchedulerStartCritical();
+		TimesWritten++;
+		SchedulerEndCritical();
 	}
 }
 
-struct THREAD Thread1;
-char Thread1Stack[200];
-void Thread1Main()
+void Reader()
 {
-	ThreadMain( 1, 0x01 );
+	INDEX index;
+
+	int first,second;
+	BOOL ready = FALSE;
+
+	while( ! ready )
+	{
+		SchedulerStartCritical();
+		if( TimesWritten > 0 )
+		{
+			ready = TRUE;
+			SchedulerEndCritical();
+		}
+		else
+		{
+			SchedulerForceSwitch();	
+		}
+	}
+
+	while(1)
+	{
+		ResourceLock( &BufferLock, RESOURCE_SHARED );
+
+		for(index=1 ; index < BUFFER_SIZE; index++)
+		{
+			first = Buffer[index-1];
+			second = Buffer[index];
+			if( (first +1) != second )
+			{
+				KernelPanic( TEST3_READER_MISMATCH );
+			}
+		}
+
+		ResourceUnlock( &BufferLock, RESOURCE_SHARED );
+
+		SchedulerStartCritical();
+		TimesRead++;
+		SchedulerEndCritical();
+	}
 }
 
-struct THREAD Thread2;
-char Thread2Stack[200];
-void Thread2Main()
-{
-	ThreadMain( 2, 0x02 );
-}
+struct THREAD Writer1;
+struct THREAD Writer2;
+struct THREAD Reader1;
+struct THREAD Reader2;
+struct THREAD Reader3;
 
-struct THREAD Thread3;
-char Thread3Stack[200];
-void Thread3Main()
-{
-	ThreadMain( 3, 0x04 );
-}
+#define STACK_SIZE 500 
+char Writer1Stack[STACK_SIZE];
+char Writer2Stack[STACK_SIZE];
+char Reader1Stack[STACK_SIZE];
+char Reader2Stack[STACK_SIZE];
+char Reader3Stack[STACK_SIZE];
+
 
 int main()
 {
 	KernelInit();
 
-		//create threads
-	SchedulerCreateThread(
-			&Thread1,
+	TimesRead = 0;
+	TimesWritten = 0;
+
+	SchedulerCreateThread( 
+			& Reader1,
 			5,
-			Thread1Stack,
-			200,
-			Thread1Main);
-	SchedulerCreateThread(
-			&Thread2,
-			10,
-			Thread2Stack,
-			200,
-			Thread2Main);
-	SchedulerCreateThread(
-			&Thread3,
-			15,
-			Thread3Stack,
-			200,
-			Thread3Main);
+			Reader1Stack,
+			STACK_SIZE,
+			Reader);
+	SchedulerCreateThread( 
+			& Reader2,
+			5,
+			Reader2Stack,
+			STACK_SIZE,
+			Reader);
+	SchedulerCreateThread( 
+			& Reader3,
+			5,
+			Reader3Stack,
+			STACK_SIZE,
+			Reader);
+	SchedulerCreateThread( 
+			& Writer1,
+			5,
+			Writer1Stack,
+			STACK_SIZE,
+			Writer);
+	SchedulerCreateThread( 
+			& Writer2,
+			5,
+			Writer2Stack,
+			STACK_SIZE,
+			Writer);
+
 
 	KernelStart();
-	return 1;
+	return 0;
 }

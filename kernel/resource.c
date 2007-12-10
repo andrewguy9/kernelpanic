@@ -98,7 +98,16 @@ void ResourceLock( struct RESOURCE * lock, enum RESOURCE_STATE state )
 	{
 		if( state == RESOURCE_SHARED )
 		{
-			lock->NumShared++;
+			if( LinkedListIsEmpty( & lock->WaitingThreads ) )
+			{
+				lock->NumShared++;
+			}
+			else
+			{
+				//Cant even thought lock is shared, 
+				//because someone else if waiting.
+				blocked = TRUE;
+			}
 		}
 		else if( state == RESOURCE_EXCLUSIVE )
 		{
