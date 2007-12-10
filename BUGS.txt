@@ -1,3 +1,3 @@
 Scheduler.c: NextThread can be set by a thread calling force switch, then a timer interrupt could cause next thread to be set again causing a thread to be dropped.
 
-
+Resource needs work. Lock and unlock work, but the conventions are not sound. Escalate is probably broken too.
