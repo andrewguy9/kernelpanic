@@ -175,10 +175,8 @@ void SchedulerResumeThread( struct THREAD * thread )
 			SCHEDULER_RESUME_THREAD_NOT_BLOCKED,
 			"Thread not blocked" );
 
-	InterruptDisable();
 	thread->State = THREAD_STATE_RUNNING;
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
-	InterruptEnable();
 }
 
 /*
@@ -291,7 +289,7 @@ void SchedulerStartup()
 	MutexInit( & SchedulerLock );
 	//Create a thread for idle loop.
 	SchedulerCreateThread( &IdleThread, 1, NULL, NULL, NULL );
-	//Remove IdleThread from queues...
+	//Remove IdleThread from queues... TODO fix this HACK
 	LinkedListInit( & Queue1 );
 	LinkedListInit( & Queue2 );
 	//Initialize ActiveThread
