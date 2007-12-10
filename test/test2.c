@@ -85,21 +85,18 @@ int main()
 			ProducerStack1,
 			STACK_SIZE,
 			ProducerMain);
-/*
 	SchedulerCreateThread(
 			&Producer2,
 			1,
 			ProducerStack2,
 			STACK_SIZE,
 			ProducerMain);
-*/
 	SchedulerCreateThread(
 			&Consumer1,
 			1,
 			ConsumerStack1,
 			STACK_SIZE,
 			ConsumerMain);
-/*
 	SchedulerCreateThread(
 			&Consumer2,
 			1,
@@ -113,7 +110,6 @@ int main()
 			ConsumerStack3,
 			STACK_SIZE,
 			ConsumerMain);
-*/
 	//Kick off the kernel.
 	KernelStart();
 	return 0;
