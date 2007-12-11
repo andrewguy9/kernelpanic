@@ -6,7 +6,6 @@
 
 union BLOCKING_CONTEXT
 {
-	struct HANDLER_OBJECT SleepTimer;
 	enum RESOURCE_STATE ResourceWaitState;
 };
 
