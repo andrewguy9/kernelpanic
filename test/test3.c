@@ -6,7 +6,7 @@
 #include"../kernel/panic.h"
 
 //
-//Tests Resources and sleep
+//Tests Resources
 //
 
 #define BUFFER_SIZE 512
@@ -25,7 +25,7 @@ void Writer()
 	INDEX index;
 	while(1)
 	{
-		ResourceLock( &BufferLock, RESOURCE_EXCLUSIVE );
+		ResourceLockExclusive( &BufferLock );
 	
 		sequenceIndex++;
 		sequenceIndex%=SEQUENCE_LENGTH;
@@ -35,7 +35,7 @@ void Writer()
 			Buffer[index] = index + Sequence[ sequenceIndex ] ;
 		}
 		
-		ResourceUnlock( &BufferLock, RESOURCE_EXCLUSIVE );
+		ResourceUnlockExclusive( &BufferLock );
 		
 		SchedulerStartCritical();
 		TimesWritten++;
@@ -66,7 +66,7 @@ void Reader()
 
 	while(1)
 	{
-		ResourceLock( &BufferLock, RESOURCE_SHARED );
+		ResourceLockShared( &BufferLock );
 
 		for(index=1 ; index < BUFFER_SIZE; index++)
 		{
@@ -78,7 +78,7 @@ void Reader()
 			}
 		}
 
-		ResourceUnlock( &BufferLock, RESOURCE_SHARED );
+		ResourceUnlockShared( &BufferLock );
 
 		SchedulerStartCritical();
 		TimesRead++;

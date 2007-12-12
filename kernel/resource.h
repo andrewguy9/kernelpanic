@@ -18,9 +18,13 @@ struct RESOURCE
 
 void ResourceInit( struct RESOURCE * lock );
 
-void ResourceLock( struct RESOURCE * lock, enum RESOURCE_STATE state );
+void ResourceLockShared( struct RESOURCE * lock );
 
-void ResourceUnlock( struct RESOURCE * lock, enum RESOURCE_STATE state );
+void ResourceLockExclusive( struct RESOURCE * lock );
+
+void ResourceUnlockShared( struct RESOURCE * lock );
+
+void ResourceUnlockExclusive( struct RESOURCE * lock );
 
 void ResourceEscalate( struct RESOURCE * lock );
 
