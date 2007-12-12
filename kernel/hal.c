@@ -38,14 +38,19 @@ void HalInitClock()
 	TCCR0 |= TMR_PRESCALE_1024;
 }
 
-void HalCreateStackFrame( struct THREAD * thread, THREAD_MAIN main )
+void * HalCreateStackFrame( void * stack, THREAD_MAIN main, COUNT stackSize )
 {	
 	//create initial stack frame
-	thread->Stack -= sizeof( void * );
-	*(thread->Stack + 1) = (int) main;
-    *((unsigned char *)(thread->Stack)) = 
+	stack = (char*)((unsigned int) stack + stackSize);//Pick which end of stack
+	stack -= sizeof( void * );
+	//Drop in main frame
+	*((int*)stack + 1) = (int) main;
+    *((unsigned char *)(stack)) = 
 		(unsigned char)((unsigned int)(main)>>8);
-	thread->Stack -= 34*sizeof(char);
+	//Add context restore frame
+	stack -= 34*sizeof(char);
+	//Stack complete
+	return stack;
 }
 
 #include <avr/io.h>

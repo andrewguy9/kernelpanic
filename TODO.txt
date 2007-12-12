@@ -1,6 +1,6 @@
-Test resources
-Test semaphores
-Test sleep
+Test resources - DONE
+Test semaphores - DONE
+Test sleep - DONE
 Write RingBuffer -- DONE
 	Write Pipe Scheme - DONE
 	Write Serial Communication Unit - DONE
@@ -8,3 +8,4 @@ Write RingBuffer -- DONE
 		Write Thread to fill/drain pipes. - DONE
 Fix Strings into program memory
 Refactor blocking contexts into their own unit. -- DONE
+We sould remove hal dependancy in scheduler. The scheduler should depend on hal not the other way around.

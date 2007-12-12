@@ -4,7 +4,6 @@
 #include"timer.h"
 #include"mutex.h"
 #include"interrupt.h"
-#include"hal.h"
 
 /*
  * Scheduler Unit:
@@ -306,15 +305,14 @@ void SchedulerCreateThread(
 		struct THREAD * thread,
 		unsigned char priority,
 		char * stack,
-		unsigned int stackSize,
+		COUNT stackSize,
 		THREAD_MAIN main)
 {
 	//Populate thread struct
 	thread->Priority = priority;
 	thread->State = THREAD_STATE_RUNNING;
 	//initialize stack
-	thread->Stack = (char*)((unsigned int) stack + stackSize);
-	HalCreateStackFrame( thread, main );
+	thread->Stack = HalCreateStackFrame( stack, main, stackSize );
 	//Add thread to done queue.
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 }	

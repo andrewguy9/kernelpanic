@@ -4,8 +4,7 @@
 #include"../utils/link.h"
 #include"../utils/utils.h"
 #include"blockingcontext.h"
-
-typedef void (*THREAD_MAIN) ();
+#include"hal.h"
 
 enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED };
 

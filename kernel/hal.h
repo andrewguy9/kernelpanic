@@ -3,15 +3,17 @@
 
 //Includes for all builds
 #include"../utils/utils.h"
-#include"scheduler.h"
 
+//-----------------------------------------------------------------------------
+//Defines (for all threads)
+typedef void (*THREAD_MAIN) ();
 //-----------------------------------------------------------------------------
 //Prototypes ( For all Builds )
 void HalInitClock();
 void HalStartup();
 void HalStartInterrupt();
 void HalEndInterrupt();
-void HalCreateStackFrame( struct THREAD * thread, THREAD_MAIN main );
+void * HalCreateStackFrame( void * stack, THREAD_MAIN main, COUNT stackSize);
 void HalSerialStartup();
 //-----------------------------------------------------------------------------
 
