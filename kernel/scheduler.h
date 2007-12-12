@@ -3,19 +3,8 @@
 
 #include"../utils/link.h"
 #include"../utils/utils.h"
-#include"blockingcontext.h"
 #include"hal.h"
-
-enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED };
-
-struct THREAD 
-{
-	union LINK Link;
-	unsigned char Priority;
-	enum THREAD_STATE State;
-	union BLOCKING_CONTEXT BlockingContext;
-	char * Stack;
-};
+#include"thread.h"
 
 void SchedulerStartCritical( );
 

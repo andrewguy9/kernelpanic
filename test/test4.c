@@ -3,6 +3,7 @@
 #include"../kernel/timer.h"
 #include"../utils/utils.h"
 #include"../kernel/startup.h"
+#include"../kernel/interrupt.h"
 
 //Define Sleep Patern
 #define SEQUENCE_LENGTH 8

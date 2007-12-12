@@ -2,8 +2,8 @@
 #include"../utils/utils.h"
 #include"../utils/heap.h"
 #include"interrupt.h"
-#include"scheduler.h"
 #include"hal.h"
+#include"thread.h"
 
 /*
  * Timer Unit Description:
@@ -15,7 +15,8 @@
  * are called as a post interrupt handler. (So interrupts will be ENABLED).
  * Its perfectly save to have a timer re-register itself.
  */
-//Variables that the Scheduler shared ONLY with the timer unit.
+//Variables that the Scheduler shares ONLY with the timer unit.
+//This is because the timer unit is used to force a context switch.
 extern struct THREAD * ActiveThread;
 extern struct THREAD * NextThread;
 
