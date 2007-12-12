@@ -38,21 +38,35 @@ void SleeperMain()
 	while(1)
 	{
 		//Register Timer
+		InterruptDisable();
 		TimerFlag = TRUE;
+		InterruptEnable();
+
 		TimerRegister(
 				& Timer,
 				Sequence[cur] - 1,
 				TimerHandler,
 				NULL);
+
 		//Go to sleep
+		InterruptDisable();
 		ThreadFlag = TRUE;
+		InterruptEnable();
+
 		Sleep( Sequence[cur] );
+
+		InterruptDisable();
 		ThreadFlag = FALSE;
+		InterruptEnable();
+
 		//Check to see timer fired
+		InterruptDisable();
 		if( TimerFlag != FALSE )
 		{
 			KernelPanic( 0 );
 		}
+		InterruptEnable();
+
 		//Move to next sequence
 		cur = cur+1 % SEQUENCE_LENGTH;
 	}
