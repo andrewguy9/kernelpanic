@@ -136,6 +136,7 @@ void ResourceLockShared( struct RESOURCE * lock )
 
 void ResourceLockExclusive( struct RESOURCE * lock )
 {
+	SchedulerStartCritical();
 	if( ! LinkedListIsEmpty( & lock->WaitingThreads ) )
 	{
 		//There are threads already threads blocking on
@@ -173,6 +174,7 @@ void ResourceLockExclusive( struct RESOURCE * lock )
 
 void ResourceUnlockShared( struct RESOURCE * lock )
 {
+	SchedulerStartCritical();
 	if( lock->State == RESOURCE_SHARED )
 	{
 		lock->State--;
@@ -187,6 +189,7 @@ void ResourceUnlockShared( struct RESOURCE * lock )
 	{
 		KernelPanic( RESOURCE_UNLOCK_SHARED_WRONG_STATE );
 	}
+	SchedulerEndCritical();
 }
 
 void ResourceUnlockExclusive( struct RESOURCE * lock )
@@ -257,7 +260,6 @@ void ResourceDeescalate( struct RESOURCE * lock )
 		ASSERT( lock->NumShared == 1,
 				RESOURCE_DEESCALATE_RESOURCE_INCONSISTANT,
 				"Resource deescalte state inconsistant");
-		SchedulerEndCritical();
 	}
 	else
 	{
@@ -265,5 +267,6 @@ void ResourceDeescalate( struct RESOURCE * lock )
 		ResourceBlockThread( lock, RESOURCE_SHARED );
 		ResourceWakeThreads( lock );
 	}
+	SchedulerEndCritical();
 }
 

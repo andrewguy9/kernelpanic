@@ -44,7 +44,7 @@ void * HalCreateStackFrame( void * stack, THREAD_MAIN main, COUNT stackSize )
 	stack = (char*)((unsigned int) stack + stackSize);//Pick which end of stack
 	stack -= sizeof( void * );
 	//Drop in main frame
-	*((int*)stack + 1) = (int) main;
+	*((unsigned char*)stack + 1) = (int) main;
     *((unsigned char *)(stack)) = 
 		(unsigned char)((unsigned int)(main)>>8);
 	//Add context restore frame
