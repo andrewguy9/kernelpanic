@@ -6,4 +6,7 @@ test/test2.o: test/test2.c
 
 test/test3.o: test/test3.c
 
+test/test4.o: test/test4.c
+
 test/pctest.o: test/pctest.c
+

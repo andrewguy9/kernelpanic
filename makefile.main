@@ -11,7 +11,7 @@ include test/rules.mk
 
 tests: utils/linktest.out test/pctest.out utils/ringtest.out
 
-umouse: test0.elf test1.elf test2.elf test3.elf
+umouse: test0.elf test1.elf test2.elf test3.elf test4.elf
 
 #########################
 #utils on board tests
@@ -24,23 +24,21 @@ utils/ringtest.out: utils/ringtest.o utils/$(TARGET)_ringbuffer.o
 
 ############################
 test0.elf: test0.out
-	cp -p test0.out test0.elf
 
 test1.elf: test1.out
-	cp -p test1.out test1.elf
 
 test2.elf: test2.out
-	cp -p test2.out test2.elf
 
 test3.elf: test3.out
-	cp -p test3.out test3.elf
 ############################
 test0.out: test/test0.o kernel/mutex.o kernel/scheduler.o kernel/panic.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o
 
-test1.out: test/test1.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o kernel/interrupt.o
+test1.out: test/test1.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o
 
-test2.out: test/test2.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o kernel/interrupt.o kernel/socket.o utils/$(TARGET)_ringbuffer.o kernel/pipe.o
+test2.out: test/test2.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/socket.o utils/$(TARGET)_ringbuffer.o kernel/pipe.o
 
-test3.out: test/test3.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o kernel/interrupt.o
+test3.out: test/test3.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o
+
+test4.out: test/test4.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o kernel/interrupt.o
 
 ###############################
