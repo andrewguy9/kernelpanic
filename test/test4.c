@@ -21,6 +21,7 @@ struct HANDLER_OBJECT Timer;
 //Define Global Flags
 BOOL TimerFlag;
 BOOL ThreadFlag;
+COUNT TimerCycles;
 
 //TimerFunction
 void TimerHandler( void * Argument )
@@ -70,12 +71,14 @@ void SleeperMain()
 
 		//Move to next sequence
 		cur = cur+1 % SEQUENCE_LENGTH;
+		TimerCycles++;
 	}
 }
 
 int main()
 {
 	KernelInit();
+	TimerCycles = 0;
 	SchedulerCreateThread(
 			&SleeperThread,
 			1,

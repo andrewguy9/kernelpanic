@@ -86,18 +86,80 @@ void Reader()
 	}
 }
 
+void ReaderWriter()
+{
+	INDEX sequenceIndex=0;
+	INDEX index;
+	BOOL virgin = TRUE;
+	int first,second;
+
+	while(1)
+	{
+		if( virgin )
+		{
+			ResourceLockExclusive( &BufferLock );
+			virgin = FALSE;
+		}
+		else
+		{
+			ResourceEscalate( &BufferLock );
+		}
+
+		//
+		//Write
+		//
+		sequenceIndex++;
+		sequenceIndex%=SEQUENCE_LENGTH;
+
+		for( index = 0; index < BUFFER_SIZE; index++ )
+		{
+			Buffer[index] = index + Sequence[ sequenceIndex ];
+		}
+		
+		ResourceUnlockExclusive( &BufferLock );
+		
+		SchedulerStartCritical();
+		TimesWritten++;
+		SchedulerEndCritical();
+
+		//
+		//Read
+		//
+
+		ResourceDeescalate( &BufferLock );
+
+		for(index=1 ; index < BUFFER_SIZE; index++)
+		{
+			first = Buffer[index-1];
+			second = Buffer[index];
+			if( (first +1) != second )
+			{
+				KernelPanic( TEST3_READER_MISMATCH );
+			}
+		}
+
+		SchedulerStartCritical();
+		TimesRead++;
+		SchedulerEndCritical();
+
+		//lock will change state at top of loop.
+	}
+}
+
 struct THREAD Writer1;
 struct THREAD Writer2;
 struct THREAD Reader1;
 struct THREAD Reader2;
 struct THREAD Reader3;
+struct THREAD ReaderWriter1;
 
-#define STACK_SIZE 500 
+#define STACK_SIZE 400
 char Writer1Stack[STACK_SIZE];
 char Writer2Stack[STACK_SIZE];
 char Reader1Stack[STACK_SIZE];
 char Reader2Stack[STACK_SIZE];
 char Reader3Stack[STACK_SIZE];
+char ReaderWriter1Stack[STACK_SIZE];
 
 
 int main()
@@ -137,6 +199,12 @@ int main()
 			Writer2Stack,
 			STACK_SIZE,
 			Writer);
+	SchedulerCreateThread(
+			& ReaderWriter1,
+			5,
+			ReaderWriter1Stack,
+			STACK_SIZE,
+			ReaderWriter);
 
 
 	KernelStart();
