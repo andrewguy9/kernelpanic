@@ -58,9 +58,9 @@ void ResourceWakeThreads( struct RESOURCE * lock )
 	//had to be an event which whould require a state change.
 	//So we need NumShared to be 0, so we are ready to change.
 	struct THREAD * curThread;
-	lock->State = RESOURCE_SHARED;
 	do
 	{
+		//Get the thread at top of queue
 		curThread = BASE_OBJECT( LinkedListPeek( & lock->WaitingThreads ), 
 				struct THREAD,
 				Link.LinkedListLink );
@@ -68,21 +68,22 @@ void ResourceWakeThreads( struct RESOURCE * lock )
 		if( curThread->BlockingContext.ResourceWaitState == RESOURCE_SHARED )
 		{//This is a shared thread, pop and see if there are more.
 			lock->NumShared++;
+			lock->State = RESOURCE_SHARED;
 			LinkedListPop( & lock->WaitingThreads );
 			SchedulerResumeThread( curThread );
 		}
 		else if( curThread->BlockingContext.ResourceWaitState == RESOURCE_EXCLUSIVE )
 		{
 			if( lock->NumShared == 0 )
-			{//First thread was exclusive. He now owns.
+			{//First thread was exclusive. Wake him.
 				LinkedListPop( & lock->WaitingThreads );
-				SchedulerResumeThread( curThread );
 				lock->State = RESOURCE_EXCLUSIVE;
+				SchedulerResumeThread( curThread );
 			}
 			else
 			{
 				//curThread is exclusive, but now NumShared is positive.
-				//We cant acquire, so dont wake him. Just return.
+				//We cant acquire, so dont wake him. Just break;
 			}
 			break;
 		}
@@ -123,7 +124,7 @@ void ResourceLockShared( struct RESOURCE * lock )
 	}
 	else if( lock->State == RESOURCE_EXCLUSIVE )
 	{
-		//We are in exclusive mode, so block
+		//Lock is in exclusive mode, so block
 		ResourceBlockThread( lock, RESOURCE_SHARED );
 		SchedulerForceSwitch();
 	}
@@ -177,7 +178,7 @@ void ResourceUnlockShared( struct RESOURCE * lock )
 	SchedulerStartCritical();
 	if( lock->State == RESOURCE_SHARED )
 	{
-		lock->State--;
+		lock->NumShared--;
 		if( lock->NumShared == 0 &&
 				! LinkedListIsEmpty( & lock->WaitingThreads ))
 		{
