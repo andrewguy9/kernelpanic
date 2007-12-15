@@ -2,7 +2,6 @@
 #define BLOCKING_CONTEXT_H
 
 #include"resource.h"
-#include"handler.h"
 
 union BLOCKING_CONTEXT
 {
