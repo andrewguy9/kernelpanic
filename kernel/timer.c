@@ -124,6 +124,14 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 		NextThread = NULL;
 	}
 
+	//Check to see if stack is valid.
+#ifdef DEBUG
+	ASSERT( ActiveThread->Stack >= MIN( ActiveThread->StackStart, ActiveThread->StackEnd ) &&
+			ActiveThread->Stack <= MAX( ActiveThread->StackStart, ActiveThread->StackEnd ),
+			TIMER_HANDLER_STACK_OVERFLOW,
+			"stack overflow");
+#endif
+
 	//Restore stack pointer
 	HAL_SET_SP( ActiveThread->Stack );
 

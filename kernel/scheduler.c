@@ -132,6 +132,14 @@ SchedulerContextSwitch()
 		NextThread = NULL;
 	}
 
+	//Check to see if stack is valid.
+#ifdef DEBUG
+	ASSERT( ActiveThread->Stack >= MIN( ActiveThread->StackStart, ActiveThread->StackEnd ) &&
+			ActiveThread->Stack <= MAX( ActiveThread->StackStart, ActiveThread->StackEnd ),
+			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
+			"stack overflow");
+#endif
+
 	InterruptEnd(); //reduce interrupt level without enabling interrupts.
 
 	HAL_SET_SP( ActiveThread->Stack );
@@ -315,4 +323,9 @@ void SchedulerCreateThread(
 	thread->Stack = HalCreateStackFrame( stack, main, stackSize );
 	//Add thread to done queue.
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
+	//Save the stack size.
+#ifdef DEBUG
+	thread->StackEnd = stack + stackSize;
+	thread->StackStart = stack;
+#endif
 }	
