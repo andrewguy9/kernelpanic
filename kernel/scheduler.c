@@ -121,6 +121,14 @@ SchedulerContextSwitch()
 	
 	HAL_SAVE_SP( ActiveThread->Stack );
 
+		//Check to see if stack is valid.
+#ifdef DEBUG
+	ASSERT( ActiveThread->Stack >= MIN( ActiveThread->StackStart, ActiveThread->StackEnd ) &&
+			ActiveThread->Stack <= MAX( ActiveThread->StackStart, ActiveThread->StackEnd ),
+			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
+			"stack overflow");
+#endif
+
 	ASSERT( InterruptIsAtomic(), 
 			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
 			"Context switch must save state atomically");
@@ -131,14 +139,6 @@ SchedulerContextSwitch()
 		ActiveThread = NextThread;
 		NextThread = NULL;
 	}
-
-	//Check to see if stack is valid.
-#ifdef DEBUG
-	ASSERT( ActiveThread->Stack >= MIN( ActiveThread->StackStart, ActiveThread->StackEnd ) &&
-			ActiveThread->Stack <= MAX( ActiveThread->StackStart, ActiveThread->StackEnd ),
-			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
-			"stack overflow");
-#endif
 
 	InterruptEnd(); //reduce interrupt level without enabling interrupts.
 
