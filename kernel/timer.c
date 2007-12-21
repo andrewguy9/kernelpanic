@@ -28,7 +28,11 @@ extern struct THREAD * NextThread;
 TIME Time;
 
 //Keep track of timers waiting to execute.
-struct HEAP Timers;
+struct HEAP TimerHeap1;
+struct HEAP TimerHeap2;
+
+struct HEAP * Timers;
+struct HEAP * TimersOverflow;
 
 //
 //Unit Helper Routines
@@ -41,15 +45,29 @@ struct HEAP Timers;
  */
 void QueueTimers( )
 {
+	struct HEAP *temp;
 	ASSERT( InterruptIsAtomic(), 
 			TIMER_RUN_TIMERS_MUST_BE_ATOMIC,
 			"timers can only be run from interrupt level.");
+
 	Time++;
-	while( HeapSize( &Timers) > 0 && 
-			HeapHeadWeight( &Timers ) <= Time )
+
+	if( Time == 0 )
+	{//Overflow occured, switch heaps
+		ASSERT( HeapSize( Timers ) == 0,
+				TIMER_OVERFLOW_HAD_TIMERS,
+				"There sould be no timers on overflow");
+				
+		temp = Timers;
+		Timers = TimersOverflow;
+		TimersOverflow = temp;
+	}
+
+	while( HeapSize( Timers) > 0 && 
+			HeapHeadWeight( Timers ) <= Time )
 	{
 		struct HANDLER_OBJECT * timer = BASE_OBJECT( 
-				HeapPop( & Timers ),
+				HeapPop(  Timers ),
 				struct HANDLER_OBJECT,
 				Link );
 		timer->Enabled = FALSE;
@@ -63,8 +81,14 @@ void QueueTimers( )
 void TimerStartup( )
 {
 	Time = 0;
-	HeapInit( &Timers );
+	HeapInit( &TimerHeap1 );
+	HeapInit( &TimerHeap2 );
+
+	Timers = &TimerHeap1;
+	TimersOverflow = &TimerHeap2;
+
 	HalInitClock();
+
 }
 
 
@@ -79,11 +103,22 @@ void TimerRegister(
 			"timers cannot be double registered");
 
 	InterruptDisable();
+
+	//Construct timer
 	newTimer->Enabled = TRUE;
 	newTimer->Link.WeightedLink.Weight = Time + wait;
 	newTimer->Handler = handler;
 	newTimer->Argument = argument;
-	HeapAdd( &newTimer->Link.WeightedLink, &Timers );
+	//Add to heap
+	if( newTimer->Link.WeightedLink.Weight >= Time )
+	{
+		HeapAdd( &newTimer->Link.WeightedLink, Timers );
+	}
+	else
+	{
+		//Overflow ocurred
+		HeapAdd( &newTimer->Link.WeightedLink, TimersOverflow);
+	}
 	InterruptEnable();
 }
 
