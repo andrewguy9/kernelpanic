@@ -52,12 +52,17 @@ void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, FLAG_WORD * walls, B
 
 BOOL MapInit( struct MAP * map, char * wallBuff, COUNT buffLen, COUNT width, COUNT height )
 {
+	INDEX cur;
 	if( buffLen >= MapSizeNeeded( width, height ) )
 	{
 		map->VWalls = wallBuff;
 		map->HWalls = &wallBuff[MapDimensionSizeNeeded(width, height)];
 		map->Height = height;
 		map->Width = width;
+
+		for( cur=0; cur < buffLen; cur++ )
+			wallBuff[cur] = 0;
+
 		return TRUE;
 	}
 	else
@@ -80,7 +85,7 @@ BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map )
 			break;
 		case EAST:
 		case WEST:
-			return MapGetFlag( x, map->Width, y, & map->VWalls );
+			return MapGetFlag( x, map->Width, y, map->VWalls );
 			break;
 	}
 	ASSERT(0, 0, "Map Get Wall has invalid direction.");
@@ -89,7 +94,6 @@ BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map )
 
 void MapSetWall( INDEX x, INDEX y, enum DIRECTION dir, BOOL state, struct MAP * map )
 {
-	INDEX index;
 	x = MapAdjustX(x,dir);
 	y = MapAdjustY(y,dir);
 
