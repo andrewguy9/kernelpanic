@@ -14,8 +14,8 @@ struct THREAD
 	union BLOCKING_CONTEXT BlockingContext;
 	char * Stack;
 #ifdef DEBUG
-	char * StackStart;
-	char * StackEnd;
+	char * StackHigh;
+	char * StackLow;
 #endif
 };
 

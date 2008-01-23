@@ -123,8 +123,10 @@ SchedulerContextSwitch()
 
 		//Check to see if stack is valid.
 #ifdef DEBUG
-	ASSERT( ActiveThread->Stack >= MIN( ActiveThread->StackStart, ActiveThread->StackEnd ) &&
-			ActiveThread->Stack <= MAX( ActiveThread->StackStart, ActiveThread->StackEnd ),
+	ASSERT( ASSENDING( 
+				(int) ActiveThread->StackLow, 
+				(int) ActiveThread->Stack, 
+				(int) ActiveThread->StackHigh ),
 			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
 			"stack overflow");
 #endif
@@ -295,7 +297,7 @@ void SchedulerStartup()
 	//Set up Schedule Resource
 	MutexInit( & SchedulerLock );
 	//Create a thread for idle loop.
-	SchedulerCreateThread( &IdleThread, 1, NULL, NULL, NULL );
+	SchedulerCreateThread( &IdleThread, 1, NULL, 0, NULL );
 	//Remove IdleThread from queues... TODO fix this HACK
 	LinkedListInit( & Queue1 );
 	LinkedListInit( & Queue2 );
@@ -319,13 +321,24 @@ void SchedulerCreateThread(
 	//Populate thread struct
 	thread->Priority = priority;
 	thread->State = THREAD_STATE_RUNNING;
-	//initialize stack
-	thread->Stack = HalCreateStackFrame( stack, main, stackSize );
 	//Add thread to done queue.
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
-	//Save the stack size.
+	//initialize stack
+	if( stackSize != 0 )
+	{//Populate regular stack
+		thread->Stack = HalCreateStackFrame( stack, main, stackSize );
+		//Save the stack size.
 #ifdef DEBUG
-	thread->StackEnd = stack + stackSize;
-	thread->StackStart = stack;
+		thread->StackHigh = stack + stackSize;
+		thread->StackLow = stack;
 #endif
+	}
+	else
+	{//Populate stack for idle thread
+		thread->Stack = NULL;
+#ifdef DEBUG
+		thread->StackHigh = -1;
+		thread->StackLow = 0;
+#endif
+	}
 }	

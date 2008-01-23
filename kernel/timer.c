@@ -104,21 +104,23 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	//Save the stack pointer
 	HAL_SAVE_SP( ActiveThread->Stack );
 
-	//Check to see if stack is valid.
-#ifdef DEBUG
-	ASSERT( ActiveThread->Stack >= MIN( ActiveThread->StackStart, ActiveThread->StackEnd ) &&
-			ActiveThread->Stack <= MAX( ActiveThread->StackStart, ActiveThread->StackEnd ),
-			TIMER_HANDLER_STACK_OVERFLOW,
-			"stack overflow");
-#endif
-
-
 	//reset the clock
     TCNT0 = 0xff-1*16; //1 ms
 
 	//update interrupt level to represent that we are in inerrupt
 	InterruptStart();
 
+	//Check to see if stack is valid.
+	/*
+#ifdef DEBUG
+	ASSERT( ASSENDING( 
+				(unsigned int) ActiveThread->StackLow, 
+				(unsigned int) ActiveThread->Stack, 
+				(unsigned int) ActiveThread->StackHigh ),
+			TIMER_HANDLER_STACK_OVERFLOW,
+			"stack overflow");
+#endif
+*/
 	//Queue up timers
 	QueueTimers( );
 
