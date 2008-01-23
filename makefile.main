@@ -3,13 +3,14 @@ include build_rules.mk
 include utils/rules.mk
 include kernel/rules.mk
 
+include umouse/rules.mk
 include test/rules.mk
 
 .PHONY: tests umouse board motortest clean
 
 #########################
 
-tests: utils/linktest.out test/pctest.out utils/ringtest.out
+tests: utils/linktest.out utils/ringtest.out utils/flagtest.out umouse/maptest.out utils/bhamtest.out
 
 umouse: test0.elf test1.elf test2.elf test3.elf test4.elf
 
@@ -18,9 +19,13 @@ umouse: test0.elf test1.elf test2.elf test3.elf test4.elf
 
 utils/linktest.out: utils/linktest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_heap.o
 
-test/pctest.out: test/pctest.o utils/$(TARGET)_linkedlist.o
-
 utils/ringtest.out: utils/ringtest.o utils/$(TARGET)_ringbuffer.o
+
+utils/flagtest.out: utils/flagtest.o
+
+utils/bhamtest.out: utils/bhamtest.o utils/$(TARGET)_bham.o
+
+umouse/maptest.out: umouse/maptest.o umouse/$(TARGET)_map.o
 
 ############################
 test0.elf: test0.out

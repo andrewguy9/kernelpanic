@@ -17,3 +17,4 @@ clean:
 	make -e DIR=utils cleandir
 	make -e DIR=kernel cleandir
 	make -e DIR=test cleandir
+	make -e DIR=umouse cleandir
