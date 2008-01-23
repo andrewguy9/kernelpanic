@@ -29,7 +29,7 @@ void HalSerialStartup();
 #define HAL_SAVE_SP(dest) (dest = (void *) SP)
 #define HAL_SET_SP(value) (SP = (int) (value) )
 
-#define HalIsAtomic() ( !(SREG&SREG_I) )
+#define HalIsAtomic() ( !(SREG & 1<<SREG_I) )
 #define HalDisableInterrupts() asm(" cli")
 #define HalEnableInterrupts()  asm(" sei")
 
