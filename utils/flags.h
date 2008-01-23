@@ -6,7 +6,9 @@
 //
 //  Private Macros for doing library math
 //
+
 #define FlagWordSize (sizeof(char))
+
 #define FlagSize( NumElements ) ( (NumElements)/(FlagWordSize) + (((NumElements)%(FlagWordSize)) ? 1: 0 ) )
 
 #define FlagIndex( Index ) ((Index)/(FlagWordSize*8))
