@@ -124,9 +124,9 @@ SchedulerContextSwitch()
 		//Check to see if stack is valid.
 #ifdef DEBUG
 	ASSERT( ASSENDING( 
-				(int) ActiveThread->StackLow, 
-				(int) ActiveThread->Stack, 
-				(int) ActiveThread->StackHigh ),
+				(unsigned int) ActiveThread->StackLow, 
+				(unsigned int) ActiveThread->Stack, 
+				(unsigned int) ActiveThread->StackHigh ),
 			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
 			"stack overflow");
 #endif
