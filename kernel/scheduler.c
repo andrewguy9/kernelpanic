@@ -122,14 +122,12 @@ SchedulerContextSwitch()
 	HAL_SAVE_SP( ActiveThread->Stack );
 
 		//Check to see if stack is valid.
-#ifdef DEBUG
 	ASSERT( ASSENDING( 
 				(unsigned int) ActiveThread->StackLow, 
 				(unsigned int) ActiveThread->Stack, 
 				(unsigned int) ActiveThread->StackHigh ),
 			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
 			"stack overflow");
-#endif
 
 	ASSERT( InterruptIsAtomic(), 
 			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
@@ -334,9 +332,7 @@ void SchedulerCreateThread(
 	else
 	{//Populate stack for idle thread
 		thread->Stack = NULL;
-#ifdef DEBUG
 		thread->StackHigh = -1;
 		thread->StackLow = 0;
-#endif
 	}
 }	
