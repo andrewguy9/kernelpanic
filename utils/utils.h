@@ -48,7 +48,7 @@ typedef unsigned char BOOL;
 //
 #define MAX( A, B ) ((A)>(B) ? (A) : (B) )
 #define MIN( A, B ) ((A)<(B) ? (A) : (B) )
-
+#define ASSENDING( A, B, C ) ((A) <= (B) && (B) <= (C))
 //Returns the byte offset of FIELD in TYPE
 #define OFFSET_OF( TYPE, FIELD ) ((int)(&(((TYPE *)0)->FIELD)))
 //Returns a pointer to the base structure 
