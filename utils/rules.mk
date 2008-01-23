@@ -13,3 +13,5 @@ utils/$(TARGET)_flags.o: utils/flags.c utils/flags.h
 utils/linktest.o: utils/linktest.c 
 
 utils/ringtest.o: utils/ringtest.c
+
+utils/flagtest.o: utils/flagtest.c

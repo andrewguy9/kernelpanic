@@ -6,13 +6,13 @@
 //
 //  Private Macros for doing library math
 //
+typedef char FLAG_WORD;
+#define FlagWordSize  (sizeof(FLAG_WORD) * 8)
+#define FlagSize( NumElements ) \
+	( (NumElements)/(FlagWordSize) + ((NumElements)%(FlagWordSize) ? 1 : 0 ) )
 
-#define FlagWordSize (sizeof(char))
-
-#define FlagSize( NumElements ) ( (NumElements)/(FlagWordSize) + (((NumElements)%(FlagWordSize)) ? 1: 0 ) )
-
-#define FlagIndex( Index ) ((Index)/(FlagWordSize*8))
-#define FlagOffset( Index ) ((Index%(FlagWordSize*8)))
+#define FlagIndex( Index ) ((Index)/(FlagWordSize))
+#define FlagOffset( Index ) ((Index)%((FlagWordSize)))
 
 #define FlagGenerateMask( Offset ) ( 1 << (Offset) )
 

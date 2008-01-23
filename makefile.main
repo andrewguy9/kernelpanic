@@ -10,7 +10,7 @@ include test/rules.mk
 
 #########################
 
-tests: utils/linktest.out utils/ringtest.out utils/flagtest.out umouse/maptest.out
+tests: utils/linktest.out utils/ringtest.out utils/flagtest.out
 
 umouse: test0.elf test1.elf test2.elf test3.elf test4.elf
 
@@ -22,8 +22,6 @@ utils/linktest.out: utils/linktest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET
 utils/ringtest.out: utils/ringtest.o utils/$(TARGET)_ringbuffer.o
 
 utils/flagtest.out: utils/flagtest.o
-
-umouse/maptest.out: umouse/maptest.o umpuse/$(TARGET)_map.o
 
 ############################
 test0.elf: test0.out
