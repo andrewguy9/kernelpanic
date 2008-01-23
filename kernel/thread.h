@@ -13,10 +13,8 @@ struct THREAD
 	enum THREAD_STATE State;
 	union BLOCKING_CONTEXT BlockingContext;
 	char * Stack;
-#ifdef DEBUG
 	char * StackHigh;
 	char * StackLow;
-#endif
 };
 
 

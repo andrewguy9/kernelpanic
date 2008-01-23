@@ -111,14 +111,12 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	InterruptStart();
 
 	//Check to see if stack is valid.
-#ifdef DEBUG
 	ASSERT( ASSENDING( 
 				(unsigned int) ActiveThread->StackLow, 
 				(unsigned int) ActiveThread->Stack, 
 				(unsigned int) ActiveThread->StackHigh ),
 			TIMER_HANDLER_STACK_OVERFLOW,
 			"stack overflow");
-#endif
 
 	//Queue up timers
 	QueueTimers( );

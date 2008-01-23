@@ -328,10 +328,8 @@ void SchedulerCreateThread(
 	{//Populate regular stack
 		thread->Stack = HalCreateStackFrame( stack, main, stackSize );
 		//Save the stack size.
-#ifdef DEBUG
 		thread->StackHigh = stack + stackSize;
 		thread->StackLow = stack;
-#endif
 	}
 	else
 	{//Populate stack for idle thread
