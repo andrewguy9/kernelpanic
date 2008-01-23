@@ -13,7 +13,7 @@ void PrintLine( COUNT numChars )
 	}
 }
 
-void PrintMap( MAP * map )
+void PrintMap( struct MAP * map )
 {
 	INDEX x, y;
 	PrintLine( map->Width*4);
@@ -32,10 +32,11 @@ void PrintMap( MAP * map )
 int main()
 {
 	COUNT width=16, height=16;
-	MAP map;
-	FLAG_WORD wallBuff[ MapSizeNeeded(width, height)];
+	struct MAP map;
+	FLAG_WORD wallBuff[ MapSizeNeeded(width, height) ];
 
 	MapInit( &map, wallBuff, MapSizeNeeded(width, height), width, height );
 
-	PrintMap(map);
+	PrintMap( & map );
+	return 0;
 }

@@ -1,6 +1,6 @@
 #include"map.h"
 #include"../utils/flags.h"
-#include"../utils/panic.h"
+#include"../utils/utils.h"
 
 //
 //Definition of dimmensions
@@ -13,7 +13,7 @@
 //
 
 #define MapGetIndex( major, majorSize, minor ) ( (minor)*((majorSize)-1)+(major-1) )
-#define MapAdjustX( x, dir ) ( (dir) == (EAST) ? (X)+1 : (X) )
+#define MapAdjustX( x, dir ) ( (dir) == (EAST) ? (x)+1 : (x) )
 #define MapAdjustY( y, dir ) ( (dir) == (NORTH) ? (y)+1 : (y) )
 #define MapOutOfBounds( major, majorSize ) ( (major) == 0 || (major) == (majorSize) ? TRUE : FALSE )
 
@@ -40,9 +40,9 @@ void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, FLAG_WORD * walls, B
 	{//Can only set in bounds
 		index = MapGetIndex( major, majorSize, minor );
 		if( state )
-			FlagSet( walls, index );
+			FlagOn( walls, index );
 		else
-			FlagClear( walls, index );
+			FlagOff( walls, index );
 	}
 }
 
@@ -50,22 +50,23 @@ void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, FLAG_WORD * walls, B
 //Public Functions
 //
 
-void MapInit( MAP * map, char * wallBuff, COUNT buffLen, COUNT width, COUNT height )
+BOOL MapInit( struct MAP * map, char * wallBuff, COUNT buffLen, COUNT width, COUNT height )
 {
 	if( buffLen >= MapSizeNeeded( width, height ) )
 	{
 		map->VWalls = wallBuff;
-		map->HWalls = &wallBuff[MapDimensionSizeNeeded(width), MapDimensionSizeNeeded(height)];
+		map->HWalls = &wallBuff[MapDimensionSizeNeeded(width, height)];
 		map->Height = height;
 		map->Width = width;
+		return TRUE;
 	}
 	else
 	{
-		GeneralPanic( 0 );
+		return FALSE;
 	}
 }
 
-BOOL MapGetWall( INDEX x, INDEX y, DIRECTION dir, MAP * map )
+BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map )
 {
 
 	x = MapAdjustX(x,dir);
@@ -75,16 +76,18 @@ BOOL MapGetWall( INDEX x, INDEX y, DIRECTION dir, MAP * map )
 	{
 		case NORTH:
 		case SOUTH:
-			return MapGetFlag( y, map->Height, x, map->Width, & map->HWalls );
+			return MapGetFlag( y, map->Height, x, map->HWalls );
 			break;
 		case EAST:
 		case WEST:
-			return MapGetFlag( x, map->Width, y, map->Height, & map->VWalls );
+			return MapGetFlag( x, map->Width, y, & map->VWalls );
 			break;
 	}
+	ASSERT(0, 0, "Map Get Wall has invalid direction.");
+	return FALSE;
 }
 
-void MapSetWall( INDEX x, INDEX y, DIRECTION dir, BOOL state, MAP * map )
+void MapSetWall( INDEX x, INDEX y, enum DIRECTION dir, BOOL state, struct MAP * map )
 {
 	INDEX index;
 	x = MapAdjustX(x,dir);
@@ -94,11 +97,11 @@ void MapSetWall( INDEX x, INDEX y, DIRECTION dir, BOOL state, MAP * map )
 	{
 		case NORTH:
 		case SOUTH:
-		MapSetFlag( y, map->Height, x, map->Width, &map->HWalls, state );
+		MapSetFlag( y, map->Height, x, map->HWalls, state );
 		break;
 		case EAST:
 		case WEST:
-		MapSetFlag( x, map->Width, y, map->Height, &map->VWalls, state );
+		MapSetFlag( x, map->Width, y, map->VWalls, state );
 		break;
 	}
 }
