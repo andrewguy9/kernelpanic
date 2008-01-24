@@ -59,6 +59,6 @@ AVR_STRING = -e TARGET=$(AVR_PREFIX) -e CC=$(AVR_CC) -e BUILD=$(AVR_BUILD) -e CF
 # tags 
 #
 ctags: 
-	ctags -R .
+	ctags --fields=+S -R .
 
 #########################
