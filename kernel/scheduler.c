@@ -121,17 +121,17 @@ SchedulerContextSwitch()
 	
 	HAL_SAVE_SP( ActiveThread->Stack );
 
-		//Check to see if stack is valid.
+	ASSERT( InterruptIsAtomic(), 
+			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
+			"Context switch must save state atomically");
+
+	//Check to see if stack is valid.
 	ASSERT( ASSENDING( 
 				(unsigned int) ActiveThread->StackLow, 
 				(unsigned int) ActiveThread->Stack, 
 				(unsigned int) ActiveThread->StackHigh ),
 			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
 			"stack overflow");
-
-	ASSERT( InterruptIsAtomic(), 
-			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
-			"Context switch must save state atomically");
 
 	//Check for scheduling event
 	if( NextThread != NULL )

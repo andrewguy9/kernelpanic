@@ -117,7 +117,7 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 				(unsigned int) ActiveThread->StackHigh ),
 			TIMER_HANDLER_STACK_OVERFLOW,
 			"stack overflow");
-
+	
 	//Queue up timers
 	QueueTimers( );
 
