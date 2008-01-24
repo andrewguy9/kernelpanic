@@ -125,6 +125,14 @@ SchedulerContextSwitch()
 			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
 			"Context switch must save state atomically");
 
+	//Check to see if stack is valid.
+	ASSERT( ASSENDING( 
+				(unsigned int) ActiveThread->StackLow, 
+				(unsigned int) ActiveThread->Stack, 
+				(unsigned int) ActiveThread->StackHigh ),
+			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
+			"stack overflow");
+
 	//Check for scheduling event
 	if( NextThread != NULL )
 	{
@@ -287,7 +295,7 @@ void SchedulerStartup()
 	//Set up Schedule Resource
 	MutexInit( & SchedulerLock );
 	//Create a thread for idle loop.
-	SchedulerCreateThread( &IdleThread, 1, NULL, NULL, NULL );
+	SchedulerCreateThread( &IdleThread, 1, NULL, 0, NULL );
 	//Remove IdleThread from queues... TODO fix this HACK
 	LinkedListInit( & Queue1 );
 	LinkedListInit( & Queue2 );
@@ -311,8 +319,20 @@ void SchedulerCreateThread(
 	//Populate thread struct
 	thread->Priority = priority;
 	thread->State = THREAD_STATE_RUNNING;
-	//initialize stack
-	thread->Stack = HalCreateStackFrame( stack, main, stackSize );
 	//Add thread to done queue.
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
+	//initialize stack
+	if( stackSize != 0 )
+	{//Populate regular stack
+		thread->Stack = HalCreateStackFrame( stack, main, stackSize );
+		//Save the stack size.
+		thread->StackHigh = stack + stackSize;
+		thread->StackLow = stack;
+	}
+	else
+	{//Populate stack for idle thread
+		thread->Stack = NULL;
+		thread->StackHigh = -1;
+		thread->StackLow = 0;
+	}
 }	

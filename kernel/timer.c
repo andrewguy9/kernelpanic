@@ -110,6 +110,14 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	//update interrupt level to represent that we are in inerrupt
 	InterruptStart();
 
+	//Check to see if stack is valid.
+	ASSERT( ASSENDING( 
+				(unsigned int) ActiveThread->StackLow, 
+				(unsigned int) ActiveThread->Stack, 
+				(unsigned int) ActiveThread->StackHigh ),
+			TIMER_HANDLER_STACK_OVERFLOW,
+			"stack overflow");
+	
 	//Queue up timers
 	QueueTimers( );
 

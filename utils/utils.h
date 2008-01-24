@@ -19,8 +19,8 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#define ASSERT( condition, errornum, errorstr ) ( condition ? :  \
-		printf("ASSERT FAILED: %s\n", errorstr))
+#define ASSERT( condition, errornum, errorstr ) if( ! (condition) ) \
+		printf("ASSERT FAILED: %s\n", errorstr)
 
 #endif
 
@@ -29,8 +29,9 @@
 //
 #ifdef AVR_BUILD
 #include"../kernel/panic.h"
-#define ASSERT( condition, errornum, errorstr ) ( condition ? : \
-		KernelPanic( errornum ) )
+#define ASSERT( condition, errornum, errorstr ) \
+	if( ! (condition) ) \
+		KernelPanic( errornum )
 
 #endif
 
