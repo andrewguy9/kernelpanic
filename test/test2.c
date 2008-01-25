@@ -34,18 +34,24 @@ struct THREAD Consumer1;
 struct THREAD Consumer2;
 struct THREAD Consumer3;
 
+//Tracking variables
+COUNT TotalRead;
+COUNT TotalWrite;
+
 //Functions for test.
 void ProducerMain()
 {
 	COUNT write;
-	COUNT count = 0;
 	while(1)
 	{
 		write = SocketWrite( Message, MESSAGE_LENGTH, &Socket );
 
 		if( write != MESSAGE_LENGTH )
 			KernelPanic( TEST2_PRODUCER_WRITE_WRONG_LENGTH );
-		count++;
+
+		SchedulerStartCritical();
+		TotalWrite += write;
+		SchedulerEndCritical();
 	}
 }
 
@@ -65,6 +71,9 @@ void ConsumerMain()
 			if( Message[index] != buff[index] )
 				KernelPanic( TEST2_CONSUMER_CHARACTER_MISMATCH );
 		}
+		SchedulerStartCritical();
+		TotalRead+=read;
+		SchedulerEndCritical();
 	}
 }
 
@@ -72,6 +81,11 @@ void ConsumerMain()
 int main()
 {
 	KernelInit();
+
+	//Initialize counters
+	TotalRead = 0;
+	TotalWrite = 0;
+
 	//Initialize Pipes.
 	PipeInit( RingBuff, RING_SIZE, &Pipe );
 
