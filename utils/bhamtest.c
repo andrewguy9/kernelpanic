@@ -38,4 +38,5 @@ int main()
 	BHamInit( x,y,&Bham );
 
 	PrintGraph( &Bham, ticks );
+	return 0;
 }

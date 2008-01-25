@@ -57,4 +57,5 @@ int main()
 				continue;
 		}
 	}while( input != 3 );
+	return 0;
 }

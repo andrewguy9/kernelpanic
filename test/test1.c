@@ -19,8 +19,6 @@ void TestMainIncrement()
 		Value1++;
 		DEBUG_LED ^= 1<<0;
 		for(a=1;a>0;a++);
-		//SchedulerStartCritical();
-		//SchedulerForceSwitch();
 
 	}
 }
@@ -35,8 +33,6 @@ void TestMainDivide()
 		Value2++;
 		DEBUG_LED ^= 1<<1;
 		for(a=1;a>0;a++);
-		//SchedulerStartCritical();
-		//SchedulerForceSwitch();
 	}
 }
 
@@ -50,8 +46,6 @@ void TestMainExp()
 		Value3++;
 		DEBUG_LED ^= 1<<2;
 		for(a=1;a>0;a++);
-		//SchedulerStartCritical();
-		//SchedulerForceSwitch();
 	}
 }
 
@@ -68,21 +62,27 @@ int main()
 			2,
 			TestThreadStackIncrement,
 			500,
-			TestMainIncrement );
+			TestMainIncrement,
+		   	0x10,
+			TRUE);
 
 	SchedulerCreateThread(
 			&TestThreadDivide,
 			4,
 			TestThreadStackDivide,
 			500,
-			TestMainDivide);
+			TestMainDivide,
+			0X20,
+			TRUE);
 
 	SchedulerCreateThread(
 			&TestThreadExp,
 			8,
 			TestThreadStackExp,
 			500,
-			TestMainExp);
+			TestMainExp,
+			0X40,
+			TRUE);
 		
 	KernelStart();
 	return 0;

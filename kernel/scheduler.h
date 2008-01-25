@@ -32,6 +32,8 @@ SchedulerCreateThread(
 		unsigned char priority,
 		char * stack,
 		unsigned int stackSize,
-		THREAD_MAIN main);
+		THREAD_MAIN main,
+		char flag,
+		BOOL start);
 
 #endif

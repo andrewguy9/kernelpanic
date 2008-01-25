@@ -90,21 +90,11 @@ void ReaderWriter()
 {
 	INDEX sequenceIndex=0;
 	INDEX index;
-	BOOL virgin = TRUE;
 	int first,second;
 
+	ResourceLockExclusive( &BufferLock );
 	while(1)
 	{
-		if( virgin )
-		{
-			ResourceLockExclusive( &BufferLock );
-			virgin = FALSE;
-		}
-		else
-		{
-			ResourceEscalate( &BufferLock );
-		}
-
 		//
 		//Write
 		//
@@ -116,7 +106,6 @@ void ReaderWriter()
 			Buffer[index] = index + Sequence[ sequenceIndex ];
 		}
 		
-		ResourceUnlockExclusive( &BufferLock );
 		
 		SchedulerStartCritical();
 		TimesWritten++;
@@ -142,7 +131,7 @@ void ReaderWriter()
 		TimesRead++;
 		SchedulerEndCritical();
 
-		//lock will change state at top of loop.
+		ResourceEscalate( &BufferLock );
 	}
 }
 
@@ -174,37 +163,49 @@ int main()
 			5,
 			Reader1Stack,
 			STACK_SIZE,
-			Reader);
+			Reader,
+			0x02,
+			TRUE);
 	SchedulerCreateThread( 
 			& Reader2,
 			5,
 			Reader2Stack,
 			STACK_SIZE,
-			Reader);
+			Reader,
+			0x04,
+			TRUE);
 	SchedulerCreateThread( 
 			& Reader3,
 			5,
 			Reader3Stack,
 			STACK_SIZE,
-			Reader);
+			Reader,
+			0x08,
+			TRUE);
 	SchedulerCreateThread( 
 			& Writer1,
 			5,
 			Writer1Stack,
 			STACK_SIZE,
-			Writer);
+			Writer,
+			0x10,
+			TRUE);
 	SchedulerCreateThread( 
 			& Writer2,
 			5,
 			Writer2Stack,
 			STACK_SIZE,
-			Writer);
+			Writer,
+			0x20,
+			TRUE);
 	SchedulerCreateThread(
 			& ReaderWriter1,
 			5,
 			ReaderWriter1Stack,
 			STACK_SIZE,
-			ReaderWriter);
+			ReaderWriter,
+			0x40,
+			TRUE);
 
 
 	KernelStart();

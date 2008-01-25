@@ -181,8 +181,13 @@ void SchedulerResumeThread( struct THREAD * thread )
 	ASSERT( thread->State == THREAD_STATE_BLOCKED, 
 			SCHEDULER_RESUME_THREAD_NOT_BLOCKED,
 			"Thread not blocked" );
+	ASSERT( thread != ActiveThread,
+			SCHEDULER_ACTIVE_THREAD_AWAKENED,
+			"Active thread is by definition running");
 
 	thread->State = THREAD_STATE_RUNNING;
+	DEBUG_LED = DEBUG_LED | thread->Flag;
+
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 }
 
@@ -201,6 +206,7 @@ void SchedulerBlockThread( )
 			SCHEDULER_BLOCK_THREAD_MUST_BE_CRIT,
 			"Only block thread from critical section");
 	ActiveThread->State = THREAD_STATE_BLOCKED;
+	DEBUG_LED = DEBUG_LED & ~ActiveThread->Flag;
 }
 
 /*
@@ -295,7 +301,7 @@ void SchedulerStartup()
 	//Set up Schedule Resource
 	MutexInit( & SchedulerLock );
 	//Create a thread for idle loop.
-	SchedulerCreateThread( &IdleThread, 1, NULL, 0, NULL );
+	SchedulerCreateThread( &IdleThread, 1, NULL, 0, NULL, 0x01, FALSE );
 	//Remove IdleThread from queues... TODO fix this HACK
 	LinkedListInit( & Queue1 );
 	LinkedListInit( & Queue2 );
@@ -314,13 +320,24 @@ void SchedulerCreateThread(
 		unsigned char priority,
 		char * stack,
 		COUNT stackSize,
-		THREAD_MAIN main)
+		THREAD_MAIN main,
+		char flag,
+		BOOL start)
 {
 	//Populate thread struct
 	thread->Priority = priority;
-	thread->State = THREAD_STATE_RUNNING;
+	thread->Flag = flag;
 	//Add thread to done queue.
-	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
+	if( start )
+	{
+		thread->State = THREAD_STATE_RUNNING;
+		DEBUG_LED = DEBUG_LED | flag;
+		LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
+	}
+	else
+	{
+		thread->State = THREAD_STATE_BLOCKED;
+	}
 	//initialize stack
 	if( stackSize != 0 )
 	{//Populate regular stack
@@ -332,7 +349,7 @@ void SchedulerCreateThread(
 	else
 	{//Populate stack for idle thread
 		thread->Stack = NULL;
-		thread->StackHigh = -1;
+		thread->StackHigh = (char*) -1;
 		thread->StackLow = 0;
 	}
 }	
