@@ -133,6 +133,12 @@ void ResourceLockShared( struct RESOURCE * lock )
 		KernelPanic( RESOURCE_LOCK_SHARED_INVALID_SATE );
 		SchedulerEndCritical();
 	}
+	//Thread has resumed, we should have acquired the lock shared
+	//Make sure lock is consistant
+	ASSERT( lock->State == RESOURCE_SHARED && lock->NumShared > 0,
+		 RESOURCE_LOCK_SHARED_EXIT_WRONG_STATE,
+		 "We should we locked now, but we are in wrong state");
+	return;
 }
 
 void ResourceLockExclusive( struct RESOURCE * lock )
@@ -171,6 +177,11 @@ void ResourceLockExclusive( struct RESOURCE * lock )
 		KernelPanic( RESOURCE_LOCK_EXCLUSIVE_INVALID_STATE );
 		SchedulerEndCritical();
 	}
+
+	//We should have acquired the lock exclusive now.
+	ASSERT(lock->State == RESOURCE_EXCLUSIVE && lock->NumShared == 0,
+			RESOURCE_LOCK_EXCLUSIVE_WRONG_EXIT,
+			"lock was in wrong state after acquired");
 }
 
 void ResourceUnlockShared( struct RESOURCE * lock )
@@ -196,15 +207,17 @@ void ResourceUnlockShared( struct RESOURCE * lock )
 void ResourceUnlockExclusive( struct RESOURCE * lock )
 {
 	SchedulerStartCritical();
+
+	ASSERT( lock->NumShared == 0,
+					RESOURCE_UNLOCK_EXCLUSIVE_NUMSHARED_POSITIVE,
+					"There should be no shared after exclusive unlock");
+	
 	if( lock->State == RESOURCE_EXCLUSIVE )
 	{
 		if( LinkedListIsEmpty( & lock->WaitingThreads ) )
 		{
 			//No threads to take over, restore to shared
 			lock->State = RESOURCE_SHARED;
-			ASSERT( lock->NumShared == 0,
-					RESOURCE_UNLOCK_EXCLUSIVE_NUMSHARED_POSITIVE,
-					"There should be no shared after exclusive unlock");
 		}
 		else
 		{
@@ -224,32 +237,52 @@ void ResourceEscalate( struct RESOURCE * lock )
 {
 	SchedulerStartCritical();
 
-	ASSERT( lock->State == RESOURCE_SHARED,
+	ASSERT( lock->State == RESOURCE_SHARED && lock->NumShared > 0,
 			RESOURCE_ESCALATE_RESOURCE_NOT_SHARED,
 			"Resource needs to be shared when escalating");
 
 	lock->NumShared--;
 	if( lock->NumShared == 0 )
 	{
-		//No other threads using lock,
-		//go ahead and escalate.
-		lock->State = RESOURCE_EXCLUSIVE;
-		SchedulerEndCritical();
+		//check and see if people are in line
+		if( LinkedListIsEmpty( & lock->WaitingThreads ) )
+		{
+			//No other threads using lock,
+			//go ahead and escalate.
+			lock->State = RESOURCE_EXCLUSIVE;
+			ASSERT( lock->NumShared == 0,
+					RESOURCE_ESCALATE_NUM_SHARED_NOT_ZERO,
+					"if we switched into exclusive, numshared = 0");
+			SchedulerEndCritical();
+		}
+		else
+		{
+			//other threads are waiting, 
+			//wake them up and block
+			ResourceBlockThread(  lock, RESOURCE_EXCLUSIVE );
+			ResourceWakeThreads( lock );
+			SchedulerForceSwitch();
+		}
 	}
 	else
 	{
-		//Others are using the lock,
-		//so we need to get in line.
-		ResourceBlockThread( lock, RESOURCE_EXCLUSIVE );
+		//threads still using lock, block
+		ResourceBlockThread(  lock, RESOURCE_EXCLUSIVE );
 		SchedulerForceSwitch();
 	}
+
+
+	//At this point we should have the lock exclusive
+	ASSERT( lock->State == RESOURCE_EXCLUSIVE && lock->NumShared == 0,
+			RESOURCE_ESCALATE_WRONG_EXIT_STATE,
+			"wrong state on escalate exit");
 }
 
 void ResourceDeescalate( struct RESOURCE * lock )
 {
 	SchedulerStartCritical();
 
-	ASSERT( lock->State == RESOURCE_EXCLUSIVE,
+	ASSERT( lock->State == RESOURCE_EXCLUSIVE && lock->NumShared == 0,
 			RESOURCE_DEESCALATE_RESOURCE_NOT_EXCLUSIVE,
 			"Resource needs to be exclusive inorder to deescalate");
 
@@ -261,10 +294,11 @@ void ResourceDeescalate( struct RESOURCE * lock )
 		ASSERT( lock->NumShared == 1,
 				RESOURCE_DEESCALATE_RESOURCE_INCONSISTANT,
 				"Resource deescalte state inconsistant");
+		SchedulerEndCritical();
 	}
 	else
 	{
-		//Threads are already waiting, get back in line.
+		//Threads are already waiting, try to wake them
 		ResourceWakeThreads( lock );
 		if( lock->State == RESOURCE_SHARED && LinkedListIsEmpty( & lock->WaitingThreads ) )
 		{
@@ -275,10 +309,13 @@ void ResourceDeescalate( struct RESOURCE * lock )
 		else
 		{
 			//we cant take lock in shared, so block
-			ResourceBlockThread( lock, RESOURCE_EXCLUSIVE );
+			ResourceBlockThread( lock, RESOURCE_SHARED );
 			SchedulerForceSwitch();
+
+			ASSERT( lock->State == RESOURCE_SHARED && lock->NumShared > 0,
+					RESOURCE_DEESCALATE_BLOCK_STATE_BAD,
+					"thread got blocked and came in at wrong state");
 		}
 	}
-	SchedulerEndCritical();
 }
 
