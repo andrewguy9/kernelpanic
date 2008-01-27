@@ -231,20 +231,18 @@ void ResourceEscalate( struct RESOURCE * lock )
 	lock->NumShared--;
 	if( lock->NumShared == 0 )
 	{
-		//check and see if people are in line
-		if( LinkedListIsEmpty( & lock->WaitingThreads ) )
-		{
-			//No other threads using lock,
-			//go ahead and escalate.
-			lock->State = RESOURCE_EXCLUSIVE;
-			SchedulerEndCritical();
-			return;
-		}
+		//No other threads using lock,
+		//go ahead and escalate.
+		lock->State = RESOURCE_EXCLUSIVE;
+		SchedulerEndCritical();
 	}
-	//we cannot take exclusive, wake threads and block
-	ResourceWakeThreads( lock );
-	ResourceBlockThread(  lock, RESOURCE_EXCLUSIVE );
-	SchedulerForceSwitch();
+	else
+	{
+		//Others are using the lock,
+		//so we need to get in line.
+		ResourceBlockThread( lock, RESOURCE_EXCLUSIVE );
+		SchedulerForceSwitch();
+	}
 }
 
 void ResourceDeescalate( struct RESOURCE * lock )
@@ -263,11 +261,10 @@ void ResourceDeescalate( struct RESOURCE * lock )
 		ASSERT( lock->NumShared == 1,
 				RESOURCE_DEESCALATE_RESOURCE_INCONSISTANT,
 				"Resource deescalte state inconsistant");
-		SchedulerEndCritical();
 	}
 	else
 	{
-		//Threads are already waiting, try to wake them
+		//Threads are already waiting, get back in line.
 		ResourceWakeThreads( lock );
 		if( lock->State == RESOURCE_SHARED && LinkedListIsEmpty( & lock->WaitingThreads ) )
 		{
@@ -282,5 +279,6 @@ void ResourceDeescalate( struct RESOURCE * lock )
 			SchedulerForceSwitch();
 		}
 	}
+	SchedulerEndCritical();
 }
 
