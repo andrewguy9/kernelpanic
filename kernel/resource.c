@@ -37,7 +37,7 @@ void ResourceBlockThread( struct RESOURCE * lock, enum RESOURCE_STATE state )
 {
 	union BLOCKING_CONTEXT context;
 	context.ResourceWaitState = state;
-	union LINK * link = LockingBlock( & context );
+	union LINK * link = LockingBlock( & context, NULL );
 	LinkedListEnqueue( & link->LinkedListLink, & lock->WaitingThreads );
 }
 

@@ -6,31 +6,60 @@ void LockingInit( struct LOCKING_CONTEXT * context )
 	context->State = LOCKING_STATE_READY;
 }
 
-union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo )
+void LockingAcquire( struct LOCKING_CONTEXT *context )
 {
-	struct LOCKING_CONTEXT * context = & SchedulerGetActiveThread()->LockingContext;
-
-	if( context->State != LOCKING_STATE_READY && 
-			context->State != LOCKING_STATE_ACQUIRED )
-		KernelPanic( LOCKING_BLOCK_WRONG_STATE );
-
-	context->State = LOCKING_STATE_BLOCKING;
-	
-	if( blockingInfo != NULL )
-		context->BlockingContext = * blockingInfo;
-
-	SchedulerBlockThread();
-	return &context->Link;
+	if( context == NULL )
+	{
+		SchedulerGetActiveThread()->LockingContext.State = LOCKING_STATE_CHECKED;
+	}
+	else
+	{
+		context->State = LOCKING_STATE_CHECKED;
+	}
 }
 
-union LINK * LockingWait( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING_CONTEXT * context )
+void LockingUnblock( struct LOCKING_CONTEXT *context)
 {
+	if( context->State == LOCKING_STATE_BLOCKING )
+	{
+		context->State = LOCKING_STATE_CHECKED;
+	}
+	else if( context->State == LOCKING_STATE_WAITING )
+	{
+		context->State = LOCKING_STATE_ACQUIRED;
+	}
+	else
+	{
+		KernelPanic( LOCKING_BLOCK_INVALID_CONTEXT );
+	}
+}
 
-	if( context->State != LOCKING_STATE_READY && 
-			context->State != LOCKING_STATE_ACQUIRED )
-		KernelPanic( LOCKING_WAIT_WRONG_STATE );
+union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING_CONTEXT * waitingContext )
+{
+	struct LOCKING_CONTEXT * context;
+	if( waitingContext == NULL )
+	{
+		context = & SchedulerGetActiveThread()->LockingContext;
+	}
+	else
+	{
+		context = waitingContext;
+	}
 
-	context->State = LOCKING_STATE_WAITING;
+	ASSERT( context->State != LOCKING_STATE_BLOCKING && 
+			context->State != LOCKING_STATE_WAITING && 
+			context->State != LOCKING_STATE_ACQUIRED,
+			LOCKING_BLOCK_INVALID_CONTEXT,
+			"must have context in ready or checked state");
+
+	if( waitingContext == NULL )
+	{
+		context->State = LOCKING_STATE_BLOCKING;
+	}
+	else
+	{
+		context->State = LOCKING_STATE_WAITING;
+	}
 
 	if( blockingInfo != NULL )
 		context->BlockingContext = * blockingInfo;
@@ -40,27 +69,17 @@ union LINK * LockingWait( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING_
 
 BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 {
-	return context->State == LOCKING_STATE_ACQUIRED;
-}
-
-union LINK * LockingAcquire( struct LOCKING_CONTEXT * context )
-{
-	if(context->State == LOCKING_STATE_BLOCKING)
+	if( context->State == LOCKING_STATE_ACQUIRED || context->State == LOCKING_STATE_CHECKED )
 	{
-		//Thread is blocking, so wake him.
-		struct THREAD * thread = BASE_OBJECT( context, struct THREAD, LockingContext );
-		SchedulerResumeThread( thread );
-	}
-	else if( context->State == LOCKING_STATE_WAITING )
-	{
-		//We dont have to do anything if the thread is waiting
+		context->State = LOCKING_STATE_CHECKED;
+		return TRUE;
 	}
 	else
 	{
-		//These are illegal states to call acquire for!
-		KernelPanic( LOCKING_ACQUIRE_WRONG_STATE );
+		ASSERT( context->State != LOCKING_STATE_READY,
+				LOCKING_IS_ACQUIRED_INVALID_CONTEXT,
+				"Cant use unblocked context");
+		return FALSE;
 	}
-
-	context->State = LOCKING_STATE_ACQUIRED;
 }
 

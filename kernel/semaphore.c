@@ -28,7 +28,7 @@ void SemaphoreDown( struct SEMAPHORE * lock )
 	SchedulerStartCritical( );
 	if( lock->Count == 0 )
 	{//block the thread
-		union LINK * link = LockingBlock( NULL );
+		union LINK * link = LockingBlock( NULL, NULL );
 		LinkedListEnqueue( &link->LinkedListLink,
 			   	&lock->WaitingThreads);
 		SchedulerForceSwitch();
@@ -36,17 +36,20 @@ void SemaphoreDown( struct SEMAPHORE * lock )
 	else
 	{
 		lock->Count--;
+		LockingAcquire( NULL );
 		SchedulerEndCritical( );
 	}
 }
 
 void SemaphoreUp( struct SEMAPHORE * lock )
 {//UNLOCK
-	struct THREAD * thread;
 	SchedulerStartCritical();
 	if( ! LinkedListIsEmpty( & lock->WaitingThreads ) )
 	{
-		LockingAcquire( BASE_OBJECT( LinkedListPop( & lock->WaitingThreads ), struct LOCKING_CONTEXT, Link ) );
+		LockingUnblock( 
+				BASE_OBJECT( 
+					LinkedListPop( & lock->WaitingThreads ), 
+					struct LOCKING_CONTEXT, Link ) );
 	}
 	else
 	{

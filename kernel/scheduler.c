@@ -312,6 +312,7 @@ void SchedulerCreateThread(
 	//Populate thread struct
 	thread->Priority = priority;
 	thread->Flag = flag;
+	LockingInit( & thread->LockingContext );
 	//Add thread to done queue.
 	if( start )
 	{
