@@ -11,7 +11,7 @@ struct THREAD
 	union LINK Link;
 	unsigned char Priority;
 	enum THREAD_STATE State;
-	union BLOCKING_CONTEXT BlockingContext;
+	struct LOCKING_CONTEXT LockingContext;
 	char * Stack;
 	char * StackHigh;
 	char * StackLow;

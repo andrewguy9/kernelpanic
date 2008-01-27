@@ -209,21 +209,6 @@ void SchedulerBlockThread( )
 	DEBUG_LED = DEBUG_LED & ~ActiveThread->Flag;
 }
 
-/*
- * Returns a pointer to the blocking context of the ActiveThread.
- */
-union BLOCKING_CONTEXT * SchedulerGetBlockingContext( )
-{
-	ASSERT( MutexIsLocked( & SchedulerLock ),
-			SCHEDULER_GET_BLOCKING_CONTEXT_NOT_CRITICAL,
-			"Scheduler is not in critical section, cant use blocking context");
-	ASSERT( ActiveThread->State == THREAD_STATE_BLOCKED,
-			SCHEDULER_GET_BLOCKING_CONTEXT_NOT_BLOCKED,
-			"The active thread must be blocked inorder to use the blocking context");
-
-	return & ActiveThread->BlockingContext;
-}
-
 void Schedule( void *arg )
 {
 	//See if we are allowed to schedule (not in crit section)

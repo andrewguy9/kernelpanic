@@ -18,8 +18,6 @@ void SchedulerResumeThread( struct THREAD * thread );
 
 void SchedulerBlockThread( );
 
-union BLOCKING_CONTEXT * SchedulerGetBlockingContext( );
-
 struct THREAD * SchedulerGetActiveThread();
 
 void Schedule( ) ;

@@ -1,7 +1,8 @@
 #include"resource.h"
-#include"scheduler.h"
 #include"../utils/utils.h"
 #include"panic.h"
+#include"blockingcontext.h"
+#include"scheduler.h"
 
 /*
  * Resource locks are a thread safe syncronization mechanism.
@@ -34,11 +35,10 @@
 
 void ResourceBlockThread( struct RESOURCE * lock, enum RESOURCE_STATE state )
 {
-	struct THREAD * thread;
-	SchedulerBlockThread();
-	SchedulerGetBlockingContext()->ResourceWaitState = state;
-	thread = SchedulerGetActiveThread();
-	LinkedListEnqueue( & thread->Link.LinkedListLink, & lock->WaitingThreads );
+	union BLOCKING_CONTEXT context;
+	context.ResourceWaitState = state;
+	union LINK * link = LockingBlock( & context );
+	LinkedListEnqueue( & link->LinkedListLink, & lock->WaitingThreads );
 }
 
 void ResourceWakeThreads( struct RESOURCE * lock )
@@ -57,28 +57,28 @@ void ResourceWakeThreads( struct RESOURCE * lock )
 	//If there are threads in the list, then there 
 	//had to be an event which whould require a state change.
 	//So we need NumShared to be 0, so we are ready to change.
-	struct THREAD * curThread;
+	struct LOCKING_CONTEXT * cur;
 	do
 	{
-		//Get the thread at top of queue
-		curThread = BASE_OBJECT( LinkedListPeek( & lock->WaitingThreads ), 
-				struct THREAD,
+		//Get the locking context at top of queue
+		cur = BASE_OBJECT( LinkedListPeek( & lock->WaitingThreads ), 
+				struct LOCKING_CONTEXT,
 				Link.LinkedListLink );
 
-		if( curThread->BlockingContext.ResourceWaitState == RESOURCE_SHARED )
+		if( cur->BlockingContext.ResourceWaitState == RESOURCE_SHARED )
 		{//This is a shared thread, pop and see if there are more.
 			lock->NumShared++;
 			lock->State = RESOURCE_SHARED;
 			LinkedListPop( & lock->WaitingThreads );
-			SchedulerResumeThread( curThread );
+			LockingAcquire( cur );
 		}
-		else if( curThread->BlockingContext.ResourceWaitState == RESOURCE_EXCLUSIVE )
+		else if( cur->BlockingContext.ResourceWaitState == RESOURCE_EXCLUSIVE )
 		{
 			if( lock->NumShared == 0 )
 			{//First thread was exclusive. Wake him.
 				LinkedListPop( & lock->WaitingThreads );
 				lock->State = RESOURCE_EXCLUSIVE;
-				SchedulerResumeThread( curThread );
+				LockingAcquire( cur );
 			}
 			else
 			{
@@ -146,7 +146,7 @@ void ResourceLockExclusive( struct RESOURCE * lock )
 	SchedulerStartCritical();
 	if( ! LinkedListIsEmpty( & lock->WaitingThreads ) )
 	{
-		//There are already threads blocking on
+		//There are threads already threads blocking on
 		//this lock, so we need to get in line.
 		ResourceBlockThread( lock, RESOURCE_EXCLUSIVE );
 		SchedulerForceSwitch();
