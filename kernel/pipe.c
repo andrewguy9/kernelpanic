@@ -20,8 +20,8 @@ COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
 	COUNT read;
 
 	//Acquire locks
-	SemaphoreDown( & pipe->EmptyLock );
-	SemaphoreDown( & pipe->Mutex);
+	SemaphoreDown( & pipe->EmptyLock, NULL );
+	SemaphoreDown( & pipe->Mutex, NULL );
 	//Perform read
 	wasFull = RingBufferIsFull( & pipe->Ring ); 
 	read = RingBufferRead( buff, size, & pipe->Ring );
@@ -43,8 +43,8 @@ COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
 	COUNT write=0;
 
 	//Acquire locks
-	SemaphoreDown( & pipe->FullLock ); //check not full
-	SemaphoreDown( & pipe->Mutex ); //exclusive access
+	SemaphoreDown( & pipe->FullLock, NULL ); //check not full
+	SemaphoreDown( & pipe->Mutex, NULL ); //exclusive access
 	//Perform write
 	wasEmpty = RingBufferIsEmpty( & pipe->Ring );
 	write = RingBufferWrite( buff, size, & pipe->Ring );

@@ -1,7 +1,6 @@
 #include"semaphore.h"
 #include"blockingcontext.h"
 #include"../utils/linkedlist.h"
-#include"scheduler.h"
 
 /*
  * Semaphore Unit Description
@@ -23,38 +22,21 @@ void SemaphoreInit( struct SEMAPHORE * lock, COUNT count )
 	lock->Count = count;
 }
 
-void SemaphoreDown( struct SEMAPHORE * lock )
+void SemaphoreDown( struct SEMAPHORE * lock, struct LOCKING_CONTEXT * context )
 {//LOCK
-	SchedulerStartCritical( );
-	if( lock->Count == 0 )
-	{//block the thread
-		union LINK * link = LockingBlock( NULL, NULL );
-		LinkedListEnqueue( &link->LinkedListLink,
-			   	&lock->WaitingThreads);
-		SchedulerForceSwitch();
-	}
-	else
-	{
-		lock->Count--;
-		LockingAcquire( NULL );
-		SchedulerEndCritical( );
-	}
-}
-
-void SemaphoreDownNonBlocking( struct SEMAPHORE *lock, struct LOCKING_CONTEXT *context )
-{
-	SchedulerStartCritical();
+	LockingStart();
 	if( lock->Count == 0 )
 	{//block the thread
 		union LINK * link = LockingBlock( NULL, context );
-		LinkedListEnqueue( &link->LinkedListLink, &lock->WaitingThreads );
+		LinkedListEnqueue( &link->LinkedListLink,
+			   	&lock->WaitingThreads);
 	}
 	else
 	{
 		lock->Count--;
-		LockingAcquire( context );
+		LockingAcquire( NULL );	
 	}
-	SchedulerEndCritical();
+	LockingEnd( NULL );
 }
 
 void SemaphoreUp( struct SEMAPHORE * lock )
