@@ -47,7 +47,7 @@ void SemaphoreDownNonBlocking( struct SEMAPHORE *lock, struct LOCKING_CONTEXT *c
 	if( lock->Count == 0 )
 	{//block the thread
 		union LINK * link = LockingBlock( NULL, context );
-		LinkedListEnqueue( &link->LinkListLink, &lock->WaitingThreads );
+		LinkedListEnqueue( &link->LinkedListLink, &lock->WaitingThreads );
 	}
 	else
 	{
