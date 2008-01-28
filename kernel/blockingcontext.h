@@ -14,7 +14,7 @@ acquire(null)      acquire(context)    block(null)       block(context)
 |                  |                   |                 |
 checked            acquired            blocking          waiting
 |                  |                   |                 |
-|                  IsAcquired()        acquire(null)     acquire(context)
+|                  IsAcquired()        acquire(context)  acquire(context)
 |                  |                   |                 |
 |                  checked             checked           acquired
 |                  |                   |                 |

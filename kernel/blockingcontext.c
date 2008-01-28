@@ -6,7 +6,7 @@ void LockingInit( struct LOCKING_CONTEXT * context )
 	context->State = LOCKING_STATE_READY;
 }
 
-void LockingAcquire( struct LOCKING_CONTEXT *context )
+void LockingAcquire( struct LOCKING_CONTEXT * context )
 {
 	if( context == NULL )
 	{
@@ -14,13 +14,6 @@ void LockingAcquire( struct LOCKING_CONTEXT *context )
 		if( context->State == LOCKING_STATE_READY || context->State == LOCKING_STATE_CHECKED )
 		{
 			//we acquired the lock right away, set state
-			context->State = LOCKING_STATE_CHECKED;
-		}
-		else if( context->State == LOCKING_STATE_BLOCKING )
-		{
-			//the thread got blocked. we need to wake him.
-			struct THREAD *thread = BASE_OBJECT(context, struct THREAD, LockingContext);
-			SchedulerResumeThread( thread );
 			context->State = LOCKING_STATE_CHECKED;
 		}
 		else
@@ -40,6 +33,13 @@ void LockingAcquire( struct LOCKING_CONTEXT *context )
 			//we didn't acquire right away, but now we have it.
 			//send notification
 			context->State = LOCKING_STATE_ACQUIRED;
+		}
+		else if( context->State == LOCKING_STATE_BLOCKING )
+		{
+			//the thread got blocked. we need to wake him.
+			struct THREAD *thread = BASE_OBJECT(context, struct THREAD, LockingContext);
+			SchedulerResumeThread( thread );
+			context->State = LOCKING_STATE_CHECKED;
 		}
 		else
 		{
