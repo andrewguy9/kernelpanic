@@ -41,6 +41,22 @@ void SemaphoreDown( struct SEMAPHORE * lock )
 	}
 }
 
+void SemaphoreDownNonBlocking( struct SEMAPHORE *lock, struct LOCKING_CONTEXT *context )
+{
+	SchedulerStartCritical();
+	if( lock->Count == 0 )
+	{//block the thread
+		union LINK * link = LockingBlock( NULL, context );
+		LinkedListEnqueue( &link->LinkListLink, &lock->WaitingThreads );
+	}
+	else
+	{
+		lock->Count--;
+		LockingAcquire( context );
+	}
+	SchedulerEndCritical();
+}
+
 void SemaphoreUp( struct SEMAPHORE * lock )
 {//UNLOCK
 	SchedulerStartCritical();
