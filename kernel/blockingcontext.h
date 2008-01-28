@@ -3,6 +3,28 @@
 
 #include"resource.h"
 
+/*
+random
+|
+Init()
+|
+ready, checked--------------------------------------------
+|                  |                   |                 |
+acquire(null)      acquire(context)    block(null)       block(context)
+|                  |                   |                 |
+checked            acquired            blocking          waiting
+|                  |                   |                 |
+|                  IsAcquired()        acquire(null)     acquire(context)
+|                  |                   |                 |
+|                  checked             checked           acquired
+|                  |                   |                 |
+|                  |                   |                 IsAcquired()
+|                  |                   |                 |
+|                  |                   |                 checked
+|                  |                   |                 |
+acquire(), or block()-------------------------------------
+*/
+
 enum LOCKING_STATE
 {
 	LOCKING_STATE_READY,
@@ -37,5 +59,5 @@ void LockingInit( struct LOCKING_CONTEXT * context );
 void LockingAcquire( struct LOCKING_CONTEXT *context );
 union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING_CONTEXT * waitingContext );
 BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context );
-void LockingUnblock( struct LOCKING_CONTEXT *context);
+
 #endif

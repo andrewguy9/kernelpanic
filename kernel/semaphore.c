@@ -46,7 +46,7 @@ void SemaphoreUp( struct SEMAPHORE * lock )
 	SchedulerStartCritical();
 	if( ! LinkedListIsEmpty( & lock->WaitingThreads ) )
 	{
-		LockingUnblock( 
+		LockingAcquire( 
 				BASE_OBJECT( 
 					LinkedListPop( & lock->WaitingThreads ), 
 					struct LOCKING_CONTEXT, Link ) );
