@@ -4,6 +4,9 @@
 #include"resource.h"
 
 /*
+State machine for a struct LOCKING_CONTEXT's state 
+through a locking operation
+
 random
 |
 Init()
@@ -55,6 +58,17 @@ struct LOCKING_CONTEXT
 	union BLOCKING_CONTEXT BlockingContext;
 };
 
+/*
+ * Procedure for acquiring or blocking on a lock using the locking framework.
+ * LockingStart( ) - Enters a critical section
+ * LockingBlock( ) or LockingAcquire(  ) - Perform locking operation
+ * Caller stores away link in blocking case...
+ * LockingEnd( ) - does the obligatory SchedulerEndCritical() or SchedulerForceSwitch
+ * 
+ */
+
+void LockingStart();
+void LockingEnd( struct LOCKING_CONTEXT * context );
 void LockingInit( struct LOCKING_CONTEXT * context );
 void LockingAcquire( struct LOCKING_CONTEXT *context );
 union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING_CONTEXT * waitingContext );

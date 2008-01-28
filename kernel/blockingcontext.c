@@ -1,6 +1,30 @@
 #include"blockingcontext.h"
 #include"scheduler.h"
 
+void LockingStart()
+{
+	SchedulerStartCritical();
+}
+
+void LockingEnd( struct LOCKING_CONTEXT * context )
+{
+	if( context == NULL )
+		context = & SchedulerGetActiveThread()->LockingContext;
+	if( context->State == LOCKING_STATE_BLOCKING )
+	{
+		SchedulerForceSwitch();
+	}
+	else if( context->State == LOCKING_STATE_WAITING )
+	{
+		SchedulerEndCritical();
+	}
+	else
+	{
+		KernelPanic( 0 );
+		SchedulerForceSwitch();
+	}
+}
+
 void LockingInit( struct LOCKING_CONTEXT * context )
 {
 	context->State = LOCKING_STATE_READY;
@@ -81,6 +105,7 @@ BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 	else
 	{
 		KernelPanic( LOCKING_IS_ACQUIRED_CONTEXT_IN_WRONG_STATE );
+		return FALSE;
 	}
 }
 
