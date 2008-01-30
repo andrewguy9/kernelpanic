@@ -108,6 +108,7 @@ void ResourceInit( struct RESOURCE * lock )
 void ResourceLockShared( struct RESOURCE * lock )
 {
 	union BLOCKING_CONTEXT block;
+	struct LINKED_LIST_LINK *link;
 
 	LockingStart();
 	if( ! LinkedListIsEmpty( & lock->WaitingThreads ) )
@@ -115,7 +116,8 @@ void ResourceLockShared( struct RESOURCE * lock )
 		//There are threads already blocking on 
 		//this lock, so we need to get in line. 
 		block.ResourceWaitState = RESOURCE_SHARED;
-		LockingBlock( &block, NULL );
+		link = & LockingBlock( &block, NULL )->LinkedListLink;
+		LinkedListEnqueue( link, & lock->WaitingThreads );
 	}
 	else if( lock->State == RESOURCE_SHARED )
 	{
@@ -128,7 +130,8 @@ void ResourceLockShared( struct RESOURCE * lock )
 	{
 		//Lock is in exclusive mode, so block
 		block.ResourceWaitState = RESOURCE_SHARED;
-		LockingBlock( &block, NULL );
+		link = & LockingBlock( &block, NULL )->LinkedListLink;
+		LinkedListEnqueue( link, & lock->WaitingThreads );
 	}
 	else
 	{
@@ -140,7 +143,7 @@ void ResourceLockShared( struct RESOURCE * lock )
 void ResourceLockExclusive( struct RESOURCE * lock )
 {
 	union BLOCKING_CONTEXT block;
-
+	struct LINKED_LIST_LINK * link;
 	LockingStart();
 
 	if( ! LinkedListIsEmpty( &lock->WaitingThreads ) )
@@ -148,7 +151,8 @@ void ResourceLockExclusive( struct RESOURCE * lock )
 		//There are threads already threads blocking on
 		//this lock, so we need to get in line.
 		block.ResourceWaitState = RESOURCE_EXCLUSIVE;
-		LockingBlock( &block, NULL );
+		link = & LockingBlock( &block, NULL )->LinkedListLink;
+		LinkedListEnqueue( link, & lock->WaitingThreads );
 	}
 	else if( lock->State == RESOURCE_SHARED )
 	{
@@ -162,14 +166,16 @@ void ResourceLockExclusive( struct RESOURCE * lock )
 		{
 			//The lock is busy with shared resources.
 			block.ResourceWaitState = RESOURCE_EXCLUSIVE;
-			LockingBlock( &block, NULL );
+			link = & LockingBlock( &block, NULL )->LinkedListLink;
+			LinkedListEnqueue( link, & lock->WaitingThreads );
 		}
 	}
 	else if( lock->State == RESOURCE_EXCLUSIVE )
 	{
 			//The lock is already exclusive. Block.
-			block.ResourceWaitState = RESOURCE_EXCLUSIVE;
-			LockingBlock( &block, NULL );
+		block.ResourceWaitState = RESOURCE_EXCLUSIVE;
+		link = & LockingBlock( &block, NULL )->LinkedListLink;
+		LinkedListEnqueue( link, & lock->WaitingThreads );
 	}
 	else
 	{

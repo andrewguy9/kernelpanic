@@ -39,7 +39,7 @@ void Writer()
 		
 		SchedulerStartCritical();
 		TimesWritten++;
-		SchedulerEndCritical();
+		SchedulerForceSwitch();
 	}
 }
 
@@ -82,7 +82,7 @@ void Reader()
 
 		SchedulerStartCritical();
 		TimesRead++;
-		SchedulerEndCritical();
+		SchedulerForceSwitch();
 	}
 }
 
