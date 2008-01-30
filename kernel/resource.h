@@ -26,8 +26,4 @@ void ResourceUnlockShared( struct RESOURCE * lock );
 
 void ResourceUnlockExclusive( struct RESOURCE * lock );
 
-void ResourceEscalate( struct RESOURCE * lock );
-
-void ResourceDeescalate( struct RESOURCE * lock );
-
 #endif
