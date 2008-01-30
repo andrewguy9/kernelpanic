@@ -38,6 +38,7 @@ void ProducerMain()
 	{
 		SemaphoreUp( &Lock );
 		Produced++;
+		SchedulerStartCritical();
 		SchedulerForceSwitch();
 	}
 }

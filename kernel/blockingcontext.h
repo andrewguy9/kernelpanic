@@ -63,15 +63,29 @@ struct LOCKING_CONTEXT
  * LockingStart( ) - Enters a critical section
  * LockingBlock( ) or LockingAcquire(  ) - Perform locking operation
  * Caller stores away link in blocking case...
- * LockingEnd( ) - does the obligatory SchedulerEndCritical() or SchedulerForceSwitch
- * 
+ * LockingSwitch( ) - does the obligatory SchedulerEndCritical() or SchedulerForceSwitch
  */
 
+/*
+ * Prodecure for unlocking a lock.
+ * LockingStart( ) - Enters critical section
+ * LockingAcquire(  ) for each unblocked context.
+ * LockingEnd(  ) - ends critical section
+ */
+
+//start a locking operation
 void LockingStart();
-void LockingEnd( struct LOCKING_CONTEXT * context );
+//end an unlock operation
+void LockingEnd();
+//end a lock operation
+void LockingSwitch( struct LOCKING_CONTEXT * context );
+//initialize a context
 void LockingInit( struct LOCKING_CONTEXT * context );
+//aquire a lock
 void LockingAcquire( struct LOCKING_CONTEXT *context );
+//block on a lock
 union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING_CONTEXT * waitingContext );
+//check to see if acquired.
 BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context );
 
 #endif

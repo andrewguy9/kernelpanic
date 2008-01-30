@@ -34,14 +34,14 @@ void SemaphoreDown( struct SEMAPHORE * lock, struct LOCKING_CONTEXT * context )
 	else
 	{
 		lock->Count--;
-		LockingAcquire( NULL );	
+		LockingAcquire( context );	
 	}
-	LockingEnd( NULL );
+	LockingSwitch( context );
 }
 
 void SemaphoreUp( struct SEMAPHORE * lock )
 {//UNLOCK
-	SchedulerStartCritical();
+	LockingStart();
 	if( ! LinkedListIsEmpty( & lock->WaitingThreads ) )
 	{
 		LockingAcquire( 
@@ -53,5 +53,5 @@ void SemaphoreUp( struct SEMAPHORE * lock )
 	{
 		lock->Count++;
 	}
-	SchedulerEndCritical();
+	LockingEnd( );
 }

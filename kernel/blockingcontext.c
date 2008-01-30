@@ -6,21 +6,31 @@ void LockingStart()
 	SchedulerStartCritical();
 }
 
-void LockingEnd( struct LOCKING_CONTEXT * context )
+void LockingEnd(  )
+{
+	SchedulerEndCritical();
+}
+
+void LockingSwitch( struct LOCKING_CONTEXT * context )
 {
 	if( context == NULL )
 		context = & SchedulerGetActiveThread()->LockingContext;
+	
 	if( context->State == LOCKING_STATE_BLOCKING )
-	{
+	{//we are to block on the lock, switch out
 		SchedulerForceSwitch();
 	}
 	else if( context->State == LOCKING_STATE_WAITING )
-	{
+	{//we are to wait on the lock, continue in slice
 		SchedulerEndCritical();
 	}
-	else
+	else if( context->State == LOCKING_STATE_CHECKED )
+	{//we acquired the lock, continue
+		SchedulerEndCritical();
+	}
+	else 
 	{
-		KernelPanic( 0 );
+		KernelPanic( LOCKING_SWITCH_INVAID_STATE );
 		SchedulerForceSwitch();
 	}
 }
