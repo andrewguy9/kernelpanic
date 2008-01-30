@@ -86,6 +86,7 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 {
 	if( context == NULL )
 	{
+		//context is active thread, so block him.
 		context = & SchedulerGetActiveThread()->LockingContext;
 		context->State = LOCKING_STATE_BLOCKING;
 		struct THREAD * thread = BASE_OBJECT( context, struct THREAD, LockingContext );
@@ -95,9 +96,14 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 		SchedulerBlockThread( );
 	}
 	else
-	{
+	{//context is user specified, make him wait.
 		context->State = LOCKING_STATE_WAITING;
 	}
+
+	//assign the blocking info so they know why they are blocked
+	context->BlockingContext = * blockingInfo;
+
+	//return link so they can store blocked thread.
 	return &context->Link;
 }
 

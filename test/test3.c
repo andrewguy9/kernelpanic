@@ -27,6 +27,10 @@ void Writer()
 	{
 		ResourceLockExclusive( &BufferLock );
 	
+		ASSERT( BufferLock.State == RESOURCE_EXCLUSIVE ,
+				TEST_3_WRITER_RESOURCE_NOT_EXCLUSIVE,
+				"resource should be exlusive");
+
 		sequenceIndex++;
 		sequenceIndex%=SEQUENCE_LENGTH;
 
@@ -67,6 +71,10 @@ void Reader()
 	while(1)
 	{
 		ResourceLockShared( &BufferLock );
+
+		ASSERT( BufferLock.State == RESOURCE_SHARED,
+				TEST_3_READER_RESOURCE_NOT_SHARED,
+				"the resource should be shared");
 
 		for(index=1 ; index < BUFFER_SIZE; index++)
 		{
@@ -112,7 +120,7 @@ int main()
 			Reader1Stack,
 			STACK_SIZE,
 			Reader,
-			0x02,
+			0x01,
 			TRUE);
 	SchedulerCreateThread( 
 			& Reader2,
@@ -120,7 +128,7 @@ int main()
 			Reader2Stack,
 			STACK_SIZE,
 			Reader,
-			0x04,
+			0x02,
 			TRUE);
 	SchedulerCreateThread( 
 			& Reader3,
@@ -128,7 +136,7 @@ int main()
 			Reader3Stack,
 			STACK_SIZE,
 			Reader,
-			0x08,
+			0x04,
 			TRUE);
 	SchedulerCreateThread( 
 			& Writer1,
