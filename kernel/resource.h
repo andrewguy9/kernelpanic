@@ -4,12 +4,6 @@
 #include"../utils/linkedlist.h"
 #include"blockingcontext.h"
 
-enum RESOURCE_STATE 
-{ 
-	RESOURCE_SHARED, 
-	RESOURCE_EXCLUSIVE 
-};
-
 struct RESOURCE
 {
 	enum RESOURCE_STATE State;

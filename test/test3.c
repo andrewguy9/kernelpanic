@@ -25,7 +25,7 @@ void Writer()
 	INDEX index;
 	while(1)
 	{
-		ResourceLockExclusive( &BufferLock );
+		ResourceLockExclusive( &BufferLock, NULL);
 	
 		ASSERT( BufferLock.State == RESOURCE_EXCLUSIVE ,
 				TEST_3_WRITER_RESOURCE_NOT_EXCLUSIVE,
@@ -70,7 +70,7 @@ void Reader()
 
 	while(1)
 	{
-		ResourceLockShared( &BufferLock );
+		ResourceLockShared( &BufferLock, NULL );
 
 		ASSERT( BufferLock.State == RESOURCE_SHARED,
 				TEST_3_READER_RESOURCE_NOT_SHARED,

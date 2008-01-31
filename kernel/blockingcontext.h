@@ -1,7 +1,8 @@
 #ifndef BLOCKING_CONTEXT_H
 #define BLOCKING_CONTEXT_H
 
-#include"resource.h"
+#include"../utils/link.h"
+#include"../utils/utils.h"
 
 /*
 State machine for a struct LOCKING_CONTEXT's state 
@@ -42,6 +43,12 @@ enum LOCKING_STATE
  * This is where that data should be stored. However it is important to keep this as small
  * as possible.
  */
+
+enum RESOURCE_STATE 
+{ 
+	RESOURCE_SHARED, 
+	RESOURCE_EXCLUSIVE 
+};
 
 union BLOCKING_CONTEXT 
 {
