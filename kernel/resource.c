@@ -1,8 +1,6 @@
 #include"resource.h"
 #include"../utils/utils.h"
 #include"panic.h"
-#include"blockingcontext.h"
-#include"scheduler.h"
 
 /*
  * Resource locks are a thread safe syncronization mechanism.
@@ -32,15 +30,7 @@
 //
 //Private helper functions
 //
-/*
-void ResourceBlockThread( struct RESOURCE * lock, enum RESOURCE_STATE state )
-{
-	union BLOCKING_CONTEXT context;
-	context.ResourceWaitState = state;
-	union LINK * link = LockingBlock( & context, NULL );
-	LinkedListEnqueue( & link->LinkedListLink, & lock->WaitingThreads );
-}
-*/
+
 void ResourceWakeThreads( struct RESOURCE * lock )
 {
 	ASSERT( lock->NumShared == 0,
@@ -105,7 +95,7 @@ void ResourceInit( struct RESOURCE * lock )
 	lock->NumShared = 0;
 }
 
-void ResourceLockShared( struct RESOURCE * lock )
+void ResourceLockShared( struct RESOURCE * lock, struct LOCKING_CONTEXT * context )
 {
 	union BLOCKING_CONTEXT block;
 	struct LINKED_LIST_LINK *link;
@@ -116,7 +106,7 @@ void ResourceLockShared( struct RESOURCE * lock )
 		//There are threads already blocking on 
 		//this lock, so we need to get in line. 
 		block.ResourceWaitState = RESOURCE_SHARED;
-		link = & LockingBlock( &block, NULL )->LinkedListLink;
+		link = & LockingBlock( &block, context )->LinkedListLink;
 		LinkedListEnqueue( link, & lock->WaitingThreads );
 	}
 	else if( lock->State == RESOURCE_SHARED )
@@ -124,23 +114,23 @@ void ResourceLockShared( struct RESOURCE * lock )
 		//We are in shared mode, and no one is blocking
 		//Lets join the party.
 		lock->NumShared++;	
-		LockingAcquire( NULL );
+		LockingAcquire( context );
 	}
 	else if( lock->State == RESOURCE_EXCLUSIVE )
 	{
 		//Lock is in exclusive mode, so block
 		block.ResourceWaitState = RESOURCE_SHARED;
-		link = & LockingBlock( &block, NULL )->LinkedListLink;
+		link = & LockingBlock( &block, context )->LinkedListLink;
 		LinkedListEnqueue( link, & lock->WaitingThreads );
 	}
 	else
 	{
 		KernelPanic( RESOURCE_LOCK_SHARED_INVALID_SATE );
 	}
-	LockingSwitch( NULL );
+	LockingSwitch( context );
 }
 
-void ResourceLockExclusive( struct RESOURCE * lock )
+void ResourceLockExclusive( struct RESOURCE * lock, struct LOCKING_CONTEXT * context )
 {
 	union BLOCKING_CONTEXT block;
 	struct LINKED_LIST_LINK * link;
@@ -151,7 +141,7 @@ void ResourceLockExclusive( struct RESOURCE * lock )
 		//There are threads already threads blocking on
 		//this lock, so we need to get in line.
 		block.ResourceWaitState = RESOURCE_EXCLUSIVE;
-		link = & LockingBlock( &block, NULL )->LinkedListLink;
+		link = & LockingBlock( &block, context )->LinkedListLink;
 		LinkedListEnqueue( link, & lock->WaitingThreads );
 	}
 	else if( lock->State == RESOURCE_SHARED )
@@ -160,13 +150,13 @@ void ResourceLockExclusive( struct RESOURCE * lock )
 		{
 			//The lock is free, so acquire resource exclusive.
 			lock->State = RESOURCE_EXCLUSIVE;
-			LockingAcquire( NULL );
+			LockingAcquire( context );
 		}
 		else
 		{
 			//The lock is busy with shared resources.
 			block.ResourceWaitState = RESOURCE_EXCLUSIVE;
-			link = & LockingBlock( &block, NULL )->LinkedListLink;
+			link = & LockingBlock( &block, context )->LinkedListLink;
 			LinkedListEnqueue( link, & lock->WaitingThreads );
 		}
 	}
@@ -174,7 +164,7 @@ void ResourceLockExclusive( struct RESOURCE * lock )
 	{
 			//The lock is already exclusive. Block.
 		block.ResourceWaitState = RESOURCE_EXCLUSIVE;
-		link = & LockingBlock( &block, NULL )->LinkedListLink;
+		link = & LockingBlock( &block, context )->LinkedListLink;
 		LinkedListEnqueue( link, & lock->WaitingThreads );
 	}
 	else
@@ -182,7 +172,7 @@ void ResourceLockExclusive( struct RESOURCE * lock )
 		KernelPanic( RESOURCE_LOCK_EXCLUSIVE_INVALID_STATE );
 	}
 
-	LockingSwitch( NULL );
+	LockingSwitch( context );
 }
 
 void ResourceUnlockShared( struct RESOURCE * lock )

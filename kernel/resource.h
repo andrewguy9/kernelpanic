@@ -2,6 +2,7 @@
 #define RESOURCE_H
 
 #include"../utils/linkedlist.h"
+#include"blockingcontext.h"
 
 enum RESOURCE_STATE 
 { 
@@ -18,9 +19,9 @@ struct RESOURCE
 
 void ResourceInit( struct RESOURCE * lock );
 
-void ResourceLockShared( struct RESOURCE * lock );
+void ResourceLockShared( struct RESOURCE * lock, struct LOCKING_CONTEXT * context );
 
-void ResourceLockExclusive( struct RESOURCE * lock );
+void ResourceLockExclusive( struct RESOURCE * lock, struct LOCKING_CONTEXT * context );
 
 void ResourceUnlockShared( struct RESOURCE * lock );
 
