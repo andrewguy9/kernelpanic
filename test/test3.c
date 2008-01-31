@@ -21,11 +21,17 @@ COUNT TimesRead;
 
 void Writer()
 {
+	struct LOCKING_CONTEXT block;
 	INDEX sequenceIndex=0;
 	INDEX index;
+
+	LockingInit( &block );
+
 	while(1)
 	{
-		ResourceLockExclusive( &BufferLock, NULL);
+		ResourceLockExclusive( &BufferLock, &block);
+
+		while( !LockingIsAcquired( &block ) );
 	
 		ASSERT( BufferLock.State == RESOURCE_EXCLUSIVE ,
 				TEST_3_WRITER_RESOURCE_NOT_EXCLUSIVE,

@@ -24,7 +24,7 @@ void LockingSwitch( struct LOCKING_CONTEXT * context )
 	{//we are to wait on the lock, continue in slice
 		SchedulerEndCritical();
 	}
-	else if( context->State == LOCKING_STATE_CHECKED )
+	else if( context->State == LOCKING_STATE_CHECKED || context->State == LOCKING_STATE_ACQUIRED )
 	{//we acquired the lock, continue
 		SchedulerEndCritical();
 	}
