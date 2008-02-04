@@ -9,3 +9,5 @@ test/test3.o: test/test3.c
 test/test4.o: test/test4.c
 
 test/test5.o: test/test5.c
+
+test/test6.o: test/test6.c

@@ -47,4 +47,7 @@ test3.out: test/test3.o kernel/panic.o kernel/resource.o kernel/semaphore.o kern
 test4.out: test/test4.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o kernel/interrupt.o kernel/blockingcontext.o
 
 test5.out: test/test5.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/blockingcontext.o kernel/semaphore.o
+
+test6.out: test/test.o kernel/panic.o kernel/mutex.o kernel/scheduelr.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/blockingcontext.o kernel/worker.o
+
 ###############################
