@@ -1,6 +1,7 @@
 #include"../kernel/startup.h"
 #include"../kernel/scheduler.h"
 #include"../kernel/worker.h"
+#include"../kernel/interrupt.h"
 
 char WorkerStack[300];
 char MainStack[300];
@@ -23,12 +24,12 @@ void ThreadMain()
 
 	while(TRUE)
 	{
-		WorkerAddItem( WorkerTask, &count );
+		WorkerAddItem( WorkerTask, NULL, &handler );
 		myCount++;
 		do
 		{
 			InterruptDisable();
-			inUse = WorkerTask.Enabled;
+			inUse = handler.Enabled;
 			InterruptEnable();
 
 			SchedulerStartCritical();
@@ -48,7 +49,7 @@ int main()
 			300, 
 			ThreadMain, 
 			0x01 , 
-			true );
+			TRUE );
 
 	WorkerCreateWorker(
 			&WorkerThread,

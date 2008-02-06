@@ -1,7 +1,7 @@
 #ifndef WORKER_H
 #define WORKER_H
 
-#include"scheduler.h"
+#include"thread.h"
 #include"handler.h"
 
 void WorkerStartup();
@@ -12,6 +12,6 @@ void WorkerCreateWorker(
 		unsigned int stackSize,
 		char flag);
 
-void WorkerAddItem( HANDLER foo, void * arg, struct HANDLER_OBJECT * obj );
+void WorkerAddItem( HANDLER_FUNCTION foo, void * arg, struct HANDLER_OBJECT * obj );
 
 #endif

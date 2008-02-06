@@ -1,25 +1,26 @@
 #include"worker.h"
 #include"../utils/linkedlist.h"
 #include"interrupt.h"
+#include"scheduler.h"
 
 struct LINKED_LIST WorkerItemQueue;
 
-WorkerStartup()
+void WorkerStartup()
 {
-	LinkedListInit( &TaskList );	
+	LinkedListInit( &WorkerItemQueue );	
 }
 
 void WorkerThreadMain()
 {
 	struct HANDLER_OBJECT * item;
-	HANDLER handler;
+	HANDLER_FUNCTION * handler;
 	void * arg;
 
 	while(TRUE)
 	{
 		//Fetch a item
 		InterruptDisable();
-		item = LinkedListPop( &WorkerItemList );
+		item = LinkedListPop( &WorkerItemQueue );
 		InterruptEnable();
 
 		if( item == NULL )
@@ -28,7 +29,7 @@ void WorkerThreadMain()
 			SchedulerForceSwitch();
 		}
 		else
-		{//there is a item, so execute.
+		{//there is a item, so execute it.
 			handler = item->Handler;
 			arg = item->Argument;
 			item->Enabled = FALSE;
@@ -38,7 +39,7 @@ void WorkerThreadMain()
 	}
 }
 
-void CreateWorkerThread(
+void WorkerCreateWorker(
 		struct THREAD * thread,
 		char * stack,
 		unsigned int stackSize,
@@ -51,10 +52,10 @@ void CreateWorkerThread(
 			stackSize,
 			WorkerThreadMain,
 			flag,
-			true);
+			TRUE);
 }
 
-void WorkerAddItem( HANDLER foo, void * arg, struct HANDLER_OBJECT * obj  )
+void WorkerAddItem( HANDLER_FUNCTION foo, void * arg, struct HANDLER_OBJECT * obj  )
 {
 	InterruptDisable();
 
