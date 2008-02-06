@@ -20,7 +20,10 @@ void WorkerThreadMain()
 	{
 		//Fetch a item
 		InterruptDisable();
-		item = LinkedListPop( &WorkerItemQueue );
+		item = BASE_OBJECT( 
+				LinkedListPop( &WorkerItemQueue ),
+				struct HANDLER_OBJECT,
+				Link.LinkedListLink );
 		InterruptEnable();
 
 		if( item == NULL )
