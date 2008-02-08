@@ -10,7 +10,7 @@ include test/rules.mk
 
 #########################
 
-tests: utils/linktest.out utils/ringtest.out utils/flagtest.out umouse/maptest.out utils/bhamtest.out
+tests: utils/linktest.out utils/ringtest.out utils/flagtest.out umouse/maptest.out utils/bhamtest.out umouse/motortest.out
 
 umouse: test0.elf test1.elf test2.elf test3.elf test4.elf
 
@@ -26,6 +26,8 @@ utils/flagtest.out: utils/flagtest.o
 utils/bhamtest.out: utils/bhamtest.o utils/$(TARGET)_bham.o
 
 umouse/maptest.out: umouse/maptest.o umouse/$(TARGET)_map.o
+
+umouse/motortest.out: umouse/$(TARGET)_motor.o umouse/motortest.o
 
 ############################
 test0.elf: test0.out
