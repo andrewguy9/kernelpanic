@@ -13,4 +13,5 @@ struct HANDLER_OBJECT
 	void * Argument;
 };
 
+#define HandlerIsRunning( obj ) ( obj->Enabled )
 #endif

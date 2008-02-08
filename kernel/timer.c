@@ -98,7 +98,7 @@ void TimerRegister(
 		HANDLER_FUNCTION * handler,
 		void * argument )
 {
-	ASSERT( ! newTimer->Enabled,
+	ASSERT( ! HandlerIsRunning(newTimer),
 			TIMER_REGISTER_TIMER_ALREADY_ACTIVE,
 			"timers cannot be double registered");
 
