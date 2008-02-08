@@ -9,8 +9,8 @@
 #define NULL 0
 #endif
 
-#define FALSE 0
-#define TRUE (! FALSE )
+#define FALSE ((BOOL) 0)
+#define TRUE ((BOOL)(! FALSE ))
 
 //
 //PC BUILD DEFINITIONS

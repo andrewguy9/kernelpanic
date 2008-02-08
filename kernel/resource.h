@@ -2,12 +2,7 @@
 #define RESOURCE_H
 
 #include"../utils/linkedlist.h"
-
-enum RESOURCE_STATE 
-{ 
-	RESOURCE_SHARED, 
-	RESOURCE_EXCLUSIVE 
-};
+#include"blockingcontext.h"
 
 struct RESOURCE
 {
@@ -18,16 +13,12 @@ struct RESOURCE
 
 void ResourceInit( struct RESOURCE * lock );
 
-void ResourceLockShared( struct RESOURCE * lock );
+void ResourceLockShared( struct RESOURCE * lock, struct LOCKING_CONTEXT * context );
 
-void ResourceLockExclusive( struct RESOURCE * lock );
+void ResourceLockExclusive( struct RESOURCE * lock, struct LOCKING_CONTEXT * context );
 
 void ResourceUnlockShared( struct RESOURCE * lock );
 
 void ResourceUnlockExclusive( struct RESOURCE * lock );
-
-void ResourceEscalate( struct RESOURCE * lock );
-
-void ResourceDeescalate( struct RESOURCE * lock );
 
 #endif
