@@ -15,16 +15,17 @@ void WorkerTask(void *arg)
 	*value ++;
 }
 
+COUNT Count;
+
 void ThreadMain()
 {
 	struct HANDLER_OBJECT handler;
-	COUNT count = 0;
 	COUNT myCount = 0;
 	BOOL inUse;
 
 	while(TRUE)
 	{
-		WorkerAddItem( WorkerTask, NULL, &handler );
+		WorkerAddItem( WorkerTask, &Count, &handler );
 		myCount++;
 		do
 		{
@@ -36,12 +37,13 @@ void ThreadMain()
 			SchedulerForceSwitch();
 		}while( ! inUse );
 
-		ASSERT( count == myCount, 0, "work item didn't complete" );
+		ASSERT( Count == myCount, 0, "work item didn't complete" );
 	}
 }
 
 int main()
 {
+	Count = 0;
 	SchedulerCreateThread( 
 			&MainThread, 
 			2, 
