@@ -12,7 +12,7 @@ struct THREAD MainThread;
 void WorkerTask(void *arg)
 {
 	COUNT * value = (COUNT *) arg;
-	*value ++;
+	(*value)++;
 }
 
 COUNT Count;
@@ -30,20 +30,25 @@ void ThreadMain()
 		do
 		{
 			InterruptDisable();
-			inUse = handler.Enabled;
+			inUse = HandlerIsRunning(&handler);
 			InterruptEnable();
 
 			SchedulerStartCritical();
 			SchedulerForceSwitch();
-		}while( ! inUse );
+		}while( inUse );
 
-		ASSERT( Count == myCount, 0, "work item didn't complete" );
+		ASSERT( Count == myCount, 
+				TEST6_WORK_ITEM_DID_NOT_COMPLETE, 
+				"work item didn't complete" );
 	}
 }
 
 int main()
 {
+	KernelInit();
+
 	Count = 0;
+
 	SchedulerCreateThread( 
 			&MainThread, 
 			2, 

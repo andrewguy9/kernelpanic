@@ -33,11 +33,16 @@ void WorkerThreadMain()
 		}
 		else
 		{//there is a item, so execute it.
+			ASSERT( HandlerIsRunning(item),
+					WORKER_HANDLER_NOT_RUNNING,
+					"We need the handler to be ready for running");
+			//Extract data out of handler.
 			handler = item->Handler;
 			arg = item->Argument;
-			item->Enabled = FALSE;
-
+			//execute function
 			handler( arg );
+			//release the handler for reuse
+			item->Enabled = FALSE;
 		}
 	}
 }
