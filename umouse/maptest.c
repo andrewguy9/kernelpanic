@@ -95,15 +95,45 @@ void PrintWalls( struct MAP * map )
 int main()
 {
 	COUNT width=16, height=16;
+	enum DIRECTION dir;
+	INDEX x,y,dir_int;
 	struct MAP map;
+
 	FLAG_WORD wallBuff[ MapSizeNeeded(width, height) ];
 
 	MapInit( &map, wallBuff, MapSizeNeeded(width, height), width, height );
 
 	PrintMap( & map );
 
-	PrintBytes( & map );
+	//PrintBytes( & map );
 
-	PrintWalls( & map );
+	//PrintWalls( & map );
+	
+	while( TRUE )
+	{
+		printf("please enter x then y then direction (1n 2s 3e 4w)\n");
+		scanf("%d %d %d", &x, &y, &dir_int);
+
+		switch(dir_int)
+		{
+			case 1:
+				dir = NORTH;
+				break;
+			case 2:
+				dir = SOUTH;
+				break;
+			case 3:
+				dir = EAST;
+				break;
+			case 4:
+				dir = WEST;
+				break;
+		}
+
+		MapSetWall( x, y, dir, TRUE, &map );
+
+		PrintMap( &map );
+	}
+
 	return 0;
 }
