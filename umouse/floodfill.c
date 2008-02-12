@@ -7,27 +7,42 @@
 //Sets the value of the flood map, and registers "look at me" flag.
 void FloodFillSet(INDEX x, INDEX y, unsigned char value, struct FLOOD_MAP * map)
 {
-	map->FloodMap[y*map->Width+x] = value;
+	if( x < map->Width && y < map->Height )
+		map->FloodMap[y*map->Width+x] = value;
 }
 
 //Gets the value from flood map
 UNSIGNED CHAR FloodFillGet( INDEX x, INDEX y, struct FLOOD_MAP * map)
 {
-	return map->FloodMap[y*map->Width + x];
+	if( x < map->Width && y < map->Height )
+		return map->FloodMap[y*map->Width + x];
+	else 
+		return -1
 }
 
 void FloodNewEvent( INDEX x, INDEX y, struct FLOOD_MAP * map )
 {
 	INDEX index = x+y*map->Width;
-	FlagOn( map->EventMap, index);
+	if( index < map->Width * map->Height)
+		FlagOn( map->EventMap, index);
 }
 
 void FloodGetEvent( INDEX * x, INDEX * y, struct FLOOD_MAP * map )
 {
 	INDEX index;
-	FlagsGetFirstFlag( map->EventMap, FLOOD_EVENT_SIZE( map->Width, map->Height ) );	
-	*y = index / map->Width;
-	*x = index % map->Height;
+	index = FlagsGetFirstFlag( 
+			map->EventMap, 
+			FLOOD_EVENT_SIZE( map->Width, map->Height ) );	
+	if( index == -1 )
+	{
+		*x = -1;
+		*y = -1;
+	}
+	else
+	{
+		*y = index / map->Width;
+		*x = index % map->Height;
+	}
 }
 
 //
@@ -51,7 +66,37 @@ void FloodFillCalculate(
 		struct MAP * map,
 		struct FLOOD_MAP * floodMap )
 {
-		
+	INDEX x,y;
+	unsigned char iter;
+	for( iter = 0; iter < floodMap->Width*floodMap->Height; iter++ )
+	{
+		FloodGetEvent(&x, &y, map);
+
+		if( x == -1 && y == -1 )
+			return;
+
+		if( FloodFillGet( x+1, y+0, map ) > iter )
+		{
+			FloodFillSet( x+1, y+0, iter, map );
+			FloodNewEvent( x+1, y+0, map );
+		}
+		if( FloodFillGet( x-1, y+0, map ) > iter )
+		{
+			FloodFillSet( x-1, y+0, iter, map );
+			FloodNewEvent( x-1, y+0, map );
+		}
+		if( FloodFillGet( x+0, y+1, map ) > iter )
+		{
+			FloodFillSet( x+0, y+1, iter, map );
+			FloodNewEvent( x+0, y+1, map );
+		}
+		if( FloodFillGet( x+0, y-1, map ) > iter )
+		{
+			FloodFillSet( x+0, y-1, iter, map );
+			FloodNewEvent( x+0, y-1, map );
+		}
+	}
+	return;
 }
 
 void FloodFillClear(struct FLOOD_MAP * floodMap)
@@ -62,6 +107,8 @@ void FloodFillClear(struct FLOOD_MAP * floodMap)
 		{
 			FloodFillSet(x,y,-1,floodMap);
 		}
+
+	FlagsClear( floodMap->EventMap, floodMap->Width*floodMap->Height );
 }
 
 void FloodFillSetDestination( INDEX x, INDEX y, struct FLOOD_MAP map )
