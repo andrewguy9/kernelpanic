@@ -30,4 +30,8 @@ typedef char FLAG_WORD;
 //Turn a flag off
 #define FlagOff( Flags, Index ) (Flags[FlagIndex(Index)] &= ~ FlagGenerateMask( FlagOffset( Index ) ) )
 
+//Public functions to do flag work
+void FlagsClear(FLAG_WORD * flags, COUNT numFlags);
+
+INDEX FlagsGetFirstFlag(FLAG_WORD * flags, COUNT numFlags);
 #endif
