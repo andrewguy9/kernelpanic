@@ -1,5 +1,9 @@
 #include"floodfill.h"
 
+#ifdef PC_BUILD
+#include<stdio.h>
+#endif
+
 //
 //Private Helpers
 //
@@ -27,7 +31,8 @@ void FloodGetEvent( INDEX * x, INDEX * y, struct FLOOD_MAP * map )
 	INDEX index;
 	index = FlagsGetFirstFlag( 
 			map->EventMap, 
-			FLOOD_MAP_ITEMS_NEEDED( map->Width, map->Height ) );	
+			FLOOD_MAP_ITEMS_NEEDED( map->Width, map->Height ) );
+
 	if( index == -1 )
 	{
 		*x = -1;
@@ -35,8 +40,11 @@ void FloodGetEvent( INDEX * x, INDEX * y, struct FLOOD_MAP * map )
 	}
 	else
 	{
-		*y =FloodFillGetY(index,map);
-		*x =FloodFillGetX(index,map);
+		*y = FloodFillGetY(index,map);
+		*x = FloodFillGetX(index,map);
+
+		//turn off flag for event
+		FlagOff(map->EventMap, index);
 	}
 }
 
@@ -47,7 +55,7 @@ void FloodGetEvent( INDEX * x, INDEX * y, struct FLOOD_MAP * map )
 unsigned char FloodFillGet( INDEX x, INDEX y, struct FLOOD_MAP * map)
 {
 	if( x >= map->Width || y >= map->Height )
-		return -1;
+		return 255;
 
 	return map->FloodMap[FloodFillGetIndex(x,y,map)];
 }
@@ -70,34 +78,50 @@ void FloodFillCalculate(
 		struct FLOOD_MAP * floodMap )
 {
 	INDEX x,y;
-	unsigned char iter;
-	for( iter = 0; iter < floodMap->Width*floodMap->Height; iter++ )
+	unsigned char curValue;
+	while(TRUE)
 	{
+#ifdef PC_BUILD
+		printf("start\n");
+#endif
+		FlagsPrint( floodMap->EventMap, FLOOD_MAP_ITEMS_NEEDED(floodMap->Width, floodMap->Height) );
 		FloodGetEvent(&x, &y, floodMap);
 
 		if( x == -1 && y == -1 )
 		{//no events to process
+#ifdef PC_BUILD
+			printf("no events\n");
+#endif
 			return;
 		}
 
-		if( FloodFillGet( x+1, y+0, floodMap ) > iter )
+		curValue = FloodFillGet( x,y, floodMap );
+#ifdef PC_BUILD
+		printf("curValue = %d", curValue );
+#endif
+
+		if( ! MapGetWall( x, y, EAST, map ) && 
+				FloodFillGet( x+1, y+0, floodMap ) > curValue )
 		{
-			FloodFillSet( x+1, y+0, iter, floodMap );
+			FloodFillSet( x+1, y+0, curValue+1, floodMap );
 			FloodNewEvent( x+1, y+0, floodMap );
 		}
-		if( FloodFillGet( x-1, y+0, floodMap ) > iter )
+		if( ! MapGetWall( x, y, WEST, map ) &&
+				FloodFillGet( x-1, y+0, floodMap ) > curValue )
 		{
-			FloodFillSet( x-1, y+0, iter, floodMap );
+			FloodFillSet( x-1, y+0, curValue+1, floodMap );
 			FloodNewEvent( x-1, y+0, floodMap );
 		}
-		if( FloodFillGet( x+0, y+1, floodMap ) > iter )
+		if( ! MapGetWall( x, y, NORTH, map ) &&
+				FloodFillGet( x+0, y+1, floodMap ) > curValue )
 		{
-			FloodFillSet( x+0, y+1, iter, floodMap );
+			FloodFillSet( x+0, y+1, curValue+1, floodMap );
 			FloodNewEvent( x+0, y+1, floodMap );
 		}
-		if( FloodFillGet( x+0, y-1, floodMap ) > iter )
+		if( ! MapGetWall( x, y, SOUTH, map ) &&
+				FloodFillGet( x+0, y-1, floodMap ) > curValue )
 		{
-			FloodFillSet( x+0, y-1, iter, floodMap );
+			FloodFillSet( x+0, y-1, curValue+1, floodMap );
 			FloodNewEvent( x+0, y-1, floodMap );
 		}
 	}
