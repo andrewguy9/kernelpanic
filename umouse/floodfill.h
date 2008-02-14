@@ -5,9 +5,11 @@
 #include"map.h"
 #include"../utils/ringbuffer.h"
 
-#define FLOOD_MAP_SIZE( WIDTH, HEIGHT ) ((WIDTH)*(HEIGHT)*sizeof(char))
 
-#define FLOOD_EVENT_SIZE( WIDTH, HEIGHT ) (FlagSize((WIDTH)*(HEIGHT)))
+#define FLOOD_MAP_ITEMS_NEEDED( WIDTH, HEIGHT ) ((WIDTH)*(HEIGHT))
+#define FLOOD_MAP_SIZE( WIDTH, HEIGHT ) (FLOOD_MAP_ITEMS_NEEDED((WIDTH), (HEIGHT)))
+
+#define FLOOD_EVENT_SIZE( WIDTH, HEIGHT ) (FlagSize(FLOOD_MAP_ITEMS_NEEDED((WIDTH),(HEIGHT))))
 
 #define FloodFillGetIndex(x,y,map) (((y)*(map)->Width)+(x))
 

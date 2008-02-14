@@ -64,9 +64,8 @@ int main()
 
 	FloodFillClear( &FloodMap );
 	FloodFillSetDestination( 8, 8, &FloodMap );
-	printf("event at %d\n", FlagsGetFirstFlag(
-				FloodEventBuff,
-			   	FLOOD_EVENT_SIZE(16,16) ) ) ;
+
+	FlagsPrint( FloodEventBuff, 16*16 );
 
 	FloodFillCalculate( &Map, &FloodMap );
 

@@ -31,6 +31,10 @@ typedef char FLAG_WORD;
 #define FlagOff( Flags, Index ) (Flags[FlagIndex(Index)] &= ~ FlagGenerateMask( FlagOffset( Index ) ) )
 
 //Public functions to do flag work
+#ifdef PC_BUILD
+void FlagsPrint( FLAG_WORD flags[], COUNT numFlags );
+#endif
+
 void FlagsClear(FLAG_WORD * flags, COUNT numFlags);
 
 INDEX FlagsGetFirstFlag(FLAG_WORD * flags, COUNT numFlags);

@@ -1,24 +1,6 @@
 #include"flags.h"
 #include<stdio.h>
 
-void PrintFlags( FLAG_WORD flags[], COUNT numFlags )
-{
-	INDEX count;
-	printf("|");
-	for(count = 0; count < numFlags; count++)
-	{
-		if( FlagGet( flags, count ) )
-		{
-			printf("+");
-		}
-		else
-		{
-			printf("-");
-		}
-	}
-	printf("|");
-}
-
 int main()
 {
 	COUNT numFlags;
@@ -35,7 +17,7 @@ int main()
 	
 	do
 	{
-		PrintFlags( flags, numFlags );
+		FlagsPrint( flags, numFlags );
 		printf("1 Set, 2 Clear, 3 Find First Flag, 4 Quit\n");
 		scanf("%d", & input );
 		switch( input )

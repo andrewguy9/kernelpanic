@@ -27,7 +27,7 @@ void FloodGetEvent( INDEX * x, INDEX * y, struct FLOOD_MAP * map )
 	INDEX index;
 	index = FlagsGetFirstFlag( 
 			map->EventMap, 
-			FLOOD_EVENT_SIZE( map->Width, map->Height ) );	
+			FLOOD_MAP_ITEMS_NEEDED( map->Width, map->Height ) );	
 	if( index == -1 )
 	{
 		*x = -1;

@@ -1,5 +1,26 @@
 #include"flags.h"
 
+#ifdef PC_BUILD
+#include<stdio.h>
+void FlagsPrint( FLAG_WORD flags[], COUNT numFlags )
+{
+	INDEX count;
+	printf("|");
+	for(count = 0; count < numFlags; count++)
+	{
+		if( FlagGet( flags, count ) )
+		{
+			printf("+");
+		}
+		else
+		{
+			printf("-");
+		}
+	}
+	printf("|\n");
+}
+#endif
+
 void FlagsClear(FLAG_WORD * flags, COUNT numFlags)
 {
 	INDEX end = FlagSize( numFlags );
