@@ -30,6 +30,7 @@ void FloodFillCalculate(
 
 void FloodFillClear(struct FLOOD_MAP * floodMap);
 
-void FloodFillSetDestination( INDEX x, INDEX y, struct FLOOD_MAP map );
+void FloodFillSetDestination( INDEX x, INDEX y, struct FLOOD_MAP * map );
 
+unsigned char FloodFillGet( INDEX x, INDEX y, struct FLOOD_MAP * map);
 #endif

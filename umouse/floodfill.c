@@ -12,14 +12,6 @@ void FloodFillSet(INDEX x, INDEX y, unsigned char value, struct FLOOD_MAP * map)
 }
 
 //Gets the value from flood map
-UNSIGNED CHAR FloodFillGet( INDEX x, INDEX y, struct FLOOD_MAP * map)
-{
-	if( x < map->Width && y < map->Height )
-		return map->FloodMap[y*map->Width + x];
-	else 
-		return -1
-}
-
 void FloodNewEvent( INDEX x, INDEX y, struct FLOOD_MAP * map )
 {
 	INDEX index = x+y*map->Width;
@@ -49,6 +41,14 @@ void FloodGetEvent( INDEX * x, INDEX * y, struct FLOOD_MAP * map )
 //Public Routines
 //
 
+unsigned char FloodFillGet( INDEX x, INDEX y, struct FLOOD_MAP * map)
+{
+	if( x < map->Width && y < map->Height )
+		return map->FloodMap[y*map->Width + x];
+	else 
+		return -1;
+}
+
 void FloodFillInit(
 		COUNT width, 
 		COUNT height,
@@ -57,7 +57,7 @@ void FloodFillInit(
 		struct FLOOD_MAP * floodMap)
 {
 	floodMap->Width = width;
-	floopMap->Weight = height;
+	floodMap->Height = height;
 	floodMap->FloodMap = mapBuff;
 	floodMap->EventMap = eventBuff;
 }
@@ -70,30 +70,30 @@ void FloodFillCalculate(
 	unsigned char iter;
 	for( iter = 0; iter < floodMap->Width*floodMap->Height; iter++ )
 	{
-		FloodGetEvent(&x, &y, map);
+		FloodGetEvent(&x, &y, floodMap);
 
 		if( x == -1 && y == -1 )
 			return;
 
-		if( FloodFillGet( x+1, y+0, map ) > iter )
+		if( FloodFillGet( x+1, y+0, floodMap ) > iter )
 		{
-			FloodFillSet( x+1, y+0, iter, map );
-			FloodNewEvent( x+1, y+0, map );
+			FloodFillSet( x+1, y+0, iter, floodMap );
+			FloodNewEvent( x+1, y+0, floodMap );
 		}
-		if( FloodFillGet( x-1, y+0, map ) > iter )
+		if( FloodFillGet( x-1, y+0, floodMap ) > iter )
 		{
-			FloodFillSet( x-1, y+0, iter, map );
-			FloodNewEvent( x-1, y+0, map );
+			FloodFillSet( x-1, y+0, iter, floodMap );
+			FloodNewEvent( x-1, y+0, floodMap );
 		}
-		if( FloodFillGet( x+0, y+1, map ) > iter )
+		if( FloodFillGet( x+0, y+1, floodMap ) > iter )
 		{
-			FloodFillSet( x+0, y+1, iter, map );
-			FloodNewEvent( x+0, y+1, map );
+			FloodFillSet( x+0, y+1, iter, floodMap );
+			FloodNewEvent( x+0, y+1, floodMap );
 		}
-		if( FloodFillGet( x+0, y-1, map ) > iter )
+		if( FloodFillGet( x+0, y-1, floodMap ) > iter )
 		{
-			FloodFillSet( x+0, y-1, iter, map );
-			FloodNewEvent( x+0, y-1, map );
+			FloodFillSet( x+0, y-1, iter, floodMap );
+			FloodNewEvent( x+0, y-1, floodMap );
 		}
 	}
 	return;
@@ -102,7 +102,7 @@ void FloodFillCalculate(
 void FloodFillClear(struct FLOOD_MAP * floodMap)
 {
 	INDEX x,y;
-	for( x=0; x<floodMap->Width, x++ )
+	for( x=0; x<floodMap->Width; x++ )
 		for( y=0; y<floodMap->Height; y++)
 		{
 			FloodFillSet(x,y,-1,floodMap);
@@ -111,7 +111,7 @@ void FloodFillClear(struct FLOOD_MAP * floodMap)
 	FlagsClear( floodMap->EventMap, floodMap->Width*floodMap->Height );
 }
 
-void FloodFillSetDestination( INDEX x, INDEX y, struct FLOOD_MAP map )
+void FloodFillSetDestination( INDEX x, INDEX y, struct FLOOD_MAP * map )
 {
 	FloodFillSet(x,y,0,map);
 	FloodNewEvent(x,y,map);
