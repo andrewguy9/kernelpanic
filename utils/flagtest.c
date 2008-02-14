@@ -36,8 +36,8 @@ int main()
 	do
 	{
 		PrintFlags( flags, numFlags );
-		printf("1 Set, 2 Clear, 3 Quit\n");
-		scanf("%d\n", & input );
+		printf("1 Set, 2 Clear, 3 Find First Flag, 4 Quit\n");
+		scanf("%d", & input );
 		switch( input )
 		{
 			case 1:
@@ -51,11 +51,15 @@ int main()
 				FlagOff( flags, inputNum );
 				break;
 			case 3:
-				printf("have a good day");
+				printf("looking for flag\n");
+				printf("first flag was %d\n", (int) FlagsGetFirstFlag( flags, numFlags ));
+				break;
+			case 4:
+				printf("have a good day\n");
 				break;
 			default:
 				continue;
 		}
-	}while( input != 3 );
+	}while( input != 4 );
 	return 0;
 }

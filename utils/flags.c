@@ -11,15 +11,21 @@ void FlagsClear(FLAG_WORD * flags, COUNT numFlags)
 INDEX FlagsGetFirstFlag(FLAG_WORD * flags, COUNT numFlags)
 {
 	INDEX end = FlagSize( numFlags );
-	INDEX cur;
+	INDEX index;
 	INDEX offset;
-	for( cur = 0; cur < end; cur++ )
+	for( index = 0; index < end; index++ )
 	{
-		if( flags[cur] != 0 )
+		if( flags[index] != 0 )
 		{
-			for( offset = 0; offset < FlagWordSize; offset ++ )
-				if( FlagGenerateMask( offset ) & flags[cur] != 0 )
-					return cur * FlagWordSize + offset;
+			//we are in the right byte
+			for( offset = 0; offset < FlagWordSize; offset++ )
+			{
+				if( FlagGet(flags, index*FlagWordSize+offset) )
+				{
+					return index*FlagWordSize+offset;
+				}
+			}
+			return -2;
 		}
 	}
 	return -1;

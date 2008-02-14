@@ -10,14 +10,19 @@
 #define MAP_HEIGHT 16
 
 //
-//Public math macros
+//Private math macros
 //
 
 #define MapDimensionSizeNeeded( major, minor ) ( FlagSize( (major) * ((minor)-1)) )
 
+//
+//Public Math Macros
+//
+
 #define MapSizeNeeded( width, height ) \
 	( MapDimensionSizeNeeded( width, height) + \
 	  MapDimensionSizeNeeded( height, width ) )
+
 //
 //Map structure
 //
