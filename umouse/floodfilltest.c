@@ -1,5 +1,6 @@
 #include"floodfill.h"
 #include"map.h"
+#include"../utils/flags.h"
 
 void PrintMap( struct MAP * map, struct FLOOD_MAP * flood)
 {
@@ -63,6 +64,10 @@ int main()
 
 	FloodFillClear( &FloodMap );
 	FloodFillSetDestination( 8, 8, &FloodMap );
+	printf("event at %d\n", FlagsGetFirstFlag(
+				FloodEventBuff,
+			   	FLOOD_EVENT_SIZE(16,16) ) ) ;
+
 	FloodFillCalculate( &Map, &FloodMap );
 
 	PrintMap( &Map, &FloodMap );

@@ -9,6 +9,11 @@
 
 #define FLOOD_EVENT_SIZE( WIDTH, HEIGHT ) (FlagSize((WIDTH)*(HEIGHT)))
 
+#define FloodFillGetIndex(x,y,map) (((y)*(map)->Width)+(x))
+
+#define FloodFillGetX(index, map) (  (index) % (map->Height) )
+#define FloodFillGetY(index, map) ( (index) / (map->Width))
+
 struct FLOOD_MAP 
 {
 	COUNT Width;

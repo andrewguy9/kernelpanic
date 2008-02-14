@@ -7,16 +7,19 @@
 //Sets the value of the flood map, and registers "look at me" flag.
 void FloodFillSet(INDEX x, INDEX y, unsigned char value, struct FLOOD_MAP * map)
 {
-	if( x < map->Width && y < map->Height )
-		map->FloodMap[y*map->Width+x] = value;
+	if( x >= map->Width || y >= map->Height )
+		return;
+	map->FloodMap[FloodFillGetIndex(x,y,map)] = value;
 }
 
 //Gets the value from flood map
 void FloodNewEvent( INDEX x, INDEX y, struct FLOOD_MAP * map )
 {
-	INDEX index = x+y*map->Width;
-	if( index < map->Width * map->Height)
-		FlagOn( map->EventMap, index);
+	INDEX index;
+	if( x >= map->Width || y >= map->Height )
+		return;
+	index = FloodFillGetIndex(x,y,map);
+	FlagOn( map->EventMap, index );
 }
 
 void FloodGetEvent( INDEX * x, INDEX * y, struct FLOOD_MAP * map )
@@ -32,8 +35,8 @@ void FloodGetEvent( INDEX * x, INDEX * y, struct FLOOD_MAP * map )
 	}
 	else
 	{
-		*y = index / map->Width;
-		*x = index % map->Height;
+		*y =FloodFillGetY(index,map);
+		*x =FloodFillGetX(index,map);
 	}
 }
 
@@ -43,10 +46,10 @@ void FloodGetEvent( INDEX * x, INDEX * y, struct FLOOD_MAP * map )
 
 unsigned char FloodFillGet( INDEX x, INDEX y, struct FLOOD_MAP * map)
 {
-	if( x < map->Width && y < map->Height )
-		return map->FloodMap[y*map->Width + x];
-	else 
+	if( x >= map->Width || y >= map->Height )
 		return -1;
+
+	return map->FloodMap[FloodFillGetIndex(x,y,map)];
 }
 
 void FloodFillInit(
@@ -73,7 +76,9 @@ void FloodFillCalculate(
 		FloodGetEvent(&x, &y, floodMap);
 
 		if( x == -1 && y == -1 )
+		{//no events to process
 			return;
+		}
 
 		if( FloodFillGet( x+1, y+0, floodMap ) > iter )
 		{
@@ -102,12 +107,14 @@ void FloodFillCalculate(
 void FloodFillClear(struct FLOOD_MAP * floodMap)
 {
 	INDEX x,y;
+	//Clear the flood map
 	for( x=0; x<floodMap->Width; x++ )
 		for( y=0; y<floodMap->Height; y++)
 		{
 			FloodFillSet(x,y,-1,floodMap);
 		}
 
+	//Clear the events flags.
 	FlagsClear( floodMap->EventMap, floodMap->Width*floodMap->Height );
 }
 
