@@ -52,11 +52,6 @@ void InterruptRunPostHandlers()
 				LinkedListPop(&PostInterruptHandlerList), 
 				struct HANDLER_OBJECT, 
 				Link);
-
-		ASSERT( HandlerIsRunning( handler ),
-			 INTERRUPT_RUN_POST_HANDLERS_DIABABLED_HANDLER,
-			"the handler is not ready to run" );
-
 		//fech values from object so we can reuse it.
 		argument = handler->Argument;
 		foo = handler->Handler;
@@ -158,7 +153,7 @@ void InterruptRegisterPostHandler(
 	ASSERT( HalIsAtomic(),
 			INTERRUPT_POST_HANDLER_REGISTER_NOT_ATOMIC,
 			"Access to the Post handler list must be atomic.");
-	ASSERT( ! HandlerIsRunning( object ),
+	ASSERT( ! object->Enabled,
 			INTERRUPT_POST_HANDLER_REGISTER_ALREADY_ACTIVE,
 			"Adding already active post handler");
 
