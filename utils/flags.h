@@ -8,6 +8,8 @@
 //
 typedef char FLAG_WORD;
 #define FlagWordSize  (sizeof(FLAG_WORD) * 8)
+#define FlagSize( NumElements ) \
+	( (NumElements)/(FlagWordSize) + ((NumElements)%(FlagWordSize) ? 1 : 0 ) )
 
 #define FlagIndex( Index ) ((Index)/(FlagWordSize))
 #define FlagOffset( Index ) ((Index)%((FlagWordSize)))
@@ -18,10 +20,6 @@ typedef char FLAG_WORD;
 //
 // Public Macros for doing library math.
 //
-
-//Get the size needed for a buffer.
-#define FlagSize( NumElements ) \
-	( (NumElements)/(FlagWordSize) + ((NumElements)%(FlagWordSize) ? 1 : 0 ) )
 
 //Test if a flag is on
 #define FlagGet( Flags, Index ) (Flags[FlagIndex(Index)] & FlagGenerateMask( FlagOffset( Index ) ) )

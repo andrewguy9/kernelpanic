@@ -15,7 +15,6 @@
  * are called as a post interrupt handler. (So interrupts will be ENABLED).
  * Its perfectly save to have a timer re-register itself.
  */
-
 //Variables that the Scheduler shares ONLY with the timer unit.
 //This is because the timer unit is used to force a context switch.
 extern struct THREAD * ActiveThread;

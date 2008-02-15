@@ -3,12 +3,6 @@
 #include"../utils/flags.h"
 #define WIDTH 8
 #define HEIGHT 8
-
-/*
- * Tests the floodfloodfill unit.
- * Prints out the flood map to the terminal for verification.
- */
-
 void PrintMap( struct MAP * map, struct FLOOD_MAP * flood)
 {
 	INDEX x, y;

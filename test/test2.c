@@ -3,11 +3,6 @@
 #include"../kernel/socket.h"
 #include"../kernel/panic.h"
 
-/*
- * Tests the socket unit, and by extension the resource and ringbuffer units.
- * Overtime TotalRead = TotalWrite += RingSize.
- */
-
 //
 //Tests the Producer consumer model for the socket system. 
 //

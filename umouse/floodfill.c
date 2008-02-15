@@ -4,26 +4,6 @@
 #include<stdio.h>
 #endif
 
-/*
- * Calculates the number of moves from the "destination" for a given map.
- *
- * Usage:
- * Call FloodFillInit(), 
- * 	with sizeof(mapBuff) = FLOOD_MAP_SIZE() and 
- * 	sizeof(eventMap) = FLOOD_EVENT_SIZE.
- * This will initialize a flood map to solve the maze.
- *
- * After setting up init, you need to set the destination.
- * Call FloodFillSetDestination() for each cell you want to
- * mark as destination.
- *
- * Once the destination is set we can solve the maze.
- * Call FloodGillCalculate()
- * This is a heavy operation, but after the maze will be solved.
- *
- * Call FloodFillGet() to fetch the distance from the destination for a cell.
- */
-
 //
 //Private Helpers
 //

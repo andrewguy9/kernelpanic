@@ -3,7 +3,6 @@
 /*
  * Unit Description:
  * Defines a Socket structure for threads.
- * Sockets are like pipes except that they are bi-directional.
  */
 
 void SocketInit( struct PIPE * readPipe, struct PIPE * writePipe, struct SOCKET * socket )

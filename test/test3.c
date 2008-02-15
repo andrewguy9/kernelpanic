@@ -5,11 +5,6 @@
 #include"../kernel/sleep.h"
 #include"../kernel/panic.h"
 
-/*
- * Test of the resource unit and the non blocking code path.
- * Should panic on failure.
- */
-
 //
 //Tests Resources
 //

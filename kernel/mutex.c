@@ -2,7 +2,6 @@
 #include"interrupt.h"
 
 /*
- * MUTEX UNIT DESCRIPTION
  * The mutex library is a thread and asr safe primative syncronization mechanism.
  *
  * Mutexes should be used whenever threads and asr's need to access the same data.
