@@ -1,5 +1,9 @@
 #include"heap.h"
 
+/*
+ * A Heap implementation based on using WEIGHTED_LINK nodes. 
+ */
+
 void HeapPromote( struct WEIGHTED_LINK * node )
 {
 	//NOTE: this function does not protect the heap->Head value. 

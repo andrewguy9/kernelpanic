@@ -5,6 +5,11 @@
 
 #define NUM_TESTS 4
 
+/*
+ * Tests ringbuffer unit. Tries a variety of passes on the buffer. 
+ * Prints success or failure for validation.
+ */
+
 COUNT TEST_SIZE;
 COUNT RING_SIZE; 
 
