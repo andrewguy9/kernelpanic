@@ -27,6 +27,7 @@
  * at the end of their critical section. 
  *
  * Blocking Contexts:
+ *TODO UPDATE COMMENT TO REFLECT NEW BLOCKING RULES
  * There are many resons to block a thread. Some
  * of them will need to save infomation about 
  * the thread's state so we will know when to wake it.

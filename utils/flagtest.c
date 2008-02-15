@@ -1,6 +1,10 @@
 #include"flags.h"
 #include<stdio.h>
 
+/*
+ * Tests the flag unit. Prints the flag buffer to termainal for validation.
+ */
+
 int main()
 {
 	COUNT numFlags;

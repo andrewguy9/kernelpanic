@@ -6,6 +6,11 @@
 #include"mutex.h"
 #include"panic.h"
 
+/*
+ * IO UNIT DESCRIPTION 
+ *
+ * The IO unit establishes a socket for communication over serial.
+ */
 
 //
 //Interrupt variables (cross platform)

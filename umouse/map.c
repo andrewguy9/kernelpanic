@@ -2,6 +2,25 @@
 #include"../utils/flags.h"
 #include"../utils/utils.h"
 
+/*
+ * Exposes a map concept for the mouse.
+ *
+ * Call MapInit() 
+ * With sizeof(wallbuff) = MapSizeNeeded()
+ * This will initialize a map structure for use later.
+ *
+ * Call MapGetWall() to fetch wheather a wall is present.
+ * Returns TRUE if there is a wall.
+ * Returns FALSE if there no wall.
+ *
+ * Call MapSetWall() to set a wall's state in the map.
+ * Pass state = TRUE to turn the wall on.
+ * Pass state = FALSE to turn the wall off.
+ *
+ * Both MapGetWall and MapSetWall can be called for indexes out
+ * of bounds.
+ */
+
 //
 //Definition of dimmensions
 //

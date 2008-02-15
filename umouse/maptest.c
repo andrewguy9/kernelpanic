@@ -1,6 +1,10 @@
 #include"map.h"
 #include<stdio.h>
 
+/*
+ * Tests the map unit. Prints the map to terminal for validation.
+ */
+
 //
 //The map only does measurements based on the south west.
 //North and east are constructed from sw coordinates.
