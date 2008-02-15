@@ -73,6 +73,11 @@ BOOL MapInit( struct MAP * map, char * wallBuff, COUNT buffLen, COUNT width, COU
 
 BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map )
 {
+	if( x > map->Width || y > map->Height )
+	{
+		//we are out of bounds, assume there is a wall.
+		return TRUE;
+	}
 
 	x = MapAdjustX(x,dir);
 	y = MapAdjustY(y,dir);

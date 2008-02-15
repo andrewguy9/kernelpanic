@@ -1,14 +1,48 @@
 #include"move.h"
+#include"../utils/utils.h"
+
 #define NUM_MOVES 7
 
+//define funcitons which look for walls
+BOOL MoveNoMovementCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map )
+{
+	return TRUE;
+}
+
+BOOL MoveSingleCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map )
+{
+	//we are going to turn and go forward
+	//simulate the turn and see if a wall faces you
+	MoveApply( &x, &y, &dir, move );
+	//check see if there is a wall behind us
+	dir = TURN( dir, BACK );
+	return !MapGetWall( x, y, dir, map );
+}
+
+BOOL MoveIntegratedCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map )
+{
+	//we are going to go forward 1 cell, check for a wall in that dir
+	if( MapGetWall( x, y, dir, map ) )
+	{
+		//there is a wall, fail move
+		return FALSE;
+	}
+
+	//at the end of the move we will be facing a new direction
+	MoveApply( &x, &y, &dir, move );
+	//check see if there is a wall behind us
+	dir = TURN( dir, BACK );
+	return !MapGetWall( x, y, dir, map );
+}
+
 //fb,rl,turn
-struct MOVE MoveNowhere = { 0, 0, STRAIGHT };
-struct MOVE MoveStright = { 1, 0, STRAIGHT };
-struct MOVE MoveBack = { -1, 0, BACK };
-struct MOVE MoveLeft = { 0, -1, LEFT };
-struct MOVE MoveRight = { 0, 1, RIGHT };
-struct MOVE MoveIntegratedLeft = { 1, -1, LEFT };
-struct MOVE MoveIntegratedRight = { 1, 1, RIGHT };
+struct MOVE MoveNowhere = { 0, 0, STRAIGHT, MoveNoMovementCheck };
+struct MOVE MoveStright = { 1, 0, STRAIGHT, MoveSingleCheck };
+struct MOVE MoveBack = { -1, 0, BACK, MoveSingleCheck };
+struct MOVE MoveLeft = { 0, -1, LEFT, MoveSingleCheck };
+struct MOVE MoveRight = { 0, 1, RIGHT, MoveSingleCheck };
+struct MOVE MoveIntegratedLeft = { 1, -1, LEFT, MoveIntegratedCheck };
+struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveIntegratedCheck };
 
 struct MOVE * Moves[NUM_MOVES] = { 
 	&MoveNowhere,
@@ -55,8 +89,9 @@ void MoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, struct MOVE * move )
 	*dir = TURN( *dir, move->Dtheta );
 }
 
-struct MOVE * MoveFindBest(INDEX startX, INDEX startY, enum DIRECTION startDir, struct FLOOD_MAP * flood )
+struct MOVE * MoveFindBest(INDEX startX, INDEX startY, enum DIRECTION startDir, struct FLOOD_MAP * flood, struct MAP * map )
 {
+	BOOL validMove;
 	INDEX bestMove = 0;
 	INDEX curMove;
 
@@ -72,8 +107,16 @@ struct MOVE * MoveFindBest(INDEX startX, INDEX startY, enum DIRECTION startDir, 
 		y = startY;
 		dir = startDir;
 
-		//apply move and get distance
+		//test to see if move is valid (dont cross walls)
+		validMove = Moves[curMove]->Check(x,y,dir,Moves[curMove],map);
+
+		if( !validMove)
+			continue;
+
+		//apply move to final position
 		MoveApply( &x, &y, &dir, Moves[curMove] );
+
+		//get the distance
 		curDist = FloodFillGet( x, y, flood );
 
 		//check for improvement

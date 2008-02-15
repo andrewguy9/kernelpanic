@@ -108,6 +108,7 @@ void PrintState(INDEX x, INDEX y, enum DIRECTION dir )
 			break;
 	}
 }
+
 void RunMoves()
 {
 	INDEX x=0, y=0;
@@ -125,7 +126,7 @@ void RunMoves()
 			exit(0);
 		}
 
-		move = MoveFindBest( x, y, dir, &FloodMap );
+		move = MoveFindBest( x, y, dir, &FloodMap, &Map );
 
 		PrintMove( move );
 
