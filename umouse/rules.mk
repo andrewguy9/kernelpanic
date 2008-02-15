@@ -13,4 +13,5 @@ umouse/movetest.o: umouse/movetest.c
 
 #motor control
 umouse/$(TARGET)_motor.o: umouse/motor.c umouse/motor.h
-umouse/motortest.o: umouse/motortest.o
+
+umouse/motortest.o: umouse/motortest.c

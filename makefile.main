@@ -21,7 +21,7 @@ utils/linktest.out: utils/linktest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET
 
 utils/ringtest.out: utils/ringtest.o utils/$(TARGET)_ringbuffer.o
 
-utils/flagtest.out: utils/flagtest.o
+utils/flagtest.out: utils/flagtest.o utils/$(TARGET)_flags.o
 
 utils/bhamtest.out: utils/bhamtest.o utils/$(TARGET)_bham.o
 
