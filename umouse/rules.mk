@@ -10,3 +10,7 @@ umouse/floodfilltest.o:	umouse/floodfilltest.c
 umouse/$(TARGET)_move.o: umouse/move.c umouse/move.h
 
 umouse/movetest.o: umouse/movetest.c
+
+#motor control
+umouse/$(TARGET)_motor.o: umouse/motor.c umouse/motor.h
+umouse/motortest.o: umouse/motortest.o
