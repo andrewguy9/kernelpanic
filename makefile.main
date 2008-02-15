@@ -12,7 +12,7 @@ include test/rules.mk
 
 tests: utils/linktest.out utils/ringtest.out utils/flagtest.out umouse/maptest.out utils/bhamtest.out umouse/floodfilltest.out umouse/movetest.out
 
-umouse: test0.elf test1.elf test2.elf test3.elf test4.elf test5.elf
+umouse: test0.elf test1.elf test2.elf test3.elf test4.elf test5.elf test6.elf
 
 #########################
 #utils on board tests
@@ -51,4 +51,7 @@ test3.out: test/test3.o kernel/panic.o kernel/resource.o kernel/semaphore.o kern
 test4.out: test/test4.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o kernel/interrupt.o kernel/blockingcontext.o
 
 test5.out: test/test5.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/blockingcontext.o kernel/semaphore.o
+
+test6.out: test/test6.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/blockingcontext.o kernel/worker.o
+
 ###############################
