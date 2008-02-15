@@ -3,6 +3,7 @@
 #include"../utils/linkedlist.h"
 
 /*
+ * TODO update comment to reflect real semaphore rules
  * Semaphore Unit Description
  * Implements a semaphore thread only syncronization mechanism. 
  *

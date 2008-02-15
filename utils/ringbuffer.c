@@ -1,5 +1,9 @@
 #include"ringbuffer.h"
 
+/*
+ * Implements a ring buffer.
+ */
+
 //
 //Private Routines
 //

@@ -3,6 +3,10 @@
 #include"../kernel/semaphore.h"
 #include"../kernel/panic.h"
 
+/*
+ * Tests the semaphore unit, both blocking and non blocking unit.
+ */
+
 //
 //Semaphores
 //

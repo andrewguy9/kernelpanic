@@ -4,6 +4,11 @@
 #include"heap.h"
 #include"linkedlist.h"
 
+/*
+ * tests the linked list unit. 
+ * Prints data structures to terminal for validation.
+ */
+
 struct ELEMENT
 {
 	union LINK Link;

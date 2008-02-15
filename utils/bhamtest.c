@@ -2,6 +2,11 @@
 #include"utils.h"
 #include<stdio.h>
 
+/*
+ * Tests the bham unit.
+ * Prints the slope to the screen for validation.
+ */
+
 struct BHAM Bham;
 
 void PrintGraph( struct BHAM * bham, COUNT maxTicks )
