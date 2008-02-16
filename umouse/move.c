@@ -1,7 +1,7 @@
 #include"move.h"
 #include"../utils/utils.h"
 
-#define NUM_MOVES 7
+#define NUM_MOVES 5
 
 //define funcitons which look for walls
 BOOL MoveNoMovementCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map )
@@ -37,7 +37,7 @@ BOOL MoveIntegratedCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * mov
 
 //fb,rl,turn
 struct MOVE MoveNowhere = { 0, 0, STRAIGHT, MoveNoMovementCheck };
-struct MOVE MoveStright = { 1, 0, STRAIGHT, MoveSingleCheck };
+struct MOVE MoveStraight = { 1, 0, STRAIGHT, MoveSingleCheck };
 struct MOVE MoveBack = { -1, 0, BACK, MoveSingleCheck };
 struct MOVE MoveLeft = { 0, -1, LEFT, MoveSingleCheck };
 struct MOVE MoveRight = { 0, 1, RIGHT, MoveSingleCheck };
@@ -46,7 +46,7 @@ struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveIntegratedCheck };
 
 struct MOVE * Moves[NUM_MOVES] = { 
 	&MoveNowhere,
-	&MoveStright, 
+	&MoveStraight, 
 	&MoveBack, 
 	&MoveLeft, 
 	&MoveRight, 

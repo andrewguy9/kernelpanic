@@ -102,22 +102,22 @@ void FloodFillCalculate(
 	while(TRUE)
 	{
 #ifdef PC_BUILD
-		printf("start\n");
+		//printf("start\n");
 #endif
-		FlagsPrint( floodMap->EventMap, FLOOD_MAP_ITEMS_NEEDED(floodMap->Width, floodMap->Height) );
+		//FlagsPrint( floodMap->EventMap, FLOOD_MAP_ITEMS_NEEDED(floodMap->Width, floodMap->Height) );
 		FloodGetEvent(&x, &y, floodMap);
 
 		if( x == -1 && y == -1 )
 		{//no events to process
 #ifdef PC_BUILD
-			printf("no events\n");
+			//printf("no events\n");
 #endif
 			return;
 		}
 
 		curValue = FloodFillGet( x,y, floodMap );
 #ifdef PC_BUILD
-		printf("curValue = %d", curValue );
+		//printf("curValue = %d", curValue );
 #endif
 
 		if( ! MapGetWall( x, y, EAST, map ) && 

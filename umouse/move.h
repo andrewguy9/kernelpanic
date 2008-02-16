@@ -18,7 +18,7 @@ struct MOVE
 };
 
 extern struct MOVE MoveNowhere;
-extern struct MOVE MoveStright;
+extern struct MOVE MoveStraight;
 extern struct MOVE MoveBack;
 extern struct MOVE MoveLeft;
 extern struct MOVE MoveRight;
