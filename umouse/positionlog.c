@@ -25,6 +25,8 @@ void ScanLogSet( INDEX x, INDEX y, BOOL flagState, struct SCAN_LOG * mapLog )
 
 BOOL ScanLogGet( INDEX x, INDEX y, struct SCAN_LOG * mapLog )
 {
+	if( x >= mapLog->Width || y >= mapLog->Height )
+		return FALSE;//we cannot scan cells outside map.
 	return FlagGet( mapLog->Flags, XY_TO_INDEX(x,y,mapLog) );
 }
 

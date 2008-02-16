@@ -23,6 +23,8 @@ extern struct MOVE MoveStraight;
 extern struct MOVE MoveBack;
 extern struct MOVE MoveLeft;
 extern struct MOVE MoveRight;
+extern struct MOVE MoveTurnLeft;
+extern struct MOVE MoveTurnRight;
 extern struct MOVE MoveIntegratedLeft;
 extern struct MOVE MoveIntegratedRight;
 

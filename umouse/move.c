@@ -1,7 +1,7 @@
 #include"move.h"
 #include"../utils/utils.h"
 
-#define NUM_MOVES 5
+#define NUM_MOVES 9
 
 //define funcitons which look for walls
 BOOL MoveNoMovementCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
@@ -9,14 +9,29 @@ BOOL MoveNoMovementCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * mov
 	return TRUE;
 }
 
+BOOL MoveSpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
+{
+	//the move just rotates, so simuate rotate and make sure were not facing a wall
+	dir = TURN(dir, move->Dtheta);
+	return ! MapGetWall( x, y, dir, map );
+}
+
 BOOL MoveSingleCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
+	BOOL wall;
+	BOOL scanned;
 	//we are going to turn and go forward
-	//simulate the turn and see if a wall faces you
+	//simulate the turn and move
 	MoveApply( &x, &y, &dir, move );
 	//check see if there is a wall behind us
 	dir = TURN( dir, BACK );
-	return !MapGetWall( x, y, dir, map );
+	wall = MapGetWall( x, y, dir, map );
+
+	//we move into new cell, make sure we scanned it first
+	scanned = ScanLogGet( x, y, scan );
+
+	//move is ok if no wall and scanned
+	return !wall && scanned;
 }
 
 BOOL MoveIntegratedCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
@@ -35,12 +50,14 @@ BOOL MoveIntegratedCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * mov
 	return !MapGetWall( x, y, dir, map ) && ScanLogGet(x,y,scan);
 }
 
-//fb,rl,turn
+//fb,rl,turn,verification function
 struct MOVE MoveNowhere = { 0, 0, STRAIGHT, MoveNoMovementCheck };
 struct MOVE MoveStraight = { 1, 0, STRAIGHT, MoveSingleCheck };
 struct MOVE MoveBack = { -1, 0, BACK, MoveSingleCheck };
 struct MOVE MoveLeft = { 0, -1, LEFT, MoveSingleCheck };
 struct MOVE MoveRight = { 0, 1, RIGHT, MoveSingleCheck };
+struct MOVE MoveTurnLeft = { 0, 0, LEFT, MoveSpinCheck };
+struct MOVE MoveTurnRight = { 0, 0, RIGHT, MoveSpinCheck };
 struct MOVE MoveIntegratedLeft = { 1, -1, LEFT, MoveIntegratedCheck };
 struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveIntegratedCheck };
 
@@ -50,6 +67,8 @@ struct MOVE * Moves[] = {
 	&MoveBack, 
 	&MoveLeft, 
 	&MoveRight, 
+	&MoveTurnLeft,
+	&MoveTurnRight,
 	&MoveIntegratedLeft, 
 	&MoveIntegratedRight
 };

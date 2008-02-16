@@ -175,6 +175,10 @@ void PrintMove( struct MOVE * move )
 		printf("move interated left ");
 	else if( move == &MoveIntegratedRight)
 		printf("move integrated right ");
+	else if( move == &MoveTurnLeft)
+		printf("move turning left");
+	else if( move == &MoveTurnRight)
+		printf("move turning right");
 	else
 	{
 		printf("NOT POSSIBLE MOVE\n");
@@ -226,7 +230,7 @@ void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir)
 		}
 	}
 	//Log that we scanned the cell.
-	ScanLogSet(x,y,TRUE,&ScanLog);
+	ScanLogSet(newX,newY,TRUE,&ScanLog);
 
 	if( mapChanged )
 	{
@@ -291,9 +295,12 @@ int main()
 	//Initialize Maps
 	MapInit( &WorldMap, WorldMapBuff, MapSizeNeeded(WIDTH,HEIGHT), WIDTH, HEIGHT );
 	MapInit( &MouseMap, MouseMapBuff, MapSizeNeeded(WIDTH,HEIGHT), WIDTH, HEIGHT );
+	ScanLogInit(WIDTH,HEIGHT,ScanLogBuff,&ScanLog);
+
+	//set mouse starting cell
 	MapSetWall( 0, 0, EAST, TRUE, &WorldMap );
 	MapSetWall( 0, 0, EAST, TRUE, &MouseMap );
-	ScanLogInit(WIDTH,HEIGHT,ScanLogBuff,&ScanLog);
+	ScanLogSet( 0, 0, TRUE, &ScanLog );
 
 	printf("SCAN STARTING VALUES\n");
 	PrintMapScan( &WorldMap, &ScanLog, 0, 0, NORTH);
