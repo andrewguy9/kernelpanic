@@ -9,6 +9,9 @@
 #define WIDTH 8
 #define HEIGHT 8
 
+INDEX DestX;
+INDEX DestY;
+
 void PrintMapFlood( struct MAP * map, struct FLOOD_MAP * flood, INDEX mouseX, INDEX mouseY, enum DIRECTION mouseDir)
 {
 	INDEX x, y;
@@ -208,35 +211,44 @@ void PrintState(INDEX x, INDEX y, enum DIRECTION dir )
 
 void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir)
 {
-	INDEX newX, newY;
+	INDEX scanX, scanY;
 	BOOL mapChanged = FALSE;
 	enum DIRECTION testDir;
 
-	newX = x;
-	newY = y;
+	scanX = x;
+	scanY = y;
 
-	//check the cell in front of mouse.
-	MoveApply( &newX, &newY, &dir, &MoveStraight );
+	//calc coordinates of cell in front of mouse.
+	MoveApply( &scanX, &scanY, &dir, &MoveStraight );
 
-	//now xy is sensor position.
-	//check walls for changes to update floodfill
-	for(testDir = NORTH; testDir <= WEST; testDir++)
+	//see if there is a wall infront of us
+	if( ! MapGetWall( x, y, dir, &WorldMap ))
 	{
-		if( ! MapGetWall( newX, newY, testDir, &MouseMap ) &&
-				MapGetWall( newX, newY, testDir, &WorldMap ) )
-		{//mouse just saw new wall
-			MapSetWall( newX, newY, testDir, TRUE, &MouseMap );
-			mapChanged = TRUE;
+		printf("scanning\n");
+		//no wall so we can scan.
+		//check walls for changes to update floodfill
+		for(testDir = NORTH; testDir <= WEST; testDir++)
+		{
+			if( ! MapGetWall( scanX, scanY, testDir, &MouseMap ) &&
+					MapGetWall( scanX, scanY, testDir, &WorldMap ) )
+			{//mouse just saw new wall
+				MapSetWall( scanX, scanY, testDir, TRUE, &MouseMap );
+				mapChanged = TRUE;
+			}
 		}
+		//Log that we scanned the cell.
+		ScanLogSet(scanX,scanY,TRUE,&ScanLog);
 	}
-	//Log that we scanned the cell.
-	ScanLogSet(newX,newY,TRUE,&ScanLog);
+	else
+	{
+		printf("cant scan\n");
+	}
 
 	if( mapChanged )
 	{
-		printf( "found new walls at (%d,%d)\n", newX, newY );
+		printf( "found new walls at (%d,%d)\n", scanX, scanY );
 		FloodFillClear( &FloodMap );
-		FloodFillSetDestination( WIDTH/2, HEIGHT/2, &FloodMap );
+		FloodFillSetDestination( DestX, DestY, &FloodMap );
 		FloodFillCalculate( &MouseMap, &FloodMap );
 	}
 
@@ -255,6 +267,7 @@ void RunMoves()
 
 	do
 	{
+		printf("------------------------------------------------------\n");
 		//Map the area infront of you
 		UpdateMap( x, y, dir );
 
@@ -302,13 +315,11 @@ int main()
 	MapSetWall( 0, 0, EAST, TRUE, &MouseMap );
 	ScanLogSet( 0, 0, TRUE, &ScanLog );
 
-	printf("SCAN STARTING VALUES\n");
-	PrintMapScan( &WorldMap, &ScanLog, 0, 0, NORTH);
-
 	//Populate the world map with sample maze
 	MakeLines( 0, 0, WIDTH, HEIGHT, 2, 3, &WorldMap, EAST );
 	MakeLines( 0, 0, WIDTH, HEIGHT, 2, 2, &WorldMap, SOUTH );
-	MakeLines( 0, 1, WIDTH/2, HEIGHT, 1, 8, &WorldMap, NORTH );
+	MakeLines( 0, 1, WIDTH/2, HEIGHT, 1, 8, &WorldMap, NORTH );	
+	MakeLines( 4, 4, WIDTH, HEIGHT, 8, 1, &WorldMap, EAST );
 
 	//Set up flood fill.
 	FloodFillInit( 
@@ -318,9 +329,12 @@ int main()
 			FloodEventBuff, 
 			&FloodMap );
 
-	//Start the mouse
+	//Start the mouse towards center
+	DestX = WIDTH/2;
+	DestY = HEIGHT/2;
+
 	RunMoves( );
-	
+
 	printf("done\n");
 	return 0;
 }
