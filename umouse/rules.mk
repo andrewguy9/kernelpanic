@@ -11,7 +11,10 @@ umouse/$(TARGET)_move.o: umouse/move.c umouse/move.h
 
 umouse/movetest.o: umouse/movetest.c
 
+umouse/$(TARGET)_positionlog.o: umouse/positionlog.c umouse/positionlog.h
+
 #motor control
 umouse/$(TARGET)_motor.o: umouse/motor.c umouse/motor.h
 
 umouse/motortest.o: umouse/motortest.c
+
