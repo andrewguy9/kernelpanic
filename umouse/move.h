@@ -4,10 +4,11 @@
 #include"../utils/utils.h"
 #include"floodfill.h"
 #include"compass.h"
+#include"positionlog.h"
 
 struct MOVE;
 
-typedef BOOL (WALLS_CHECK_HANDLER)(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map );
+typedef BOOL (WALLS_CHECK_HANDLER)(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG * scan );
 
 struct MOVE 
 {
@@ -34,6 +35,7 @@ struct MOVE * MoveFindBest(
 		INDEX startY, 
 		enum DIRECTION startDir, 
 		struct FLOOD_MAP * flood, 
-		struct MAP * map );
+		struct MAP * map,
+	   	struct SCAN_LOG * scanLog);
 
 #endif

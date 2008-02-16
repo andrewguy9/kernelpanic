@@ -31,7 +31,7 @@ umouse/motortest.out: umouse/$(TARGET)_motor.o umouse/motortest.o
 
 umouse/floodfilltest.out: umouse/floodfilltest.o umouse/$(TARGET)_floodfill.o utils/$(TARGET)_flags.o umouse/$(TARGET)_map.o
 
-umouse/movetest.out: umouse/movetest.o umouse/$(TARGET)_move.o umouse/$(TARGET)_map.o utils/$(TARGET)_flags.o umouse/$(TARGET)_floodfill.o
+umouse/movetest.out: umouse/movetest.o umouse/$(TARGET)_move.o umouse/$(TARGET)_map.o utils/$(TARGET)_flags.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_positionlog.o
 ############################
 test0.elf: test0.out
 

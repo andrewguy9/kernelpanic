@@ -4,12 +4,12 @@
 #define NUM_MOVES 5
 
 //define funcitons which look for walls
-BOOL MoveNoMovementCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map )
+BOOL MoveNoMovementCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
 	return TRUE;
 }
 
-BOOL MoveSingleCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map )
+BOOL MoveSingleCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
 	//we are going to turn and go forward
 	//simulate the turn and see if a wall faces you
@@ -19,20 +19,20 @@ BOOL MoveSingleCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, s
 	return !MapGetWall( x, y, dir, map );
 }
 
-BOOL MoveIntegratedCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map )
+BOOL MoveIntegratedCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
 	//we are going to go forward 1 cell, check for a wall in that dir
-	if( MapGetWall( x, y, dir, map ) )
+	if( MapGetWall( x, y, dir, map ) || !ScanLogGet(x,y,scan) )
 	{
-		//there is a wall, fail move
+		//there is a wall or not explored
 		return FALSE;
 	}
 
 	//at the end of the move we will be facing a new direction
 	MoveApply( &x, &y, &dir, move );
-	//check see if there is a wall behind us
+	//check see if there is a wall behind us or we didn't explore
 	dir = TURN( dir, BACK );
-	return !MapGetWall( x, y, dir, map );
+	return !MapGetWall( x, y, dir, map ) && ScanLogGet(x,y,scan);
 }
 
 //fb,rl,turn
@@ -89,7 +89,13 @@ void MoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, struct MOVE * move )
 	*dir = TURN( *dir, move->Dtheta );
 }
 
-struct MOVE * MoveFindBest(INDEX startX, INDEX startY, enum DIRECTION startDir, struct FLOOD_MAP * flood, struct MAP * map )
+struct MOVE * MoveFindBest(
+		INDEX startX,
+	   	INDEX startY,
+	   	enum DIRECTION startDir,
+	   	struct FLOOD_MAP * flood, 
+		struct MAP * map,
+		struct SCAN_LOG * scanLog)
 {
 	BOOL validMove;
 	INDEX bestMove = 0;
@@ -108,7 +114,7 @@ struct MOVE * MoveFindBest(INDEX startX, INDEX startY, enum DIRECTION startDir, 
 		dir = startDir;
 
 		//test to see if move is valid (dont cross walls)
-		validMove = Moves[curMove]->Check(x,y,dir,Moves[curMove],map);
+		validMove = Moves[curMove]->Check(x,y,dir,Moves[curMove],map,scanLog);
 
 		if( !validMove)
 			continue;
