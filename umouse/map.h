@@ -3,6 +3,8 @@
 
 #include"../utils/utils.h"
 #include"../utils/flags.h"
+#include"compass.h"
+
 //
 //Default map height and width
 //
@@ -27,10 +29,6 @@
 //Map structure
 //
 
-enum DIRECTION { NORTH = 0, EAST = 1, SOUTH = 2, WEST = 3 };
-enum ANGLE { STRAIGHT = 0, RIGHT = 1, BACK = 2, LEFT = 3 };
-#define DIR_MASK 0x03
-#define TURN( dir, angle ) ( ((dir)+(angle)) & DIR_MASK )
 struct MAP
 {
 	FLAG_WORD * VWalls;

@@ -10,7 +10,7 @@ include test/rules.mk
 
 #########################
 
-tests: utils/linktest.out utils/ringtest.out utils/flagtest.out umouse/maptest.out utils/bhamtest.out umouse/motortest.out
+tests: utils/linktest.out utils/ringtest.out utils/flagtest.out umouse/maptest.out utils/bhamtest.out umouse/motortest.out umouse/floodfilltest.out umouse/movetest.out
 
 umouse: test0.elf test1.elf test2.elf test3.elf test4.elf test5.elf test6.elf
 

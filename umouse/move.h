@@ -3,16 +3,18 @@
 
 #include"../utils/utils.h"
 #include"floodfill.h"
+#include"compass.h"
+
 struct MOVE;
 
-typedef BOOL (WALLS_OK_FUNCTION)(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map );
+typedef BOOL (WALLS_CHECK_HANDLER)(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map );
 
 struct MOVE 
 {
-	int Dfb;
-	int Drl;
-	enum ANGLE Dtheta;
-	WALLS_OK_FUNCTION * Check;
+	int Dfb;//spaces moved forward (positive) or backward (negative)
+	int Drl;//spaces moved right (positive) or left (negative)
+	enum ANGLE Dtheta;//Rotation from starting orientation.
+	WALLS_CHECK_HANDLER * Check;//Function to check for wall collisions.
 };
 
 extern struct MOVE MoveNowhere;
@@ -23,8 +25,15 @@ extern struct MOVE MoveRight;
 extern struct MOVE MoveIntegratedLeft;
 extern struct MOVE MoveIntegratedRight;
 
-
+//Applies a move to mouse state variables x, y and dir.
 void MoveApply(INDEX *x, INDEX *y, enum DIRECTION * dir, struct MOVE * move );
 
-struct MOVE * MoveFindBest(INDEX startX, INDEX startY, enum DIRECTION startDir, struct FLOOD_MAP * flood, struct MAP * map );
+//Finds the best move given an up to date floodmap and map at position startx, starty and startdir. 
+struct MOVE * MoveFindBest(
+		INDEX startX, 
+		INDEX startY, 
+		enum DIRECTION startDir, 
+		struct FLOOD_MAP * flood, 
+		struct MAP * map );
+
 #endif
