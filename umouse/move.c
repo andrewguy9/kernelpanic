@@ -44,7 +44,7 @@ struct MOVE MoveRight = { 0, 1, RIGHT, MoveSingleCheck };
 struct MOVE MoveIntegratedLeft = { 1, -1, LEFT, MoveIntegratedCheck };
 struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveIntegratedCheck };
 
-struct MOVE * Moves[NUM_MOVES] = { 
+struct MOVE * Moves[] = { 
 	&MoveNowhere,
 	&MoveStraight, 
 	&MoveBack, 

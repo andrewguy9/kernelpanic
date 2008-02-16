@@ -206,6 +206,11 @@ void RunMoves()
 
 	}while( FloodFillGet( x, y, &FloodMap) != 0 );
 	printf("Ended up at (%d,%d)\n",x,y);
+	printf("world map\n");
+	PrintMap( &WorldMap, &FloodMap, x, y, dir );
+	printf("mouse map\n");
+	PrintMap( &MouseMap, &FloodMap, x, y, dir );
+
 }
 
 int main()
@@ -232,12 +237,5 @@ int main()
 	RunMoves( );
 	
 	printf("done\n");
-	printf("final state\n");
-
-	printf("world map\n");
-	PrintMap( &WorldMap, &FloodMap, 0, 0, NORTH );
-	printf("mouse map\n");
-	PrintMap( &MouseMap, &FloodMap, 0, 0, NORTH );
-	
 	return 0;
 }
