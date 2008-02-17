@@ -9,9 +9,6 @@
 #define WIDTH 8
 #define HEIGHT 8
 
-INDEX DestX;
-INDEX DestY;
-
 void PrintMapFlood( struct MAP * map, struct FLOOD_MAP * flood, INDEX mouseX, INDEX mouseY, enum DIRECTION mouseDir)
 {
 	INDEX x, y;
@@ -209,7 +206,7 @@ void PrintState(INDEX x, INDEX y, enum DIRECTION dir )
 	}
 }
 
-void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir)
+void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, INDEX destX, INDEX destY)
 {
 	INDEX scanX, scanY;
 	BOOL mapChanged = FALSE;
@@ -248,7 +245,7 @@ void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir)
 	{
 		printf( "found new walls at (%d,%d)\n", scanX, scanY );
 		FloodFillClear( &FloodMap );
-		FloodFillSetDestination( DestX, DestY, &FloodMap );
+		FloodFillSetDestination( destX, destY, &FloodMap );
 		FloodFillCalculate( &MouseMap, &FloodMap );
 	}
 
@@ -258,18 +255,44 @@ void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir)
 	PrintMapFlood( &MouseMap, &FloodMap, x, y, dir );
 }
 
-void RunMoves()
+void RunMoves(INDEX * startX, INDEX *startY, INDEX *startDir, INDEX destX, INDEX destY )
 {
 	//Mouse state variables.
-	INDEX x=0, y=0;
-	enum DIRECTION dir = NORTH;
+	INDEX x= *startX, y= *startY;
+	enum DIRECTION dir = *startDir;
 	struct MOVE * move = &MoveNowhere;
+	COUNT straightAway; 
 
+	//force a flood fill calculation
+	FloodFillClear( &FloodMap );
+	FloodFillSetDestination( destX, destY, &FloodMap );
+	FloodFillCalculate( &MouseMap, &FloodMap );
+
+	//start makeing moves
 	do
 	{
 		printf("------------------------------------------------------\n");
+
+		//see if we are in straight away.
+		straightAway = MoveStraightAwayLength(
+				x,
+				y,
+				dir,
+				&MouseMap,
+				&FloodMap,
+				&ScanLog);
+		if( straightAway > 0 )
+		{
+			printf("speeding %d cells in straight away\n", straightAway);
+			while(straightAway>0)
+			{
+				MoveApply( &x, &y, &dir, &MoveStraight );
+				straightAway--;
+			}
+		}
+
 		//Map the area infront of you
-		UpdateMap( x, y, dir );
+		UpdateMap( x, y, dir, destX, destY );
 
 		//Print the state
 		printf("dist = %d ", FloodFillGet( x, y, &FloodMap));
@@ -290,17 +313,20 @@ void RunMoves()
 		printf("now at ");
 		PrintState(x,y,dir);
 
-		printf("dist = %d ", FloodFillGet( x, y, &FloodMap));
-
-		printf("\n");
+		printf("dist = %d \n", FloodFillGet( x, y, &FloodMap));
 
 	}while( FloodFillGet( x, y, &FloodMap) != 0 );
+
 	printf("Ended up at (%d,%d)\n",x,y);
 	printf("world map\n");
 	PrintMapFlood( &WorldMap, &FloodMap, x, y, dir );
 	printf("mouse map\n");
 	PrintMapFlood( &MouseMap, &FloodMap, x, y, dir );
 
+	//output back to main
+	*startX = x;
+	*startY = y;
+	*startDir = dir;
 }
 
 int main()
@@ -329,12 +355,14 @@ int main()
 			FloodEventBuff, 
 			&FloodMap );
 
-	//Start the mouse towards center
-	DestX = WIDTH/2;
-	DestY = HEIGHT/2;
+	INDEX x=0,y=0;
+	enum DIRECTION dir=NORTH;
+	RunMoves( &x,&y,&dir, WIDTH/2, HEIGHT/2 );
 
-	RunMoves( );
+	printf("explore done\n");
 
-	printf("done\n");
+	RunMoves(&x,&y,&dir,0,0);
+
+	printf("return done\n");
 	return 0;
 }

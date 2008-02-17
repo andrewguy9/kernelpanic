@@ -40,4 +40,11 @@ struct MOVE * MoveFindBest(
 		struct MAP * map,
 	   	struct SCAN_LOG * scanLog);
 
+COUNT MoveStraightAwayLength(
+		INDEX startX,
+		INDEX startY,
+		enum DIRECTION dir,
+		struct MAP * map,
+		struct FLOOD_MAP * floodMap,
+		struct SCAN_LOG * scan);
 #endif

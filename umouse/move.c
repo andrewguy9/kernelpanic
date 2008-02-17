@@ -1,8 +1,6 @@
 #include"move.h"
 #include"../utils/utils.h"
 
-#define NUM_MOVES 9
-
 //define funcitons which look for walls
 BOOL MoveNoMovementCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
@@ -11,7 +9,8 @@ BOOL MoveNoMovementCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * mov
 
 BOOL MoveSpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
-	//the move just rotates, so simuate rotate and make sure were not facing a wall
+	//the move just rotates, so simuate rotate and 
+	//make sure were not facing a wall
 	dir = TURN(dir, move->Dtheta);
 	return ! MapGetWall( x, y, dir, map );
 }
@@ -61,14 +60,15 @@ struct MOVE MoveTurnRight = { 0, 0, RIGHT, MoveSpinCheck };
 struct MOVE MoveIntegratedLeft = { 1, -1, LEFT, MoveIntegratedCheck };
 struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveIntegratedCheck };
 
+#define NUM_MOVES 9
 struct MOVE * Moves[] = { 
 	&MoveNowhere,
 	&MoveStraight, 
 	&MoveBack, 
 	&MoveLeft, 
 	&MoveRight, 
-	&MoveTurnLeft,
 	&MoveTurnRight,
+	&MoveTurnLeft,
 	&MoveIntegratedLeft, 
 	&MoveIntegratedRight
 };
@@ -116,14 +116,24 @@ struct MOVE * MoveFindBest(
 		struct MAP * map,
 		struct SCAN_LOG * scanLog)
 {
-	BOOL validMove;
-	INDEX bestMove = 0;
-	INDEX curMove;
+	BOOL validMove;//wheather the move is legal
+	INDEX bestMove = 0; //index of best move so far.
+	INDEX curMove;//index of current move.
 
-	INDEX x,y,dir;
-	//do move nowhere.
-	unsigned char curDist;
+	INDEX x,y,dir;//position of mouse
+	INDEX nextX, nextY, nextDir;//position of cell in front of mouse
+
+	unsigned char curDist;//dist of current move
+	unsigned char curNextDist;//dist of cell in from of current move.
+	
+	//do move nowhere (for reference.)
 	unsigned char bestDist = FloodFillGet( x, y, flood );
+	nextX = x;
+	nextY = y;
+	nextDir = dir;
+	MoveApply( &nextX, &nextY, &nextDir, &MoveStraight );
+	unsigned char bestNextDist = FloodFillGet( nextX, nextY, flood );
+
 
 	for(curMove = 1; curMove < NUM_MOVES; curMove ++ )
 	{
@@ -141,15 +151,78 @@ struct MOVE * MoveFindBest(
 		//apply move to final position
 		MoveApply( &x, &y, &dir, Moves[curMove] );
 
-		//get the distance
+		//get the distance to destination
 		curDist = FloodFillGet( x, y, flood );
 
+		//get the distance from the cell we are facing to the desination
+		nextX = x;
+		nextY = y;
+		nextDir = dir;
+		MoveApply( &nextX, &nextY, &nextDir, &MoveStraight );
+		curNextDist = FloodFillGet( nextX, nextY, flood );
+
 		//check for improvement
-		if( curDist < bestDist )
-		{//this move is better than our current best, switch
+		if( (curDist < bestDist) || 
+				(curDist == bestDist && curNextDist < bestNextDist) ||
+		 		(curDist == bestDist && curNextDist == bestNextDist && dir == startDir))
+		{
+			//this move is better than our current best, switch:
+			//better is defined as (in decending importance)
+			//	has lower floodfill, 
+			//	is facing a cell with lower floodfill, 
+			//	is facing same direction as we started.
 			bestDist = curDist;
+			bestNextDist = curNextDist;
 			bestMove = curMove;
 		}
 	}
 	return Moves[bestMove];
+}
+
+COUNT MoveStraightAwayLength(
+		INDEX curX,
+		INDEX curY,
+		enum DIRECTION dir,
+		struct MAP * map,
+		struct FLOOD_MAP * flood,
+		struct SCAN_LOG * scan)
+{
+	INDEX nextX;
+	INDEX nextY;
+
+	//straight aways are corridors which have 
+	//decending floodfill, cross no walls and 
+	//consist only of scanned cells.
+	COUNT numSteps = 0;
+	unsigned char curFlood;
+	unsigned char nextFlood;
+
+	//get start flood for reference
+	curFlood = FloodFillGet( curX, curY, flood );
+	do
+	{
+		nextX = curX;
+		nextY = curY;
+
+		//get cordninates of next cell
+		MoveApply( &nextX, &nextY , &dir , &MoveStraight );
+
+		//check the move is actually valid
+		if( ! MoveSingleCheck(nextX, nextY, dir, &MoveStraight, map, scan) )
+			break;//move not legal, must have crossed a wall or non scanned cell
+
+		//check floodfill dropping
+		nextFlood = FloodFillGet( nextX, nextY, flood );
+		if( nextFlood >= curFlood )
+			break;//no improvement
+
+		//move is success, commit to move
+		curX = nextX;
+		curY = nextY;
+		curFlood = nextFlood;
+		numSteps++;
+		
+	}while(TRUE);
+
+	return numSteps;
 }
