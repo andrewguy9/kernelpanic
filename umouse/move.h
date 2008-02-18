@@ -5,6 +5,7 @@
 #include"floodfill.h"
 #include"compass.h"
 #include"positionlog.h"
+#include"submove.h"
 
 struct MOVE;
 
@@ -16,6 +17,7 @@ struct MOVE
 	int Drl;//spaces moved right (positive) or left (negative)
 	enum ANGLE Dtheta;//Rotation from starting orientation.
 	WALLS_CHECK_HANDLER * Check;//Function to check for wall collisions.
+	enum SUB_MOVE SubMoves[5];
 };
 
 extern struct MOVE MoveNowhere;

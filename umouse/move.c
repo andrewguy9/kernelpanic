@@ -1,5 +1,6 @@
 #include"move.h"
 #include"../utils/utils.h"
+#include"submove.h"
 
 //define funcitons which look for walls
 BOOL MoveNoMovementCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
@@ -103,22 +104,58 @@ BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, 
 }
 
 //Stuck Moves
-struct MOVE MoveNowhere = { 0, 0, STRAIGHT, MoveNoMovementCheck };//dont turn or move
+struct MOVE MoveNowhere = { 0, 0, STRAIGHT, MoveNoMovementCheck,
+	{SUB_MOVE_DONE} };//dont turn or move
 //Single Cell Moves
-struct MOVE MoveStraight = { 1, 0, STRAIGHT, MoveSingleCheck };//move forward 1 cell
-struct MOVE MoveBack = { -1, 0, BACK, MoveSingleCheck };//turn around and move forward 1 cell//not really needed
-struct MOVE MoveLeft = { 0, -1, LEFT, MoveSingleCheck };//turn left and move 1 cell
-struct MOVE MoveRight = { 0, 1, RIGHT, MoveSingleCheck };//turn right and move 1 cell
+struct MOVE MoveStraight = { 1, 0, STRAIGHT, MoveSingleCheck,
+	{	SUB_MOVE_FORWARD_WHOLE, 
+		SUB_MOVE_DONE} };//move forward 1 cell
+struct MOVE MoveBack = { -1, 0, BACK, MoveSingleCheck,
+   	{	SUB_MOVE_TURN_AROUND,
+		SUB_MOVE_FORWARD_WHOLE,
+		SUB_MOVE_DONE} };//turn around and move forward 1 cell//not really needed
+struct MOVE MoveLeft = { 0, -1, LEFT, MoveSingleCheck, 
+	{	SUB_MOVE_TURN_LEFT, 
+		SUB_MOVE_FORWARD_WHOLE, 
+		SUB_MOVE_DONE} };//turn left and move 1 cell
+struct MOVE MoveRight = { 0, 1, RIGHT, MoveSingleCheck, 
+	{	SUB_MOVE_TURN_RIGHT, 
+		SUB_MOVE_FORWARD_WHOLE, 
+		SUB_MOVE_DONE} };//turn right and move 1 cell
 //Spin Moves
-struct MOVE MoveTurnBack = {0, 0, BACK, MoveSpinCheck};//turn back
-struct MOVE MoveTurnLeft = { 0, 0, LEFT, MoveSpinCheck };//turn left 
-struct MOVE MoveTurnRight = { 0, 0, RIGHT, MoveSpinCheck };//turn right
+struct MOVE MoveTurnBack = {0, 0, BACK, MoveSpinCheck, 
+	{	SUB_MOVE_TURN_AROUND,
+		SUB_MOVE_DONE} };//turn back
+struct MOVE MoveTurnLeft = { 0, 0, LEFT, MoveSpinCheck, 
+	{	SUB_MOVE_TURN_LEFT, 
+		SUB_MOVE_DONE} };//turn left 
+struct MOVE MoveTurnRight = { 0, 0, RIGHT, MoveSpinCheck, 
+	{	SUB_MOVE_TURN_RIGHT, 
+		SUB_MOVE_DONE} };//turn right
 //Integrated Moves
-struct MOVE MoveIntegratedLeft = { 1, -1, LEFT, MoveIntegratedCheck };//turn left while moving forward
-struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveIntegratedCheck };//turn right while moving forward
+struct MOVE MoveIntegratedLeft = { 1, -1, LEFT, MoveIntegratedCheck,
+	{	SUB_MOVE_FORWARD_HALF, 
+		SUB_MOVE_INTEGRATE_LEFT, 
+		SUB_MOVE_FORWARD_HALF, 
+		SUB_MOVE_DONE} };//turn left while moving forward
+struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveIntegratedCheck, 
+	{	SUB_MOVE_FORWARD_HALF, 
+		SUB_MOVE_INTEGRATE_RIGHT, 
+		SUB_MOVE_FORWARD_HALF, 
+		SUB_MOVE_DONE} };//turn right while moving forward
 //Hairpin Moves
-struct MOVE MoveHairpinLeft = { 0, -1, BACK, MoveHairpinCheck };
-struct MOVE MoveHairpinRight = {0, 1, BACK, MoveHairpinCheck };
+struct MOVE MoveHairpinLeft = { 0, -1, BACK, MoveHairpinCheck,
+   	{	SUB_MOVE_FORWARD_HALF, 
+		SUB_MOVE_INTEGRATE_LEFT, 
+		SUB_MOVE_INTEGRATE_LEFT,
+	   	SUB_MOVE_FORWARD_HALF,
+	   	SUB_MOVE_DONE} };
+struct MOVE MoveHairpinRight = {0, 1, BACK, MoveHairpinCheck, 
+	{	SUB_MOVE_FORWARD_HALF, 
+		SUB_MOVE_INTEGRATE_RIGHT,
+	   	SUB_MOVE_INTEGRATE_RIGHT, 
+		SUB_MOVE_FORWARD_HALF, 
+		SUB_MOVE_DONE} };
 
 #define NUM_MOVES 11
 struct MOVE * Moves[] = { 

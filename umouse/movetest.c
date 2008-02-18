@@ -140,12 +140,17 @@ void PrintMapScan( struct MAP * map, struct SCAN_LOG * scan, INDEX mouseX, INDEX
 	}
 }
 
-void MakeLines(COUNT hStart, COUNT vStart, COUNT hEnd, COUNT vEnd, COUNT hSkip, COUNT vSkip, struct MAP * map, enum DIRECTION dir )
+void MakeLines(INDEX x, INDEX y, COUNT dist, struct MOVE * MoveDirection, enum DIRECTION wall, struct MAP * map )
 {
-	INDEX x,y;
-	for(x=hStart; x<hEnd; x+=hSkip)
-		for(y=vStart; y<vEnd; y+=vSkip)
-			MapSetWall( x, y, dir, TRUE, map );
+	enum DIRECTION dir;
+	for(; dist > 0; dist-- )
+	{
+		MapSetWall( x, y, wall, TRUE, map );
+
+		dir = NORTH;
+		MoveApply( &x, &y, &dir, MoveDirection );//hack to get xy to right cell.
+
+	}
 }
 
 struct MAP MouseMap;
@@ -348,11 +353,12 @@ int main()
 	ScanLogSet( 0, 0, TRUE, &ScanLog );
 
 	//Populate the world map with sample maze
-	MakeLines( 0, 0, WIDTH, HEIGHT, 2, 3, &WorldMap, EAST );
-	MakeLines( 0, 0, WIDTH, HEIGHT, 2, 2, &WorldMap, SOUTH );
-	MakeLines( 0, 1, WIDTH/2, HEIGHT, 1, 8, &WorldMap, NORTH );	
-	MakeLines( 4, 4, WIDTH, HEIGHT, 8, 1, &WorldMap, EAST );
-
+	MakeLines( 0,2,6,&MoveRight,SOUTH, &WorldMap);
+	MakeLines( 6,3,4,&MoveStraight, WEST, &WorldMap);
+	MakeLines( 1,5,6, &MoveRight, NORTH, &WorldMap );
+	MakeLines( 4,3,2, &MoveStraight, WEST, &WorldMap );
+	MakeLines( 4,2,2, &MoveRight, NORTH, &WorldMap );
+	MakeLines( 0,5,4, &MoveRight, SOUTH, &WorldMap );
 	//Set up flood fill.
 	FloodFillInit( 
 			WIDTH, 

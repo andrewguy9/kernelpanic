@@ -98,7 +98,7 @@ void PrintWalls( struct MAP * map )
 
 int main()
 {
-	COUNT width=16, height=16;
+	COUNT width=8, height=8;
 	enum DIRECTION dir;
 	INDEX x,y,dir_int;
 	struct MAP map;
