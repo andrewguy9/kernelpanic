@@ -173,7 +173,7 @@ struct MOVE MoveHairpinRight = {0, 1, BACK, MoveHairpinCheck,
 		SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_DONE} };
 
-#define NUM_MOVES 11
+#define NUM_MOVES 9
 struct MOVE * Moves[] = { 
 	&MoveNowhere,//MUST BE FIRST
 
@@ -186,8 +186,8 @@ struct MOVE * Moves[] = {
 
 	&MoveStraight, 
 //	&MoveBack, //removed because not clearly needed
-	&MoveLeft, 
-	&MoveRight,
+//	&MoveLeft, 
+//	&MoveRight,
 
 	&MoveHairpinLeft,
 	&MoveHairpinRight
