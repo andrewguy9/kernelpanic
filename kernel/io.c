@@ -21,6 +21,7 @@
 char InputScratch1[SCRATCH_SIZE];
 char InputScratch2[SCRATCH_SIZE];
 INDEX AsrInputCount;
+INDEX AsrOutputCount;
 INDEX ThreadInputCount;
 char *AsrInputScratch;
 char *ThreadInputScratch;
@@ -86,9 +87,9 @@ void InputMain()
 	char * temp;
 	while(1)
 	{
-		if( read == ThreadInputCount )
+		if( write == ThreadInputCount )
 		{
-			//We read everything into the socket.
+			//We write everything into the socket.
 			//Swap the interrupt buffers.
 			InterruptDisable();
 
@@ -122,7 +123,7 @@ void InputMain()
 void WriteMain()
 {
 	char * temp;
-	bool swap;
+	BOOL swap;
 	while(1)
 	{
 		//Get some data we want to send out over serial.
@@ -174,7 +175,7 @@ void IoInit()
 	ThreadInputScratch = InputScratch2;
 
 	//Set up Output Variables
-	AsrOutputCont = 0;
+	AsrOutputCount = 0;
 	ThreadOutputCount = 0;
 	AsrOutputScratch = OutputScratch1;
 	ThreadOutputScratch = OutputScratch2;
@@ -196,6 +197,6 @@ void IoWrite( char * buff, COUNT size )
 
 COUNT IoRead( char * buff, COUNT size )
 {
-	SocketRead( buff, size, &IoSocket );
+	return SocketReadChars( buff, size, &IoSocket );
 }
 

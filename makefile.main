@@ -12,7 +12,7 @@ include test/rules.mk
 
 tests: utils/linktest.out utils/ringtest.out utils/flagtest.out umouse/maptest.out utils/bhamtest.out umouse/motortest.out umouse/floodfilltest.out umouse/movetest.out
 
-umouse: test0.elf test1.elf test2.elf test3.elf test4.elf test5.elf test6.elf
+umouse: test0.elf test1.elf test2.elf test3.elf test4.elf test5.elf test6.elf umouse.elf
 
 #########################
 #utils on board tests
@@ -56,3 +56,7 @@ test5.out: test/test5.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/
 test6.out: test/test6.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/blockingcontext.o kernel/worker.o
 
 ###############################
+#actual umouse elf file.
+umouse.out: kernel/blockingcontext.o kernel/hal.o kernel/interrupt.o kernel/io.o kernel/mutex.o kernel/panic.o kernel/pipe.o kernel/resource.o kernel/scheduler.o kernel/semaphore.o kernel/sleep.o kernel/socket.o kernel/startup.o kernel/timer.o kernel/worker.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_map.o umouse/$(TARGET)_motor.o umouse/$(TARGET)_move.o umouse/$(TARGET)_positionlog.o utils/$(TARGET)_bham.o utils/$(TARGET)_flags.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_ringbuffer.o umouse/main.o
+
+umouse.elf: umouse.out

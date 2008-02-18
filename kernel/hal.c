@@ -53,20 +53,6 @@ void * HalCreateStackFrame( void * stack, THREAD_MAIN main, COUNT stackSize )
 	return stack;
 }
 
-#include <avr/io.h>
-//usart registers
-#define UCSRA   UCSR0A
-#define UCSRB   UCSR0B
-#define UCSRC   UCSR0C
-#define UDR     UDR0
-#define UBRR    UBRR0L
-
-#define BAUD_19200 51
-#define BAUD_9600 103
-#define BAUD_56000 16
-
-#define UCSZ_8BIT 3<<1
-
 void HalSerialStartup()
 {
 	UBRR = BAUD_19200;
