@@ -317,6 +317,10 @@ COUNT MoveStraightAwayLength(
 	unsigned char curFlood;
 	unsigned char nextFlood;
 
+	//make sure we are not facing a wall to start.
+	if( MapGetWall( curX, curY, dir, map ) )
+		return 0;
+
 	//get start flood for reference
 	curFlood = FloodFillGet( curX, curY, flood );
 	do
