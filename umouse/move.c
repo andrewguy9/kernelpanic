@@ -70,26 +70,33 @@ BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, 
 	else
 		turnDir = TURN( dir, LEFT );
 
-	//make sure wall is clear between sides of hairpin
-	if( MapGetWall( x, y, turnDir, map ) )
-		return FALSE;
-
 	//move to other side of hairpin
 	if( turnDir == RIGHT )
 		MoveApply( &x, &y, &dir, &MoveRight );
 	else
 		MoveApply( &x, &y, &dir, &MoveLeft );
 
-	//check wall to final cell
-	dir = TURN(dir, turnDir );
-	if( MapGetWall( x, y, dir, map ))
+	//make sure wall is clear between sides of hairpin (behind us)
+	if( MapGetWall( x, y, TURN(dir,BACK), map ) )//WRONG
 		return FALSE;
 
-	//move into final cell
+	//check to see if cell is checked
+	if( ! ScanLogGet( x, y, scan ))
+		return FALSE;
+
+	//Move into final cell
 	MoveApply( &x, &y, &dir, &MoveStraight );
+
+	//check to see if last wall is there (behind us)
+	if( MapGetWall( x, y, TURN(dir, BACK), map ) )
+		return FALSE;
 
 	//check to see if final cell is scanned.
 	if( ! ScanLogGet( x, y, scan ))
+		return FALSE;
+
+	//we should not hairpin into a wall
+	if( MapGetWall( x, y, dir, map ))
 		return FALSE;
 
 	return TRUE;
@@ -99,7 +106,7 @@ BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, 
 struct MOVE MoveNowhere = { 0, 0, STRAIGHT, MoveNoMovementCheck };//dont turn or move
 //Single Cell Moves
 struct MOVE MoveStraight = { 1, 0, STRAIGHT, MoveSingleCheck };//move forward 1 cell
-struct MOVE MoveBack = { -1, 0, BACK, MoveSingleCheck };//turn around and move forward 1 cell
+struct MOVE MoveBack = { -1, 0, BACK, MoveSingleCheck };//turn around and move forward 1 cell//not really needed
 struct MOVE MoveLeft = { 0, -1, LEFT, MoveSingleCheck };//turn left and move 1 cell
 struct MOVE MoveRight = { 0, 1, RIGHT, MoveSingleCheck };//turn right and move 1 cell
 //Spin Moves
@@ -113,7 +120,7 @@ struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveIntegratedCheck };//turn ri
 struct MOVE MoveHairpinLeft = { 0, -1, BACK, MoveHairpinCheck };
 struct MOVE MoveHairpinRight = {0, 1, BACK, MoveHairpinCheck };
 
-#define NUM_MOVES 12
+#define NUM_MOVES 11
 struct MOVE * Moves[] = { 
 	&MoveNowhere,//MUST BE FIRST
 
@@ -125,7 +132,7 @@ struct MOVE * Moves[] = {
 	&MoveTurnLeft,
 
 	&MoveStraight, 
-	&MoveBack, 
+//	&MoveBack, //removed because not clearly needed
 	&MoveLeft, 
 	&MoveRight,
 
