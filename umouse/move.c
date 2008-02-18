@@ -34,26 +34,45 @@ BOOL MoveSingleCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, s
 	return !wall && scanned;
 }
 
-BOOL MoveIntegratedCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
+BOOL MoveIntegratedCheck(INDEX startX, INDEX startY, enum DIRECTION startDir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
-	//we are going to go forward 1 cell, check for a wall in that dir
-	if( MapGetWall( x, y, dir, map ) || !ScanLogGet(x,y,scan) )
-	{
-		//there is a wall or not explored
-		return FALSE;
-	}
+	INDEX x,y;
+	enum DIRECTION dir;
+	x = startX;
+	y = startY;
+	dir = startDir;
 
-	//at the end of the move we will be facing a new direction
-	MoveApply( &x, &y, &dir, move );
-	//check see if there is a wall behind us or we didn't explore
-	dir = TURN( dir, BACK );
-	return !MapGetWall( x, y, dir, map ) && ScanLogGet(x,y,scan);
+	//see if wall in front of us
+	if( MapGetWall( x, y, dir, map ) )
+		return FALSE;
+
+	//move forward 1 cell
+	MoveApply( &x, &y, &dir, &MoveStraight );
+	//check if scanned
+	if( ! ScanLogGet( x, y, scan ) )
+		return FALSE;
+
+	//move into final cell
+	MoveApply( &startX, &startY, &startDir, move );
+
+	//check if scanned
+	if( ! ScanLogGet( startX, startY, scan ) )
+		return FALSE;
+
+	//check for wall behind
+	if( MapGetWall( startX, startY, TURN(startDir,BACK), map ) )
+		return FALSE;
+
+	//check for wall infront
+	if( MapGetWall( startX, startY, startDir, map ) )
+		return FALSE;
+
+	return TRUE;
 }
 
 BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
 	struct MOVE * turnType;
-
 	//check for wall infront of us
 	if( MapGetWall( x, y, dir, map ))
 		return FALSE;
@@ -83,7 +102,7 @@ BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, 
 		return FALSE;
 
 	//Move into final cell
-		MoveApply( &x, &y, &dir, turnType );
+	MoveApply( &x, &y, &dir, turnType );
 
 	//check to see if last wall is there (behind us)
 	if( MapGetWall( x, y, TURN(dir, BACK), map ) )
