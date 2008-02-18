@@ -49,6 +49,52 @@ BOOL MoveIntegratedCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * mov
 	return !MapGetWall( x, y, dir, map ) && ScanLogGet(x,y,scan);
 }
 
+BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
+{
+	enum DIRECTION turnDir;
+
+	//check for wall infront of us
+	if( MapGetWall( x, y, dir, map ))
+		return FALSE;
+
+	//Move into next cell
+	MoveApply( &x, &y, &dir, &MoveStraight );
+
+	//make sure sell is scanned 
+	if( ! ScanLogGet( x, y, scan ) )
+		return FALSE;
+
+	//figure out turn direction
+	if( move->Drl > 0 )//move right
+		turnDir = TURN( dir, RIGHT );
+	else
+		turnDir = TURN( dir, LEFT );
+
+	//make sure wall is clear between sides of hairpin
+	if( MapGetWall( x, y, turnDir, map ) )
+		return FALSE;
+
+	//move to other side of hairpin
+	if( turnDir == RIGHT )
+		MoveApply( &x, &y, &dir, &MoveRight );
+	else
+		MoveApply( &x, &y, &dir, &MoveLeft );
+
+	//check wall to final cell
+	dir = TURN(dir, turnDir );
+	if( MapGetWall( x, y, dir, map ))
+		return FALSE;
+
+	//move into final cell
+	MoveApply( &x, &y, &dir, &MoveStraight );
+
+	//check to see if final cell is scanned.
+	if( ! ScanLogGet( x, y, scan ))
+		return FALSE;
+
+	return TRUE;
+}
+
 //Stuck Moves
 struct MOVE MoveNowhere = { 0, 0, STRAIGHT, MoveNoMovementCheck };//dont turn or move
 //Single Cell Moves
@@ -63,8 +109,11 @@ struct MOVE MoveTurnRight = { 0, 0, RIGHT, MoveSpinCheck };//turn right
 //Integrated Moves
 struct MOVE MoveIntegratedLeft = { 1, -1, LEFT, MoveIntegratedCheck };//turn left while moving forward
 struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveIntegratedCheck };//turn right while moving forward
+//Hairpin Moves
+struct MOVE MoveHairpinLeft = { 0, -1, BACK, MoveHairpinCheck };
+struct MOVE MoveHairpinRight = {0, 1, BACK, MoveHairpinCheck };
 
-#define NUM_MOVES 10
+#define NUM_MOVES 12
 struct MOVE * Moves[] = { 
 	&MoveNowhere,//MUST BE FIRST
 
@@ -79,6 +128,9 @@ struct MOVE * Moves[] = {
 	&MoveBack, 
 	&MoveLeft, 
 	&MoveRight,
+
+	&MoveHairpinLeft,
+	&MoveHairpinRight
 };
 
 void MoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, struct MOVE * move )

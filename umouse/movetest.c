@@ -176,11 +176,15 @@ void PrintMove( struct MOVE * move )
 	else if( move == &MoveIntegratedRight)
 		printf("move integrated right ");
 	else if( move == &MoveTurnLeft)
-		printf("move turning left");
+		printf("move turning left ");
 	else if( move == &MoveTurnRight)
-		printf("move turning right");
+		printf("move turning right ");
 	else if ( move == &MoveTurnBack )
-		printf("move turning back" );
+		printf("move turning back " );
+	else if ( move == &MoveHairpinLeft )
+		printf("move hairpin left ");
+	else if ( move == &MoveHairpinRight )
+		printf("move hairpin right ");
 	else
 	{
 		printf("NOT POSSIBLE MOVE\n");

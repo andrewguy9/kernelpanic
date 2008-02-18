@@ -28,6 +28,8 @@ extern struct MOVE MoveTurnLeft;
 extern struct MOVE MoveTurnRight;
 extern struct MOVE MoveIntegratedLeft;
 extern struct MOVE MoveIntegratedRight;
+extern struct MOVE MoveHairpinLeft;
+extern struct MOVE MoveHairpinRight;
 
 //Applies a move to mouse state variables x, y and dir.
 void MoveApply(INDEX *x, INDEX *y, enum DIRECTION * dir, struct MOVE * move );
