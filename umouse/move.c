@@ -49,28 +49,36 @@ BOOL MoveIntegratedCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * mov
 	return !MapGetWall( x, y, dir, map ) && ScanLogGet(x,y,scan);
 }
 
-//fb,rl,turn,verification function
-struct MOVE MoveNowhere = { 0, 0, STRAIGHT, MoveNoMovementCheck };
-struct MOVE MoveStraight = { 1, 0, STRAIGHT, MoveSingleCheck };
-struct MOVE MoveBack = { -1, 0, BACK, MoveSingleCheck };
-struct MOVE MoveLeft = { 0, -1, LEFT, MoveSingleCheck };
-struct MOVE MoveRight = { 0, 1, RIGHT, MoveSingleCheck };
-struct MOVE MoveTurnLeft = { 0, 0, LEFT, MoveSpinCheck };
-struct MOVE MoveTurnRight = { 0, 0, RIGHT, MoveSpinCheck };
-struct MOVE MoveIntegratedLeft = { 1, -1, LEFT, MoveIntegratedCheck };
-struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveIntegratedCheck };
+//Stuck Moves
+struct MOVE MoveNowhere = { 0, 0, STRAIGHT, MoveNoMovementCheck };//dont turn or move
+//Single Cell Moves
+struct MOVE MoveStraight = { 1, 0, STRAIGHT, MoveSingleCheck };//move forward 1 cell
+struct MOVE MoveBack = { -1, 0, BACK, MoveSingleCheck };//turn around and move forward 1 cell
+struct MOVE MoveLeft = { 0, -1, LEFT, MoveSingleCheck };//turn left and move 1 cell
+struct MOVE MoveRight = { 0, 1, RIGHT, MoveSingleCheck };//turn right and move 1 cell
+//Spin Moves
+struct MOVE MoveTurnBack = {0, 0, BACK, MoveSpinCheck};//turn back
+struct MOVE MoveTurnLeft = { 0, 0, LEFT, MoveSpinCheck };//turn left 
+struct MOVE MoveTurnRight = { 0, 0, RIGHT, MoveSpinCheck };//turn right
+//Integrated Moves
+struct MOVE MoveIntegratedLeft = { 1, -1, LEFT, MoveIntegratedCheck };//turn left while moving forward
+struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveIntegratedCheck };//turn right while moving forward
 
-#define NUM_MOVES 9
+#define NUM_MOVES 10
 struct MOVE * Moves[] = { 
-	&MoveNowhere,
+	&MoveNowhere,//MUST BE FIRST
+
+	&MoveIntegratedLeft,
+	&MoveIntegratedRight,
+	
+	&MoveTurnBack,	
+	&MoveTurnRight,
+	&MoveTurnLeft,
+
 	&MoveStraight, 
 	&MoveBack, 
 	&MoveLeft, 
-	&MoveRight, 
-	&MoveTurnRight,
-	&MoveTurnLeft,
-	&MoveIntegratedLeft, 
-	&MoveIntegratedRight
+	&MoveRight,
 };
 
 void MoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, struct MOVE * move )
