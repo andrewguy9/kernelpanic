@@ -70,7 +70,7 @@ BOOL MoveIntegratedCheck(INDEX startX, INDEX startY, enum DIRECTION startDir, st
 	return TRUE;
 }
 
-BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
+BOOL MoveSubMoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
 	struct MOVE * turnType;
 	//check for wall infront of us
@@ -116,6 +116,56 @@ BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, 
 	if( MapGetWall( x, y, dir, map ))
 		return FALSE;
 
+	return TRUE;
+}
+
+BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
+{
+	//assume we are in correct state.
+	//iterate through the sub moves checking for wall crossings and scan status
+	INDEX moveIndex = 0;
+
+	//sub moves are a 1/2 cell resolution
+	x*=2;
+	y*=2;
+
+	for( moveIndex = 0; move->SubMoves[moveIndex]!= SUB_MOVE_DONE; moveIndex++ )
+	{
+		//perform movement
+		switch(move->SubMoves[moveIndex])
+		{
+			case SUB_MOVE_FORWARD_WHOLE:
+				SubMoveTranslate(&x,&y,dir,2);
+				break;
+			case SUB_MOVE_FORWARD_HALF:
+				SubMoveTranslate(&x,&y,dir,1);
+				break;
+			case SUB_MOVE_TURN_RIGHT:
+				SubMoveRotate(&dir, RIGHT);
+				break;
+			case SUB_MOVE_TURN_LEFT:
+				SubMoveRotate(&dir, LEFT );
+				break;
+			case SUB_MOVE_TURN_AROUND:
+				SubMoveRotate(&dir, BACK );
+				break;
+			case SUB_MOVE_INTEGRATE_RIGHT:
+				SubMoveTranslate(&x,&y,dir,1);
+				SubMoveRotate(&dir, RIGHT);
+				break;
+			case SUB_MOVE_INTEGRATE_LEFT:
+				SubMoveTranslate(&x,&y,dir,1);
+				SubMoveRotate(&dir, RIGHT);
+				break;
+		}
+	
+		//perform validation (see if we passed through wall)
+		if(	MapGetWall( x/2, y/2, dir, map ) )
+			return FALSE;
+		//make sure we are in scanned cell
+		if( ! ScanLogGet( x/2, y/2, scan ) )
+			return FALSE;
+	}
 	return TRUE;
 }
 

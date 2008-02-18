@@ -13,6 +13,8 @@ umouse/movetest.o: umouse/movetest.c
 
 umouse/$(TARGET)_positionlog.o: umouse/positionlog.c umouse/positionlog.h
 
+umouse/$(TARGET)_submove.o: umouse/submove.c umouse/submove.h
+
 #motor control
 umouse/$(TARGET)_motor.o: umouse/motor.c umouse/motor.h
 
