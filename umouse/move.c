@@ -52,7 +52,7 @@ BOOL MoveIntegratedCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * mov
 
 BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
-	enum DIRECTION turnDir;
+	struct MOVE * turnType;
 
 	//check for wall infront of us
 	if( MapGetWall( x, y, dir, map ))
@@ -67,15 +67,12 @@ BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, 
 
 	//figure out turn direction
 	if( move->Drl > 0 )//move right
-		turnDir = TURN( dir, RIGHT );
+		turnType = &MoveRight;
 	else
-		turnDir = TURN( dir, LEFT );
+		turnType = &MoveLeft;
 
 	//move to other side of hairpin
-	if( turnDir == RIGHT )
-		MoveApply( &x, &y, &dir, &MoveRight );
-	else
-		MoveApply( &x, &y, &dir, &MoveLeft );
+	MoveApply( &x, &y, &dir, turnType );
 
 	//make sure wall is clear between sides of hairpin (behind us)
 	if( MapGetWall( x, y, TURN(dir,BACK), map ) )//WRONG
@@ -86,7 +83,7 @@ BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, 
 		return FALSE;
 
 	//Move into final cell
-	MoveApply( &x, &y, &dir, &MoveStraight );
+		MoveApply( &x, &y, &dir, turnType );
 
 	//check to see if last wall is there (behind us)
 	if( MapGetWall( x, y, TURN(dir, BACK), map ) )
