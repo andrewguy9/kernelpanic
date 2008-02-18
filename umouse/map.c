@@ -34,7 +34,7 @@
 #define MapGetIndex( major, majorSize, minor ) ( (minor)*((majorSize)-1)+(major-1) )
 #define MapAdjustX( x, dir ) ( (dir) == (EAST) ? (x)+1 : (x) )
 #define MapAdjustY( y, dir ) ( (dir) == (NORTH) ? (y)+1 : (y) )
-#define MapOutOfBounds( major, majorSize ) ( (major) == 0 || (major) == (majorSize) ? TRUE : FALSE )
+#define MapOutOfBounds( major, majorSize ) ( (major) == 0 || (major) == (majorSize) ? TRUE : FALSE )//TODO BROKEN
 
 //
 //Private functions
@@ -55,7 +55,7 @@ BOOL MapGetFlag( INDEX major, INDEX majorSize, INDEX minor, FLAG_WORD * walls )
 void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, FLAG_WORD * walls, BOOL state )
 {
 	INDEX index;
-	if( ! MapOutOfBounds( major, majorSize ) )
+	if( ! MapOutOfBounds( major, majorSize ) )//TODO MAYBE WE SHOULD GAURD EARLIER
 	{//Can only set in bounds
 		index = MapGetIndex( major, majorSize, minor );
 		if( state )
@@ -118,6 +118,10 @@ BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map )
 
 void MapSetWall( INDEX x, INDEX y, enum DIRECTION dir, BOOL state, struct MAP * map )
 {
+
+	if( x >= map->Width || y >= map->Height )//TODO IN CONFLICT WITH OTHER CHECK, PICK ONE
+		return;//cannot write out of bounds
+
 	x = MapAdjustX(x,dir);
 	y = MapAdjustY(y,dir);
 
