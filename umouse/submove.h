@@ -23,14 +23,14 @@ char SubMoveTranslate( INDEX * x, INDEX * y, enum DIRECTION dir, COUNT dist );
 
 char SubMoveRotate( enum DIRECTION * dir, enum ANGLE angle );
 
-char SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, enum SUB_MOVE move);
+char SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, BOOL * moving, enum SUB_MOVE move);
 
 BOOL SubMoveLegal( 
 		INDEX x, 
 		INDEX y, 
 		enum DIRECTION startDir, 
+		BOOL moving,
 		enum SUB_MOVE move,
-	   	BOOL moving, 
 		struct MAP *map,
 	   	struct SCAN_LOG *scan );
 

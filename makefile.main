@@ -31,7 +31,7 @@ umouse/motortest.out: umouse/$(TARGET)_motor.o umouse/motortest.o
 
 umouse/floodfilltest.out: umouse/floodfilltest.o umouse/$(TARGET)_floodfill.o utils/$(TARGET)_flags.o umouse/$(TARGET)_map.o
 
-umouse/movetest.out: umouse/movetest.o umouse/$(TARGET)_move.o umouse/$(TARGET)_map.o utils/$(TARGET)_flags.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_positionlog.o umouse/$(TARGET)_submove.o
+umouse/movetest.out: umouse/movetest.o umouse/$(TARGET)_map.o utils/$(TARGET)_flags.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_positionlog.o umouse/$(TARGET)_submove.o
 ############################
 test0.elf: test0.out
 
@@ -57,6 +57,6 @@ test6.out: test/test6.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/
 
 ###############################
 #actual umouse elf file.
-umouse.out: kernel/blockingcontext.o kernel/hal.o kernel/interrupt.o kernel/io.o kernel/mutex.o kernel/panic.o kernel/pipe.o kernel/resource.o kernel/scheduler.o kernel/semaphore.o kernel/sleep.o kernel/socket.o kernel/startup.o kernel/timer.o kernel/worker.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_map.o umouse/$(TARGET)_motor.o umouse/$(TARGET)_move.o umouse/$(TARGET)_positionlog.o utils/$(TARGET)_bham.o utils/$(TARGET)_flags.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_ringbuffer.o umouse/main.o umouse/$(TARGET)_submove.o
+umouse.out: kernel/blockingcontext.o kernel/hal.o kernel/interrupt.o kernel/io.o kernel/mutex.o kernel/panic.o kernel/pipe.o kernel/resource.o kernel/scheduler.o kernel/semaphore.o kernel/sleep.o kernel/socket.o kernel/startup.o kernel/timer.o kernel/worker.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_map.o umouse/$(TARGET)_motor.o umouse/$(TARGET)_positionlog.o utils/$(TARGET)_bham.o utils/$(TARGET)_flags.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_ringbuffer.o umouse/main.o umouse/$(TARGET)_submove.o
 
 umouse.elf: umouse.out

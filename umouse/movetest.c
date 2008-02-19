@@ -1,4 +1,4 @@
-#include"move.h"
+#include"submove.h"
 #include"map.h"
 #include"floodfill.h"
 #include"positionlog.h"
@@ -140,15 +140,13 @@ void PrintMapScan( struct MAP * map, struct SCAN_LOG * scan, INDEX mouseX, INDEX
 	}
 }
 
-void MakeLines(INDEX x, INDEX y, COUNT dist, struct MOVE * MoveDirection, enum DIRECTION wall, struct MAP * map )
+void MakeLines(INDEX x, INDEX y, COUNT dist, enum DIRECTION moveDir, enum DIRECTION wallDir, struct MAP * map )
 {
-	enum DIRECTION dir;
 	for(; dist > 0; dist-- )
 	{
-		MapSetWall( x, y, wall, TRUE, map );
+		MapSetWall( x, y, wallDir, TRUE, map );
 
-		dir = NORTH;
-		MoveApply( &x, &y, &dir, MoveDirection );//hack to get xy to right cell.
+		SubMoveTranslate( &x, &y, moveDir, 1 );
 
 	}
 }
@@ -164,34 +162,36 @@ char FloodMapBuff[ FLOOD_MAP_SIZE(WIDTH,HEIGHT) ];
 char FloodEventBuff[ FLOOD_EVENT_SIZE(WIDTH,HEIGHT) ];
 char ScanLogBuff[ SCAN_LOG_SIZE(WIDTH,HEIGHT) ];
 
-void PrintMove( struct MOVE * move )
+void PrintMove( enum SUB_MOVE move )
 {
-	if( move == &MoveNowhere)
-		printf("move nowhere ");
-	else if (move == &MoveStraight)
-		printf("move straight ");
-	else if (move == &MoveBack)
-		printf("move back ");
-	else if (move == &MoveLeft)
-		printf("move left ");
-	else if (move == &MoveRight)
-		printf("move right ");
-	else if (move == &MoveIntegratedLeft)
-		printf("move integrated left ");
-	else if( move == &MoveIntegratedRight)
-		printf("move integrated right ");
-	else if( move == &MoveTurnLeft)
-		printf("move turning left ");
-	else if( move == &MoveTurnRight)
-		printf("move turning right ");
-	else if ( move == &MoveTurnBack )
-		printf("move turning back " );
-	else if ( move == &MoveHairpinLeft )
-		printf("move hairpin left ");
-	else if ( move == &MoveHairpinRight )
-		printf("move hairpin right ");
-	else
+	switch( move )
 	{
+		case SUB_MOVE_START:
+			printf("start");
+			break;
+		case SUB_MOVE_STOP:
+			printf("stop");
+			break;
+		case SUB_MOVE_FORWARD:
+			printf("forward");
+			break;
+		case SUB_MOVE_TURN_RIGHT:
+			printf("turn right");
+			break;
+		case SUB_MOVE_TURN_LEFT:
+			printf("turn left");
+			break;
+		case SUB_MOVE_TURN_AROUND:
+			printf("turn around");
+			break;
+		case SUB_MOVE_INTEGRATE_RIGHT:
+			printf("integrate right");
+			break;
+		case SUB_MOVE_INTEGRATE_LEFT:
+			printf("integrate left");
+			break;
+		case SUB_MOVE_DONE:
+		default:
 		printf("NOT POSSIBLE MOVE\n");
 		exit(0);
 	}
@@ -199,7 +199,7 @@ void PrintMove( struct MOVE * move )
 
 void PrintState(INDEX x, INDEX y, enum DIRECTION dir )
 {
-	printf("(%d,%d) ",x,y);
+	printf("(%d.%d,%d,%d) ",x/2,x%2,y/2,y%2);
 	switch(dir)
 	{
 		case NORTH:
@@ -217,27 +217,31 @@ void PrintState(INDEX x, INDEX y, enum DIRECTION dir )
 	}
 }
 
-void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, INDEX destX, INDEX destY)
+void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, BOOL moving, INDEX destX, INDEX destY)
 {
 	INDEX scanX, scanY;
-	BOOL mapChanged = FALSE;
 	enum DIRECTION testDir;
+
+	BOOL mapChanged = FALSE;
 
 	scanX = x;
 	scanY = y;
 
-	//calc coordinates of cell in front of mouse.
-	MoveApply( &scanX, &scanY, &dir, &MoveStraight );
+	if( x%2 == 0 || y%2== 0 )
+	{
+		printf("cant scan, not in middle\n");
+		return;
+	}
 
 	//see if there is a wall infront of us
-	if( ! MapGetWall( x, y, dir, &WorldMap ))
+	if( ! MapGetWall( x/2, y/2, dir, &WorldMap ))
 	{
 		printf("scanning\n");
 		//no wall so we can scan.
 		//check walls for changes to update floodfill
 		for(testDir = NORTH; testDir <= WEST; testDir++)
 		{
-			if( ! MapGetWall( scanX, scanY, testDir, &MouseMap ) &&
+			if( ! MapGetWall( scanX/2, scanY/2, testDir, &MouseMap ) &&
 					MapGetWall( scanX, scanY, testDir, &WorldMap ) )
 			{//mouse just saw new wall
 				MapSetWall( scanX, scanY, testDir, TRUE, &MouseMap );
@@ -249,12 +253,12 @@ void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, INDEX destX, INDEX destY)
 	}
 	else
 	{
-		printf("cant scan\n");
+		printf("cant scan, wall too close\n");
 	}
 
 	if( mapChanged )
 	{
-		printf( "found new walls at (%d,%d)\n", scanX, scanY );
+		printf( "found new walls at (%d.%d,%d.%d)\n", scanX/2,scanX%2, scanY/2,scanY%2 );
 		FloodFillClear( &FloodMap );
 		FloodFillSetDestination( destX, destY, &FloodMap );
 		FloodFillCalculate( &MouseMap, &FloodMap );
@@ -271,55 +275,41 @@ void RunMoves(INDEX * startX, INDEX *startY, INDEX *startDir, INDEX destX, INDEX
 	//Mouse state variables.
 	INDEX x= *startX, y= *startY;
 	enum DIRECTION dir = *startDir;
-	struct MOVE * move = &MoveNowhere;
-	COUNT straightAway; 
+	enum SUB_MOVE move = SUB_MOVE_DONE;
+	BOOL moving = FALSE;
 
 	//force a flood fill calculation
 	FloodFillClear( &FloodMap );
 	FloodFillSetDestination( destX, destY, &FloodMap );
 	FloodFillCalculate( &MouseMap, &FloodMap );
 
+	//adjust resolution
+	x = x*2+1;
+	y = y*2+1;
+
 	//start makeing moves
 	do
 	{
 		printf("------------------------------------------------------\n");
 
-		//see if we are in straight away.
-		straightAway = MoveStraightAwayLength(
-				x,
-				y,
-				dir,
-				&MouseMap,
-				&FloodMap,
-				&ScanLog);
-		if( straightAway > 0 )
-		{
-			printf("speeding %d cells in straight away\n", straightAway);
-			while(straightAway>0)
-			{
-				MoveApply( &x, &y, &dir, &MoveStraight );
-				straightAway--;
-			}
-		}
-
 		//Map the area infront of you
-		UpdateMap( x, y, dir, destX, destY );
+		UpdateMap( x, y, dir, moving, destX, destY );
 
 		//Print the state
-		printf("dist = %d ", FloodFillGet( x, y, &FloodMap));
+		printf("dist = %d ", FloodFillGet( x/2, y/2, &FloodMap));
 		PrintState( x, y, dir );
-		if( x > WIDTH || y > HEIGHT )
+		if( x > WIDTH*2 || y > HEIGHT*2 )
 		{
 			printf("out of bounds\n");
 			exit(0);
 		}
 
 		//Make the decision
-		move = MoveFindBest( x, y, dir, &FloodMap, &MouseMap, &ScanLog );
+		move = SubMoveFindBest( x, y, dir, moving, &FloodMap, &MouseMap, &ScanLog );
 		PrintMove( move );
 
 		//Make the move
-		MoveApply( &x, &y, &dir, move );
+		SubMoveApply( &x, &y, &dir, &moving, move);
 
 		printf("now at ");
 		PrintState(x,y,dir);
@@ -328,11 +318,20 @@ void RunMoves(INDEX * startX, INDEX *startY, INDEX *startDir, INDEX destX, INDEX
 
 	}while( FloodFillGet( x, y, &FloodMap) != 0 );
 
-	printf("Ended up at (%d,%d)\n",x,y);
+	printf("Ended up at (%d.%d,%d.%d)\n",x/2,x%2,y/2,y%2);
 	printf("world map\n");
-	PrintMapFlood( &WorldMap, &FloodMap, x, y, dir );
+	PrintMapFlood( &WorldMap, &FloodMap, x/2, y/2, dir );
 	printf("mouse map\n");
-	PrintMapFlood( &MouseMap, &FloodMap, x, y, dir );
+	PrintMapFlood( &MouseMap, &FloodMap, x/2, y/2, dir );
+
+	//move resolution back
+	if(x %2 == 0 || y%2 == 0)
+	{
+		printf("didn't end up in center\n");
+		exit(0);
+	}
+	x = x/2;
+	y = y/2;
 
 	//output back to main
 	*startX = x;
@@ -353,12 +352,12 @@ int main()
 	ScanLogSet( 0, 0, TRUE, &ScanLog );
 
 	//Populate the world map with sample maze
-	MakeLines( 0,2,6,&MoveRight,SOUTH, &WorldMap);
-	MakeLines( 6,3,4,&MoveStraight, WEST, &WorldMap);
-	MakeLines( 1,5,6, &MoveRight, NORTH, &WorldMap );
-	MakeLines( 4,3,2, &MoveStraight, WEST, &WorldMap );
-	MakeLines( 4,2,2, &MoveRight, NORTH, &WorldMap );
-	MakeLines( 0,5,4, &MoveRight, SOUTH, &WorldMap );
+	MakeLines( 0,2,6, RIGHT,SOUTH, &WorldMap);
+	MakeLines( 6,3,4, NORTH, WEST, &WorldMap);
+	MakeLines( 1,5,6, RIGHT, NORTH, &WorldMap );
+	MakeLines( 4,3,2, NORTH, WEST, &WorldMap );
+	MakeLines( 4,2,2, RIGHT, NORTH, &WorldMap );
+	MakeLines( 0,5,4, RIGHT, SOUTH, &WorldMap );
 	//Set up flood fill.
 	FloodFillInit( 
 			WIDTH, 

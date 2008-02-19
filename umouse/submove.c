@@ -2,6 +2,16 @@
 
 #include<stdio.h>
 
+//Moving state required when starting a move
+BOOL SubMoveMovingStartState[9] = 
+{FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE};
+//ending state of a move
+BOOL SubMoveMovingEndState[9] = 
+{FALSE,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE};
+//wheather a move turns
+BOOL SubMovesRotates[9] = 
+{FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE};
+
 #define DID_ROTATE 0x01
 #define DID_TRANSLATE 0x02
 //routines to compute position delta
@@ -31,9 +41,10 @@ char SubMoveRotate( enum DIRECTION * dir, enum ANGLE angle )
 	return DID_ROTATE;
 }
 
-char SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, enum SUB_MOVE move)
+char SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, BOOL * moving, enum SUB_MOVE move)
 {
 	char flags = 0;
+	*moving = SubMoveMovingEndState[move];
 	switch(move)
 	{
 		case SUB_MOVE_DONE:
@@ -77,23 +88,12 @@ char SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, enum SUB_MOVE move
 	return flags;
 }
 
-//Moving state required when starting a move
-BOOL SubMoveMovingStartState[9] = 
-{FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE};
-//ending state of a move
-BOOL SubMoveMovingEndState[9] = 
-{FALSE,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE};
-//wheather a move turns
-BOOL SubMovesRotates[9] = 
-{FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE};
-
-
 BOOL SubMoveLegal( 
 		INDEX x, 
 		INDEX y, 
 		enum DIRECTION dir, 
+		BOOL moving,
 		enum SUB_MOVE move,
-	   	BOOL moving, 
 		struct MAP *map,
 	   	struct SCAN_LOG *scan )
 {
@@ -103,7 +103,7 @@ BOOL SubMoveLegal(
 	if( moving != SubMoveMovingStartState[move] )
 		return FALSE;
 
-	moveFlags = SubMoveApply( &x, &y , &dir, move );
+	moveFlags = SubMoveApply( &x, &y, &dir, &moving, move );
 
 	if( moveFlags & DID_TRANSLATE )
 	{
@@ -122,7 +122,7 @@ enum SUB_MOVE SubMoveFindBest(
 		INDEX startX,
 	   	INDEX startY,
 	   	enum DIRECTION startDir,
-		BOOL moving,
+		BOOL startMoving,
 	   	struct FLOOD_MAP * flood, 
 		struct MAP * map,
 		struct SCAN_LOG * scan)
@@ -145,15 +145,17 @@ enum SUB_MOVE SubMoveFindBest(
 	INDEX x;
 	INDEX y;
 	enum DIRECTION dir;
+	BOOL moving;
 
 	//set up standard to measure against: SUB_MOVE_DONE
 	x = startX;
 	y = startY;
 	dir = startDir;
+	moving = startMoving;
 	best = SUB_MOVE_DONE;
 	bestFlood = FloodFillGet( x/2, y/2, flood );
 	bestFacingWall = MapGetWall( x/2, y/2, dir, map );
-	SubMoveApply( &x, &y, &dir, SUB_MOVE_FORWARD );
+	SubMoveApply( &x, &y, &dir, &moving, SUB_MOVE_FORWARD );
 	bestFacingFlood = FloodFillGet( x/2, y/2, flood );
 	bestRotated = SubMovesRotates[SUB_MOVE_DONE];
 
@@ -163,13 +165,14 @@ enum SUB_MOVE SubMoveFindBest(
 		x = startX;
 		y = startY;
 		dir = startDir;
+		moving = startMoving;
 		//check move is legal.
 		if( ! SubMoveLegal(x, y, dir, cur, moving, map, scan))
 			continue;
 		//gather results
 		curFlood = FloodFillGet( x/2, y/2, flood );
 		curFacingWall = MapGetWall( x/2, y/2, dir, map );
-		SubMoveApply( &x, &y, &dir, SUB_MOVE_FORWARD );
+		SubMoveApply( &x, &y, &dir, &moving, SUB_MOVE_FORWARD );
 		curFacingFlood = FloodFillGet( x/2, y/2, flood );
 		curRotated = SubMovesRotates[cur];
 
