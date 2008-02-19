@@ -2,6 +2,8 @@
 #include"../utils/utils.h"
 #include"submove.h"
 
+#include<stdio.h>
+
 //define funcitons which look for walls
 BOOL MoveNoMovementCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
@@ -70,7 +72,7 @@ BOOL MoveIntegratedCheck(INDEX startX, INDEX startY, enum DIRECTION startDir, st
 	return TRUE;
 }
 
-BOOL MoveSubMoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
+BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
 	struct MOVE * turnType;
 	//check for wall infront of us
@@ -119,104 +121,134 @@ BOOL MoveSubMoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, 
 	return TRUE;
 }
 
-BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
+BOOL MoveSubMoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
+	BOOL translated;
+	BOOL rotated;
 	//assume we are in correct state.
 	//iterate through the sub moves checking for wall crossings and scan status
 	INDEX moveIndex = 0;
 
-	//sub moves are a 1/2 cell resolution
-	x*=2;
-	y*=2;
+	//sub moves are a 1/2 cell resolution. Always start move from center of cell.
+	x=x*2+1;
+	y=y*2+1;
+
+	printf("starting move (%d,%d,%d)\n",x,y,dir);
 
 	for( moveIndex = 0; move->SubMoves[moveIndex]!= SUB_MOVE_DONE; moveIndex++ )
 	{
+		translated = FALSE;
+		rotated = FALSE;
 		//perform movement
 		switch(move->SubMoves[moveIndex])
 		{
 			case SUB_MOVE_FORWARD_WHOLE:
 				SubMoveTranslate(&x,&y,dir,2);
+				translated = TRUE;
+				printf("forward whole = %d,%d,%d\n",x,y,dir);
 				break;
 			case SUB_MOVE_FORWARD_HALF:
+				translated = TRUE;
 				SubMoveTranslate(&x,&y,dir,1);
+				printf("forward half = %d,%d,%d\n",x,y,dir);
 				break;
 			case SUB_MOVE_TURN_RIGHT:
+				rotated = TRUE;
 				SubMoveRotate(&dir, RIGHT);
+				printf("turn right = %d,%d,%d\n",x,y,dir);
 				break;
 			case SUB_MOVE_TURN_LEFT:
+				rotated = TRUE;
 				SubMoveRotate(&dir, LEFT );
+				printf("turn left = %d,%d,%d\n",x,y,dir);
 				break;
 			case SUB_MOVE_TURN_AROUND:
+				rotated = TRUE;
 				SubMoveRotate(&dir, BACK );
+				printf("turn around = %d,%d,%d\n",x,y,dir);
 				break;
 			case SUB_MOVE_INTEGRATE_RIGHT:
+				translated = TRUE;
+				rotated = TRUE;
 				SubMoveTranslate(&x,&y,dir,1);
 				SubMoveRotate(&dir, RIGHT);
+				SubMoveTranslate( &x, &y, dir, 1 );
+				printf("integrate right = %d,%d,%d\n",x,y,dir);
 				break;
 			case SUB_MOVE_INTEGRATE_LEFT:
+				translated = TRUE;
+				rotated = TRUE;
 				SubMoveTranslate(&x,&y,dir,1);
 				SubMoveRotate(&dir, RIGHT);
+				SubMoveTranslate( &x, &y, dir, 1 );
+				printf("integrate left = %d,%d,%d\n",x,y,dir);
 				break;
 		}
 	
 		//perform validation (see if we passed through wall)
-		if(	MapGetWall( x/2, y/2, dir, map ) )
+		if(	translated && MapGetWall( x/2, y/2, TURN(dir,BACK), map ) )
+		{
+			printf("hit wall\n");
 			return FALSE;
+		}
 		//make sure we are in scanned cell
-		if( ! ScanLogGet( x/2, y/2, scan ) )
+		if( translated && ! ScanLogGet( x/2, y/2, scan ) )
+		{
+			printf("not scanned\n");
 			return FALSE;
+		}
 	}
 	return TRUE;
 }
 
 //Stuck Moves
-struct MOVE MoveNowhere = { 0, 0, STRAIGHT, MoveNoMovementCheck,
+struct MOVE MoveNowhere = { 0, 0, STRAIGHT, MoveSubMoveCheck,
 	{SUB_MOVE_DONE} };//dont turn or move
 //Single Cell Moves
-struct MOVE MoveStraight = { 1, 0, STRAIGHT, MoveSingleCheck,
+struct MOVE MoveStraight = { 1, 0, STRAIGHT, MoveSubMoveCheck,
 	{	SUB_MOVE_FORWARD_WHOLE, 
 		SUB_MOVE_DONE} };//move forward 1 cell
-struct MOVE MoveBack = { -1, 0, BACK, MoveSingleCheck,
+struct MOVE MoveBack = { -1, 0, BACK, MoveSubMoveCheck,
    	{	SUB_MOVE_TURN_AROUND,
 		SUB_MOVE_FORWARD_WHOLE,
 		SUB_MOVE_DONE} };//turn around and move forward 1 cell//not really needed
-struct MOVE MoveLeft = { 0, -1, LEFT, MoveSingleCheck, 
+struct MOVE MoveLeft = { 0, -1, LEFT, MoveSubMoveCheck, 
 	{	SUB_MOVE_TURN_LEFT, 
 		SUB_MOVE_FORWARD_WHOLE, 
 		SUB_MOVE_DONE} };//turn left and move 1 cell
-struct MOVE MoveRight = { 0, 1, RIGHT, MoveSingleCheck, 
+struct MOVE MoveRight = { 0, 1, RIGHT, MoveSubMoveCheck, 
 	{	SUB_MOVE_TURN_RIGHT, 
 		SUB_MOVE_FORWARD_WHOLE, 
 		SUB_MOVE_DONE} };//turn right and move 1 cell
 //Spin Moves
-struct MOVE MoveTurnBack = {0, 0, BACK, MoveSpinCheck, 
+struct MOVE MoveTurnBack = {0, 0, BACK, MoveSubMoveCheck, 
 	{	SUB_MOVE_TURN_AROUND,
 		SUB_MOVE_DONE} };//turn back
-struct MOVE MoveTurnLeft = { 0, 0, LEFT, MoveSpinCheck, 
+struct MOVE MoveTurnLeft = { 0, 0, LEFT, MoveSubMoveCheck, 
 	{	SUB_MOVE_TURN_LEFT, 
 		SUB_MOVE_DONE} };//turn left 
-struct MOVE MoveTurnRight = { 0, 0, RIGHT, MoveSpinCheck, 
+struct MOVE MoveTurnRight = { 0, 0, RIGHT, MoveSubMoveCheck, 
 	{	SUB_MOVE_TURN_RIGHT, 
 		SUB_MOVE_DONE} };//turn right
 //Integrated Moves
-struct MOVE MoveIntegratedLeft = { 1, -1, LEFT, MoveIntegratedCheck,
+struct MOVE MoveIntegratedLeft = { 1, -1, LEFT, MoveSubMoveCheck,
 	{	SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_INTEGRATE_LEFT, 
 		SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_DONE} };//turn left while moving forward
-struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveIntegratedCheck, 
+struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveSubMoveCheck, 
 	{	SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_INTEGRATE_RIGHT, 
 		SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_DONE} };//turn right while moving forward
 //Hairpin Moves
-struct MOVE MoveHairpinLeft = { 0, -1, BACK, MoveHairpinCheck,
+struct MOVE MoveHairpinLeft = { 0, -1, BACK, MoveSubMoveCheck,
    	{	SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_INTEGRATE_LEFT, 
 		SUB_MOVE_INTEGRATE_LEFT,
 	   	SUB_MOVE_FORWARD_HALF,
 	   	SUB_MOVE_DONE} };
-struct MOVE MoveHairpinRight = {0, 1, BACK, MoveHairpinCheck, 
+struct MOVE MoveHairpinRight = {0, 1, BACK, MoveSubMoveCheck, 
 	{	SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_INTEGRATE_RIGHT,
 	   	SUB_MOVE_INTEGRATE_RIGHT, 
