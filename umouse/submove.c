@@ -102,7 +102,8 @@ BOOL SubMoveLegal(
 	printf("testing move %d\n", move);
 
 	//verify that moving start states line up
-	if( !( moving ^ SubMoveMovingStartState[move]) )
+	if(  moving && ! SubMoveMovingStartState[move] || 
+		 ! moving && SubMoveMovingStartState[move] ) 
 	{
 		printf("wrong moving state\n");
 		return FALSE;
@@ -179,7 +180,7 @@ enum SUB_MOVE SubMoveFindBest(
 		dir = startDir;
 		moving = startMoving;
 		//check move is legal.
-		if( ! SubMoveLegal(x, y, dir, cur, moving, map, scan))
+		if( ! SubMoveLegal(x, y, dir, moving, cur, map, scan))
 			continue;
 		//gather results
 		curFlood = FloodFillGet( x/2, y/2, flood );

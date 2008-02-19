@@ -197,7 +197,7 @@ void PrintMove( enum SUB_MOVE move )
 	}
 }
 
-void PrintState(INDEX x, INDEX y, enum DIRECTION dir )
+void PrintState(INDEX x, INDEX y, enum DIRECTION dir, BOOL moving )
 {
 	printf("(%d.%d,%d,%d) ",x/2,x%2,y/2,y%2);
 	switch(dir)
@@ -215,6 +215,12 @@ void PrintState(INDEX x, INDEX y, enum DIRECTION dir )
 			printf("w ");
 			break;
 	}
+	if( moving )
+		printf("moving ");
+	else
+		printf("not moving ");
+
+	printf("\n");
 }
 
 void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, BOOL moving, INDEX destX, INDEX destY)
@@ -237,6 +243,8 @@ void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, BOOL moving, INDEX destX, 
 	if( ! MapGetWall( x/2, y/2, dir, &WorldMap ))
 	{
 		printf("scanning\n");
+		//move cordinates into next cell.
+		SubMoveTranslate( &scanX, &scanY, dir, 2 );
 		//no wall so we can scan.
 		//check walls for changes to update floodfill
 		for(testDir = NORTH; testDir <= WEST; testDir++)
@@ -297,7 +305,7 @@ void RunMoves(INDEX * startX, INDEX *startY, INDEX *startDir, INDEX destX, INDEX
 
 		//Print the state
 		printf("dist = %d ", FloodFillGet( x/2, y/2, &FloodMap));
-		PrintState( x, y, dir );
+		PrintState( x, y, dir,moving );
 		if( x > WIDTH*2 || y > HEIGHT*2 )
 		{
 			printf("out of bounds\n");
@@ -312,7 +320,7 @@ void RunMoves(INDEX * startX, INDEX *startY, INDEX *startDir, INDEX destX, INDEX
 		SubMoveApply( &x, &y, &dir, &moving, move);
 
 		printf("now at ");
-		PrintState(x,y,dir);
+		PrintState(x,y,dir,moving);
 
 		printf("dist = %d \n", FloodFillGet( x, y, &FloodMap));
 
