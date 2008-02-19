@@ -2,8 +2,8 @@
 
 #include<stdio.h>
 
-#define ROTATED = 0x01
-#define TRANSLATED 0x02
+#define DID_ROTATE 0x01
+#define DID_TRANSLATE 0x02
 //routines to compute position delta
 char SubMoveTranslate( INDEX * x, INDEX * y, enum DIRECTION dir, COUNT dist )
 {
@@ -22,13 +22,13 @@ char SubMoveTranslate( INDEX * x, INDEX * y, enum DIRECTION dir, COUNT dist )
 			*x-=dist;
 			break;
 	}
-	return TRANSLATED;
+	return DID_TRANSLATE;
 }
 	
 char SubMoveRotate( enum DIRECTION * dir, enum ANGLE angle )
 {
-	*dir = TURN(*dir,angle);
-	return ROTATED;
+	* dir = TURN((*dir),angle);
+	return DID_ROTATE;
 }
 
 char SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, enum SUB_MOVE move)
@@ -40,9 +40,13 @@ char SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, enum SUB_MOVE move
 			break;
 		case SUB_MOVE_START:
 			flags |= SubMoveTranslate(x,y,*dir,1);
-			//printf("forward whole = %d,%d,%d\n",*x,*y,*dir);
+			//printf("forward start = %d,%d,%d\n",*x,*y,*dir);
 			break;
-		case SUB_MOVE_FORWARD_HALF:
+		case SUB_MOVE_STOP:
+			flags |= SubMoveTranslate( x, y, *dir, 1 );
+			//printf("forward stop = %d,%d,%d\n",*x,*y,*dir);
+			break;
+		case SUB_MOVE_FORWARD:
 			flags|=SubMoveTranslate(x,y,*dir,1);
 			break;
 		case SUB_MOVE_TURN_RIGHT:
@@ -84,7 +88,14 @@ BOOL SubMovesRotates[9] =
 {FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE};
 
 
-BOOL SubMoveLegal( INDEX x, INDEX y, enum DIRECTION startDir, enum SUB_MOVE move, BOOL moving, struct MAP *map, struct SCAN_LOG *scan )
+BOOL SubMoveLegal( 
+		INDEX x, 
+		INDEX y, 
+		enum DIRECTION dir, 
+		enum SUB_MOVE move,
+	   	BOOL moving, 
+		struct MAP *map,
+	   	struct SCAN_LOG *scan )
 {
 	char moveFlags;
 
@@ -94,7 +105,7 @@ BOOL SubMoveLegal( INDEX x, INDEX y, enum DIRECTION startDir, enum SUB_MOVE move
 
 	moveFlags = SubMoveApply( &x, &y , &dir, move );
 
-	if( moveFlags & TRANSLATE )
+	if( moveFlags & DID_TRANSLATE )
 	{
 		//verify we dont cross wall
 		if( MapGetWall( x/2, y/2, TURN(dir,BACK), map ) )
@@ -114,7 +125,7 @@ enum SUB_MOVE SubMoveFindBest(
 		BOOL moving,
 	   	struct FLOOD_MAP * flood, 
 		struct MAP * map,
-		struct SCAN_LOG * scanLog)
+		struct SCAN_LOG * scan)
 {
 	//best move vars
 	enum SUB_MOVE best;
@@ -134,7 +145,6 @@ enum SUB_MOVE SubMoveFindBest(
 	INDEX x;
 	INDEX y;
 	enum DIRECTION dir;
-	BOOL rotated;
 
 	//set up standard to measure against: SUB_MOVE_DONE
 	x = startX;
@@ -154,7 +164,7 @@ enum SUB_MOVE SubMoveFindBest(
 		y = startY;
 		dir = startDir;
 		//check move is legal.
-		if( ! SubMovesLegal(x, y, dir, cur, moving, map, scan))
+		if( ! SubMoveLegal(x, y, dir, cur, moving, map, scan))
 			continue;
 		//gather results
 		curFlood = FloodFillGet( x/2, y/2, flood );

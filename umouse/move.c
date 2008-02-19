@@ -8,19 +8,22 @@
 struct MOVE MoveNowhere = { {SUB_MOVE_DONE} };//dont turn or move
 //Single Cell Moves
 struct MOVE MoveStraight = { 
-	{	SUB_MOVE_FORWARD_WHOLE, 
-		SUB_MOVE_DONE} };//move forward 1 cell
+	{	SUB_MOVE_START, 
+		SUB_MOVE_STOP} };//move forward 1 cell
 struct MOVE MoveBack = {
    	{	SUB_MOVE_TURN_AROUND,
-		SUB_MOVE_FORWARD_WHOLE,
+		SUB_MOVE_START,
+		SUB_MOVE_STOP,
 		SUB_MOVE_DONE} };//turn around and move forward 1 cell//not really needed
 struct MOVE MoveLeft = {
 	{	SUB_MOVE_TURN_LEFT, 
-		SUB_MOVE_FORWARD_WHOLE, 
+		SUB_MOVE_START,
+		SUB_MOVE_STOP,	
 		SUB_MOVE_DONE} };//turn left and move 1 cell
 struct MOVE MoveRight = {
 	{	SUB_MOVE_TURN_RIGHT, 
-		SUB_MOVE_FORWARD_WHOLE, 
+		SUB_MOVE_START,
+		SUB_MOVE_STOP,
 		SUB_MOVE_DONE} };//turn right and move 1 cell
 //Spin Moves
 struct MOVE MoveTurnBack = {
@@ -34,27 +37,27 @@ struct MOVE MoveTurnRight = {
 		SUB_MOVE_DONE} };//turn right
 //Integrated Moves
 struct MOVE MoveIntegratedLeft = {
-	{	SUB_MOVE_FORWARD_HALF, 
+	{	SUB_MOVE_FORWARD, 
 		SUB_MOVE_INTEGRATE_LEFT, 
-		SUB_MOVE_FORWARD_HALF, 
+		SUB_MOVE_FORWARD, 
 		SUB_MOVE_DONE} };//turn left while moving forward
 struct MOVE MoveIntegratedRight = {
-	{	SUB_MOVE_FORWARD_HALF, 
+	{	SUB_MOVE_FORWARD, 
 		SUB_MOVE_INTEGRATE_RIGHT, 
-		SUB_MOVE_FORWARD_HALF, 
+		SUB_MOVE_FORWARD, 
 		SUB_MOVE_DONE} };//turn right while moving forward
 //Hairpin Moves
 struct MOVE MoveHairpinLeft = {
-   	{	SUB_MOVE_FORWARD_HALF, 
+   	{	SUB_MOVE_FORWARD, 
 		SUB_MOVE_INTEGRATE_LEFT, 
 		SUB_MOVE_INTEGRATE_LEFT,
-	   	SUB_MOVE_FORWARD_HALF,
+	   	SUB_MOVE_FORWARD,
 	   	SUB_MOVE_DONE} };
 struct MOVE MoveHairpinRight = {
-	{	SUB_MOVE_FORWARD_HALF, 
+	{	SUB_MOVE_FORWARD, 
 		SUB_MOVE_INTEGRATE_RIGHT,
 	   	SUB_MOVE_INTEGRATE_RIGHT, 
-		SUB_MOVE_FORWARD_HALF, 
+		SUB_MOVE_FORWARD, 
 		SUB_MOVE_DONE} };
 
 #define NUM_MOVES 9
@@ -95,10 +98,8 @@ BOOL MoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct 
 
 	for( moveIndex = 0; move->SubMoves[moveIndex]!= SUB_MOVE_DONE; moveIndex++ )
 	{
-		translated = FALSE;
-		rotated = FALSE;
 		//perform movement
-		SubMoveApply(&x,&y,&dir, move->SubMoves[moveIndex],&translated,&rotated);
+		SubMoveApply(&x,&y,&dir, move->SubMoves[moveIndex]);
 	
 		//perform validation (see if we passed through wall)
 		if(	translated && MapGetWall( x/2, y/2, TURN(dir,BACK), map ) )
@@ -127,11 +128,9 @@ void MoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, struct MOVE * move )
 	*x = (*x) *2 +1;
 	*y = (*y) *2 +1;
 	INDEX index = 0;
-	BOOL trans;
-	BOOL rot;
 	while( move->SubMoves[index] != SUB_MOVE_DONE )
 	{
-		SubMoveApply(x,y,dir,move->SubMoves[index],&trans,&rot);
+		SubMoveApply(x,y,dir,move->SubMoves[index]);
 		index++;
 	}
 	*x = *x / 2;

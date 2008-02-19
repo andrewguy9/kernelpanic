@@ -3,6 +3,9 @@
 
 #include"compass.h"
 #include"../utils/utils.h"
+#include"positionlog.h"
+#include"map.h"
+#include"floodfill.h"
 
 enum SUB_MOVE { 
 	SUB_MOVE_DONE,
@@ -16,9 +19,27 @@ enum SUB_MOVE {
 	SUB_MOVE_INTEGRATE_LEFT
 };
 
-void SubMoveTranslate( INDEX * x, INDEX * y, enum DIRECTION dir, COUNT dist );
+char SubMoveTranslate( INDEX * x, INDEX * y, enum DIRECTION dir, COUNT dist );
 
-void SubMoveRotate( enum DIRECTION * dir, enum ANGLE angle );
+char SubMoveRotate( enum DIRECTION * dir, enum ANGLE angle );
 
-void SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, enum SUB_MOVE move, BOOL * translated, BOOL * rotated );
+char SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, enum SUB_MOVE move);
+
+BOOL SubMoveLegal( 
+		INDEX x, 
+		INDEX y, 
+		enum DIRECTION startDir, 
+		enum SUB_MOVE move,
+	   	BOOL moving, 
+		struct MAP *map,
+	   	struct SCAN_LOG *scan );
+
+enum SUB_MOVE SubMoveFindBest(
+		INDEX startX,
+	   	INDEX startY,
+	   	enum DIRECTION startDir,
+		BOOL moving,
+	   	struct FLOOD_MAP * flood, 
+		struct MAP * map,
+		struct SCAN_LOG * scanLog);
 #endif
