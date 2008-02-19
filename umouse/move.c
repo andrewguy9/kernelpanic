@@ -159,7 +159,7 @@ BOOL MoveSubMoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, 
 				break;
 			case SUB_MOVE_TURN_LEFT:
 				rotated = TRUE;
-				SubMoveRotate(&dir, LEFT );
+				SubMoveRotate(&dir, LEFT);
 				printf("turn left = %d,%d,%d\n",x,y,dir);
 				break;
 			case SUB_MOVE_TURN_AROUND:
@@ -179,7 +179,7 @@ BOOL MoveSubMoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, 
 				translated = TRUE;
 				rotated = TRUE;
 				SubMoveTranslate(&x,&y,dir,1);
-				SubMoveRotate(&dir, RIGHT);
+				SubMoveRotate(&dir, LEFT);
 				SubMoveTranslate( &x, &y, dir, 1 );
 				printf("integrate left = %d,%d,%d\n",x,y,dir);
 				break;
@@ -195,6 +195,12 @@ BOOL MoveSubMoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, 
 		if( translated && ! ScanLogGet( x/2, y/2, scan ) )
 		{
 			printf("not scanned\n");
+			return FALSE;
+		}
+		//make sure we are not facing a wall(as result of rotation)
+		if( rotated&& MapGetWall( x/2, y/2, dir, map ) )
+		{
+			printf("facing wall\n");
 			return FALSE;
 		}
 	}
