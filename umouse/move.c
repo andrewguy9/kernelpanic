@@ -5,53 +5,52 @@
 #include<stdio.h>
 
 //Stuck Moves
-struct MOVE MoveNowhere = { 0, 0, STRAIGHT,
-	{SUB_MOVE_DONE} };//dont turn or move
+struct MOVE MoveNowhere = { {SUB_MOVE_DONE} };//dont turn or move
 //Single Cell Moves
-struct MOVE MoveStraight = { 1, 0, STRAIGHT,
+struct MOVE MoveStraight = { 
 	{	SUB_MOVE_FORWARD_WHOLE, 
 		SUB_MOVE_DONE} };//move forward 1 cell
-struct MOVE MoveBack = { -1, 0, BACK,
+struct MOVE MoveBack = {
    	{	SUB_MOVE_TURN_AROUND,
 		SUB_MOVE_FORWARD_WHOLE,
 		SUB_MOVE_DONE} };//turn around and move forward 1 cell//not really needed
-struct MOVE MoveLeft = { 0, -1, LEFT,
+struct MOVE MoveLeft = {
 	{	SUB_MOVE_TURN_LEFT, 
 		SUB_MOVE_FORWARD_WHOLE, 
 		SUB_MOVE_DONE} };//turn left and move 1 cell
-struct MOVE MoveRight = { 0, 1, RIGHT,
+struct MOVE MoveRight = {
 	{	SUB_MOVE_TURN_RIGHT, 
 		SUB_MOVE_FORWARD_WHOLE, 
 		SUB_MOVE_DONE} };//turn right and move 1 cell
 //Spin Moves
-struct MOVE MoveTurnBack = {0, 0, BACK,
+struct MOVE MoveTurnBack = {
 	{	SUB_MOVE_TURN_AROUND,
 		SUB_MOVE_DONE} };//turn back
-struct MOVE MoveTurnLeft = { 0, 0, LEFT, 
+struct MOVE MoveTurnLeft = {
 	{	SUB_MOVE_TURN_LEFT, 
 		SUB_MOVE_DONE} };//turn left 
-struct MOVE MoveTurnRight = { 0, 0, RIGHT,
+struct MOVE MoveTurnRight = {
 	{	SUB_MOVE_TURN_RIGHT, 
 		SUB_MOVE_DONE} };//turn right
 //Integrated Moves
-struct MOVE MoveIntegratedLeft = { 1, -1, LEFT,
+struct MOVE MoveIntegratedLeft = {
 	{	SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_INTEGRATE_LEFT, 
 		SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_DONE} };//turn left while moving forward
-struct MOVE MoveIntegratedRight = { 1, 1, RIGHT,
+struct MOVE MoveIntegratedRight = {
 	{	SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_INTEGRATE_RIGHT, 
 		SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_DONE} };//turn right while moving forward
 //Hairpin Moves
-struct MOVE MoveHairpinLeft = { 0, -1, BACK,
+struct MOVE MoveHairpinLeft = {
    	{	SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_INTEGRATE_LEFT, 
 		SUB_MOVE_INTEGRATE_LEFT,
 	   	SUB_MOVE_FORWARD_HALF,
 	   	SUB_MOVE_DONE} };
-struct MOVE MoveHairpinRight = {0, 1, BACK, 
+struct MOVE MoveHairpinRight = {
 	{	SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_INTEGRATE_RIGHT,
 	   	SUB_MOVE_INTEGRATE_RIGHT, 

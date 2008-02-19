@@ -10,9 +10,6 @@
 
 struct MOVE 
 {
-	int Dfb;//spaces moved forward (positive) or backward (negative)
-	int Drl;//spaces moved right (positive) or left (negative)
-	enum ANGLE Dtheta;//Rotation from starting orientation.
 	enum SUB_MOVE SubMoves[5];
 };
 
