@@ -99,9 +99,14 @@ BOOL SubMoveLegal(
 {
 	char moveFlags;
 
+	printf("testing move %d\n", move);
+
 	//verify that moving start states line up
-	if( moving != SubMoveMovingStartState[move] )
+	if( !( moving ^ SubMoveMovingStartState[move]) )
+	{
+		printf("wrong moving state\n");
 		return FALSE;
+	}
 
 	moveFlags = SubMoveApply( &x, &y, &dir, &moving, move );
 
@@ -109,12 +114,19 @@ BOOL SubMoveLegal(
 	{
 		//verify we dont cross wall
 		if( MapGetWall( x/2, y/2, TURN(dir,BACK), map ) )
+		{
+			printf("crossed wall\n");
 			return FALSE;
+		}
 		//verify we dont enter unexplored cell.
 		if( ! ScanLogGet( x/2, y/2, scan ) )
+		{
+			printf("into unscanned area\n");
 			return FALSE;
+		}
 	}
 
+	printf("match!\n");
 	return TRUE;
 }
 

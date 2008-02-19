@@ -249,7 +249,7 @@ void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, BOOL moving, INDEX destX, 
 			}
 		}
 		//Log that we scanned the cell.
-		ScanLogSet(scanX,scanY,TRUE,&ScanLog);
+		ScanLogSet(scanX/2,scanY/2,TRUE,&ScanLog);
 	}
 	else
 	{
@@ -265,9 +265,9 @@ void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, BOOL moving, INDEX destX, 
 	}
 
 	printf("world map\n");
-	PrintMapScan( &WorldMap, &ScanLog, x, y, dir );
+	PrintMapScan( &WorldMap, &ScanLog, x/2, y/2, dir );
 	printf("mouse map\n");
-	PrintMapFlood( &MouseMap, &FloodMap, x, y, dir );
+	PrintMapFlood( &MouseMap, &FloodMap, x/2, y/2, dir );
 }
 
 void RunMoves(INDEX * startX, INDEX *startY, INDEX *startDir, INDEX destX, INDEX destY )
