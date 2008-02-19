@@ -7,18 +7,17 @@
 #include"positionlog.h"
 #include"submove.h"
 
-struct MOVE;
-
-typedef BOOL (WALLS_CHECK_HANDLER)(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG * scan );
 
 struct MOVE 
 {
 	int Dfb;//spaces moved forward (positive) or backward (negative)
 	int Drl;//spaces moved right (positive) or left (negative)
 	enum ANGLE Dtheta;//Rotation from starting orientation.
-	WALLS_CHECK_HANDLER * Check;//Function to check for wall collisions.
 	enum SUB_MOVE SubMoves[5];
 };
+
+
+BOOL MoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan );
 
 extern struct MOVE MoveNowhere;
 extern struct MOVE MoveStraight;

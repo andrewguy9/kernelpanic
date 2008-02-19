@@ -5,123 +5,7 @@
 #include<stdio.h>
 
 //define funcitons which look for walls
-BOOL MoveNoMovementCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
-{
-	return TRUE;
-}
-
-BOOL MoveSpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
-{
-	//the move just rotates, so simuate rotate and 
-	//make sure were not facing a wall
-	dir = TURN(dir, move->Dtheta);
-	return ! MapGetWall( x, y, dir, map );
-}
-
-BOOL MoveSingleCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
-{
-	BOOL wall;
-	BOOL scanned;
-	//we are going to turn and go forward
-	//simulate the turn and move
-	MoveApply( &x, &y, &dir, move );
-	//check see if there is a wall behind us
-	dir = TURN( dir, BACK );
-	wall = MapGetWall( x, y, dir, map );
-
-	//we move into new cell, make sure we scanned it first
-	scanned = ScanLogGet( x, y, scan );
-
-	//move is ok if no wall and scanned
-	return !wall && scanned;
-}
-
-BOOL MoveIntegratedCheck(INDEX startX, INDEX startY, enum DIRECTION startDir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
-{
-	INDEX x,y;
-	enum DIRECTION dir;
-	x = startX;
-	y = startY;
-	dir = startDir;
-
-	//see if wall in front of us
-	if( MapGetWall( x, y, dir, map ) )
-		return FALSE;
-
-	//move forward 1 cell
-	MoveApply( &x, &y, &dir, &MoveStraight );
-	//check if scanned
-	if( ! ScanLogGet( x, y, scan ) )
-		return FALSE;
-
-	//move into final cell
-	MoveApply( &startX, &startY, &startDir, move );
-
-	//check if scanned
-	if( ! ScanLogGet( startX, startY, scan ) )
-		return FALSE;
-
-	//check for wall behind
-	if( MapGetWall( startX, startY, TURN(startDir,BACK), map ) )
-		return FALSE;
-
-	//check for wall infront
-	if( MapGetWall( startX, startY, startDir, map ) )
-		return FALSE;
-
-	return TRUE;
-}
-
-BOOL MoveHairpinCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
-{
-	struct MOVE * turnType;
-	//check for wall infront of us
-	if( MapGetWall( x, y, dir, map ))
-		return FALSE;
-
-	//Move into next cell
-	MoveApply( &x, &y, &dir, &MoveStraight );
-
-	//make sure sell is scanned 
-	if( ! ScanLogGet( x, y, scan ) )
-		return FALSE;
-
-	//figure out turn direction
-	if( move->Drl > 0 )//move right
-		turnType = &MoveRight;
-	else
-		turnType = &MoveLeft;
-
-	//move to other side of hairpin
-	MoveApply( &x, &y, &dir, turnType );
-
-	//make sure wall is clear between sides of hairpin (behind us)
-	if( MapGetWall( x, y, TURN(dir,BACK), map ) )//WRONG
-		return FALSE;
-
-	//check to see if cell is checked
-	if( ! ScanLogGet( x, y, scan ))
-		return FALSE;
-
-	//Move into final cell
-	MoveApply( &x, &y, &dir, turnType );
-
-	//check to see if last wall is there (behind us)
-	if( MapGetWall( x, y, TURN(dir, BACK), map ) )
-		return FALSE;
-
-	//check to see if final cell is scanned.
-	if( ! ScanLogGet( x, y, scan ))
-		return FALSE;
-
-	//we should not hairpin into a wall
-	if( MapGetWall( x, y, dir, map ))
-		return FALSE;
-
-	return TRUE;
-}
-
-BOOL MoveSubMoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
+BOOL MoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
 {
 	BOOL translated;
 	BOOL rotated;
@@ -208,53 +92,53 @@ BOOL MoveSubMoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, 
 }
 
 //Stuck Moves
-struct MOVE MoveNowhere = { 0, 0, STRAIGHT, MoveSubMoveCheck,
+struct MOVE MoveNowhere = { 0, 0, STRAIGHT,
 	{SUB_MOVE_DONE} };//dont turn or move
 //Single Cell Moves
-struct MOVE MoveStraight = { 1, 0, STRAIGHT, MoveSubMoveCheck,
+struct MOVE MoveStraight = { 1, 0, STRAIGHT,
 	{	SUB_MOVE_FORWARD_WHOLE, 
 		SUB_MOVE_DONE} };//move forward 1 cell
-struct MOVE MoveBack = { -1, 0, BACK, MoveSubMoveCheck,
+struct MOVE MoveBack = { -1, 0, BACK,
    	{	SUB_MOVE_TURN_AROUND,
 		SUB_MOVE_FORWARD_WHOLE,
 		SUB_MOVE_DONE} };//turn around and move forward 1 cell//not really needed
-struct MOVE MoveLeft = { 0, -1, LEFT, MoveSubMoveCheck, 
+struct MOVE MoveLeft = { 0, -1, LEFT,
 	{	SUB_MOVE_TURN_LEFT, 
 		SUB_MOVE_FORWARD_WHOLE, 
 		SUB_MOVE_DONE} };//turn left and move 1 cell
-struct MOVE MoveRight = { 0, 1, RIGHT, MoveSubMoveCheck, 
+struct MOVE MoveRight = { 0, 1, RIGHT,
 	{	SUB_MOVE_TURN_RIGHT, 
 		SUB_MOVE_FORWARD_WHOLE, 
 		SUB_MOVE_DONE} };//turn right and move 1 cell
 //Spin Moves
-struct MOVE MoveTurnBack = {0, 0, BACK, MoveSubMoveCheck, 
+struct MOVE MoveTurnBack = {0, 0, BACK,
 	{	SUB_MOVE_TURN_AROUND,
 		SUB_MOVE_DONE} };//turn back
-struct MOVE MoveTurnLeft = { 0, 0, LEFT, MoveSubMoveCheck, 
+struct MOVE MoveTurnLeft = { 0, 0, LEFT, 
 	{	SUB_MOVE_TURN_LEFT, 
 		SUB_MOVE_DONE} };//turn left 
-struct MOVE MoveTurnRight = { 0, 0, RIGHT, MoveSubMoveCheck, 
+struct MOVE MoveTurnRight = { 0, 0, RIGHT,
 	{	SUB_MOVE_TURN_RIGHT, 
 		SUB_MOVE_DONE} };//turn right
 //Integrated Moves
-struct MOVE MoveIntegratedLeft = { 1, -1, LEFT, MoveSubMoveCheck,
+struct MOVE MoveIntegratedLeft = { 1, -1, LEFT,
 	{	SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_INTEGRATE_LEFT, 
 		SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_DONE} };//turn left while moving forward
-struct MOVE MoveIntegratedRight = { 1, 1, RIGHT, MoveSubMoveCheck, 
+struct MOVE MoveIntegratedRight = { 1, 1, RIGHT,
 	{	SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_INTEGRATE_RIGHT, 
 		SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_DONE} };//turn right while moving forward
 //Hairpin Moves
-struct MOVE MoveHairpinLeft = { 0, -1, BACK, MoveSubMoveCheck,
+struct MOVE MoveHairpinLeft = { 0, -1, BACK,
    	{	SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_INTEGRATE_LEFT, 
 		SUB_MOVE_INTEGRATE_LEFT,
 	   	SUB_MOVE_FORWARD_HALF,
 	   	SUB_MOVE_DONE} };
-struct MOVE MoveHairpinRight = {0, 1, BACK, MoveSubMoveCheck, 
+struct MOVE MoveHairpinRight = {0, 1, BACK, 
 	{	SUB_MOVE_FORWARD_HALF, 
 		SUB_MOVE_INTEGRATE_RIGHT,
 	   	SUB_MOVE_INTEGRATE_RIGHT, 
@@ -351,7 +235,7 @@ struct MOVE * MoveFindBest(
 		dir = startDir;
 
 		//test to see if move is valid (dont cross walls)
-		validMove = Moves[curMove]->Check(x,y,dir,Moves[curMove],map,scanLog);
+		validMove = MoveCheck(x,y,dir,Moves[curMove],map,scanLog);
 
 		if( !validMove)
 			continue;
@@ -420,7 +304,7 @@ COUNT MoveStraightAwayLength(
 		MoveApply( &nextX, &nextY , &dir , &MoveStraight );
 
 		//check the move is actually valid
-		if( ! MoveSingleCheck(nextX, nextY, dir, &MoveStraight, map, scan) )
+		if( ! MoveCheck(nextX, nextY, dir, &MoveStraight, map, scan ) )
 			break;//move not legal, must have crossed a wall or non scanned cell
 
 		//check floodfill dropping
