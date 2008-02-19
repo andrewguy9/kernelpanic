@@ -18,4 +18,6 @@ enum SUB_MOVE {
 void SubMoveTranslate( INDEX * x, INDEX * y, enum DIRECTION dir, COUNT dist );
 
 void SubMoveRotate( enum DIRECTION * dir, enum ANGLE angle );
+
+void SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, enum SUB_MOVE move, BOOL * translated, BOOL * rotated );
 #endif

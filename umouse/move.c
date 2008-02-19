@@ -4,93 +4,6 @@
 
 #include<stdio.h>
 
-//define funcitons which look for walls
-BOOL MoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
-{
-	BOOL translated;
-	BOOL rotated;
-	//assume we are in correct state.
-	//iterate through the sub moves checking for wall crossings and scan status
-	INDEX moveIndex = 0;
-
-	//sub moves are a 1/2 cell resolution. Always start move from center of cell.
-	x=x*2+1;
-	y=y*2+1;
-
-	printf("starting move (%d,%d,%d)\n",x,y,dir);
-
-	for( moveIndex = 0; move->SubMoves[moveIndex]!= SUB_MOVE_DONE; moveIndex++ )
-	{
-		translated = FALSE;
-		rotated = FALSE;
-		//perform movement
-		switch(move->SubMoves[moveIndex])
-		{
-			case SUB_MOVE_FORWARD_WHOLE:
-				SubMoveTranslate(&x,&y,dir,2);
-				translated = TRUE;
-				printf("forward whole = %d,%d,%d\n",x,y,dir);
-				break;
-			case SUB_MOVE_FORWARD_HALF:
-				translated = TRUE;
-				SubMoveTranslate(&x,&y,dir,1);
-				printf("forward half = %d,%d,%d\n",x,y,dir);
-				break;
-			case SUB_MOVE_TURN_RIGHT:
-				rotated = TRUE;
-				SubMoveRotate(&dir, RIGHT);
-				printf("turn right = %d,%d,%d\n",x,y,dir);
-				break;
-			case SUB_MOVE_TURN_LEFT:
-				rotated = TRUE;
-				SubMoveRotate(&dir, LEFT);
-				printf("turn left = %d,%d,%d\n",x,y,dir);
-				break;
-			case SUB_MOVE_TURN_AROUND:
-				rotated = TRUE;
-				SubMoveRotate(&dir, BACK );
-				printf("turn around = %d,%d,%d\n",x,y,dir);
-				break;
-			case SUB_MOVE_INTEGRATE_RIGHT:
-				translated = TRUE;
-				rotated = TRUE;
-				SubMoveTranslate(&x,&y,dir,1);
-				SubMoveRotate(&dir, RIGHT);
-				SubMoveTranslate( &x, &y, dir, 1 );
-				printf("integrate right = %d,%d,%d\n",x,y,dir);
-				break;
-			case SUB_MOVE_INTEGRATE_LEFT:
-				translated = TRUE;
-				rotated = TRUE;
-				SubMoveTranslate(&x,&y,dir,1);
-				SubMoveRotate(&dir, LEFT);
-				SubMoveTranslate( &x, &y, dir, 1 );
-				printf("integrate left = %d,%d,%d\n",x,y,dir);
-				break;
-		}
-	
-		//perform validation (see if we passed through wall)
-		if(	translated && MapGetWall( x/2, y/2, TURN(dir,BACK), map ) )
-		{
-			printf("hit wall\n");
-			return FALSE;
-		}
-		//make sure we are in scanned cell
-		if( translated && ! ScanLogGet( x/2, y/2, scan ) )
-		{
-			printf("not scanned\n");
-			return FALSE;
-		}
-		//make sure we are not facing a wall(as result of rotation)
-		if( rotated&& MapGetWall( x/2, y/2, dir, map ) )
-		{
-			printf("facing wall\n");
-			return FALSE;
-		}
-	}
-	return TRUE;
-}
-
 //Stuck Moves
 struct MOVE MoveNowhere = { 0, 0, STRAIGHT,
 	{SUB_MOVE_DONE} };//dont turn or move
@@ -165,39 +78,65 @@ struct MOVE * Moves[] = {
 	&MoveHairpinRight
 };
 
+
+//define funcitons which look for walls
+BOOL MoveCheck(INDEX x, INDEX y, enum DIRECTION dir, struct MOVE * move, struct MAP * map, struct SCAN_LOG *scan )
+{
+	BOOL translated;
+	BOOL rotated;
+	//assume we are in correct state.
+	//iterate through the sub moves checking for wall crossings and scan status
+	INDEX moveIndex = 0;
+
+	//sub moves are a 1/2 cell resolution. Always start move from center of cell.
+	x=x*2+1;
+	y=y*2+1;
+
+	printf("starting move (%d,%d,%d)\n",x,y,dir);
+
+	for( moveIndex = 0; move->SubMoves[moveIndex]!= SUB_MOVE_DONE; moveIndex++ )
+	{
+		translated = FALSE;
+		rotated = FALSE;
+		//perform movement
+		SubMoveApply(&x,&y,&dir, move->SubMoves[moveIndex],&translated,&rotated);
+	
+		//perform validation (see if we passed through wall)
+		if(	translated && MapGetWall( x/2, y/2, TURN(dir,BACK), map ) )
+		{
+			printf("hit wall\n");
+			return FALSE;
+		}
+		//make sure we are in scanned cell
+		if( translated && ! ScanLogGet( x/2, y/2, scan ) )
+		{
+			printf("not scanned\n");
+			return FALSE;
+		}
+		//make sure we are not facing a wall(as result of rotation)
+		if( rotated&& MapGetWall( x/2, y/2, dir, map ) )
+		{
+			printf("facing wall\n");
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
 void MoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, struct MOVE * move )
 {
-	//calculate our new position
-	int dFB = move->Dfb;//forward +, back - 
-	int dRL = move->Drl;//left +, right -
-	
-	//we move relative to start dir.
-	switch( * dir )
+	*x = (*x) *2 +1;
+	*y = (*y) *2 +1;
+	INDEX index = 0;
+	BOOL trans;
+	BOOL rot;
+	while( move->SubMoves[index] != SUB_MOVE_DONE )
 	{
-		case NORTH:
-			//we facing north, so y = dFB and x = dRL
-			*x+=dRL;
-			*y+=dFB;
-			break;
-		case SOUTH:
-			//we are facing south, so x=-dRL and y = -dFB
-			*x-=dRL;
-			*y-=dFB;
-			break;
-		case EAST:
-			//we are facing east, so x = dFB, y = -dRL
-			*x+=dFB;
-			*y-=dRL;
-			break;
-		case WEST:
-			//we are facing west, so x = -dFB, y = dRL
-			*x-=dFB;
-			*y+=dRL;
-			break;
+		SubMoveApply(x,y,dir,move->SubMoves[index],&trans,&rot);
+		index++;
 	}
-
-	//calculate our final orientation
-	*dir = TURN( *dir, move->Dtheta );
+	*x = *x / 2;
+	*y = *y / 2;
 }
 
 struct MOVE * MoveFindBest(
