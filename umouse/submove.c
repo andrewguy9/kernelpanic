@@ -171,6 +171,10 @@ BOOL MoveEndOnWall( INDEX x, INDEX y, struct MAP * map, enum SUB_MOVE move )
 			dir = SOUTH;
 		else if( y%2 == 1 )
 			dir = WEST;
+		else
+			return TRUE;
+		printf("end on wall test (%d,%d,%d) == %d\n",
+				x,y,dir,MapGetWall( x/2, y/2, dir, map));
 		return ! MapGetWall( x/2, y/2, dir, map );
 		default:
 		return TRUE;
@@ -286,6 +290,12 @@ BOOL SubMoveLegal(
 		return FALSE;
 	}
 	
+	//TODO removes baned moves
+	if( move == SUB_MOVE_FORWARD )
+	{
+		printf("banned move\n");
+		return FALSE;
+	}
 	return TRUE;
 }
 
@@ -350,7 +360,7 @@ enum SUB_MOVE SubMoveFindBest(
 		curFlood = FloodFillGet( x/2, y/2, flood );
 		curFacingWall = MapGetWall( x/2, y/2, dir, map );
 		//translate for scan lookup
-		SubMoveTranslate( &x, &y, dir, 1 );
+		SubMoveTranslate( &x, &y, dir, 2 );
 		curFacingFlood = FloodFillGet( x/2, y/2, flood );
 		curRotated = SubMovesRotates[cur];
 
