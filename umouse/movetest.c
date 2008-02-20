@@ -199,7 +199,7 @@ void PrintMove( enum SUB_MOVE move )
 
 void PrintState(INDEX x, INDEX y, enum DIRECTION dir, BOOL moving )
 {
-	printf("(%d.%d,%d,%d) ",x/2,x%2,y/2,y%2);
+	printf("(%d.%d,%d.%d) ",x/2,x%2,y/2,y%2);
 	switch(dir)
 	{
 		case NORTH:
@@ -236,7 +236,7 @@ void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, BOOL moving, INDEX destX, 
 	if( x%2 == 0 || y%2== 0 )
 	{
 		printf("cant scan, not in middle\n");
-		return;
+		goto done;
 	}
 
 	//see if there is a wall infront of us
@@ -250,9 +250,9 @@ void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, BOOL moving, INDEX destX, 
 		for(testDir = NORTH; testDir <= WEST; testDir++)
 		{
 			if( ! MapGetWall( scanX/2, scanY/2, testDir, &MouseMap ) &&
-					MapGetWall( scanX, scanY, testDir, &WorldMap ) )
+					MapGetWall( scanX/2, scanY/2, testDir, &WorldMap ) )
 			{//mouse just saw new wall
-				MapSetWall( scanX, scanY, testDir, TRUE, &MouseMap );
+				MapSetWall( scanX/2, scanY/2, testDir, TRUE, &MouseMap );
 				mapChanged = TRUE;
 			}
 		}
@@ -271,7 +271,7 @@ void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, BOOL moving, INDEX destX, 
 		FloodFillSetDestination( destX, destY, &FloodMap );
 		FloodFillCalculate( &MouseMap, &FloodMap );
 	}
-
+done:
 	printf("world map\n");
 	PrintMapScan( &WorldMap, &ScanLog, x/2, y/2, dir );
 	printf("mouse map\n");

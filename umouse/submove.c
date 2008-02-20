@@ -11,6 +11,9 @@ BOOL SubMoveMovingEndState[9] =
 //wheather a move turns
 BOOL SubMovesRotates[9] = 
 {FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE};
+//wheater a move must be started from center of cell.
+BOOL SubMovesStartCentered[9] = 
+{FALSE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,FALSE};
 
 #define DID_ROTATE 0x01
 #define DID_TRANSLATE 0x02
@@ -102,13 +105,21 @@ BOOL SubMoveLegal(
 	printf("testing move %d\n", move);
 
 	//verify that moving start states line up
-	if(  moving && ! SubMoveMovingStartState[move] || 
-		 ! moving && SubMoveMovingStartState[move] ) 
+	if(  (moving && ! SubMoveMovingStartState[move]) || 
+		 (! moving && SubMoveMovingStartState[move] ) )
 	{
 		printf("wrong moving state\n");
 		return FALSE;
 	}
 
+	//verify we are in correct position to start move
+	if( SubMovesStartCentered[move] && (x%2==0 || y%2==0) ) 
+	{
+		printf("not in center\n");
+		return FALSE;
+	}
+
+	//perform move
 	moveFlags = SubMoveApply( &x, &y, &dir, &moving, move );
 
 	if( moveFlags & DID_TRANSLATE )
@@ -124,6 +135,22 @@ BOOL SubMoveLegal(
 		{
 			printf("into unscanned area\n");
 			return FALSE;
+		}
+		//if we end the move 
+		//and we are still moving and we are centered,
+		//we better not be facing a wall.
+		if( SubMoveMovingEndState[move] && (x%2==1 && y%2==1 ))
+		{
+			if( MapGetWall( x/2, y/2, dir, map ))
+			{
+				printf("chicken with wall\n");
+				return FALSE;
+			}
+			if( ! ScanLogGet( x/2, y/2, scan ) )
+			{
+				printf("chicken with a unexplored cell\n");
+				return FALSE;
+			}
 		}
 	}
 
@@ -166,11 +193,11 @@ enum SUB_MOVE SubMoveFindBest(
 	dir = startDir;
 	moving = startMoving;
 	best = SUB_MOVE_DONE;
-	bestFlood = FloodFillGet( x/2, y/2, flood );
-	bestFacingWall = MapGetWall( x/2, y/2, dir, map );
-	SubMoveApply( &x, &y, &dir, &moving, SUB_MOVE_FORWARD );
-	bestFacingFlood = FloodFillGet( x/2, y/2, flood );
-	bestRotated = SubMovesRotates[SUB_MOVE_DONE];
+	bestFlood = 255;//FloodFillGet( x/2, y/2, flood );
+	bestFacingWall = TRUE;//MapGetWall( x/2, y/2, dir, map );
+	//SubMoveApply( &x, &y, &dir, &moving, SUB_MOVE_FORWARD );
+	bestFacingFlood = 255;//FloodFillGet( x/2, y/2, flood );
+	bestRotated = TRUE;//SubMovesRotates[SUB_MOVE_DONE];
 
 	for( cur = SUB_MOVE_START; cur <= SUB_MOVE_INTEGRATE_LEFT; cur++ )
 	{
@@ -182,10 +209,13 @@ enum SUB_MOVE SubMoveFindBest(
 		//check move is legal.
 		if( ! SubMoveLegal(x, y, dir, moving, cur, map, scan))
 			continue;
+		//perform move
+		SubMoveApply( &x, &y, &dir, &moving, cur );
 		//gather results
 		curFlood = FloodFillGet( x/2, y/2, flood );
 		curFacingWall = MapGetWall( x/2, y/2, dir, map );
-		SubMoveApply( &x, &y, &dir, &moving, SUB_MOVE_FORWARD );
+		//translate for scan lookup
+		SubMoveTranslate( &x, &y, dir, SUB_MOVE_FORWARD );
 		curFacingFlood = FloodFillGet( x/2, y/2, flood );
 		curRotated = SubMovesRotates[cur];
 
@@ -195,23 +225,53 @@ enum SUB_MOVE SubMoveFindBest(
 
 		//favor least floodfill
 		if( curFlood > bestFlood )
+		{
+			printf("lost on flood\n");
 			continue;
+		}
+		else if( curFlood < bestFlood )
+			goto comparisonDone;
+
 		//favor facing least floodfill
 		if( curFacingFlood > bestFacingFlood)
+		{
+			printf("lost on facing flood\n");
 			continue;
+		}
+		else if( curFacingFlood < bestFacingFlood )
+			goto comparisonDone;
+
 		//favor not facing wall.
 		if( curFacingWall && ! bestFacingWall)
+		{
+			printf("lost on facing wall\n");
 			continue;
+		}
+		else if( !curFacingWall && bestFacingWall)
+			goto comparisonDone;
+
 		//favor facing same direction
 		if( !curRotated && bestRotated )
+		{
+			printf("lost on rotation\n");
 			continue;
+		}
 
+comparisonDone:
 		//we are either better or a direct tie! New best
 		best = cur;
 		bestFlood = curFlood;
 		bestFacingWall = curFacingWall;
 		bestFacingFlood = curFacingFlood;
 		bestRotated = curRotated;
+		printf("%d took the lead with ff=%d,facing=%d,fwall=%d,rot=%d\n",
+				best,
+				bestFlood,
+				bestFacingFlood,
+				bestFacingWall,
+				bestRotated);
 	}
+
+	printf("%d won\n",best);
 	return best;
 }
