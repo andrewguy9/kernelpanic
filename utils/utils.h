@@ -19,8 +19,9 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#define ASSERT( condition, errornum, errorstr ) if( ! (condition) ) \
-		printf("ASSERT FAILED: %s\n", errorstr)
+#define ASSERT( condition, errornum, errorstr ) if( ! (condition) ) {\
+		printf("ASSERT FAILED: %s\n", errorstr); exit(0); } \
+		printf("dead\n")
 
 #endif
 

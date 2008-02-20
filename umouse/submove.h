@@ -19,11 +19,11 @@ enum SUB_MOVE {
 	SUB_MOVE_INTEGRATE_LEFT//8
 };
 
-char SubMoveTranslate( INDEX * x, INDEX * y, enum DIRECTION dir, COUNT dist );
+void SubMoveTranslate( INDEX * x, INDEX * y, enum DIRECTION dir, COUNT dist );
 
-char SubMoveRotate( enum DIRECTION * dir, enum ANGLE angle );
+void SubMoveRotate( enum DIRECTION * dir, enum ANGLE angle );
 
-char SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, BOOL * moving, enum SUB_MOVE move);
+void SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, BOOL * moving, enum SUB_MOVE move);
 
 BOOL SubMoveLegal( 
 		INDEX x, 

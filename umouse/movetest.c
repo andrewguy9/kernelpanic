@@ -25,6 +25,8 @@ void PrintMapFlood( struct MAP * map, struct FLOOD_MAP * flood, INDEX mouseX, IN
 				//western wall
 				if( MapGetWall( x, y, WEST, map ) )
 					printf("|");
+				else if( mouseX/2 == x && mouseY/2 == y && mouseX%2==0 && mouseY%2==0 )
+					printf("M");
 				else
 					printf(" ");
 				//Print cell

@@ -2,23 +2,23 @@
 
 #include<stdio.h>
 
-//Moving state required when starting a move
-BOOL SubMoveMovingStartState[9] = 
-{FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE};
-//ending state of a move
 BOOL SubMoveMovingEndState[9] = 
 {FALSE,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE};
-//wheather a move turns
+
 BOOL SubMovesRotates[9] = 
 {FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE};
-//wheater a move must be started from center of cell.
-BOOL SubMovesStartCentered[9] = 
-{FALSE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,FALSE};
 
-#define DID_ROTATE 0x01
-#define DID_TRANSLATE 0x02
-//routines to compute position delta
-char SubMoveTranslate( INDEX * x, INDEX * y, enum DIRECTION dir, COUNT dist )
+char * MoveName[9] = 
+{"done","start","stop","forward","turn right","turn left","turn around","int right","int left"};
+//
+//Primative Move Functions
+//
+
+void SubMoveTranslate( 
+		INDEX * x, 
+		INDEX * y, 
+		enum DIRECTION dir, 
+		COUNT dist )
 {
 	switch(dir)
 	{
@@ -35,62 +35,202 @@ char SubMoveTranslate( INDEX * x, INDEX * y, enum DIRECTION dir, COUNT dist )
 			*x-=dist;
 			break;
 	}
-	return DID_TRANSLATE;
 }
 	
-char SubMoveRotate( enum DIRECTION * dir, enum ANGLE angle )
+void SubMoveRotate( 
+		enum DIRECTION * dir, 
+		enum ANGLE angle )
 {
 	* dir = TURN((*dir),angle);
-	return DID_ROTATE;
 }
 
-char SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, BOOL * moving, enum SUB_MOVE move)
+//
+//Apply a complete move
+//
+
+void SubMoveApply(
+		INDEX * x, 
+		INDEX * y,
+	   	enum DIRECTION * dir,
+	   	BOOL * moving, 
+		enum SUB_MOVE move)
 {
-	char flags = 0;
 	*moving = SubMoveMovingEndState[move];
 	switch(move)
 	{
 		case SUB_MOVE_DONE:
 			break;
 		case SUB_MOVE_START:
-			flags |= SubMoveTranslate(x,y,*dir,1);
+			SubMoveTranslate(x,y,*dir,1);
 			//printf("forward start = %d,%d,%d\n",*x,*y,*dir);
 			break;
 		case SUB_MOVE_STOP:
-			flags |= SubMoveTranslate( x, y, *dir, 1 );
+			SubMoveTranslate( x, y, *dir, 1 );
 			//printf("forward stop = %d,%d,%d\n",*x,*y,*dir);
 			break;
 		case SUB_MOVE_FORWARD:
-			flags|=SubMoveTranslate(x,y,*dir,1);
+			SubMoveTranslate(x,y,*dir,1);
 			break;
 		case SUB_MOVE_TURN_RIGHT:
-			flags|=SubMoveRotate(dir, RIGHT);
+			SubMoveRotate(dir, RIGHT);
 			//printf("turn right = %d,%d,%d\n",*x,*y,*dir);
 			break;
 		case SUB_MOVE_TURN_LEFT:
-			flags|=SubMoveRotate(dir, LEFT);
+			SubMoveRotate(dir, LEFT);
 			//printf("turn left = %d,%d,%d\n",*x,*y,*dir);
 			break;
 		case SUB_MOVE_TURN_AROUND:
-			flags|=SubMoveRotate(dir, BACK );
+			SubMoveRotate(dir, BACK );
 			//printf("turn around = %d,%d,%d\n",*x,*y,*dir);
 			break;
 		case SUB_MOVE_INTEGRATE_RIGHT:
-			flags|=SubMoveTranslate(x,y,*dir,1);
-			flags|=SubMoveRotate(dir, RIGHT);
-			flags|=SubMoveTranslate( x, y, *dir, 1 );
+			SubMoveTranslate(x,y,*dir,1);
+			SubMoveRotate(dir, RIGHT);
+			SubMoveTranslate( x, y, *dir, 1 );
 			//printf("integrate right = %d,%d,%d\n",*x,*y,*dir);
 			break;
 		case SUB_MOVE_INTEGRATE_LEFT:
-			flags|=SubMoveTranslate(x,y,*dir,1);
-			flags|=SubMoveRotate(dir, LEFT);
-			flags|=SubMoveTranslate( x, y, *dir, 1 );
+			SubMoveTranslate(x,y,*dir,1);
+			SubMoveRotate(dir, LEFT);
+			SubMoveTranslate( x, y, *dir, 1 );
 			//printf("integrate left = %d,%d,%d\n",*x,*y,*dir);
 			break;
 	}
-	return flags;
 }
 
+//
+//Individial tests
+//
+
+#define IS_CENTERED(x,y) (!((x)%2 == 0 && (y)%2==0))
+#define IS_EDGED(x,y) ((x)%2 == 1 || (y)%2==1)
+#define IS_PEGED(x,y) ((x)%2==1 && (y)%2==1)
+BOOL MoveStartCentered(INDEX x, INDEX y, enum SUB_MOVE move )
+{
+	switch( move )
+	{
+		case SUB_MOVE_START:
+		case SUB_MOVE_TURN_RIGHT:
+		case SUB_MOVE_TURN_LEFT:
+		case SUB_MOVE_TURN_AROUND:
+			return IS_CENTERED(x,y);
+			break;
+		default:
+			return TRUE;
+	}
+}
+
+BOOL MoveStartEdge( INDEX x, INDEX y, enum SUB_MOVE move )
+{
+	switch( move )
+	{
+		case SUB_MOVE_STOP:
+		case SUB_MOVE_INTEGRATE_RIGHT:
+		case SUB_MOVE_INTEGRATE_LEFT:
+			return IS_EDGED(x,y);
+		default:
+			return TRUE;
+	}
+}
+
+BOOL MoveStartMoving(BOOL moving, enum SUB_MOVE move )
+{
+	switch( move )
+	{
+		//need to be not moving at start
+		case SUB_MOVE_START:
+		case SUB_MOVE_TURN_RIGHT:
+		case SUB_MOVE_TURN_LEFT:
+		case SUB_MOVE_TURN_AROUND:
+			return ! moving;
+			break;
+		//need to be moving
+		case SUB_MOVE_STOP:
+		case SUB_MOVE_FORWARD:
+		case SUB_MOVE_INTEGRATE_RIGHT:
+		case SUB_MOVE_INTEGRATE_LEFT:
+			return moving;
+			break;
+		//dont care
+		default:
+			return TRUE;
+	}
+}
+
+BOOL MoveEndOnWall( INDEX x, INDEX y, struct MAP * map, enum SUB_MOVE move )
+{
+	enum DIRECTION dir;
+	switch( move )
+	{
+		case SUB_MOVE_START:
+		case SUB_MOVE_STOP:
+		case SUB_MOVE_FORWARD:
+		case SUB_MOVE_INTEGRATE_RIGHT:
+		case SUB_MOVE_INTEGRATE_LEFT:
+		if( x%2 == 1 )
+			dir = SOUTH;
+		else if( y%2 == 1 )
+			dir = WEST;
+		return ! MapGetWall( x/2, y/2, dir, map );
+		default:
+		return TRUE;
+	}
+}
+
+BOOL MoveEndFacingWall(INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map, enum SUB_MOVE move )
+{
+	switch( move )
+	{
+		case SUB_MOVE_FORWARD:
+		case SUB_MOVE_TURN_RIGHT:
+		case SUB_MOVE_TURN_LEFT:
+		case SUB_MOVE_TURN_AROUND:
+		case SUB_MOVE_INTEGRATE_RIGHT:
+		case SUB_MOVE_INTEGRATE_LEFT:
+			x=x/2;
+			y=y/2;
+			return ! MapGetWall( x, y, dir, map );
+		default:
+			return TRUE;
+
+	}
+}
+
+BOOL MoveEndOnPeg(INDEX x, INDEX y)
+{
+	if( x%2==0 && y%2==0 )
+		return FALSE;
+	else
+		return TRUE;
+}
+
+BOOL MoveEndInScanned(INDEX x, INDEX y, struct SCAN_LOG * scan)
+{
+	return ScanLogGet( x/2, y/2, scan );
+}
+
+BOOL MoveEndFacingScanned( 
+		INDEX x, 
+		INDEX y, 
+		enum DIRECTION dir,
+	   	enum SUB_MOVE move, 
+		struct SCAN_LOG * scan )
+{
+	switch( move )
+	{
+		case SUB_MOVE_FORWARD:
+		case SUB_MOVE_INTEGRATE_RIGHT:
+		case SUB_MOVE_INTEGRATE_LEFT:
+			SubMoveTranslate( &x, &y, dir, 2 );
+			return ScanLogGet( x/2, y/2, scan );
+			break;
+		default:
+			return TRUE;
+	}
+}
+//
+//Apply all the tests.
+//
 BOOL SubMoveLegal( 
 		INDEX x, 
 		INDEX y, 
@@ -98,65 +238,60 @@ BOOL SubMoveLegal(
 		BOOL moving,
 		enum SUB_MOVE move,
 		struct MAP *map,
-	   	struct SCAN_LOG *scan )
+		struct SCAN_LOG *scan )
 {
-	char moveFlags;
-
-	printf("testing move %d\n", move);
-
-	//verify that moving start states line up
-	if(  (moving && ! SubMoveMovingStartState[move]) || 
-		 (! moving && SubMoveMovingStartState[move] ) )
+	printf("testing %s\n",MoveName[move]);
+	if( ! MoveStartCentered(x,y,move) )
 	{
-		printf("wrong moving state\n");
+		printf("failed centered test\n");
+		return FALSE;
+	}
+	if( ! MoveStartEdge(x,y,move) )
+	{
+		printf("failed start edge test\n");
 		return FALSE;
 	}
 
-	//verify we are in correct position to start move
-	if( SubMovesStartCentered[move] && (x%2==0 || y%2==0) ) 
+	if( !MoveStartMoving( moving, move ) )
 	{
-		printf("not in center\n");
+		printf("failed start moving test\n");
 		return FALSE;
 	}
 
-	//perform move
-	moveFlags = SubMoveApply( &x, &y, &dir, &moving, move );
+	SubMoveApply( &x, &y, &dir, &moving, move );
 
-	if( moveFlags & DID_TRANSLATE )
+	if( ! MoveEndOnWall(x,y,map, move) )
 	{
-		//verify we dont cross wall
-		if( MapGetWall( x/2, y/2, TURN(dir,BACK), map ) )
-		{
-			printf("crossed wall\n");
-			return FALSE;
-		}
-		//verify we dont enter unexplored cell.
-		if( ! ScanLogGet( x/2, y/2, scan ) )
-		{
-			printf("into unscanned area\n");
-			return FALSE;
-		}
-		//if we end the move 
-		//and we are still moving and we are centered,
-		//we better not be facing a wall.
-		if( SubMoveMovingEndState[move] && (x%2==1 && y%2==1 ))
-		{
-			if( MapGetWall( x/2, y/2, dir, map ))
-			{
-				printf("chicken with wall\n");
-				return FALSE;
-			}
-			if( ! ScanLogGet( x/2, y/2, scan ) )
-			{
-				printf("chicken with a unexplored cell\n");
-				return FALSE;
-			}
-		}
+		printf("failed end on wall test\n");
+		return FALSE;
 	}
-
-	printf("match!\n");
+	if( ! MoveEndFacingWall(x,y,dir,map,move) )
+	{
+		printf("failed facing wall test\n");
+		return FALSE;
+	}
+	if( ! MoveEndOnPeg(x,y) )
+	{
+		printf("ended on peg\n");
+		return FALSE;
+	}
+	if( ! MoveEndInScanned(x,y,scan) )
+	{
+		printf("end on scanned test\n");
+		return FALSE;
+	}
+	if( ! MoveEndFacingScanned( x, y, dir, move, scan) )
+	{
+		printf("end facing unexplored cell\n");
+		return FALSE;
+	}
+	
 	return TRUE;
 }
+
+//
+//
+//
 
 enum SUB_MOVE SubMoveFindBest(
 		INDEX startX,
@@ -215,7 +350,7 @@ enum SUB_MOVE SubMoveFindBest(
 		curFlood = FloodFillGet( x/2, y/2, flood );
 		curFacingWall = MapGetWall( x/2, y/2, dir, map );
 		//translate for scan lookup
-		SubMoveTranslate( &x, &y, dir, SUB_MOVE_FORWARD );
+		SubMoveTranslate( &x, &y, dir, 1 );
 		curFacingFlood = FloodFillGet( x/2, y/2, flood );
 		curRotated = SubMovesRotates[cur];
 
@@ -272,6 +407,6 @@ comparisonDone:
 				bestRotated);
 	}
 
-	printf("%d won\n",best);
+	printf("%s won\n",MoveName[best]);
 	return best;
 }
