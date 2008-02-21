@@ -326,7 +326,7 @@ void RunMoves(INDEX * startX, INDEX *startY, INDEX *startDir, INDEX destX, INDEX
 
 		printf("dist = %d \n", FloodFillGet( x, y, &FloodMap));
 
-	}while( FloodFillGet( x, y, &FloodMap) != 0 );
+	}while( FloodFillGet( x/2, y/2, &FloodMap) != 0 );
 
 	printf("Ended up at (%d.%d,%d.%d)\n",x/2,x%2,y/2,y%2);
 	printf("world map\n");
