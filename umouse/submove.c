@@ -160,6 +160,7 @@ BOOL MoveStartMoving(BOOL moving, enum SUB_MOVE move )
 
 BOOL MoveEndOnWall( INDEX x, INDEX y, struct MAP * map, enum SUB_MOVE move )
 {
+	//TODO BROKEN
 	enum DIRECTION dir;
 	switch( move )
 	{
@@ -168,17 +169,19 @@ BOOL MoveEndOnWall( INDEX x, INDEX y, struct MAP * map, enum SUB_MOVE move )
 		case SUB_MOVE_FORWARD:
 		case SUB_MOVE_INTEGRATE_RIGHT:
 		case SUB_MOVE_INTEGRATE_LEFT:
-		if( x%2 == 1 )
-			dir = SOUTH;
-		else if( y%2 == 1 )
-			dir = WEST;
-		else
-			return TRUE;
-		//printf("end on wall test (%d,%d,%d) == %d\n",
-		//		x,y,dir,MapGetWall( x/2, y/2, dir, map));
-		return ! MapGetWall( x/2, y/2, dir, map );
+			if(x%2==1 && y%2==1)
+				return TRUE;//ended in middle of cell, no walls
+			else if( x%2 == 1 )
+				dir = SOUTH;
+			else if( y%2 == 1 )
+				dir = WEST;
+			else
+				return FALSE;//ended on peg, fail
+			printf("end on wall test (%d,%d,%d) == %d\n",
+					x,y,dir,MapGetWall( x/2, y/2, dir, map));
+			return ! MapGetWall( x/2, y/2, dir, map );
 		default:
-		return TRUE;
+			return TRUE;
 	}
 }
 
@@ -218,7 +221,7 @@ BOOL MoveEndFacingScanned(
 		INDEX x, 
 		INDEX y, 
 		enum DIRECTION dir,
-	   	enum SUB_MOVE move, 
+		enum SUB_MOVE move, 
 		struct SCAN_LOG * scan )
 {
 	switch( move )
@@ -290,7 +293,7 @@ BOOL SubMoveLegal(
 		printf("end facing unexplored cell\n");
 		return FALSE;
 	}
-	
+
 	return TRUE;
 }
 
@@ -300,10 +303,10 @@ BOOL SubMoveLegal(
 
 enum SUB_MOVE SubMoveFindBest(
 		INDEX startX,
-	   	INDEX startY,
-	   	enum DIRECTION startDir,
+		INDEX startY,
+		enum DIRECTION startDir,
 		BOOL startMoving,
-	   	struct FLOOD_MAP * flood, 
+		struct FLOOD_MAP * flood, 
 		struct MAP * map,
 		struct SCAN_LOG * scan)
 {
@@ -388,12 +391,10 @@ enum SUB_MOVE SubMoveFindBest(
 		}
 		printf("normalized corrdinates to %d,%d,%d\n",tempX,tempY,dir);
 		//gather results
-		//TODO can be ambiguous as to which cell we are in, 
 		curFlood = FloodFillGet( tempX, tempY, flood );
 		curFacingWall = MapGetWall( tempX, tempY, dir, map );
 		//translate for scan lookup
 		SubMoveTranslate( &tempX, &tempY, dir, 1 );
-		//TODO can be ambiguous as to which cell we are in.
 		curFacingFlood = FloodFillGet( tempX, tempY, flood );
 		curRotated = SubMovesRotates[cur];
 
