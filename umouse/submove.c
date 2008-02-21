@@ -69,7 +69,7 @@ void SubMoveApply(
 			//printf("forward stop = %d,%d,%d\n",*x,*y,*dir);
 			break;
 		case SUB_MOVE_FORWARD:
-			SubMoveTranslate(x,y,*dir,2);
+			SubMoveTranslate(x,y,*dir,1);
 			break;
 		case SUB_MOVE_TURN_RIGHT:
 			SubMoveRotate(dir, RIGHT);
