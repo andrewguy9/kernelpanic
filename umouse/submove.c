@@ -435,9 +435,14 @@ enum SUB_MOVE SubMoveFindBest(
 			printf("lost on rotation\n");
 			continue;
 		}
+		else if( !bestRotated && curRotated )
+			goto comparisonDone;
+
+		//if we tie, keep older
+		continue;
 
 comparisonDone:
-		//we are either better or a direct tie! New best
+		//we are better, so take the best vars
 		best = cur;
 		bestFlood = curFlood;
 		bestFacingWall = curFacingWall;
