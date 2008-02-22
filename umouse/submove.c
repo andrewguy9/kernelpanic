@@ -69,7 +69,7 @@ void SubMoveApply(
 			//printf("forward stop = %d,%d,%d\n",*x,*y,*dir);
 			break;
 		case SUB_MOVE_FORWARD:
-			SubMoveTranslate(x,y,*dir,1);
+			SubMoveTranslate(x,y,*dir,2);
 			break;
 		case SUB_MOVE_TURN_RIGHT:
 			SubMoveRotate(dir, RIGHT);
@@ -106,6 +106,21 @@ void SubMoveApply(
 #define IS_EDGED(x,y) ((x)%2 == 0 || (y)%2 == 0 )
 #define IS_PEGED(x,y) ((x)%2==0 && (y)%2==0)
 
+void GetCell(INDEX *x, INDEX *y, enum DIRECTION dir )
+{
+	if( IS_CENTERED(*x,*y))
+	{
+		*x = *x/2;
+		*y = *y/2;
+	}
+	else
+	{
+		//we are on edge, move into cell.
+		SubMoveTranslate( x, y, dir, 1 );
+		*x=*x/2;
+		*y=*y/2;
+	}
+}
 BOOL MoveStartCentered(INDEX x, INDEX y, enum SUB_MOVE move )
 {
 	switch( move )
@@ -125,6 +140,7 @@ BOOL MoveStartEdge( INDEX x, INDEX y, enum SUB_MOVE move )
 {
 	switch( move )
 	{
+		case SUB_MOVE_FORWARD:
 		case SUB_MOVE_STOP:
 		case SUB_MOVE_INTEGRATE_RIGHT:
 		case SUB_MOVE_INTEGRATE_LEFT:
@@ -177,8 +193,8 @@ BOOL MoveEndOnWall( INDEX x, INDEX y, struct MAP * map, enum SUB_MOVE move )
 				dir = WEST;
 			else
 				return FALSE;//ended on peg, fail
-			printf("end on wall test (%d,%d,%d) == %d\n",
-					x,y,dir,MapGetWall( x/2, y/2, dir, map));
+			//printf("end on wall test (%d,%d,%d) == %d\n",
+			//		x,y,dir,MapGetWall( x/2, y/2, dir, map));
 			return ! MapGetWall( x/2, y/2, dir, map );
 		default:
 			return TRUE;
@@ -212,9 +228,11 @@ BOOL MoveEndOnPeg(INDEX x, INDEX y)
 		return TRUE;
 }
 
-BOOL MoveEndInScanned(INDEX x, INDEX y, struct SCAN_LOG * scan)
+BOOL MoveEndInScanned(INDEX x, INDEX y, enum DIRECTION dir, struct SCAN_LOG * scan)
 {
-	return ScanLogGet( x/2, y/2, scan );
+	GetCell(&x,&y,dir);
+	printf("checking scan in %d,%d = %d",x,y,ScanLogGet( x, y, scan ));
+	return ScanLogGet( x, y, scan );
 }
 
 BOOL MoveEndFacingLessFloodFill( INDEX x, INDEX y, enum DIRECTION dir, enum SUB_MOVE move, struct FLOOD_MAP * flood )
@@ -302,7 +320,7 @@ BOOL SubMoveLegal(
 		printf("ended on peg\n");
 		return FALSE;
 	}
-	if( ! MoveEndInScanned(x,y,scan) )
+	if( ! MoveEndInScanned(x,y,dir,scan) )
 	{
 		printf("end on scanned test\n");
 		return FALSE;
