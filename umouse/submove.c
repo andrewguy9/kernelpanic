@@ -3,13 +3,13 @@
 #include<stdio.h>
 
 BOOL SubMoveMovingEndState[9] = 
-{FALSE,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE};
+{FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,TRUE,TRUE};
 
 BOOL SubMovesRotates[9] = 
 {FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE};
 
 char * MoveName[9] = 
-{"done","start","stop","forward","turn right","turn left","turn around","int right","int left"};
+{"done","start","forward","stop","turn right","turn left","turn around","int right","int left"};
 //
 //Primative Move Functions
 //
@@ -69,7 +69,7 @@ void SubMoveApply(
 			//printf("forward stop = %d,%d,%d\n",*x,*y,*dir);
 			break;
 		case SUB_MOVE_FORWARD:
-			SubMoveTranslate(x,y,*dir,2);
+			SubMoveTranslate(x,y,*dir,1);
 			break;
 		case SUB_MOVE_TURN_RIGHT:
 			SubMoveRotate(dir, RIGHT);
@@ -121,6 +121,7 @@ void GetCell(INDEX *x, INDEX *y, enum DIRECTION dir )
 		*y=*y/2;
 	}
 }
+
 BOOL MoveStartCentered(INDEX x, INDEX y, enum SUB_MOVE move )
 {
 	switch( move )
@@ -140,7 +141,6 @@ BOOL MoveStartEdge( INDEX x, INDEX y, enum SUB_MOVE move )
 {
 	switch( move )
 	{
-		case SUB_MOVE_FORWARD:
 		case SUB_MOVE_STOP:
 		case SUB_MOVE_INTEGRATE_RIGHT:
 		case SUB_MOVE_INTEGRATE_LEFT:
@@ -169,6 +169,32 @@ BOOL MoveStartMoving(BOOL moving, enum SUB_MOVE move )
 			return moving;
 			break;
 		//dont care
+		default:
+			return TRUE;
+	}
+}
+
+BOOL MoveStartStraightAway(INDEX startX, INDEX startY, enum DIRECTION dir, enum SUB_MOVE move, struct FLOOD_MAP * flood )
+{
+	INDEX x;
+	INDEX y;
+	COUNT curFill;
+	COUNT nextFill;
+	switch( move )
+	{
+		case SUB_MOVE_FORWARD:
+			x = startX;
+			y = startY;
+
+			GetCell( &x, &y, dir );
+			printf("straight away at %d,%d,%d ",startX,startY,dir );
+			curFill = FloodFillGet( x, y, flood );
+			SubMoveTranslate( &x, &y, dir, 1 );
+			nextFill = FloodFillGet( x, y, flood );
+			printf("has flood %d facing flood %d\n",curFill,nextFill);
+			if( nextFill < curFill )
+				return TRUE;
+			else return FALSE;
 		default:
 			return TRUE;
 	}
@@ -211,9 +237,11 @@ BOOL MoveEndFacingWall(INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map, e
 		case SUB_MOVE_TURN_AROUND:
 		case SUB_MOVE_INTEGRATE_RIGHT:
 		case SUB_MOVE_INTEGRATE_LEFT:
-			x=x/2;
-			y=y/2;
-			return ! MapGetWall( x, y, dir, map );
+			//if we "facing a wall" then we must be in middle
+			if ( ! IS_CENTERED(x,y) )
+				return TRUE;
+			//if we are centered then we can directly look up the wall
+			return ! MapGetWall( x/2, y/2, dir, map );
 		default:
 			return TRUE;
 
@@ -231,7 +259,7 @@ BOOL MoveEndOnPeg(INDEX x, INDEX y)
 BOOL MoveEndInScanned(INDEX x, INDEX y, enum DIRECTION dir, struct SCAN_LOG * scan)
 {
 	GetCell(&x,&y,dir);
-	printf("checking scan in %d,%d = %d",x,y,ScanLogGet( x, y, scan ));
+	printf("checking scan in %d,%d = %d\n",x,y,ScanLogGet( x, y, scan ));
 	return ScanLogGet( x, y, scan );
 }
 
@@ -262,11 +290,13 @@ BOOL MoveEndFacingScanned(
 {
 	switch( move )
 	{
-		//case SUB_MOVE_FORWARD:
+		case SUB_MOVE_FORWARD:
 		case SUB_MOVE_INTEGRATE_RIGHT:
 		case SUB_MOVE_INTEGRATE_LEFT:
-			SubMoveTranslate( &x, &y, dir, 2 );
-			return ScanLogGet( x/2, y/2, scan );
+			SubMoveTranslate( &x, &y, dir, 1 );
+			GetCell( &x, &y, dir );
+			printf("checking facing scan in %d,%d,%d = %d\n",x,y,dir,ScanLogGet( x, y, scan ));
+			return ScanLogGet( x, y, scan );
 			break;
 		default:
 			return TRUE;
@@ -300,6 +330,12 @@ BOOL SubMoveLegal(
 	if( !MoveStartMoving( moving, move ) )
 	{
 		printf("failed start moving test\n");
+		return FALSE;
+	}
+
+	if( ! MoveStartStraightAway( x, y, dir, move, flood ))
+	{
+		printf("failed straight away test\n");
 		return FALSE;
 	}
 
@@ -432,7 +468,7 @@ enum SUB_MOVE SubMoveFindBest(
 				exit(0);
 			}
 		}
-		printf("normalized corrdinates to %d,%d,%d\n",tempX,tempY,dir);
+		//printf("normalized corrdinates to %d,%d,%d\n",tempX,tempY,dir);
 		//gather results
 		curFlood = FloodFillGet( tempX, tempY, flood );
 		curFacingWall = MapGetWall( tempX, tempY, dir, map );
@@ -491,8 +527,8 @@ comparisonDone:
 		bestFacingWall = curFacingWall;
 		bestFacingFlood = curFacingFlood;
 		bestRotated = curRotated;
-		printf("%d took the lead with ff=%d,facing=%d,fwall=%d,rot=%d\n",
-				best,
+		printf("%s took the lead with ff=%d,facing=%d,fwall=%d,rot=%d\n",
+				MoveName[best],
 				bestFlood,
 				bestFacingFlood,
 				bestFacingWall,
