@@ -10,8 +10,8 @@
 enum SUB_MOVE { 
 	SUB_MOVE_DONE,
    	SUB_MOVE_START,//1
-	SUB_MOVE_STOP,//2
-	SUB_MOVE_FORWARD,//3
+	SUB_MOVE_STOP,//3
+	SUB_MOVE_FORWARD,//2
 	SUB_MOVE_TURN_RIGHT,//4
 	SUB_MOVE_TURN_LEFT,//5
 	SUB_MOVE_TURN_AROUND,//6
@@ -32,7 +32,8 @@ BOOL SubMoveLegal(
 		BOOL moving,
 		enum SUB_MOVE move,
 		struct MAP *map,
-	   	struct SCAN_LOG *scan );
+	   	struct SCAN_LOG *scan,
+		struct FLOOD_MAP * flood);
 
 enum SUB_MOVE SubMoveFindBest(
 		INDEX startX,

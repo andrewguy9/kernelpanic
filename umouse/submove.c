@@ -102,9 +102,10 @@ void SubMoveApply(
 //Individial tests
 //
 
-#define IS_CENTERED(x,y) (!((x)%2 == 0 && (y)%2==0))
-#define IS_EDGED(x,y) ((x)%2 == 1 || (y)%2==1)
-#define IS_PEGED(x,y) ((x)%2==1 && (y)%2==1)
+#define IS_CENTERED(x,y) ((x)%2 == 1 && (y)%2==1)
+#define IS_EDGED(x,y) ((x)%2 == 0 || (y)%2 == 0 )
+#define IS_PEGED(x,y) ((x)%2==0 && (y)%2==0)
+
 BOOL MoveStartCentered(INDEX x, INDEX y, enum SUB_MOVE move )
 {
 	switch( move )
@@ -124,7 +125,6 @@ BOOL MoveStartEdge( INDEX x, INDEX y, enum SUB_MOVE move )
 {
 	switch( move )
 	{
-		case SUB_MOVE_FORWARD:
 		case SUB_MOVE_STOP:
 		case SUB_MOVE_INTEGRATE_RIGHT:
 		case SUB_MOVE_INTEGRATE_LEFT:
@@ -217,6 +217,24 @@ BOOL MoveEndInScanned(INDEX x, INDEX y, struct SCAN_LOG * scan)
 	return ScanLogGet( x/2, y/2, scan );
 }
 
+BOOL MoveEndFacingLessFloodFill( INDEX x, INDEX y, enum DIRECTION dir, enum SUB_MOVE move, struct FLOOD_MAP * flood )
+{
+	COUNT curFill = FloodFillGet( x/2, y/2, flood );//get current cell (end pos)
+	SubMoveTranslate( &x, &y, dir, 2 );//look up cordinates for facing cell
+	COUNT facingFill = FloodFillGet( x/2, y/2, flood );//get facing flood
+
+	switch( move )
+	{
+		//case SUB_MOVE_FORWARD:
+		case SUB_MOVE_TURN_RIGHT:
+		case SUB_MOVE_TURN_LEFT:
+		case SUB_MOVE_TURN_AROUND:
+			return facingFill < curFill;
+			break;
+		default:
+			return TRUE;
+	}
+}
 BOOL MoveEndFacingScanned( 
 		INDEX x, 
 		INDEX y, 
@@ -226,7 +244,7 @@ BOOL MoveEndFacingScanned(
 {
 	switch( move )
 	{
-		case SUB_MOVE_FORWARD:
+		//case SUB_MOVE_FORWARD:
 		case SUB_MOVE_INTEGRATE_RIGHT:
 		case SUB_MOVE_INTEGRATE_LEFT:
 			SubMoveTranslate( &x, &y, dir, 2 );
@@ -246,7 +264,8 @@ BOOL SubMoveLegal(
 		BOOL moving,
 		enum SUB_MOVE move,
 		struct MAP *map,
-		struct SCAN_LOG *scan )
+		struct SCAN_LOG *scan,
+	   	struct FLOOD_MAP *flood)
 {
 	printf("testing %s\n",MoveName[move]);
 	if( ! MoveStartCentered(x,y,move) )
@@ -293,7 +312,13 @@ BOOL SubMoveLegal(
 		printf("end facing unexplored cell\n");
 		return FALSE;
 	}
+	if( ! MoveEndFacingLessFloodFill(x,y,dir, move, flood ) )
+	{
+		printf("end not facing less flood\n");
+		return FALSE;
+	}
 
+	printf("test %s passed\n",MoveName[move]);
 	return TRUE;
 }
 
@@ -353,7 +378,7 @@ enum SUB_MOVE SubMoveFindBest(
 		dir = startDir;
 		moving = startMoving;
 		//check move is legal.
-		if( ! SubMoveLegal(x, y, dir, moving, cur, map, scan))
+		if( ! SubMoveLegal(x, y, dir, moving, cur, map, scan, flood))
 			continue;
 		//perform move
 		SubMoveApply( &x, &y, &dir, &moving, cur );
