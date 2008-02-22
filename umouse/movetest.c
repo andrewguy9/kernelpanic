@@ -360,6 +360,7 @@ int main()
 	MapSetWall( 0, 0, EAST, TRUE, &WorldMap );
 	MapSetWall( 0, 0, EAST, TRUE, &MouseMap );
 	ScanLogSet( 0, 0, TRUE, &ScanLog );
+	
 
 	//Populate the world map with sample maze
 	MakeLines( 0,2,6, RIGHT,SOUTH, &WorldMap);
@@ -368,6 +369,8 @@ int main()
 	MakeLines( 4,3,2, NORTH, WEST, &WorldMap );
 	MakeLines( 4,2,2, RIGHT, NORTH, &WorldMap );
 	MakeLines( 0,5,4, RIGHT, SOUTH, &WorldMap );
+	MapSetWall( 1, 6, EAST, TRUE, &WorldMap );
+	MakeLines( 3, 3, 2, NORTH, WEST, &WorldMap );
 	//Set up flood fill.
 	FloodFillInit( 
 			WIDTH, 
