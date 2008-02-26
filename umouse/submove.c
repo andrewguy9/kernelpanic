@@ -387,7 +387,7 @@ BOOL SubMoveLegal(
 }
 
 //
-//
+//Selects the next move given current mouse state.
 //
 
 enum SUB_MOVE SubMoveFindBest(
