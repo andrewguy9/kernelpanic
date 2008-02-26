@@ -48,7 +48,8 @@ void SemaphoreUp( struct SEMAPHORE * lock )
 		LockingAcquire( 
 				BASE_OBJECT( 
 					LinkedListPop( & lock->WaitingThreads ), 
-					struct LOCKING_CONTEXT, Link ) );
+					struct LOCKING_CONTEXT, 
+					Link ) );
 	}
 	else
 	{
