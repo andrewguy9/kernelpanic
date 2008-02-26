@@ -10,6 +10,7 @@ BOOL SubMovesRotates[9] =
 
 char * MoveName[9] = 
 {"done","start","forward","stop","turn right","turn left","turn around","int right","int left"};
+
 //
 //Primative Move Functions
 //
@@ -45,7 +46,7 @@ void SubMoveRotate(
 }
 
 //
-//Apply a complete move
+//Complex Move
 //
 
 void SubMoveApply(
@@ -99,7 +100,7 @@ void SubMoveApply(
 }
 
 //
-//Individial tests
+//Test Support Routines
 //
 
 #define IS_CENTERED(x,y) ((x)%2 == 1 && (y)%2==1)
@@ -122,6 +123,11 @@ void GetCell(INDEX *x, INDEX *y, enum DIRECTION dir )
 	}
 }
 
+//
+//Test Routines
+//
+
+//Tests conditions at start of move
 BOOL MoveStartCentered(INDEX x, INDEX y, enum SUB_MOVE move )
 {
 	switch( move )
@@ -200,6 +206,7 @@ BOOL MoveStartStraightAway(INDEX startX, INDEX startY, enum DIRECTION dir, enum 
 	}
 }
 
+//Tests conditions at end of move
 BOOL MoveEndOnWall( INDEX x, INDEX y, struct MAP * map, enum SUB_MOVE move )
 {
 	//TODO BROKEN
@@ -227,27 +234,6 @@ BOOL MoveEndOnWall( INDEX x, INDEX y, struct MAP * map, enum SUB_MOVE move )
 	}
 }
 
-BOOL MoveEndFacingWall(INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map, enum SUB_MOVE move )
-{
-	switch( move )
-	{
-		case SUB_MOVE_FORWARD:
-		case SUB_MOVE_TURN_RIGHT:
-		case SUB_MOVE_TURN_LEFT:
-		case SUB_MOVE_TURN_AROUND:
-		case SUB_MOVE_INTEGRATE_RIGHT:
-		case SUB_MOVE_INTEGRATE_LEFT:
-			//if we "facing a wall" then we must be in middle
-			if ( ! IS_CENTERED(x,y) )
-				return TRUE;
-			//if we are centered then we can directly look up the wall
-			return ! MapGetWall( x/2, y/2, dir, map );
-		default:
-			return TRUE;
-
-	}
-}
-
 BOOL MoveEndOnPeg(INDEX x, INDEX y)
 {
 	if( x%2==0 && y%2==0 )
@@ -263,6 +249,7 @@ BOOL MoveEndInScanned(INDEX x, INDEX y, enum DIRECTION dir, struct SCAN_LOG * sc
 	return ScanLogGet( x, y, scan );
 }
 
+//Tests conditions in front of mouse (at end of move)
 BOOL MoveEndFacingLessFloodFill( INDEX x, INDEX y, enum DIRECTION dir, enum SUB_MOVE move, struct FLOOD_MAP * flood )
 {
 	COUNT curFill = FloodFillGet( x/2, y/2, flood );//get current cell (end pos)
@@ -281,6 +268,7 @@ BOOL MoveEndFacingLessFloodFill( INDEX x, INDEX y, enum DIRECTION dir, enum SUB_
 			return TRUE;
 	}
 }
+
 BOOL MoveEndFacingScanned( 
 		INDEX x, 
 		INDEX y, 
@@ -302,6 +290,28 @@ BOOL MoveEndFacingScanned(
 			return TRUE;
 	}
 }
+
+BOOL MoveEndFacingWall(INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map, enum SUB_MOVE move )
+{
+	switch( move )
+	{
+		case SUB_MOVE_FORWARD:
+		case SUB_MOVE_TURN_RIGHT:
+		case SUB_MOVE_TURN_LEFT:
+		case SUB_MOVE_TURN_AROUND:
+		case SUB_MOVE_INTEGRATE_RIGHT:
+		case SUB_MOVE_INTEGRATE_LEFT:
+			//if we "facing a wall" then we must be in middle
+			if ( ! IS_CENTERED(x,y) )
+				return TRUE;
+			//if we are centered then we can directly look up the wall
+			return ! MapGetWall( x/2, y/2, dir, map );
+		default:
+			return TRUE;
+
+	}
+}
+
 //
 //Apply all the tests.
 //
@@ -377,7 +387,7 @@ BOOL SubMoveLegal(
 }
 
 //
-//
+//Selects the next move given current mouse state.
 //
 
 enum SUB_MOVE SubMoveFindBest(
