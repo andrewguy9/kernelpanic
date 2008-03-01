@@ -249,27 +249,7 @@ BOOL MoveEndInScanned(INDEX x, INDEX y, enum DIRECTION dir, struct SCAN_LOG * sc
 	return ScanLogGet( x, y, scan );
 }
 
-//Tests conditions in front of mouse (at end of move)
-BOOL MoveEndFacingLessFloodFill( INDEX x, INDEX y, enum DIRECTION dir, enum SUB_MOVE move, struct FLOOD_MAP * flood )
-{
-	COUNT curFill = FloodFillGet( x/2, y/2, flood );//get current cell (end pos)
-	SubMoveTranslate( &x, &y, dir, 2 );//look up cordinates for facing cell
-	COUNT facingFill = FloodFillGet( x/2, y/2, flood );//get facing flood
-
-	switch( move )
-	{
-		//case SUB_MOVE_FORWARD:
-		case SUB_MOVE_TURN_RIGHT:
-		case SUB_MOVE_TURN_LEFT:
-		case SUB_MOVE_TURN_AROUND:
-			return facingFill < curFill;
-			break;
-		default:
-			return TRUE;
-	}
-}
-
-BOOL MoveEndFacingScanned( 
+BOOL MoveNextScanned( 
 		INDEX x, 
 		INDEX y, 
 		enum DIRECTION dir,
@@ -285,6 +265,26 @@ BOOL MoveEndFacingScanned(
 			GetCell( &x, &y, dir );
 			printf("checking facing scan in %d,%d,%d = %d\n",x,y,dir,ScanLogGet( x, y, scan ));
 			return ScanLogGet( x, y, scan );
+			break;
+		default:
+			return TRUE;
+	}
+}
+
+//Tests conditions in front of mouse (at end of move)
+BOOL MoveNextLessFloodFill( INDEX x, INDEX y, enum DIRECTION dir, enum SUB_MOVE move, struct FLOOD_MAP * flood )
+{
+	COUNT curFill = FloodFillGet( x/2, y/2, flood );//get current cell (end pos)
+	SubMoveTranslate( &x, &y, dir, 2 );//look up cordinates for facing cell
+	COUNT facingFill = FloodFillGet( x/2, y/2, flood );//get facing flood
+
+	switch( move )
+	{
+		//case SUB_MOVE_FORWARD:
+		case SUB_MOVE_TURN_RIGHT:
+		case SUB_MOVE_TURN_LEFT:
+		case SUB_MOVE_TURN_AROUND:
+			return facingFill < curFill;
 			break;
 		default:
 			return TRUE;
@@ -326,6 +326,9 @@ BOOL SubMoveLegal(
 	   	struct FLOOD_MAP *flood)
 {
 	printf("testing %s\n",MoveName[move]);
+	//
+	//Start Tests
+	//
 	if( ! MoveStartCentered(x,y,move) )
 	{
 		printf("failed centered test\n");
@@ -349,6 +352,10 @@ BOOL SubMoveLegal(
 		return FALSE;
 	}
 
+	//
+	//End Tests
+	//
+	
 	SubMoveApply( &x, &y, &dir, &moving, move );
 
 	if( ! MoveEndOnWall(x,y,map, move) )
@@ -356,11 +363,7 @@ BOOL SubMoveLegal(
 		printf("failed end on wall test\n");
 		return FALSE;
 	}
-	if( ! MoveEndFacingWall(x,y,dir,map,move) )
-	{
-		printf("failed facing wall test\n");
-		return FALSE;
-	}
+	
 	if( ! MoveEndOnPeg(x,y) )
 	{
 		printf("ended on peg\n");
@@ -371,12 +374,22 @@ BOOL SubMoveLegal(
 		printf("end on scanned test\n");
 		return FALSE;
 	}
-	if( ! MoveEndFacingScanned( x, y, dir, move, scan) )
+	if( ! MoveEndFacingWall(x,y,dir,map,move) )//NO MOVEMENT
+	{
+		printf("failed facing wall test\n");
+		return FALSE;
+	}
+	//
+	//Facing Tests
+	//
+	
+	//SubMoveTranslate( &x, &y, dir, 2 );//TODO REFACTOR	
+	if( ! MoveNextScanned( x, y, dir, move, scan) )//TRANSLATE 1
 	{
 		printf("end facing unexplored cell\n");
 		return FALSE;
 	}
-	if( ! MoveEndFacingLessFloodFill(x,y,dir, move, flood ) )
+	if( ! MoveNextLessFloodFill(x,y,dir, move, flood ) )//TRANSLATE 2
 	{
 		printf("end not facing less flood\n");
 		return FALSE;
