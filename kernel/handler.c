@@ -1,10 +1,5 @@
 #include"handler.h"
 
-BOOL HandlerIsStored( struct HANDLER_OBJECT * handler )
-{
-	return handler->Stored;
-}
-
 void HandlerInit( 
 		struct HANDLER_OBJECT * handler, 
 		HANDLER_FUNCTION * foo)

@@ -2,7 +2,7 @@
 #define HANDLER_H
 
 #include"../utils/link.h"
-
+#include"../utils/utils.h"
 /*
  * Handlers are a generic tool for managing callbacks. 
  * They use a generic link so they can be used in any kernel
@@ -24,9 +24,6 @@ struct HANDLER_OBJECT
 	union LINK Link;
 	HANDLER_FUNCTION * Function;
 };
-
-
-BOOL HandlerIsStored( struct HANDLER_OBJECT * handler );
 
 void HandlerInit( 
 		struct HANDLER_OBJECT * handler, 
