@@ -33,8 +33,7 @@ struct LINKED_LIST PostInterruptHandlerList;
 void InterruptRunPostHandlers()
 {
 	struct HANDLER_OBJECT * handler;
-	void * argument;
-	HANDLER_FUNCTION * foo;
+	struct POST_HANDLER_OBJECT * postHandler;
 
 	//Check to make sure we are bottom handler.
 	if( InPostInterruptHandler )
@@ -52,17 +51,28 @@ void InterruptRunPostHandlers()
 				LinkedListPop(&PostInterruptHandlerList), 
 				struct HANDLER_OBJECT, 
 				Link);
-		//fech values from object so we can reuse it.
-		argument = handler->Argument;
-		foo = handler->Handler;
-		//mark stucture so handler can reschedule itself.
-		handler->Enabled = FALSE;
+
+		//fetch the post handler (adjust pointer)
+		postHandler = BASE_OBJECT(
+				handler,
+				struct POST_HANDLER_OBJECT,
+				HandlerObj);
+
+		//fech values from postHandler so we can reuse postHandler Object.
+		HANDLER_FUNCTION func = postHandler->HandlerObj.Function;
+
+		//mark function is unqueued
+		ASSERT(postHandler->Queued,0,"must be queued to be unqueued");
+		postHandler->Queued = FALSE;
+
 		//Change State to "not atomic"
 		InterruptLevel--;
 		HalEnableInterrupts();
 
 		//Run the handler
-		foo( argument );
+		//We pass a pointer to the handler itself so 
+		//the handler can reschedule itself.
+		func(postHandler);
 
 		//make atomic again.
 		HalDisableInterrupts();
@@ -146,9 +156,9 @@ void InterruptEnd()
  * Re-registering bar will cause the list of objects to be corrupted.
  */
 void InterruptRegisterPostHandler( 
-		struct HANDLER_OBJECT * object,
-		HANDLER_FUNCTION handler,
-		void *arg)
+		struct POST_HANDLER_OBJECT * postObject,
+		HANDLER_FUNCTION foo,
+		void * context)
 {
 	ASSERT( HalIsAtomic(),
 			INTERRUPT_POST_HANDLER_REGISTER_NOT_ATOMIC,
@@ -157,10 +167,14 @@ void InterruptRegisterPostHandler(
 			INTERRUPT_POST_HANDLER_REGISTER_ALREADY_ACTIVE,
 			"Adding already active post handler");
 
-	object->Handler = handler;
-	object->Argument = arg;
-	object->Enabled = TRUE;
-	LinkedListEnqueue( &object->Link.LinkedListLink, 
+	postObject->HandlerObj.Function = foo;
+	postObject->Context = context;
+
+	//mark handler as queued so we dont try to mess with it.
+	postObject->Queued = TRUE;
+
+	//Queue handler to be run
+	LinkedListEnqueue( &postObject->HandlerObj.Link, 
 			& PostInterruptHandlerList );
 }
 
