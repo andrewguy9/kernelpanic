@@ -34,6 +34,7 @@ void InterruptRunPostHandlers()
 {
 	struct HANDLER_OBJECT * handler;
 	struct POST_HANDLER_OBJECT * postHandler;
+	HANDLER_FUNCTION * func;
 
 	//Check to make sure we are bottom handler.
 	if( InPostInterruptHandler )
@@ -59,7 +60,7 @@ void InterruptRunPostHandlers()
 				HandlerObj);
 
 		//fech values from postHandler so we can reuse postHandler Object.
-		HANDLER_FUNCTION func = postHandler->HandlerObj.Function;
+		func = postHandler->HandlerObj.Function;
 
 		//mark function is unqueued
 		ASSERT(postHandler->Queued,0,"must be queued to be unqueued");
@@ -163,7 +164,7 @@ void InterruptRegisterPostHandler(
 	ASSERT( HalIsAtomic(),
 			INTERRUPT_POST_HANDLER_REGISTER_NOT_ATOMIC,
 			"Access to the Post handler list must be atomic.");
-	ASSERT( ! object->Enabled,
+	ASSERT( ! postObject->Queued,
 			INTERRUPT_POST_HANDLER_REGISTER_ALREADY_ACTIVE,
 			"Adding already active post handler");
 

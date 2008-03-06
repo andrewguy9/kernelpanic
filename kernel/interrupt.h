@@ -44,7 +44,7 @@ void InterruptEnd();
 //
 
 void InterruptRegisterPostHandler( 
-		struct HANDLER_OBJECT * object,
+		struct POST_HANDLER_OBJECT * object,
 		HANDLER_FUNCTION handler,
 		void *arg);
 
