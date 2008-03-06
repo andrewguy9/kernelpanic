@@ -82,7 +82,7 @@ void QueueTimers( )
 
 		InterruptRegisterPostHandler(
 				timer,
-				handler->Handler,
+				handler->Function,
 				timer->Context);
 	}
 }
@@ -117,7 +117,7 @@ void TimerRegister(
 	//Construct timer
 	newTimer->Queued = TRUE;
 	newTimer->HandlerObj.Link.WeightedLink.Weight = Time + wait;
-	newTimer->HandlerObj.Handler = handler;
+	newTimer->HandlerObj.Function = handler;
 	newTimer->Context = context;
 	//Add to heap
 	if( newTimer->HandlerObj.Link.WeightedLink.Weight >= Time )
