@@ -63,7 +63,10 @@ void InterruptRunPostHandlers()
 		func = postHandler->HandlerObj.Function;
 
 		//mark function is unqueued
-		ASSERT(postHandler->Queued,0,"must be queued to be unqueued");
+		ASSERT(postHandler->Queued,
+				INTERRUPT_RUN_POST_HANDLERS_NOT_QUEUED,
+				"post interrupt handler not queued");
+
 		postHandler->Queued = FALSE;
 
 		//Change State to "not atomic"
