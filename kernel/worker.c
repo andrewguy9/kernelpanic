@@ -12,37 +12,40 @@ void WorkerStartup()
 
 void WorkerThreadMain()
 {
-	struct HANDLER_OBJECT * item;
-	HANDLER_FUNCTION * handler;
-	void * arg;
+	struct HANDLER_OBJECT * handler;
+	struct WORKER_ITEM * item;
 
 	while(TRUE)
 	{
-		//Fetch a item
+		//Fetch a handler
 		InterruptDisable();
-		item = BASE_OBJECT( 
+		handler = BASE_OBJECT( 
 				LinkedListPop( &WorkerItemQueue ),
 				struct HANDLER_OBJECT,
 				Link.LinkedListLink );
 		InterruptEnable();
 
-		if( item == NULL )
+		//cast into worker item
+		item = BASE_OBJECT(
+				handler,
+				struct WORKER_ITEM,
+				Handler);
+
+		if( handler == NULL )
 		{//there is no item, lets switch threads
 			SchedulerStartCritical();
 			SchedulerForceSwitch();
 		}
 		else
 		{//there is a item, so execute it.
-			ASSERT( HandlerIsRunning(item),
-					WORKER_HANDLER_NOT_RUNNING,
+			ASSERT( item->Queued,
+					WORKER_HANDLER_NOT_QUEUED,
 					"We need the handler to be ready for running");
-			//Extract data out of handler.
-			handler = item->Handler;
-			arg = item->Argument;
-			//execute function
-			handler( arg );
-			//release the handler for reuse
-			item->Enabled = FALSE;
+
+			//mark handler for use
+			item->Queued = FALSE;
+			//run handler
+			item->Handler.Function(item);
 		}
 	}
 }
@@ -63,15 +66,15 @@ void WorkerCreateWorker(
 			TRUE);
 }
 
-void WorkerAddItem( HANDLER_FUNCTION foo, void * arg, struct HANDLER_OBJECT * obj  )
+void WorkerAddItem( HANDLER_FUNCTION foo, void * context, struct WORKER_ITEM * item  )
 {
 	InterruptDisable();
 
-	obj->Enabled = TRUE;
-	obj->Handler = foo;
-	obj->Argument = arg;
+	item->Queued = TRUE;
+	item->Handler.Function = foo;
+	item->Context = context;
 
-	LinkedListEnqueue( &obj->Link.LinkedListLink, &WorkerItemQueue );
+	LinkedListEnqueue( &item->Handler.Link.LinkedListLink, &WorkerItemQueue );
 	
 	InterruptEnable();
 }

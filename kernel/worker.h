@@ -4,6 +4,13 @@
 #include"thread.h"
 #include"handler.h"
 
+struct WORKER_ITEM
+{
+	struct HANDLER_OBJECT Handler;
+	BOOL Queued;
+	void * Context;
+};
+
 void WorkerStartup();
 
 void WorkerCreateWorker(
@@ -12,6 +19,6 @@ void WorkerCreateWorker(
 		unsigned int stackSize,
 		char flag);
 
-void WorkerAddItem( HANDLER_FUNCTION foo, void * arg, struct HANDLER_OBJECT * obj );
+void WorkerAddItem( HANDLER_FUNCTION foo, void * context, struct WORKER_ITEM * item  );
 
 #endif
