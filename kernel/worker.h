@@ -2,7 +2,6 @@
 #define WORKER_H
 
 #include"thread.h"
-#include"handler.h"
 
 struct WORKER_ITEM;
 
