@@ -12,24 +12,17 @@ void WorkerStartup()
 
 void WorkerThreadMain()
 {
-	struct HANDLER_OBJECT * handler;
 	struct WORKER_ITEM * item;
-
+	enum WORKER_ITEM result;
+	
 	while(TRUE)
 	{
 		//Fetch a handler
 		InterruptDisable();
-		handler = BASE_OBJECT( 
-				LinkedListPop( &WorkerItemQueue ),
-				struct HANDLER_OBJECT,
-				Link.LinkedListLink );
-		InterruptEnable();
-
-		//cast into worker item
-		item = BASE_OBJECT(
-				handler,
+		item = BASE_OBJECT( LinkedListPop( &WorkerItemQueue ),
 				struct WORKER_ITEM,
-				Handler);
+				Link);
+		InterruptEnable();
 
 		if( handler == NULL )
 		{//there is no item, lets switch threads
@@ -38,14 +31,27 @@ void WorkerThreadMain()
 		}
 		else
 		{//there is a item, so execute it.
-			ASSERT( item->Queued,
-					WORKER_HANDLER_NOT_QUEUED,
-					"We need the handler to be ready for running");
+			ASSERT( ! item->Finished,
+					WORKER_HANDLER_FINISHED,
+					"The handler finished, and got scheduled anyway.");
 
-			//mark handler for use
-			item->Queued = FALSE;
 			//run handler
-			item->Handler.Function(item);
+			result = item->Foo(item);
+
+			//
+			InterruptDisable();
+			if( result == WORKER_FINISHED )
+			{
+				//the item is done, mark so caller knows.
+				item->Finished = TRUE;
+			}
+			else if( result == WORKER_PENDED )
+			{
+				//the item needs more processing. 
+				//add back into queue.
+				LinkedListEnqueue( &item->Link, &WorkerItemQueue );
+			}
+			InterruptEnable();
 		}
 	}
 }
@@ -77,4 +83,13 @@ void WorkerAddItem( HANDLER_FUNCTION foo, void * context, struct WORKER_ITEM * i
 	LinkedListEnqueue( &item->Handler.Link.LinkedListLink, &WorkerItemQueue );
 	
 	InterruptEnable();
+}
+
+BOOL WorkerItemIsFinished( struct WORKER_ITEM * item )
+{
+	BOOL result;
+	InterruptDisable();
+	result = item->Finished;
+	InterruptEnable();
+	return result;
 }

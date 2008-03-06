@@ -4,10 +4,17 @@
 #include"thread.h"
 #include"handler.h"
 
+struct WORKER_ITEM;
+
+enum WORKER_RETURN { WORKER_FINISHED, WORKER_PENDED };
+
+typedef enum WORKER_RETURN (WORKER_FUNCTION * ) ( struct WORKER_ITEM * item );
+
 struct WORKER_ITEM
 {
-	struct HANDLER_OBJECT Handler;
-	BOOL Queued;
+	struct LINK Link;
+	WORKER_FUNCTION * Foo;
+	BOOL Finished;
 	void * Context;
 };
 
@@ -20,5 +27,7 @@ void WorkerCreateWorker(
 		char flag);
 
 void WorkerAddItem( HANDLER_FUNCTION foo, void * context, struct WORKER_ITEM * item  );
+
+BOOL WorkerItemIsFinished( struct WORKER_ITEM * item );
 
 #endif
