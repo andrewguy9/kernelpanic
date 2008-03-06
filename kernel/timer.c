@@ -1,7 +1,6 @@
 #include"timer.h"
 #include"../utils/utils.h"
 #include"../utils/heap.h"
-#include"interrupt.h"
 #include"hal.h"
 #include"thread.h"
 
@@ -47,6 +46,7 @@ struct HEAP * TimersOverflow;
 void QueueTimers( )
 {
 	struct HEAP *temp;
+
 	ASSERT( InterruptIsAtomic(), 
 			TIMER_RUN_TIMERS_MUST_BE_ATOMIC,
 			"timers can only be run from interrupt level.");
@@ -64,18 +64,26 @@ void QueueTimers( )
 		TimersOverflow = temp;
 	}
 
-	while( HeapSize( Timers) > 0 && 
+	while( HeapSize( Timers ) > 0 && 
 			HeapHeadWeight( Timers ) <= Time )
 	{
-		struct HANDLER_OBJECT * timer = BASE_OBJECT( 
+
+		struct HANDLER_OBJECT * handler = BASE_OBJECT( 
 				HeapPop(  Timers ),
 				struct HANDLER_OBJECT,
 				Link );
-		timer->Enabled = FALSE;
+
+		struct POST_HANDLER_OBJECT * timer = BASE_OBJECT(
+				handler,
+				struct POST_HANDLER_OBJECT,
+				HandlerObj);
+
+		timer->Queued = FALSE;
+
 		InterruptRegisterPostHandler(
 				timer,
-				timer->Handler,
-				timer->Argument);
+				handler->Handler,
+				timer->Context);
 	}
 }
 
@@ -94,31 +102,32 @@ void TimerStartup( )
 
 
 void TimerRegister( 
-		struct HANDLER_OBJECT * newTimer,
+		struct POST_HANDLER_OBJECT * newTimer,
 		TIME wait,
 		HANDLER_FUNCTION * handler,
-		void * argument )
+		void * context )
 {
-	ASSERT( ! newTimer->Enabled,
-			TIMER_REGISTER_TIMER_ALREADY_ACTIVE,
-			"timers cannot be double registered");
 
 	InterruptDisable();
 
+	ASSERT( ! newTimer->Queued,
+			TIMER_REGISTER_TIMER_ALREADY_ACTIVE,
+			"timers cannot be double registered");
+
 	//Construct timer
-	newTimer->Enabled = TRUE;
-	newTimer->Link.WeightedLink.Weight = Time + wait;
-	newTimer->Handler = handler;
-	newTimer->Argument = argument;
+	newTimer->Queued = TRUE;
+	newTimer->HandlerObj.Link.WeightedLink.Weight = Time + wait;
+	newTimer->HandlerObj.Handler = handler;
+	newTimer->Context = context;
 	//Add to heap
-	if( newTimer->Link.WeightedLink.Weight >= Time )
+	if( newTimer->HandlerObj.Link.WeightedLink.Weight >= Time )
 	{
-		HeapAdd( &newTimer->Link.WeightedLink, Timers );
+		HeapAdd( &newTimer->HandlerObj.Link.WeightedLink, Timers );
 	}
 	else
 	{
 		//Overflow ocurred
-		HeapAdd( &newTimer->Link.WeightedLink, TimersOverflow);
+		HeapAdd( &newTimer->HandlerObj.Link.WeightedLink, TimersOverflow);
 	}
 	InterruptEnable();
 }
