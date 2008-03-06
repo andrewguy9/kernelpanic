@@ -17,20 +17,20 @@ void WorkerTask(void *arg)
 
 COUNT Count;
 
+struct WORKER_ITEM ThreadItem;
 void ThreadMain()
 {
-	struct HANDLER_OBJECT handler;
 	COUNT myCount = 0;
 	BOOL inUse;
 
 	while(TRUE)
 	{
-		WorkerAddItem( WorkerTask, &Count, &handler );
+		WorkerAddItem( WorkerTask, &Count, &ThreadItem );
 		myCount++;
 		do
 		{
 			InterruptDisable();
-			inUse = HandlerIsRunning(&handler);
+			inUse = ThreadItem.Queued;
 			InterruptEnable();
 
 			SchedulerStartCritical();
