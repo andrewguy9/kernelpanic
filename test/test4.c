@@ -20,7 +20,7 @@ struct THREAD SleeperThread;
 char SleeperStack[STACK_SIZE];
 
 //Define Timer
-struct HANDLER_OBJECT Timer;
+struct POST_HANDLER_OBJECT Timer;
 
 //Define Global Flags
 BOOL TimerFlag;
