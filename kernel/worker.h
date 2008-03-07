@@ -7,12 +7,12 @@ struct WORKER_ITEM;
 
 enum WORKER_RETURN { WORKER_FINISHED, WORKER_PENDED };
 
-typedef enum WORKER_RETURN (WORKER_FUNCTION * ) ( struct WORKER_ITEM * item );
+typedef enum WORKER_RETURN (* WORKER_FUNCTION) ( struct WORKER_ITEM * item );
 
 struct WORKER_ITEM
 {
-	struct LINK Link;
-	WORKER_FUNCTION * Foo;
+	union LINK Link;
+	WORKER_FUNCTION Foo;
 	BOOL Finished;
 	void * Context;
 };
@@ -25,7 +25,7 @@ void WorkerCreateWorker(
 		unsigned int stackSize,
 		char flag);
 
-void WorkerAddItem( HANDLER_FUNCTION foo, void * context, struct WORKER_ITEM * item  );
+void WorkerAddItem( WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  );
 
 BOOL WorkerItemIsFinished( struct WORKER_ITEM * item );
 

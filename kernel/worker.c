@@ -13,7 +13,7 @@ void WorkerStartup()
 void WorkerThreadMain()
 {
 	struct WORKER_ITEM * item;
-	enum WORKER_ITEM result;
+	enum WORKER_RETURN result;
 	
 	while(TRUE)
 	{
@@ -24,7 +24,7 @@ void WorkerThreadMain()
 				Link);
 		InterruptEnable();
 
-		if( handler == NULL )
+		if( item == NULL )
 		{//there is no item, lets switch threads
 			SchedulerStartCritical();
 			SchedulerForceSwitch();
@@ -49,7 +49,7 @@ void WorkerThreadMain()
 			{
 				//the item needs more processing. 
 				//add back into queue.
-				LinkedListEnqueue( &item->Link, &WorkerItemQueue );
+				LinkedListEnqueue( &item->Link.LinkedListLink, &WorkerItemQueue );
 			}
 			InterruptEnable();
 		}
@@ -72,15 +72,15 @@ void WorkerCreateWorker(
 			TRUE);
 }
 
-void WorkerAddItem( HANDLER_FUNCTION foo, void * context, struct WORKER_ITEM * item  )
+void WorkerAddItem( WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  )
 {
 	InterruptDisable();
 
-	item->Queued = TRUE;
-	item->Handler.Function = foo;
+	item->Foo = foo;
+	item->Finished = FALSE;
 	item->Context = context;
 
-	LinkedListEnqueue( &item->Handler.Link.LinkedListLink, &WorkerItemQueue );
+	LinkedListEnqueue( &item->Link.LinkedListLink, &WorkerItemQueue );
 	
 	InterruptEnable();
 }

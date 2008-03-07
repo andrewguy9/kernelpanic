@@ -178,7 +178,7 @@ void InterruptRegisterPostHandler(
 	postObject->Queued = TRUE;
 
 	//Queue handler to be run
-	LinkedListEnqueue( &postObject->HandlerObj.Link, 
+	LinkedListEnqueue( &postObject->HandlerObj.Link.LinkedListLink, 
 			& PostInterruptHandlerList );
 }
 
