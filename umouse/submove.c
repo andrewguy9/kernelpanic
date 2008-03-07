@@ -193,11 +193,11 @@ BOOL MoveStartStraightAway(INDEX startX, INDEX startY, enum DIRECTION dir, enum 
 			y = startY;
 
 			GetCell( &x, &y, dir );
-			printf("straight away at %d,%d,%d ",startX,startY,dir );
+			//printf("straight away at %d,%d,%d ",startX,startY,dir );
 			curFill = FloodFillGet( x, y, flood );
 			SubMoveTranslate( &x, &y, dir, 1 );
 			nextFill = FloodFillGet( x, y, flood );
-			printf("has flood %d facing flood %d\n",curFill,nextFill);
+			//printf("has flood %d facing flood %d\n",curFill,nextFill);
 			if( nextFill < curFill )
 				return TRUE;
 			else return FALSE;
@@ -245,7 +245,7 @@ BOOL MoveEndOnPeg(INDEX x, INDEX y)
 BOOL MoveEndInScanned(INDEX x, INDEX y, enum DIRECTION dir, struct SCAN_LOG * scan)
 {
 	GetCell(&x,&y,dir);
-	printf("checking scan in %d,%d = %d\n",x,y,ScanLogGet( x, y, scan ));
+	//printf("checking scan in %d,%d = %d\n",x,y,ScanLogGet( x, y, scan ));
 	return ScanLogGet( x, y, scan );
 }
 
@@ -263,7 +263,7 @@ BOOL MoveNextScanned(
 		case SUB_MOVE_INTEGRATE_LEFT:
 			SubMoveTranslate( &x, &y, dir, 1 );
 			GetCell( &x, &y, dir );
-			printf("checking facing scan in %d,%d,%d = %d\n",x,y,dir,ScanLogGet( x, y, scan ));
+			//printf("checking facing scan in %d,%d,%d = %d\n",x,y,dir,ScanLogGet( x, y, scan ));
 			return ScanLogGet( x, y, scan );
 			break;
 		default:
@@ -325,30 +325,30 @@ BOOL SubMoveLegal(
 		struct SCAN_LOG *scan,
 	   	struct FLOOD_MAP *flood)
 {
-	printf("testing %s\n",MoveName[move]);
+	//printf("testing %s\n",MoveName[move]);
 	//
 	//Start Tests
 	//
 	if( ! MoveStartCentered(x,y,move) )
 	{
-		printf("failed centered test\n");
+		//printf("failed centered test\n");
 		return FALSE;
 	}
 	if( ! MoveStartEdge(x,y,move) )
 	{
-		printf("failed start edge test\n");
+		//printf("failed start edge test\n");
 		return FALSE;
 	}
 
 	if( !MoveStartMoving( moving, move ) )
 	{
-		printf("failed start moving test\n");
+		//printf("failed start moving test\n");
 		return FALSE;
 	}
 
 	if( ! MoveStartStraightAway( x, y, dir, move, flood ))
 	{
-		printf("failed straight away test\n");
+		//printf("failed straight away test\n");
 		return FALSE;
 	}
 
@@ -360,23 +360,23 @@ BOOL SubMoveLegal(
 
 	if( ! MoveEndOnWall(x,y,map, move) )
 	{
-		printf("failed end on wall test\n");
+		//printf("failed end on wall test\n");
 		return FALSE;
 	}
 	
 	if( ! MoveEndOnPeg(x,y) )
 	{
-		printf("ended on peg\n");
+		//printf("ended on peg\n");
 		return FALSE;
 	}
 	if( ! MoveEndInScanned(x,y,dir,scan) )
 	{
-		printf("end on scanned test\n");
+		//printf("end on scanned test\n");
 		return FALSE;
 	}
 	if( ! MoveEndFacingWall(x,y,dir,map,move) )//NO MOVEMENT
 	{
-		printf("failed facing wall test\n");
+		//printf("failed facing wall test\n");
 		return FALSE;
 	}
 	//
@@ -386,16 +386,16 @@ BOOL SubMoveLegal(
 	//SubMoveTranslate( &x, &y, dir, 2 );//TODO REFACTOR	
 	if( ! MoveNextScanned( x, y, dir, move, scan) )//TRANSLATE 1
 	{
-		printf("end facing unexplored cell\n");
+		//printf("end facing unexplored cell\n");
 		return FALSE;
 	}
 	if( ! MoveNextLessFloodFill(x,y,dir, move, flood ) )//TRANSLATE 2
 	{
-		printf("end not facing less flood\n");
+		//printf("end not facing less flood\n");
 		return FALSE;
 	}
 
-	printf("test %s passed\n",MoveName[move]);
+	//printf("test %s passed\n",MoveName[move]);
 	return TRUE;
 }
 
@@ -473,8 +473,8 @@ enum SUB_MOVE SubMoveFindBest(
 				tempX = x/2-1;
 			else
 			{
-				printf("invalid direction for x\n");
-				exit(0);
+				//printf("invalid direction for x\n");
+				ASSERT(0, SUB_MOVE_START_BAD_X_DIR,"invalid direction for x");
 			}
 		}
 		if( y%2==1 )
@@ -487,8 +487,8 @@ enum SUB_MOVE SubMoveFindBest(
 				tempY = y/2-1;
 			else
 			{
-				printf("invalid direction for y\n");
-				exit(0);
+				//printf("invalid direction for y\n");
+				ASSERT(0, SUB_MOVE_START_BAD_Y_DIR,"invalid direction for y");
 			}
 		}
 		//printf("normalized corrdinates to %d,%d,%d\n",tempX,tempY,dir);
@@ -507,7 +507,7 @@ enum SUB_MOVE SubMoveFindBest(
 		//favor least floodfill
 		if( curFlood > bestFlood )
 		{
-			printf("lost on flood\n");
+			//printf("lost on flood\n");
 			continue;
 		}
 		else if( curFlood < bestFlood )
@@ -516,7 +516,7 @@ enum SUB_MOVE SubMoveFindBest(
 		//favor facing least floodfill
 		if( curFacingFlood > bestFacingFlood)
 		{
-			printf("lost on facing flood\n");
+			//printf("lost on facing flood\n");
 			continue;
 		}
 		else if( curFacingFlood < bestFacingFlood )
@@ -525,7 +525,7 @@ enum SUB_MOVE SubMoveFindBest(
 		//favor not facing wall.
 		if( curFacingWall && ! bestFacingWall)
 		{
-			printf("lost on facing wall\n");
+			//printf("lost on facing wall\n");
 			continue;
 		}
 		else if( !curFacingWall && bestFacingWall)
@@ -534,7 +534,7 @@ enum SUB_MOVE SubMoveFindBest(
 		//favor facing same direction
 		if( !curRotated && bestRotated )
 		{
-			printf("lost on rotation\n");
+			//printf("lost on rotation\n");
 			continue;
 		}
 		else if( !bestRotated && curRotated )
@@ -550,14 +550,14 @@ comparisonDone:
 		bestFacingWall = curFacingWall;
 		bestFacingFlood = curFacingFlood;
 		bestRotated = curRotated;
-		printf("%s took the lead with ff=%d,facing=%d,fwall=%d,rot=%d\n",
-				MoveName[best],
-				bestFlood,
-				bestFacingFlood,
-				bestFacingWall,
-				bestRotated);
+		//printf("%s took the lead with ff=%d,facing=%d,fwall=%d,rot=%d\n",
+		//		MoveName[best],
+		//		bestFlood,
+		//		bestFacingFlood,
+		//		bestFacingWall,
+		//		bestRotated);
 	}
 
-	printf("%s won\n",MoveName[best]);
+	//printf("%s won\n",MoveName[best]);
 	return best;
 }
