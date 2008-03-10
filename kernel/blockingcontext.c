@@ -120,6 +120,7 @@ BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 	}
 	else
 	{
+		//TODO FAIL IN TEST5. Produced = 13, Blocking = 7, NonBlocking = 5. Failed in ConsumerNonBlockingMain.
 		KernelPanic( LOCKING_IS_ACQUIRED_CONTEXT_IN_WRONG_STATE );
 		return FALSE;
 	}
