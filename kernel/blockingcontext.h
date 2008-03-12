@@ -27,7 +27,7 @@ end crit           end crit            switch thread     switch thread
 |                  *                   Acquire(NULL)     Acquire(context)
 |                  *                   checked           acquired
 |                  *                   |                 |
-|                  IsAcquired(conext)    |                 IsAcquired(context)
+|                  IsAcquired(conext)  |                 IsAcquired(context)
 |                  checked             |                 checked
 |                  |                   |                 |
 ----------------------------------------------------------
