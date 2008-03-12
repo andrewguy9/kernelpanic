@@ -8,25 +8,31 @@
 State machine for a struct LOCKING_CONTEXT's state 
 through a locking operation
 
-random
-|
-Init()
-|
-ready, checked--------------------------------------------
+random         checked
+|              |  
+Init()         Restart
+|              |
+ready,checked--checked------------------------------------
 |                  |                   |                 |
-acquire(null)      acquire(context)    block(null)       block(context)
+start()            start()             start()           start()
+startCrit          startcrit           startcrit         startcrit
 |                  |                   |                 |
+Acquire(Null)      Acquire(context)    Block(NULL)       Block(context)
 checked            acquired            blocking          waiting
+|                  |                   store thread      store context
 |                  |                   |                 |
-|                  IsAcquired()        acquire(context)  acquire(context)
+End()              End()               Switch(NULL)      Switch(context)
+end crit           end crit            switch thread     switch thread
+|                  *                   *                 *
+|                  *                   Acquire(NULL)     Acquire(context)
+|                  *                   checked           acquired
+|                  *                   |                 |
+|                  IsAcquired(conext)    |                 IsAcquired(context)
+|                  checked             |                 checked
 |                  |                   |                 |
-|                  checked             checked           acquired
-|                  |                   |                 |
-|                  |                   |                 IsAcquired()
-|                  |                   |                 |
-|                  |                   |                 checked
-|                  |                   |                 |
-acquire(), or block()-------------------------------------
+----------------------------------------------------------
+|
+restart
 */
 
 enum LOCKING_STATE
@@ -69,7 +75,7 @@ struct LOCKING_CONTEXT
  * Procedure for acquiring or blocking on a lock using the locking framework.
  * LockingStart( ) - Enters a critical section
  * LockingBlock( ) or LockingAcquire(  ) - Perform locking operation
- * Caller stores away link in blocking case...
+ * Calling lock stores away link in blocking case...
  * LockingSwitch( ) - does the obligatory SchedulerEndCritical() or SchedulerForceSwitch
  */
 
