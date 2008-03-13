@@ -51,7 +51,7 @@ struct THREAD * NextThread;
 
 
 //Variables that need to be edited atomically.
-struct HANDLER_OBJECT SchedulerTimer;
+struct POST_HANDLER_OBJECT SchedulerTimer;
 BOOL QuantumExpired;
 
 //Thread for idle loop ( the start of thread too )
@@ -251,7 +251,7 @@ void Schedule( void *arg )
 		}
 
 		//restart the scheduler timer if its turned off.
-		if( ! SchedulerTimer.Enabled )
+		if( ! SchedulerTimer.Queued )
 		{
 			TimerRegister( &SchedulerTimer,
 					NextThread->Priority,

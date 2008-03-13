@@ -8,7 +8,7 @@
 //Time should be greather than both.
 //
 
-struct HANDLER_OBJECT FrequentTimer;
+struct POST_HANDLER_OBJECT FrequentTimer;
 COUNT FrequentCount;
 void FrequentHandler( void * arg )
 {
@@ -20,7 +20,7 @@ void FrequentHandler( void * arg )
 		   NULL	);
 }
 
-struct HANDLER_OBJECT SeldomTimer;
+struct POST_HANDLER_OBJECT SeldomTimer;
 COUNT SeldomCount;
 void SeldomHandler( void * arg )
 {

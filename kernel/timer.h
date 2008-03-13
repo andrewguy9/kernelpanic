@@ -3,7 +3,7 @@
 
 #include"../utils/link.h"
 #include"../utils/utils.h"
-#include"handler.h"
+#include"interrupt.h"
 
 typedef unsigned long int TIME;
 
@@ -20,7 +20,7 @@ void TimerStartup( );
 TIME TimerGetTime();
 
 void TimerRegister( 
-		struct HANDLER_OBJECT * newTimer,
+		struct POST_HANDLER_OBJECT * newTimer,
 		TIME wait,
 		HANDLER_FUNCTION * handler,
 		void * argument );

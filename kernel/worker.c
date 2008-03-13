@@ -12,18 +12,16 @@ void WorkerStartup()
 
 void WorkerThreadMain()
 {
-	struct HANDLER_OBJECT * item;
-	HANDLER_FUNCTION * handler;
-	void * arg;
-
+	struct WORKER_ITEM * item;
+	enum WORKER_RETURN result;
+	
 	while(TRUE)
 	{
-		//Fetch a item
+		//Fetch a handler
 		InterruptDisable();
-		item = BASE_OBJECT( 
-				LinkedListPop( &WorkerItemQueue ),
-				struct HANDLER_OBJECT,
-				Link.LinkedListLink );
+		item = BASE_OBJECT( LinkedListPop( &WorkerItemQueue ),
+				struct WORKER_ITEM,
+				Link);
 		InterruptEnable();
 
 		if( item == NULL )
@@ -33,16 +31,27 @@ void WorkerThreadMain()
 		}
 		else
 		{//there is a item, so execute it.
-			ASSERT( HandlerIsRunning(item),
-					WORKER_HANDLER_NOT_RUNNING,
-					"We need the handler to be ready for running");
-			//Extract data out of handler.
-			handler = item->Handler;
-			arg = item->Argument;
-			//execute function
-			handler( arg );
-			//release the handler for reuse
-			item->Enabled = FALSE;
+			ASSERT( ! item->Finished,
+					WORKER_HANDLER_FINISHED,
+					"The handler finished, and got scheduled anyway.");
+
+			//run handler
+			result = item->Foo(item);
+
+			//
+			InterruptDisable();
+			if( result == WORKER_FINISHED )
+			{
+				//the item is done, mark so caller knows.
+				item->Finished = TRUE;
+			}
+			else if( result == WORKER_PENDED )
+			{
+				//the item needs more processing. 
+				//add back into queue.
+				LinkedListEnqueue( &item->Link.LinkedListLink, &WorkerItemQueue );
+			}
+			InterruptEnable();
 		}
 	}
 }
@@ -63,15 +72,24 @@ void WorkerCreateWorker(
 			TRUE);
 }
 
-void WorkerAddItem( HANDLER_FUNCTION foo, void * arg, struct HANDLER_OBJECT * obj  )
+void WorkerAddItem( WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  )
 {
 	InterruptDisable();
 
-	obj->Enabled = TRUE;
-	obj->Handler = foo;
-	obj->Argument = arg;
+	item->Foo = foo;
+	item->Finished = FALSE;
+	item->Context = context;
 
-	LinkedListEnqueue( &obj->Link.LinkedListLink, &WorkerItemQueue );
+	LinkedListEnqueue( &item->Link.LinkedListLink, &WorkerItemQueue );
 	
 	InterruptEnable();
+}
+
+BOOL WorkerItemIsFinished( struct WORKER_ITEM * item )
+{
+	BOOL result;
+	InterruptDisable();
+	result = item->Finished;
+	InterruptEnable();
+	return result;
 }

@@ -7,6 +7,23 @@
 #include"handler.h"
 
 //
+//Structure for Post Handlers
+//
+
+struct POST_HANDLER_OBJECT
+{
+	//HandlerObj.Link = Storage Mechanism
+	//HandlerObj.Function = Handler Function
+	struct HANDLER_OBJECT HandlerObj;
+
+	//Context for execution
+	void * Context;
+
+	//Flag to see if currently Queued
+	BOOL Queued;
+};
+
+//
 //Unit Management
 //
 
@@ -27,7 +44,7 @@ void InterruptEnd();
 //
 
 void InterruptRegisterPostHandler( 
-		struct HANDLER_OBJECT * object,
+		struct POST_HANDLER_OBJECT * object,
 		HANDLER_FUNCTION handler,
 		void *arg);
 

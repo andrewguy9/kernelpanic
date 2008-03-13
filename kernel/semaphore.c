@@ -42,14 +42,16 @@ void SemaphoreDown( struct SEMAPHORE * lock, struct LOCKING_CONTEXT * context )
 
 void SemaphoreUp( struct SEMAPHORE * lock )
 {//UNLOCK
+	struct LOCKING_CONTEXT * context;
 	LockingStart();
 	if( ! LinkedListIsEmpty( & lock->WaitingThreads ) )
 	{
-		LockingAcquire( 
-				BASE_OBJECT( 
-					LinkedListPop( & lock->WaitingThreads ), 
-					struct LOCKING_CONTEXT, 
-					Link ) );
+		context = BASE_OBJECT(
+				LinkedListPop( &lock->WaitingThreads ),
+				struct LOCKING_CONTEXT,
+				Link);
+
+		LockingAcquire( context );
 	}
 	else
 	{

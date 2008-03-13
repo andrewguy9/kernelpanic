@@ -9,33 +9,29 @@ char MainStack[300];
 struct THREAD WorkerThread;
 struct THREAD MainThread;
 
-void WorkerTask(void *arg)
+enum WORKER_RETURN WorkerTask( struct WORKER_ITEM * item )
 {
-	COUNT * value = (COUNT *) arg;
-	(*value)++;
+	COUNT * count = (COUNT *) item->Context;
+	(*count)++;
+	return WORKER_FINISHED;
 }
 
 COUNT Count;
 
+struct WORKER_ITEM ThreadItem;
 void ThreadMain()
 {
-	struct HANDLER_OBJECT handler;
 	COUNT myCount = 0;
-	BOOL inUse;
 
 	while(TRUE)
 	{
-		WorkerAddItem( WorkerTask, &Count, &handler );
+		WorkerAddItem( WorkerTask, &Count, &ThreadItem );
 		myCount++;
-		do
+		while( ! WorkerItemIsFinished(&ThreadItem) )
 		{
-			InterruptDisable();
-			inUse = HandlerIsRunning(&handler);
-			InterruptEnable();
-
 			SchedulerStartCritical();
 			SchedulerForceSwitch();
-		}while( inUse );
+		}
 
 		ASSERT( Count == myCount, 
 				TEST6_WORK_ITEM_DID_NOT_COMPLETE, 

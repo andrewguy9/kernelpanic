@@ -44,10 +44,14 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
 {
 	if( context == NULL )
 	{
+		//We must retrieve the context from the active thread.
 		context = & SchedulerGetActiveThread()->LockingContext;
-		if( context->State == LOCKING_STATE_READY || context->State == LOCKING_STATE_CHECKED )
+
+		//If the context is null, then we:
+		//locked successfully without blocking : state == ready or checked -> state == checked
+		if( context->State == LOCKING_STATE_READY || 
+				context->State == LOCKING_STATE_CHECKED )
 		{
-			//we acquired the lock right away, set state
 			context->State = LOCKING_STATE_CHECKED;
 		}
 		else
@@ -57,17 +61,22 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
 	}
 	else //context!=NULL
 	{
-		if( context->State == LOCKING_STATE_READY || context->State == LOCKING_STATE_CHECKED )
+		//if we were provided a context
+		//then we are in:
+		//locked successfully without waiting : state == ready or checked -> state == acquired
+		if( context->State == LOCKING_STATE_READY ||
+			   	context->State == LOCKING_STATE_CHECKED )
 		{
 			//we acquired lock right away, send notification
 			context->State = LOCKING_STATE_ACQUIRED;
 		}
+		//locked successfully after waiting -> state == waiting -> state == acquired
 		else if( context->State == LOCKING_STATE_WAITING )
 		{
-			//we didn't acquire right away, but now we have it.
-			//send notification
+			//The thread was waiting, mark as acquired
 			context->State = LOCKING_STATE_ACQUIRED;
 		}
+		//locked successfully with blocking -> state == blocking
 		else if( context->State == LOCKING_STATE_BLOCKING )
 		{
 			//the thread got blocked. we need to wake him.
@@ -75,6 +84,7 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
 			SchedulerResumeThread( thread );
 			context->State = LOCKING_STATE_CHECKED;
 		}
+
 		else
 		{
 			KernelPanic( LOCKING_ACQUIRE_CONTEXT_IN_WRONG_STATE );
@@ -120,7 +130,6 @@ BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 	}
 	else
 	{
-		//TODO FAIL IN TEST5. Produced = 13, Blocking = 7, NonBlocking = 5. Failed in ConsumerNonBlockingMain.
 		KernelPanic( LOCKING_IS_ACQUIRED_CONTEXT_IN_WRONG_STATE );
 		return FALSE;
 	}
