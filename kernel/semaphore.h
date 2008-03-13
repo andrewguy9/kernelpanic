@@ -13,7 +13,6 @@ struct SEMAPHORE
 
 void SemaphoreInit( struct SEMAPHORE * lock, COUNT count );
 void SemaphoreDown( struct SEMAPHORE * lock, struct LOCKING_CONTEXT * context );
-void SemaphoreDownNonBlocking( struct SEMAPHORE * lock, struct LOCKING_CONTEXT * context);
 void SemaphoreUp( struct SEMAPHORE * lock );
 
 #endif

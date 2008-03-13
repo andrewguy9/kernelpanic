@@ -24,7 +24,7 @@ checked            acquired            blocking          waiting
 End()              End()               Switch(NULL)      Switch(context)
 end crit           end crit            switch thread     switch thread
 |                  *                   *                 *
-|                  *                   Acquire(NULL)     Acquire(context)
+|                  *                   Acquire(context)  Acquire(context)
 |                  *                   checked           acquired
 |                  *                   |                 |
 |                  IsAcquired(conext)  |                 IsAcquired(context)

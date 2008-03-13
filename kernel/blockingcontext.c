@@ -54,14 +54,6 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
 		{
 			context->State = LOCKING_STATE_CHECKED;
 		}
-		//locked successfully with blocking -> state == blocking
-		else if( context->State == LOCKING_STATE_BLOCKING )
-		{
-			//the thread got blocked. we need to wake him.
-			struct THREAD *thread = BASE_OBJECT(context, struct THREAD, LockingContext);
-			SchedulerResumeThread( thread );
-			context->State = LOCKING_STATE_CHECKED;
-		}
 		else
 		{
 			KernelPanic( LOCKING_ACQUIRE_THREAD_IN_WRONG_STATE );
@@ -72,18 +64,27 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
 		//if we were provided a context
 		//then we are in:
 		//locked successfully without waiting : state == ready or checked -> state == acquired
-		//locked successfully after waiting -> state == waiting -> state == acquired
 		if( context->State == LOCKING_STATE_READY ||
 			   	context->State == LOCKING_STATE_CHECKED )
 		{
 			//we acquired lock right away, send notification
 			context->State = LOCKING_STATE_ACQUIRED;
 		}
-		if( context->State == LOCKING_STATE_WAITING )
+		//locked successfully after waiting -> state == waiting -> state == acquired
+		else if( context->State == LOCKING_STATE_WAITING )
 		{
 			//The thread was waiting, mark as acquired
 			context->State = LOCKING_STATE_ACQUIRED;
 		}
+		//locked successfully with blocking -> state == blocking
+		else if( context->State == LOCKING_STATE_BLOCKING )
+		{
+			//the thread got blocked. we need to wake him.
+			struct THREAD *thread = BASE_OBJECT(context, struct THREAD, LockingContext);
+			SchedulerResumeThread( thread );
+			context->State = LOCKING_STATE_CHECKED;
+		}
+
 		else
 		{
 			KernelPanic( LOCKING_ACQUIRE_CONTEXT_IN_WRONG_STATE );
