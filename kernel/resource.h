@@ -2,7 +2,7 @@
 #define RESOURCE_H
 
 #include"../utils/linkedlist.h"
-#include"blockingcontext.h"
+#include"locking.h"
 
 struct RESOURCE
 {

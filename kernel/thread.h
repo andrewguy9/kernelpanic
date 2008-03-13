@@ -2,7 +2,7 @@
 #define THREAD_H
 
 #include"../utils/utils.h"
-#include"blockingcontext.h"
+#include"locking.h"
 
 enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED };
 

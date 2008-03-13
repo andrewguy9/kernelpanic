@@ -26,7 +26,7 @@ kernel/io.o: kernel/io.c kernel/io.h
 
 kernel/pipe.o: kernel/pipe.c kernel/pipe.h
 
-kernel/blockingcontext.o: kernel/blockingcontext.c kernel/blockingcontext.h
+kernel/locking.o: kernel/locking.c kernel/locking.h
 
 kernel/worker.o: kernel/worker.c kernel/worker.h
 
