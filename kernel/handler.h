@@ -25,10 +25,4 @@ struct HANDLER_OBJECT
 	HANDLER_FUNCTION * Function;
 };
 
-void HandlerInit( 
-		struct HANDLER_OBJECT * handler, 
-		HANDLER_FUNCTION * foo);
-
-void HandlerRun( struct HANDLER_OBJECT * handler, void * context );
-
 #endif
