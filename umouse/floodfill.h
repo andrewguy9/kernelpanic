@@ -3,8 +3,6 @@
 
 #include"../utils/flags.h"
 #include"map.h"
-#include"../utils/ringbuffer.h"
-
 
 #define FLOOD_MAP_ITEMS_NEEDED( WIDTH, HEIGHT ) ((WIDTH)*(HEIGHT))
 #define FLOOD_MAP_SIZE( WIDTH, HEIGHT ) (FLOOD_MAP_ITEMS_NEEDED((WIDTH), (HEIGHT)))

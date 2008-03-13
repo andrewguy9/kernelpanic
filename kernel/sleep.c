@@ -1,7 +1,6 @@
 #include"sleep.h"
 #include"scheduler.h"
 #include"timer.h"
-#include"interrupt.h"
 
 /*
  * Sleep Unit Description
