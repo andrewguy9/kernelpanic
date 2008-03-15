@@ -17,16 +17,16 @@ void GatherSync( struct GATHER * gather, struct LOCKING_CONTEXT * context )
 		//everyone is here
 		gather->Present = 0;
 		//tell new guy that he can continue
-		Acquire( context );
+		LockingAcquire( context );
 		//Tell everyone waiting they can continue.
 		while( ! LinkedListIsEmpty( & gather->List ) )
 		{
-			struct LOCKING_CONTEXT curContext;
+			struct LOCKING_CONTEXT * curContext;
 			curContext = BASE_OBJECT(
-					LinkedListPop( &lock->WaitingThreads ),
+					LinkedListPop( &gather->List ),
 					struct LOCKING_CONTEXT,
 					Link);
-			Acquire( curContext );
+			LockingAcquire( curContext );
 		}
 		//We are done, everyone is awake
 		LockingEnd();
@@ -38,7 +38,7 @@ void GatherSync( struct GATHER * gather, struct LOCKING_CONTEXT * context )
 		LockingBlock( NULL, context );
 
 		//We need to store ourself away for later retreval.
-		LinkedListEnqueue( & context->Link, & gather->List );
+		LinkedListEnqueue( & context->Link.LinkedListLink, & gather->List );
 
 		//We may need to switch threads.	
 		LockingSwitch( context );

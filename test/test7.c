@@ -11,8 +11,8 @@ struct GATHER Gather;
 struct THREAD BlockThread1;
 struct THREAD BlockThread2;
 
-struct THREAD WaitThread3;
-struct THREAD WaitThread4;
+struct THREAD WaitThread1;
+struct THREAD WaitThread2;
 
 char BlockThread1Stack[STACK_SIZE];
 char BlockThread2Stack[STACK_SIZE];
@@ -50,3 +50,47 @@ void WaitMain()
 		}
 	}
 }
+
+int main()
+{
+	KernelInit();
+
+	GatherInit( &Gather, 4 );
+
+	SchedulerCreateThread(
+			&BlockThread1,
+			1,
+		    BlockThread1Stack,
+		    STACK_SIZE, 
+			BlockingMain,
+		    0x01,
+		    TRUE);
+	SchedulerCreateThread(
+			&BlockThread2,
+			1,
+		    BlockThread2Stack,
+		    STACK_SIZE, 
+			BlockingMain,
+		    0x02,
+		    TRUE);
+	SchedulerCreateThread(
+			&WaitThread1,
+			1,
+		    WaitThread1Stack,
+		    STACK_SIZE, 
+			WaitMain,
+		    0x04,
+		    TRUE);
+	SchedulerCreateThread(
+			&WaitThread2,
+			1,
+		    WaitThread2Stack,
+		    STACK_SIZE, 
+			WaitMain,
+		    0x08,
+		    TRUE);
+	KernelStart();
+	return 0;
+	
+}
+

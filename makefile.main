@@ -55,7 +55,7 @@ test5.out: test/test5.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/
 
 test6.out: test/test6.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/worker.o
 
-test7.out: test/test7.o kernel/locking.o kernel/hal.o kernel/interrupt.o kernel/mutex.o kernel/panic.o kernel/scheduler.o kernel/startup.o kernel/timer.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o
+test7.out: test/test7.o kernel/gather.o kernel/locking.o kernel/hal.o kernel/interrupt.o kernel/mutex.o kernel/panic.o kernel/scheduler.o kernel/startup.o kernel/timer.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o
 
 ###############################
 #actual umouse elf file.
