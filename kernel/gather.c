@@ -1,10 +1,33 @@
 #include"gather.h"
 
+/*
+ * Unit Description
+ *
+ * Gather is a syncronization mechanism which allow
+ * multiple threads to syncronize their actions.
+ *
+ * Gather is like an inverted semaphore. It is initialized
+ * to wait for n threads. Each thread walls GatherSync and is 
+ * blocked until all n threads are blocked. Then the lock awakens
+ * all of them at the same time. This is useful if you need
+ * multiple threads to move in lock step.
+ */
+
+/*
+ * Initializes the gather structure.
+ * Count is the number of threads the gather lock will block.
+ * This should not be called on an active gather lock.
+ */
 void GatherInit( struct GATHER * gather, COUNT count )
 {
 	gather->Needed = count;
+	gather->Present = 0;
+	LinkedListInit( & gather->List );
 }
 
+/*
+ * Call this to syncronize 
+ */
 void GatherSync( struct GATHER * gather, struct LOCKING_CONTEXT * context )
 {
 	LockingStart();
@@ -44,4 +67,3 @@ void GatherSync( struct GATHER * gather, struct LOCKING_CONTEXT * context )
 		LockingSwitch( context );
 	}
 }
-
