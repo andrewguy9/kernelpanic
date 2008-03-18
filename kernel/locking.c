@@ -15,24 +15,31 @@ void LockingEnd(  )
 void LockingSwitch( struct LOCKING_CONTEXT * context )
 {
 	if( context == NULL )
-		context = & SchedulerGetActiveThread()->LockingContext;
-	
-	if( context->State == LOCKING_STATE_BLOCKING )
-	{//we are to block on the lock, switch out
-		SchedulerForceSwitch();
-	}
-	else if( context->State == LOCKING_STATE_WAITING )
-	{//we are to wait on the lock, continue in slice
-		SchedulerEndCritical();
-	}
-	else if( context->State == LOCKING_STATE_CHECKED || context->State == LOCKING_STATE_ACQUIRED )
-	{//we acquired the lock, continue
-		SchedulerEndCritical();
-	}
-	else 
 	{
-		KernelPanic( LOCKING_SWITCH_INVAID_STATE );
-		SchedulerForceSwitch();
+		context = & SchedulerGetActiveThread()->LockingContext;
+	}
+
+	switch( context->State )
+	{
+		case LOCKING_STATE_BLOCKING:
+			//we are to block on the lock, switch out
+			SchedulerForceSwitch();
+			break;
+
+		case LOCKING_STATE_WAITING:
+			//we are to wait on the lock, continue in slice
+			SchedulerEndCritical();
+			break;
+
+		case LOCKING_STATE_CHECKED:
+		case LOCKING_STATE_ACQUIRED:
+			SchedulerEndCritical();
+			break;
+
+		default:
+			KernelPanic( LOCKING_SWITCH_INVAID_STATE );
+			SchedulerForceSwitch();
+			break;
 	}
 }
 
