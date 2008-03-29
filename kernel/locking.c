@@ -7,6 +7,7 @@ void LockingStart()
 	ASSERT( !SchedulerIsCritical(),
 			LOCKING_START_NOT_CRIT,
 			"We can only start a locking session when not critical");
+
 	SchedulerStartCritical();
 }
 
@@ -15,6 +16,7 @@ void LockingEnd(  )
 	ASSERT( SchedulerIsCritical(),
 		 LOCKING_END_NOT_CRIT,
 		"If we are ending a locking session we must be critical already" );
+
 	SchedulerEndCritical();
 }
 
@@ -28,6 +30,7 @@ void LockingSwitch( struct LOCKING_CONTEXT * context )
 	{
 		//There is no context, so the thread must be on blocking path.
 		context = & SchedulerGetActiveThread()->LockingContext;
+
 		ASSERT( context->State != LOCKING_STATE_WAITING,
 			 LOCKING_SWITCH_NULL_WAITING,
 			"if the context is null, its implied the thread will block, not wait" );
@@ -145,6 +148,7 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 				LOCKING_BLOCK_WRONG_CONTEXT,
 				"the context must be owned by active thread" );
 		SchedulerBlockThread( );
+		
 	}
 	else
 	{//context is user specified, make him wait.
@@ -155,12 +159,19 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 	context->BlockingContext = * blockingInfo;
 
 	//return link so they can store blocked thread.
+	
+	ASSERT( context != NULL, 
+			LOCKING_BLOCK_CONTEXT_NOT_NULL,
+			"we have to return a link, so context cant be null");
+
 	return &context->Link;
 }
 
 BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 {
+	BOOL result;
 	SchedulerStartCritical();
+
 	ASSERT( context != NULL, 
 			LOCKING_IS_ACQUIRED_CONTEXT_NULL,
 		   	"context must not be null" );
@@ -169,23 +180,22 @@ BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 	{
 		case LOCKING_STATE_ACQUIRED:
 			context->State = LOCKING_STATE_CHECKED;
-			SchedulerEndCritical();
-			return TRUE;
+			result = TRUE;
 			break;
 
 		case LOCKING_STATE_WAITING:
-			SchedulerEndCritical();
-			return FALSE;
+			result = FALSE;
 			break;
 
 		case LOCKING_STATE_READY:
 		case LOCKING_STATE_BLOCKING:
 		case LOCKING_STATE_CHECKED:
 			KernelPanic( LOCKING_IS_ACQUIRED_CONTEXT_IN_WRONG_STATE );
-			SchedulerEndCritical();
-			return FALSE;
+			result = FALSE;
 			break;
 	}
-	return FALSE;
+
+	SchedulerEndCritical();
+	return result;
 }
 
