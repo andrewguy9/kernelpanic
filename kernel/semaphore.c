@@ -2,18 +2,19 @@
 #include"../utils/linkedlist.h"
 
 /*
- * TODO update comment to reflect real semaphore rules
  * Semaphore Unit Description
- * Implements a semaphore thread only syncronization mechanism. 
+ * Implements a semaphore as a thread only syncronization mechanism. 
  *
  * Semaphore is like a mutex but it allows blocking so that it can be 
- * starvation safe. A semaphore is initialized to a specific size. 
+ * starvation safe. A semaphore is initialized to a specific count.
  *
- * Threads that lock it request a specific count which is reduced from 
- * the semaphore's pool. When the semaphore cannot satisfy the thread,
- * the thread is blocked until enough resourses are freed. 
+ * Threads call Up and Down to access the semaphore. 
+ * Up increments the count and down decrements the count.
  *
- * Resources are granted on a first come first serve basis.
+ * Rather than going negative, the semaphore will block the threads
+ * which call Down when the count is 0. Calling up will unblock the thread.
+ *
+ * Threads will be unblocked in the order in which they were blocked.
  */
 
 void SemaphoreInit( struct SEMAPHORE * lock, COUNT count )
