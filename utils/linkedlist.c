@@ -42,6 +42,10 @@ void LinkedListRemove( struct LINKED_LIST_LINK * node )
 //Add to front of list.
 void LinkedListPush( struct LINKED_LIST_LINK * node, struct LINKED_LIST * list )
 {
+	ASSERT( list != NULL, 
+			LINKED_LIST_PUSH_LIST_NULL,
+			"list cannot be null");
+
 	LinkedListInsert( node, list->Head );
 	list->Head = node;
 }
@@ -50,6 +54,11 @@ void LinkedListPush( struct LINKED_LIST_LINK * node, struct LINKED_LIST * list )
 struct LINKED_LIST_LINK * LinkedListPop( struct LINKED_LIST * list )
 {
 	struct LINKED_LIST_LINK * top;
+
+	ASSERT( list != NULL,
+			LINKED_LIST_POP_LIST_NULL,
+			"list cannot be null" );
+
 	if( list->Head == NULL )
 		return NULL;
 
@@ -69,12 +78,20 @@ struct LINKED_LIST_LINK * LinkedListPop( struct LINKED_LIST * list )
 //Add to the end of list.
 void LinkedListEnqueue( struct LINKED_LIST_LINK * node, struct LINKED_LIST * list )
 {
+	ASSERT( list != NULL,
+			LINKED_LIST_ENQUEUE_LIST_NULL,
+			"list cannot be null");
+
 	LinkedListInsert( node, list->Head );
 	list->Head = node->Next;
 }
 
 BOOL LinkedListIsEmpty( struct LINKED_LIST * list )
 {
+	ASSERT( list != NULL,
+			LINKED_LIST_IS_EMPTY_LIST_NULL,
+			"list is empty");
+
 	if( list->Head == NULL )
 		return TRUE;
 	else 
@@ -88,5 +105,9 @@ void LinkedListInit( struct LINKED_LIST * list )
 
 struct LINKED_LIST_LINK * LinkedListPeek( struct LINKED_LIST * list )
 {
+	ASSERT( list != NULL,
+			LINKED_LIST_PEEK_LIST_NULL,
+			"list is null");
+
 	return list->Head;
 }
