@@ -58,10 +58,12 @@ void GatherSync( struct GATHER * gather, struct LOCKING_CONTEXT * context )
 	{
 		//We are not the last man, 
 		//so we need to block.
-		LockingBlock( NULL, context );
+		union LINK * link;
+	
+		link = LockingBlock( NULL, context );
 
 		//We need to store ourself away for later retreval.
-		LinkedListEnqueue( & context->Link.LinkedListLink, & gather->List );
+		LinkedListEnqueue( &link->LinkedListLink, &gather->List );
 
 		//We may need to switch threads.	
 		LockingSwitch( context );
