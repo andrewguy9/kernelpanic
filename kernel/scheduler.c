@@ -13,7 +13,7 @@
  * 2) Provide a mechanism for a thread
  * to stop itself, and for others to wake it.
  * 3) Provide mechanism to prevent the sceduler
- * from splitting thread level atomic
+ * from splitting thread level atomic ("critical")
  * operations.
  *
  * Scheduling next thread:
@@ -21,8 +21,8 @@
  * function. We must make sure that the Schedule 
  * function does pick a new thread while the 
  * system is in a thread critical section. 
- * We enforce this rule using a mutex, 
- * threads entering a critical section
+ * We enforce this rule using a mutex. 
+ * Threads entering a critical section
  * aquire the mutex, and then release it
  * at the end of their critical section. 
  *
