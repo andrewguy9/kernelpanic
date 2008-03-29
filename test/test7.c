@@ -20,6 +20,12 @@ char WaitThread1Stack[STACK_SIZE];
 char WaitThread2Stack[STACK_SIZE];
 
 //
+//Counter
+//
+
+COUNT Count;
+
+//
 //Blocking main
 //
 
@@ -28,6 +34,10 @@ void BlockingMain()
 	while(TRUE)
 	{
 		GatherSync( & Gather, NULL );
+
+		SchedulerStartCritical();
+		Count++;
+		SchedulerEndCritical();
 	}
 }
 
@@ -48,12 +58,17 @@ void WaitMain()
 			SchedulerStartCritical();
 			SchedulerForceSwitch();
 		}
+		SchedulerStartCritical();
+		Count++;
+		SchedulerEndCritical();
 	}
 }
 
 int main()
 {
 	KernelInit();
+
+	Count = 0;
 
 	GatherInit( &Gather, 4 );
 
