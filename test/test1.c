@@ -20,11 +20,11 @@ char TestThreadStackIncrement[500];
 void TestMainIncrement()
 {
 	volatile unsigned char a = 0;
-	DEBUG_LED ^= 1<<3;
+	//DEBUG_LED ^= 1<<3;//TODO FIX IN HAL
 	while( 1 )
 	{
 		Value1++;
-		DEBUG_LED ^= 1<<0;
+		//DEBUG_LED ^= 1<<0;//TODO FIX IN HAL
 		for(a=1;a>0;a++);
 
 	}
@@ -38,7 +38,7 @@ void TestMainDivide()
 	while( 1 )
 	{
 		Value2++;
-		DEBUG_LED ^= 1<<1;
+		//DEBUG_LED ^= 1<<1;//TODO fix in hal
 		for(a=1;a>0;a++);
 	}
 }
@@ -51,7 +51,7 @@ void TestMainExp()
 	while( 1 )
 	{
 		Value3++;
-		DEBUG_LED ^= 1<<2;
+		//DEBUG_LED ^= 1<<2;//TODO FIX IN HAL
 		for(a=1;a>0;a++);
 	}
 }

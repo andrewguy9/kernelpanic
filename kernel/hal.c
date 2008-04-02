@@ -59,6 +59,32 @@ void HalSerialStartup()
 	UCSRC = UCSZ_8BIT;
 	UCSRB = _BV(TXCIE) | _BV(RXCIE) | _BV(RXEN) | _BV(TXEN);
 }
+#endif// end avr build
+//-----------------------------------------------------------------------------
+//
+//PC CODE
+//
+#ifdef PC_BUILD
+
+void HalStartup()
+{
+	//TODO
+}
+
+void HalInitClock()
+{
+	//TODO
+}
+
+void * HalCreateStackFrame( void * stack, THREAD_MAIN main, COUNT stackSize )
+{
+	//TODO	
+}
+
+void HalSerialStartup()
+{
+	//TODO
+}
 #endif
 //-----------------------------------------------------------------------------
 

@@ -114,7 +114,7 @@ BOOL SchedulerIsCritical()
  * Function which does the actual switching of the stack pointer.
  */
 void 
-__attribute__((naked,__INTR_ATTRS)) 
+__attribute__((naked,__INTR_ATTRS)) //TODO ABSTRCTIFY in HAL
 SchedulerContextSwitch()
 {
 	//perfrom context switch
@@ -187,7 +187,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 			"Active thread is by definition running");
 
 	thread->State = THREAD_STATE_RUNNING;
-	DEBUG_LED = DEBUG_LED | thread->Flag;
+	//DEBUG_LED = DEBUG_LED | thread->Flag;//TODO CREATE ABSTRACTION IN HAL
 
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 }
@@ -207,7 +207,7 @@ void SchedulerBlockThread( )
 			SCHEDULER_BLOCK_THREAD_MUST_BE_CRIT,
 			"Only block thread from critical section");
 	ActiveThread->State = THREAD_STATE_BLOCKED;
-	DEBUG_LED = DEBUG_LED & ~ActiveThread->Flag;
+	//DEBUG_LED = DEBUG_LED & ~ActiveThread->Flag;//TODO fix in hal
 }
 
 void Schedule( void *arg )
@@ -318,7 +318,7 @@ void SchedulerCreateThread(
 	if( start )
 	{
 		thread->State = THREAD_STATE_RUNNING;
-		DEBUG_LED = DEBUG_LED | flag;
+		//DEBUG_LED = DEBUG_LED | flag;//TODO fix in hal
 		LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 	}
 	else

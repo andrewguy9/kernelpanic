@@ -142,4 +142,28 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 #endif //end if #ifdef AVR_BUILD
 //-----------------------------------------------------------------------------
 
+
+//
+//LINUX DEFINES
+//
+#ifdef PC_BUILD
+
+#define HAL_SAVE_SP(dest) //TODO
+#define HAL_SET_SP(value) //TODO
+
+#define HalIsAtomic() (0)//TODO
+#define HalDisableInterrupts() (0)//TODO
+#define HalEnableInterrupts()  (0)//TODO
+
+#define DEBUG_LED       //TODO
+#define DEBUG_LED_DDR   //TODO
+
+#define HAL_SAVE_STATE //TODO
+
+#define HAL_RESTORE_STATE //TODO
+
+#define TimerInterrupt //TODO
+
+#endif //end if #ifdef LINUX_BUILD
+//-----------------------------------------------------------------------------
 #endif //end of #ifndef HAL_H

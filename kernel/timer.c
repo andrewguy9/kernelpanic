@@ -150,7 +150,7 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	HAL_SAVE_SP( ActiveThread->Stack );
 
 	//reset the clock
-    TCNT0 = 0xff-1*16; //1 ms
+    //TCNT0 = 0xff-1*16; //1 ms//TODO FIX IN HAL
 
 	//update interrupt level to represent that we are in inerrupt
 	InterruptStart();
