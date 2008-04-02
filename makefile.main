@@ -12,7 +12,7 @@ include test/rules.mk
 
 tests: utils/linktest.out utils/ringtest.out utils/flagtest.out umouse/maptest.out utils/bhamtest.out umouse/motortest.out umouse/floodfilltest.out umouse/movetest.out
 
-umouse: test0.elf test1.elf test2.elf test3.elf test4.elf test5.elf test6.elf test7.elf umouse.elf
+umouse: $(TARGET)_test0.elf $(TARGET)_test1.elf $(TARGET)_test2.elf $(TARGET)_test3.elf $(TARGET)_test4.elf $(TARGET)_test5.elf $(TARGET)_test6.elf $(TARGET)_test7.elf $(TARGET)_umouse.elf
 
 #########################
 #utils on board tests
@@ -33,32 +33,32 @@ umouse/floodfilltest.out: umouse/floodfilltest.o umouse/$(TARGET)_floodfill.o ut
 
 umouse/movetest.out: umouse/movetest.o umouse/$(TARGET)_map.o utils/$(TARGET)_flags.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_positionlog.o umouse/$(TARGET)_submove.o
 ############################
-test0.elf: test0.out
+$(TARGET)_test0.elf: $(TARGET)_test0.out
 
-test1.elf: test1.out
+$(TARGET)_test1.elf: $(TARGET)_test1.out
 
-test2.elf: test2.out
+$(TARGET)_test2.elf: $(TARGET)_test2.out
 
-test3.elf: test3.out
+$(TARGET)_test3.elf: $(TARGET)_test3.out
 ############################
-test0.out: test/test0.o kernel/mutex.o kernel/scheduler.o kernel/panic.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o
+$(TARGET)_test0.out: test/$(TARGET)_test0.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_interrupt.o kernel/$(TARGET)_locking.o
 
-test1.out: test/test1.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o
+$(TARGET)_test1.out: test/$(TARGET)_test1.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_resource.o kernel/$(TARGET)_semaphore.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_interrupt.o kernel/$(TARGET)_locking.o
 
-test2.out: test/test2.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/socket.o utils/$(TARGET)_ringbuffer.o kernel/pipe.o kernel/locking.o
+$(TARGET)_test2.out: test/$(TARGET)_test2.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_resource.o kernel/$(TARGET)_semaphore.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_interrupt.o kernel/$(TARGET)_socket.o utils/$(TARGET)_ringbuffer.o kernel/$(TARGET)_pipe.o kernel/$(TARGET)_locking.o
 
-test3.out: test/test3.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o 
+$(TARGET)_test3.out: test/$(TARGET)_test3.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_resource.o kernel/$(TARGET)_semaphore.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_interrupt.o kernel/$(TARGET)_locking.o 
 
-test4.out: test/test4.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o kernel/interrupt.o kernel/locking.o
+$(TARGET)_test4.out: test/$(TARGET)_test4.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_sleep.o kernel/$(TARGET)_interrupt.o kernel/$(TARGET)_locking.o
 
-test5.out: test/test5.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/semaphore.o
+$(TARGET)_test5.out: test/$(TARGET)_test5.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_interrupt.o kernel/$(TARGET)_locking.o kernel/$(TARGET)_semaphore.o
 
-test6.out: test/test6.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/worker.o
+$(TARGET)_test6.out: test/$(TARGET)_test6.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_interrupt.o kernel/$(TARGET)_locking.o kernel/$(TARGET)_worker.o
 
-test7.out: test/test7.o kernel/gather.o kernel/locking.o kernel/hal.o kernel/interrupt.o kernel/mutex.o kernel/panic.o kernel/scheduler.o kernel/startup.o kernel/timer.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o
+$(TARGET)_test7.out: test/$(TARGET)_test7.o kernel/$(TARGET)_gather.o kernel/$(TARGET)_locking.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_interrupt.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_startup.o kernel/$(TARGET)_timer.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o
 
 ###############################
 #actual umouse elf file.
-umouse.out: kernel/locking.o kernel/hal.o kernel/interrupt.o kernel/io.o kernel/mutex.o kernel/panic.o kernel/pipe.o kernel/resource.o kernel/scheduler.o kernel/semaphore.o kernel/sleep.o kernel/socket.o kernel/startup.o kernel/timer.o kernel/worker.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_map.o umouse/$(TARGET)_motor.o umouse/$(TARGET)_positionlog.o utils/$(TARGET)_bham.o utils/$(TARGET)_flags.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_ringbuffer.o umouse/main.o umouse/$(TARGET)_submove.o
+$(TARGET)_umouse.out: kernel/$(TARGET)_locking.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_interrupt.o kernel/$(TARGET)_io.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_pipe.o kernel/$(TARGET)_resource.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_semaphore.o kernel/$(TARGET)_sleep.o kernel/$(TARGET)_socket.o kernel/$(TARGET)_startup.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_worker.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_map.o umouse/$(TARGET)_motor.o umouse/$(TARGET)_positionlog.o utils/$(TARGET)_bham.o utils/$(TARGET)_flags.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_ringbuffer.o umouse/$(TARGET)_main.o umouse/$(TARGET)_submove.o
 
-umouse.elf: umouse.out
+$(TARGET)_umouse.elf: $(TARGET)_umouse.out
