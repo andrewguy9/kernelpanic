@@ -81,7 +81,7 @@ int main()
 			ProducerStack , 
 			STACK_SIZE , 
 			ProducerMain , 
-			0x01 ,
+			0 ,
 			TRUE );
 
 	SchedulerCreateThread( 
@@ -90,7 +90,7 @@ int main()
 			ConsumerBlockingStack , 
 			STACK_SIZE , 
 			ConsumerBlockingMain,
-		   	0x10 , 
+		   	4 , 
 			TRUE );
 
 	SchedulerCreateThread(
@@ -99,7 +99,7 @@ int main()
 			ConsumerNonBlockingStack , 
 			STACK_SIZE , 
 			ConsumerNonBlockingMain ,
-		   	0x20 , 
+		   	5, 
 			TRUE );
 
 	KernelStart();

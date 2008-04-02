@@ -3,7 +3,7 @@
 
 //Includes for all builds
 #include"../utils/utils.h"
-
+#include"../utils/flags.h"
 //-----------------------------------------------------------------------------
 //Defines (for all threads)
 typedef void (*THREAD_MAIN) ();
@@ -52,6 +52,7 @@ void HalSerialStartup();
 #define TMR_PRESCALE_MASK  0x07
 #define TMR_MS             16
 
+//Each platform must define DEBUG_LED variable, but not DDR
 #define DEBUG_LED          PORTC
 #define DEBUG_LED_DDR      DDRC
 
@@ -148,6 +149,7 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 //
 #ifdef PC_BUILD
 
+
 #define HAL_SAVE_SP(dest) //TODO
 #define HAL_SET_SP(value) //TODO
 
@@ -155,8 +157,7 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 #define HalDisableInterrupts() (0)//TODO
 #define HalEnableInterrupts()  (0)//TODO
 
-#define DEBUG_LED       //TODO
-#define DEBUG_LED_DDR   //TODO
+extern char DEBUG_LED;
 
 #define HAL_SAVE_STATE //TODO
 
@@ -166,4 +167,14 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 
 #endif //end if #ifdef LINUX_BUILD
 //-----------------------------------------------------------------------------
+
+//
+//Cross Platform Macros
+//
+
+#define HalSetDebugLedMask( mask ) ( DEBUG_LED = mask )
+#define HalSetDebugLedFlag( index ) ( FlagOn( &(DEBUG_LED),(index)) )
+#define HalClearDebugLedFlag( index ) (FlagOff(&(DEBUG_LED),(index)))
+#define HalToggleDebugLedFlag( index ) (FlagToggle(&(DEBUG_LED),(index)))
+#define HalGetDebugLed( ) ( DEBUG_LED )
 #endif //end of #ifndef HAL_H

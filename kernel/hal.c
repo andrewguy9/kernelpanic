@@ -66,8 +66,11 @@ void HalSerialStartup()
 //
 #ifdef PC_BUILD
 
+char DEBUG_LED;
+
 void HalStartup()
 {
+	DEBUG_LED = 0;
 	//TODO
 }
 

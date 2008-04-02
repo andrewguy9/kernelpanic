@@ -51,14 +51,14 @@ int main()
 			MainStack, 
 			300, 
 			ThreadMain, 
-			0x01 , 
+			0, 
 			TRUE );
 
 	WorkerCreateWorker(
 			&WorkerThread,
 			WorkerStack,
 			300,
-			0x02 );
+			1 );
 
 	KernelStart();
 	return 0;

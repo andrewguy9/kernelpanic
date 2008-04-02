@@ -24,13 +24,16 @@ typedef char FLAG_WORD;
 	( (NumElements)/(FlagWordSize) + ((NumElements)%(FlagWordSize) ? 1 : 0 ) )
 
 //Test if a flag is on
-#define FlagGet( Flags, Index ) (Flags[FlagIndex(Index)] & FlagGenerateMask( FlagOffset( Index ) ) )
+#define FlagGet( Flags, Index ) ((Flags)[FlagIndex(Index)] & FlagGenerateMask( FlagOffset( Index ) ) )
 
 //Turn a flag on
-#define FlagOn( Flags, Index ) (Flags[FlagIndex(Index)] |= FlagGenerateMask( FlagOffset( Index ) ) )  
+#define FlagOn( Flags, Index ) ((Flags)[FlagIndex(Index)] |= FlagGenerateMask( FlagOffset( Index ) ) )  
 
 //Turn a flag off
-#define FlagOff( Flags, Index ) (Flags[FlagIndex(Index)] &= ~ FlagGenerateMask( FlagOffset( Index ) ) )
+#define FlagOff( Flags, Index ) ((Flags)[FlagIndex(Index)] &= ~ FlagGenerateMask( FlagOffset( Index ) ) )
+
+//Toggle a flag
+#define FlagToggle( Flags, Index ) ((Flags)[FlagIndex(Index)] ^= FlagGenerateMask( FlagOffset(Index) ) )
 
 //Public functions to do flag work
 #ifdef PC_BUILD

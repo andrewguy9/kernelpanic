@@ -20,11 +20,11 @@ char TestThreadStackIncrement[500];
 void TestMainIncrement()
 {
 	volatile unsigned char a = 0;
-	//DEBUG_LED ^= 1<<3;//TODO FIX IN HAL
+	HalToggleDebugLedFlag(3);
 	while( 1 )
 	{
 		Value1++;
-		//DEBUG_LED ^= 1<<0;//TODO FIX IN HAL
+		HalToggleDebugLedFlag(1);
 		for(a=1;a>0;a++);
 
 	}
@@ -38,7 +38,7 @@ void TestMainDivide()
 	while( 1 )
 	{
 		Value2++;
-		//DEBUG_LED ^= 1<<1;//TODO fix in hal
+		HalToggleDebugLedFlag(2);
 		for(a=1;a>0;a++);
 	}
 }
@@ -51,7 +51,7 @@ void TestMainExp()
 	while( 1 )
 	{
 		Value3++;
-		//DEBUG_LED ^= 1<<2;//TODO FIX IN HAL
+		HalToggleDebugLedFlag(3);
 		for(a=1;a>0;a++);
 	}
 }
@@ -70,7 +70,7 @@ int main()
 			TestThreadStackIncrement,
 			500,
 			TestMainIncrement,
-		   	0x10,
+		   	4,
 			TRUE);
 
 	SchedulerCreateThread(
@@ -79,7 +79,7 @@ int main()
 			TestThreadStackDivide,
 			500,
 			TestMainDivide,
-			0X20,
+			5,
 			TRUE);
 
 	SchedulerCreateThread(
@@ -88,7 +88,7 @@ int main()
 			TestThreadStackExp,
 			500,
 			TestMainExp,
-			0X40,
+			6,
 			TRUE);
 		
 	KernelStart();

@@ -131,7 +131,7 @@ int main()
 			Reader1Stack,
 			STACK_SIZE,
 			Reader,
-			0x01,
+			0,
 			TRUE);
 	SchedulerCreateThread( 
 			& Reader2,
@@ -139,7 +139,7 @@ int main()
 			Reader2Stack,
 			STACK_SIZE,
 			Reader,
-			0x02,
+			1,
 			TRUE);
 	SchedulerCreateThread( 
 			& Reader3,
@@ -147,7 +147,7 @@ int main()
 			Reader3Stack,
 			STACK_SIZE,
 			Reader,
-			0x04,
+			2,
 			TRUE);
 	SchedulerCreateThread( 
 			& Writer1,
@@ -155,7 +155,7 @@ int main()
 			Writer1Stack,
 			STACK_SIZE,
 			Writer,
-			0x10,
+			4,
 			TRUE);
 	SchedulerCreateThread( 
 			& Writer2,
@@ -163,7 +163,7 @@ int main()
 			Writer2Stack,
 			STACK_SIZE,
 			Writer,
-			0x20,
+			5,
 			TRUE);
 
 	KernelStart();

@@ -15,7 +15,7 @@ struct THREAD
 	char * Stack;
 	char * StackHigh;
 	char * StackLow;
-	char Flag;
+	INDEX Flag;
 };
 
 

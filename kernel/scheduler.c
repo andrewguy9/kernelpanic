@@ -187,7 +187,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 			"Active thread is by definition running");
 
 	thread->State = THREAD_STATE_RUNNING;
-	//DEBUG_LED = DEBUG_LED | thread->Flag;//TODO CREATE ABSTRACTION IN HAL
+	HalSetDebugLedFlag( thread->Flag );
 
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 }
@@ -207,7 +207,7 @@ void SchedulerBlockThread( )
 			SCHEDULER_BLOCK_THREAD_MUST_BE_CRIT,
 			"Only block thread from critical section");
 	ActiveThread->State = THREAD_STATE_BLOCKED;
-	//DEBUG_LED = DEBUG_LED & ~ActiveThread->Flag;//TODO fix in hal
+	HalClearDebugLedFlag( ActiveThread->Flag );
 }
 
 void Schedule( void *arg )
@@ -307,18 +307,23 @@ void SchedulerCreateThread(
 		char * stack,
 		COUNT stackSize,
 		THREAD_MAIN main,
-		char flag,
+		INDEX debugFlag,
 		BOOL start)
 {
+	//Make sure data is valid
+	ASSERT( debugFlag < 8,
+			SCHEDULER_CREATE_THREAD_FLAG_TOO_BIG,
+			"debug led has only 8 leds" );
+
 	//Populate thread struct
 	thread->Priority = priority;
-	thread->Flag = flag;
+	thread->Flag = debugFlag;
 	LockingInit( & thread->LockingContext );
 	//Add thread to done queue.
 	if( start )
 	{
 		thread->State = THREAD_STATE_RUNNING;
-		//DEBUG_LED = DEBUG_LED | flag;//TODO fix in hal
+		HalSetDebugLedFlag( debugFlag );
 		LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 	}
 	else

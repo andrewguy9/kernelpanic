@@ -31,7 +31,7 @@ SchedulerCreateThread(
 		char * stack,
 		unsigned int stackSize,
 		THREAD_MAIN main,
-		char flag,
+		INDEX debugFlag,
 		BOOL start);
 
 #endif
