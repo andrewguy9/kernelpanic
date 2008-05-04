@@ -26,7 +26,8 @@ void GatherInit( struct GATHER * gather, COUNT count )
 }
 
 /*
- * Call this to syncronize 
+ * Blocks the thread until all the threads have called GatherSync.
+ * When the final thread arrives, the lock will wake all threads in the gather.
  */
 void GatherSync( struct GATHER * gather, struct LOCKING_CONTEXT * context )
 {

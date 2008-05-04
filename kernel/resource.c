@@ -31,6 +31,9 @@
 //Private helper functions
 //
 
+/*
+ * Wakes the threads who are waiting.
+ */
 void ResourceWakeThreads( struct RESOURCE * lock )
 {
 	ASSERT( lock->NumShared == 0,

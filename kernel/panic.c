@@ -17,6 +17,7 @@
  */
 void GeneralPanic( enum ERROR_CODE error )
 {
+	//TODO MAKE THIS DO WORK, CURRENTLY SAME AS KernelPanic
 	volatile char failed = 1;
 	InterruptDisable();
 	while(failed);

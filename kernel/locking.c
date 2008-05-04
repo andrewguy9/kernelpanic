@@ -1,7 +1,20 @@
 #include"locking.h"
 #include"scheduler.h"
 
+/*
+ * Unit Description
+ *
+ * Locking unit provides a locking state machine which
+ * can be used to various locks for abstractify calls
+ * to the scheduler.
+ *
+ * Using this statemachine, locks can be implemented 
+ * to be both blocking or nonblocking with minimal effort.
+ */
 
+/*
+ * Locks should call LockingStart to start a critical section.
+ */
 void LockingStart()
 {
 	ASSERT( !SchedulerIsCritical(),
@@ -11,6 +24,10 @@ void LockingStart()
 	SchedulerStartCritical();
 }
 
+/*
+ * Locks should call LockingEnd to end critical sections
+ * on unlock() operations.
+ */
 void LockingEnd(  )
 {
 	ASSERT( SchedulerIsCritical(),
@@ -20,6 +37,10 @@ void LockingEnd(  )
 	SchedulerEndCritical();
 }
 
+/*
+ * Locks should call LockingSwitch to end a critical section and 
+ * context switch if needed. This is used in lock() operations. 
+ */
 void LockingSwitch( struct LOCKING_CONTEXT * context )
 {
 	ASSERT( SchedulerIsCritical(),
@@ -66,11 +87,20 @@ void LockingSwitch( struct LOCKING_CONTEXT * context )
 	}
 }
 
+/*
+ * Initialize a locking context for use.
+ * NOT ATOMIC
+ */
 void LockingInit( struct LOCKING_CONTEXT * context )
 {
 	context->State = LOCKING_STATE_READY;
 }
 
+/*
+ * Locks should call LockingAcquire to update the statemachine to
+ * reflect that the thread has taken the lock. This call should be 
+ * surrounded by LockingStart() and LockingEnd/LockingSwitch
+ */
 void LockingAcquire( struct LOCKING_CONTEXT * context )
 {
 	ASSERT( SchedulerIsCritical(),
@@ -129,6 +159,10 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
 	}
 }
 
+/*
+ * Locks should call this function to update the state machine to reflect
+ * that the thread did not acquire the lock.
+ */
 union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING_CONTEXT * context )
 {
 	ASSERT( SchedulerIsCritical(),
@@ -167,6 +201,11 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 	return &context->Link;
 }
 
+/*
+ * Threads which are trying to acquire a lock non blocking
+ * should call this function to signal them that they have infact
+ * acquired the lock. 
+ */
 BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 {
 	BOOL result;

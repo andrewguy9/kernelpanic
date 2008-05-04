@@ -12,9 +12,8 @@
  * picks when threads run.
  * 2) Provide a mechanism for a thread
  * to stop itself, and for others to wake it.
- * 3) Provide mechanism to prevent the sceduler
- * from splitting thread level atomic ("critical")
- * operations.
+ * 3) Provide mechanism for thread level atomic 
+ * or "critical sections".
  *
  * Scheduling next thread:
  * The actual Scheduling occurs in the Schedule
@@ -54,7 +53,7 @@ struct THREAD * NextThread;
 struct POST_HANDLER_OBJECT SchedulerTimer;
 BOOL QuantumExpired;
 
-//Thread for idle loop ( the start of thread too )
+//Thread for idle loop ( the start up thread too )
 struct THREAD IdleThread;
 
 //
@@ -159,7 +158,7 @@ SchedulerForceSwitch()
 			"Schedule will not run when in critical section");
 
 	//This needs to be an atomic operation.
-	InterruptDisable();
+	InterruptDisable();	//TODO THIS COULD BE A REALY LONG ATOMIC SECTION, DOES THE SCHEDULE PHASE HAVE TO BE ATOMIC?
 
 	//End the critical Section
 	//so that we can schedule

@@ -12,6 +12,9 @@
  * implemented for each hardware type in the source file.
  *
  * Macros should be implemented in the header for each supported hardware type.
+ *
+ * Startup routines should be only called witih interrupts disabled,
+ * so they dont have to gaurantee atomicy. 
  */
 
 //
@@ -21,6 +24,8 @@
 
 void HalStartup()
 {
+	//Turn setup generic registers.
+	//Not timing or interrupt registers.
 	DEBUG_LED_DDR = 0xff;
     DEBUG_SW_DDR = 0x00;
     DEBUG_SW_PORT = 0xff;
@@ -28,6 +33,8 @@ void HalStartup()
 
 void HalInitClock()
 {
+	//Initialize the clock system.
+	
 	//preload the timer counter
 	TCNT0 = 0xff-1*TMR_MS; //1 ms
 
@@ -55,6 +62,8 @@ void * HalCreateStackFrame( void * stack, THREAD_MAIN main, COUNT stackSize )
 
 void HalSerialStartup()
 {
+	//turn on the serial system.
+	
 	UBRR = BAUD_19200;
 	UCSRC = UCSZ_8BIT;
 	UCSRB = _BV(TXCIE) | _BV(RXCIE) | _BV(RXEN) | _BV(TXEN);

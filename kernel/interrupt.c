@@ -5,10 +5,21 @@
  * Interrupt Unit Description
  * The interrupt unit provides additional control to the interrupt flag.
  *
- * InterruptLevel is used to track the desired state of the interrupt flag.
- * When its greater than 0, then interrupts should be diabled. 
+ * Calls to InterruptDisable/InterruptEnable allow functions to nest 
+ * disable/enable pairings so that we don't have to track all code paths 
+ * around flag state changes.
  *
- * When exiting an atomic section, we reenable interrupts and run 
+ * InterruptLevel is a count used to track the number of disables, or in other
+ * words, the number of enables before interrupts will be allowed.
+ * When InterruptLevel == 0, then interrupts should be allowed.
+ * When InterruptLevel > 0, then interrupt will be disabled.
+ *
+ * Inorder to reduce the time in which interrupts are disabled,
+ * the interrupt unit allows for "post interrupt callbacks" 
+ * which can be scheduled using InterruptRegisterPostHandler( ).
+ * 
+ * When exiting an atomic section (as intterupt level goes from 1 to 0), 
+ * we reenable interrupts and run 
  * the post interrupt handlers with the interrupts off and then return.
  * This allows the heavy lifting in interrupts to be done with interrupts
  * enabled. The benefit is really short atomic sections, by running heavy
@@ -30,6 +41,9 @@ struct LINKED_LIST PostInterruptHandlerList;
 //Internal Helper Routines.
 //
 
+/*
+ * This 
+ */
 void InterruptRunPostHandlers()
 {
 	struct HANDLER_OBJECT * handler;
@@ -89,9 +103,13 @@ void InterruptRunPostHandlers()
 //Unit Management
 //
 
-//Run at kernel startup to iniialize flags.
+//Run at kernel startup to initialize flags.
 void InterruptStartup()
 {
+	ASSERT( HalIsAtomic(),
+			INTERRUPT_STARTUP_NOT_ATOMIC,
+			"we started in inconsistant state" );
+
 	InterruptLevel = 1;//Will be reset to 0 when startup completes
 	InPostInterruptHandler = FALSE;
 	LinkedListInit( & PostInterruptHandlerList );
