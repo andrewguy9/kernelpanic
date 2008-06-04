@@ -31,3 +31,5 @@ kernel/locking.o: kernel/locking.c kernel/locking.h
 kernel/worker.o: kernel/worker.c kernel/worker.h
 
 kernel/gather.o: kernel/gather.c kernel/gather.h
+
+kernel/context.o: kernel/context.c kernel/context.h
