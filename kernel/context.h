@@ -13,4 +13,11 @@ struct STACK
 
 void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, THREAD_MAIN Foo );
 
+BOOL ContextLock( );
+
+void ContextUnlock( );
+
+BOOL ContextIsLocked( );
+
+void ContextStartup( );
 #endif

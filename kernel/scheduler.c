@@ -37,9 +37,6 @@
  * Only one unit can block a thread at a time.
  */
 
-//Used to mark critical sections...
-struct MUTEX SchedulerLock;
-
 //Scheduler variables: Protected by SchedulerLock
 struct LINKED_LIST Queue1;
 struct LINKED_LIST Queue2;
@@ -69,7 +66,7 @@ struct THREAD IdleThread;
  */
 void SchedulerStartCritical( )
 {
-	BOOL aquired = MutexLock( & SchedulerLock );
+	BOOL aquired = ContextLock( );
 	ASSERT( aquired, 
 			SCHEDULER_START_CRITICAL_MUTEX_NOT_AQUIRED,
 			"Start Critical should always stop the scheduler");
@@ -81,7 +78,7 @@ void SchedulerStartCritical( )
 void SchedulerEndCritical()
 {
 	BOOL quantum;
-	ASSERT( MutexIsLocked( & SchedulerLock ),
+	ASSERT( ContextIsLocked( ),
 			SCHEDULER_END_CRITICAL_NOT_CRITICAL,
 		   	"Critical section cannot start.");
 
@@ -96,7 +93,7 @@ void SchedulerEndCritical()
 	}
 	else
 	{//Quantum has not expired, so we'll just end the critical section. 
-		MutexUnlock( & SchedulerLock );
+		ContextUnlock( );
 	}
 }
 
@@ -107,7 +104,7 @@ void SchedulerEndCritical()
  */
 BOOL SchedulerIsCritical()
 {
-	return MutexIsLocked( & SchedulerLock );
+	return ContextIsLocked( );
 }
 
 /*
@@ -154,7 +151,7 @@ SchedulerContextSwitch()
 void  
 SchedulerForceSwitch()
 {
-	ASSERT( MutexIsLocked( & SchedulerLock ),
+	ASSERT( ContextIsLocked( ),
 			SCHEDULER_FORCE_SWITCH_IS_CRITICAL,
 			"Schedule will not run when in critical section");
 
@@ -163,7 +160,7 @@ SchedulerForceSwitch()
 
 	//End the critical Section
 	//so that we can schedule
-	MutexUnlock( & SchedulerLock ); 
+	ContextUnlock( ); 
 
 	Schedule(); //Schedule next thread manually...
 
@@ -176,7 +173,7 @@ SchedulerForceSwitch()
  */
 void SchedulerResumeThread( struct THREAD * thread )
 {
-	ASSERT( MutexIsLocked( & SchedulerLock ), 
+	ASSERT( ContextIsLocked( ), 
 			SCHEDULER_RESUME_THREAD_MUST_BE_CRIT,
 			"Only run from critical section" );
 	ASSERT( thread->State == THREAD_STATE_BLOCKED, 
@@ -203,7 +200,7 @@ void SchedulerResumeThread( struct THREAD * thread )
  */
 void SchedulerBlockThread( )
 {
-	ASSERT( MutexIsLocked( &SchedulerLock ), 
+	ASSERT( ContextIsLocked( ), 
 			SCHEDULER_BLOCK_THREAD_MUST_BE_CRIT,
 			"Only block thread from critical section");
 	ActiveThread->State = THREAD_STATE_BLOCKED;
@@ -213,7 +210,7 @@ void SchedulerBlockThread( )
 void Schedule( void *arg )
 {
 	//See if we are allowed to schedule (not in crit section)
-	if( MutexLock( & SchedulerLock ) )
+	if( ContextLock( ) )
 	{//We are allowed to schedule.
 		//save old thread
 		if( ActiveThread != &IdleThread && 
@@ -260,7 +257,7 @@ void Schedule( void *arg )
 			QuantumExpired = FALSE;
 		}
 
-		MutexUnlock( &SchedulerLock );
+		ContextUnlock( );
 	}
 	else
 	{//we are not allowed to schedule.
@@ -284,8 +281,6 @@ void SchedulerStartup()
 			Schedule,
 			NULL	);
 	QuantumExpired = FALSE;
-	//Set up Schedule Resource
-	MutexInit( & SchedulerLock );
 	//Create a thread for idle loop.
 	SchedulerCreateThread( &IdleThread, 1, NULL, 0, NULL, 0x01, FALSE );
 	//Remove IdleThread from queues... TODO fix this HACK

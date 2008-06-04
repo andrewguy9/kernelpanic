@@ -1,6 +1,5 @@
 #include"context.h"
 #include"mutex.h"
-#include"hal.h"
 
 /*
  * This lock protects the current
@@ -8,7 +7,7 @@
  * people to set the next stack
  * and switch into it atomically.
  */
-struct MUTEX ContextLock;
+struct MUTEX ContextMutex;
 
 void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, THREAD_MAIN Foo )
 {
@@ -26,4 +25,32 @@ void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, THREAD_MAIN 
 		Stack->High = (char*) -1;
 		Stack->Low = 0;
 	}
+}
+
+/*
+ * Lock the current stack frame so that 
+ * no you can mess with the stack.
+ */
+BOOL ContextLock( )
+{
+	return MutexLock( &ContextMutex );
+}
+
+/*
+ * Unlock the stack frame.
+ * Does no switching.
+ */
+void ContextUnlock( )
+{
+	MutexUnlock( &ContextMutex );
+}
+
+BOOL ContextIsLocked( )
+{
+	return MutexIsLocked( &ContextMutex );
+}
+
+void ContextStartup( )
+{
+	MutexInit( &ContextMutex );
 }
