@@ -3,6 +3,7 @@
 
 #include"../utils/utils.h"
 #include"locking.h"
+#include"context.h"
 
 enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED };
 
@@ -12,9 +13,7 @@ struct THREAD
 	unsigned char Priority;
 	enum THREAD_STATE State;
 	struct LOCKING_CONTEXT LockingContext;
-	char * Stack;
-	char * StackHigh;
-	char * StackLow;
+	struct STACK Stack;
 	char Flag;
 };
 

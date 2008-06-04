@@ -119,7 +119,7 @@ SchedulerContextSwitch()
 	//perfrom context switch
 	HAL_SAVE_STATE
 	
-	HAL_SAVE_SP( ActiveThread->Stack );
+	HAL_SAVE_SP( ActiveThread->Stack.Pointer );
 
 	ASSERT( InterruptIsAtomic(), 
 			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
@@ -127,9 +127,9 @@ SchedulerContextSwitch()
 
 	//Check to see if stack is valid.
 	ASSERT( ASSENDING( 
-				(unsigned int) ActiveThread->StackLow, 
-				(unsigned int) ActiveThread->Stack, 
-				(unsigned int) ActiveThread->StackHigh ),
+				(unsigned int) ActiveThread->Stack.Low, 
+				(unsigned int) ActiveThread->Stack.Pointer, 
+				(unsigned int) ActiveThread->Stack.High ),
 			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
 			"stack overflow");
 
@@ -142,7 +142,7 @@ SchedulerContextSwitch()
 
 	InterruptEnd(); //reduce interrupt level without enabling interrupts.
 
-	HAL_SET_SP( ActiveThread->Stack );
+	HAL_SET_SP( ActiveThread->Stack.Pointer );
 
 	HAL_RESTORE_STATE
 }
@@ -327,15 +327,15 @@ void SchedulerCreateThread(
 	//initialize stack
 	if( stackSize != 0 )
 	{//Populate regular stack
-		thread->Stack = HalCreateStackFrame( stack, main, stackSize );
+		thread->Stack.Pointer = HalCreateStackFrame( stack, main, stackSize );
 		//Save the stack size.
-		thread->StackHigh = stack + stackSize;
-		thread->StackLow = stack;
+		thread->Stack.High = stack + stackSize;
+		thread->Stack.Low = stack;
 	}
 	else
 	{//Populate stack for idle thread
-		thread->Stack = NULL;
-		thread->StackHigh = (char*) -1;
-		thread->StackLow = 0;
+		thread->Stack.Pointer = NULL;
+		thread->Stack.High = (char*) -1;
+		thread->Stack.Low = 0;
 	}
 }	

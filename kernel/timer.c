@@ -147,7 +147,7 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	HAL_SAVE_STATE
 
 	//Save the stack pointer
-	HAL_SAVE_SP( ActiveThread->Stack );
+	HAL_SAVE_SP( ActiveThread->Stack.Pointer );
 
 	//reset the clock
     TCNT0 = 0xff-1*16; //1 ms
@@ -157,9 +157,9 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 
 	//Check to see if stack is valid.
 	ASSERT( ASSENDING( 
-				(unsigned int) ActiveThread->StackLow, 
-				(unsigned int) ActiveThread->Stack, 
-				(unsigned int) ActiveThread->StackHigh ),
+				(unsigned int) ActiveThread->Stack.Low, 
+				(unsigned int) ActiveThread->Stack.Pointer, 
+				(unsigned int) ActiveThread->Stack.High ),
 			TIMER_HANDLER_STACK_OVERFLOW,
 			"stack overflow");
 	
@@ -178,7 +178,7 @@ void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void)
 	}
 
 	//Restore stack pointer
-	HAL_SET_SP( ActiveThread->Stack );
+	HAL_SET_SP( ActiveThread->Stack.Pointer);
 
 	//Restore the thread state
 	HAL_RESTORE_STATE
