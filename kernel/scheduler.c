@@ -4,6 +4,7 @@
 #include"timer.h"
 #include"mutex.h"
 #include"interrupt.h"
+#include"context.h"
 
 /*
  * Scheduler Unit:
@@ -325,17 +326,5 @@ void SchedulerCreateThread(
 		thread->State = THREAD_STATE_BLOCKED;
 	}
 	//initialize stack
-	if( stackSize != 0 )
-	{//Populate regular stack
-		thread->Stack.Pointer = HalCreateStackFrame( stack, main, stackSize );
-		//Save the stack size.
-		thread->Stack.High = stack + stackSize;
-		thread->Stack.Low = stack;
-	}
-	else
-	{//Populate stack for idle thread
-		thread->Stack.Pointer = NULL;
-		thread->Stack.High = (char*) -1;
-		thread->Stack.Low = 0;
-	}
+	ContextInit( &thread->Stack,stack,stackSize,main);
 }	

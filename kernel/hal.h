@@ -3,7 +3,7 @@
 
 //Includes for all builds
 #include"../utils/utils.h"
-
+#include"hal.h"
 //-----------------------------------------------------------------------------
 //Defines (for all threads)
 typedef void (*THREAD_MAIN) ();
