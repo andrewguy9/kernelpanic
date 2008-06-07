@@ -4,6 +4,7 @@
 #include"../utils/utils.h"
 #include"locking.h"
 #include"context.h"
+#include"stack.h"
 
 enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED };
 

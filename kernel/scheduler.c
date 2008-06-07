@@ -43,10 +43,6 @@ struct LINKED_LIST Queue2;
 struct LINKED_LIST * RunQueue;
 struct LINKED_LIST * DoneQueue;
 
-struct THREAD * ActiveThread;
-struct THREAD * NextThread;
-
-
 //Variables that need to be edited atomically.
 struct POST_HANDLER_OBJECT SchedulerTimer;
 BOOL QuantumExpired;
@@ -78,7 +74,7 @@ void SchedulerStartCritical( )
 void SchedulerEndCritical()
 {
 	BOOL quantum;
-	ASSERT( ContextIsLocked( ),
+	ASSERT( ContextIsCritical( ),
 			SCHEDULER_END_CRITICAL_NOT_CRITICAL,
 		   	"Critical section cannot start.");
 
@@ -104,45 +100,7 @@ void SchedulerEndCritical()
  */
 BOOL SchedulerIsCritical()
 {
-	return ContextIsLocked( );
-}
-
-/*
- * Function which does the actual switching of the stack pointer.
- */
-void 
-__attribute__((naked,__INTR_ATTRS)) 
-SchedulerContextSwitch()
-{
-	//perfrom context switch
-	HAL_SAVE_STATE
-	
-	HAL_SAVE_SP( ActiveThread->Stack.Pointer );
-
-	ASSERT( InterruptIsAtomic(), 
-			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
-			"Context switch must save state atomically");
-
-	//Check to see if stack is valid.
-	ASSERT( ASSENDING( 
-				(unsigned int) ActiveThread->Stack.Low, 
-				(unsigned int) ActiveThread->Stack.Pointer, 
-				(unsigned int) ActiveThread->Stack.High ),
-			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
-			"stack overflow");
-
-	//Check for scheduling event
-	if( NextThread != NULL )
-	{
-		ActiveThread = NextThread;
-		NextThread = NULL;
-	}
-
-	InterruptEnd(); //reduce interrupt level without enabling interrupts.
-
-	HAL_SET_SP( ActiveThread->Stack.Pointer );
-
-	HAL_RESTORE_STATE
+	return ContextIsCritical( );
 }
 
 /*
@@ -151,7 +109,7 @@ SchedulerContextSwitch()
 void  
 SchedulerForceSwitch()
 {
-	ASSERT( ContextIsLocked( ),
+	ASSERT( ContextIsCritical( ),
 			SCHEDULER_FORCE_SWITCH_IS_CRITICAL,
 			"Schedule will not run when in critical section");
 
@@ -165,7 +123,7 @@ SchedulerForceSwitch()
 	Schedule(); //Schedule next thread manually...
 
 	//Actually context switch.
-	SchedulerContextSwitch();
+	ContextSwitch();
 }
 
 /*
@@ -173,13 +131,13 @@ SchedulerForceSwitch()
  */
 void SchedulerResumeThread( struct THREAD * thread )
 {
-	ASSERT( ContextIsLocked( ), 
+	ASSERT( ContextIsCritical( ), 
 			SCHEDULER_RESUME_THREAD_MUST_BE_CRIT,
 			"Only run from critical section" );
 	ASSERT( thread->State == THREAD_STATE_BLOCKED, 
 			SCHEDULER_RESUME_THREAD_NOT_BLOCKED,
 			"Thread not blocked" );
-	ASSERT( thread != ActiveThread,
+	ASSERT( thread != ContextGetActiveThread(),
 			SCHEDULER_ACTIVE_THREAD_AWAKENED,
 			"Active thread is by definition running");
 
@@ -200,23 +158,24 @@ void SchedulerResumeThread( struct THREAD * thread )
  */
 void SchedulerBlockThread( )
 {
-	ASSERT( ContextIsLocked( ), 
-			SCHEDULER_BLOCK_THREAD_MUST_BE_CRIT,
-			"Only block thread from critical section");
-	ActiveThread->State = THREAD_STATE_BLOCKED;
-	DEBUG_LED = DEBUG_LED & ~ActiveThread->Flag;
+	struct THREAD * activeThread = ContextGetActiveThread();
+	activeThread->State = THREAD_STATE_BLOCKED;
+	DEBUG_LED = DEBUG_LED & ~activeThread->Flag;
 }
 
 void Schedule( void *arg )
 {
+	struct THREAD * activeThread;
+	struct THREAD * nextThread = NULL; 
 	//See if we are allowed to schedule (not in crit section)
 	if( ContextLock( ) )
 	{//We are allowed to schedule.
+		activeThread = ContextGetActiveThread();
 		//save old thread
-		if( ActiveThread != &IdleThread && 
-				ActiveThread->State == THREAD_STATE_RUNNING)
+		if( activeThread != &IdleThread && 
+				activeThread->State == THREAD_STATE_RUNNING)
 		{
-			LinkedListEnqueue( &ActiveThread->Link.LinkedListLink,
+			LinkedListEnqueue( &activeThread->Link.LinkedListLink,
 				  DoneQueue);
 		}
 
@@ -234,28 +193,27 @@ void Schedule( void *arg )
 		//Pick the next thread
 		if( ! LinkedListIsEmpty( RunQueue ) )
 		{//there are threads waiting, run one
-			ASSERT( NextThread == NULL,
-					SCHEDULER_SCHEDULE_NEXT_THREAD_NOT_NULL,
-					"Scheduler is running even though NextThread\
-					Is not null, this causes thread dropping");
-			NextThread = BASE_OBJECT( LinkedListPop( RunQueue ),
+			nextThread = BASE_OBJECT( LinkedListPop( RunQueue ),
 					struct THREAD,
 					Link);
 		}
 		else
 		{//there were no threads at all, use idle loop.
-			NextThread = &IdleThread;
+			nextThread = &IdleThread;
 		}
 
 		//restart the scheduler timer if its turned off.
 		if( ! SchedulerTimer.Queued )
 		{
 			TimerRegister( &SchedulerTimer,
-					NextThread->Priority,
+					nextThread->Priority,
 					Schedule,
 					NULL);
 			QuantumExpired = FALSE;
 		}
+
+		//Set the next thread.
+		ContextSetNextThread( nextThread );
 
 		ContextUnlock( );
 	}
@@ -286,14 +244,18 @@ void SchedulerStartup()
 	//Remove IdleThread from queues... TODO fix this HACK
 	LinkedListInit( & Queue1 );
 	LinkedListInit( & Queue2 );
-	//Initialize ActiveThread
-	ActiveThread = & IdleThread;
-	NextThread = NULL;
+	//Initialize context unit.
+	ContextStartup( & IdleThread );
 }
 
-struct THREAD * SchedulerGetActiveThread()
+/*
+ * Returns the locking context
+ * from the active thread.
+ */
+struct LOCKING_CONTEXT * SchedulerGetLockingContext()
 {
-	return ActiveThread;
+	struct THREAD * activeThread = ContextGetActiveThread();
+	return &activeThread->LockingContext;
 }
 
 void SchedulerCreateThread( 

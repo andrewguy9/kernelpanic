@@ -15,11 +15,6 @@
  * Its perfectly safe to have a timer re-register itself.
  */
 
-//Variables that the Scheduler shares ONLY with the timer unit.
-//This is because the timer unit is used to force a context switch.
-extern struct THREAD * ActiveThread;
-extern struct THREAD * NextThread;
-
 //
 //Unit Variables
 //
@@ -40,8 +35,8 @@ struct HEAP * TimersOverflow;
 
 /*
  * Takes expired timers off of the heap,
- * and adds them to the queue that will
- * be run by InterruptEnd.
+ * and adds them to the PostInterruptHandlers
+ * list.
  */
 void QueueTimers( )
 {
@@ -141,46 +136,26 @@ TIME TimerGetTime()
 	return value;
 }
 
-void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void) 
+void TIMER0_OVF_vect(void) 
 {
-	//Save state
-	HAL_SAVE_STATE
-
-	//Save the stack pointer
-	HAL_SAVE_SP( ActiveThread->Stack.Pointer );
+	//update interrupt level to represent that we are in inerrupt
+	InterruptStart();
 
 	//reset the clock
     TCNT0 = 0xff-1*16; //1 ms
 
-	//update interrupt level to represent that we are in inerrupt
-	InterruptStart();
-
-	//Check to see if stack is valid.
-	ASSERT( ASSENDING( 
-				(unsigned int) ActiveThread->Stack.Low, 
-				(unsigned int) ActiveThread->Stack.Pointer, 
-				(unsigned int) ActiveThread->Stack.High ),
-			TIMER_HANDLER_STACK_OVERFLOW,
-			"stack overflow");
-	
-	//Queue up timers
+	//Queue Timers to run as Post Handlers.
 	QueueTimers( );
 
+	//Run the timers which have expired with the interrupt flag
+	//turned on. This keeps atomic sections short!
+	InterruptRunPostHandlers();
+
+	//Now that we have run all our Post Handlers
+	//we can context switch.
+	ContextSwitch();
+	
 	//Restore the interrupt level, 
-	//and run the timers that expired.
 	InterruptEnd();
-
-	//Check for scheduling event
-	if( NextThread != NULL )
-	{
-		ActiveThread = NextThread;
-		NextThread = NULL;
-	}
-
-	//Restore stack pointer
-	HAL_SET_SP( ActiveThread->Stack.Pointer);
-
-	//Restore the thread state
-	HAL_RESTORE_STATE
 }
 

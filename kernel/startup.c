@@ -15,8 +15,6 @@ void KernelInit()
 
 	InterruptStartup();
 
-	ContextStartup();
-
 	TimerStartup();
 
 	SchedulerStartup();

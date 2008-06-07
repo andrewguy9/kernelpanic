@@ -3,13 +3,7 @@
 
 #include"../utils/utils.h"
 #include"hal.h"
-
-struct STACK
-{
-	char * Pointer;
-	char * High;
-	char * Low;
-};
+#include"thread.h"
 
 void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, THREAD_MAIN Foo );
 
@@ -17,7 +11,16 @@ BOOL ContextLock( );
 
 void ContextUnlock( );
 
-BOOL ContextIsLocked( );
+BOOL ContextIsCritical( );
 
 void ContextStartup( );
+
+struct THREAD * ContextGetActiveThread();
+
+void ContextSetNextThread( struct THREAD * thread );
+
+void
+__attribute__((naked,__INTR_ATTRS))
+ContextSwitch();
+
 #endif

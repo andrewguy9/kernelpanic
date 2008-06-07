@@ -1,5 +1,6 @@
 #include"context.h"
 #include"mutex.h"
+#include"interrupt.h"
 
 /*
  * This lock protects the current
@@ -8,6 +9,9 @@
  * and switch into it atomically.
  */
 struct MUTEX ContextMutex;
+
+struct THREAD * ActiveThread;
+struct THREAD * NextThread;
 
 void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, THREAD_MAIN Foo )
 {
@@ -45,12 +49,64 @@ void ContextUnlock( )
 	MutexUnlock( &ContextMutex );
 }
 
-BOOL ContextIsLocked( )
+BOOL ContextIsCritical( )
 {
 	return MutexIsLocked( &ContextMutex );
 }
 
-void ContextStartup( )
+void ContextStartup( struct THREAD * startThread )
 {
 	MutexInit( &ContextMutex );
+	NextThread = NULL;
+	ActiveThread = startThread;
 }
+
+void
+__attribute__((naked,__INTR_ATTRS))
+ContextSwitch()
+{
+	//perfrom context switch
+	HAL_SAVE_STATE
+	
+	HAL_SAVE_SP( ActiveThread->Stack.Pointer );
+
+	ASSERT( InterruptIsAtomic(), 
+			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
+			"Context switch must save state atomically");
+
+	//Check to see if stack is valid.
+	ASSERT( ASSENDING( 
+				(unsigned int) ActiveThread->Stack.Low, 
+				(unsigned int) ActiveThread->Stack.Pointer, 
+				(unsigned int) ActiveThread->Stack.High ),
+			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
+			"stack overflow");
+
+	//Check for scheduling event
+	if( NextThread != NULL )
+	{
+		ActiveThread = NextThread;
+		NextThread = NULL;
+	}
+
+	InterruptEnd(); //reduce interrupt level without enabling interrupts.
+
+	HAL_SET_SP( ActiveThread->Stack.Pointer );
+
+	HAL_RESTORE_STATE
+}
+
+struct THREAD * ContextGetActiveThread()
+{
+	ASSERT( ContextIsCritical(), 0,"" );
+	return ActiveThread;
+}
+
+void ContextSetNextThread( struct THREAD * thread )
+{
+	ASSERT( ContextIsCritical(), 0, "" );
+	ASSERT( NextThread == NULL, 0, "" );
+
+	NextThread = thread;
+}
+

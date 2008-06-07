@@ -34,4 +34,6 @@ SchedulerCreateThread(
 		char flag,
 		BOOL start);
 
+struct LOCKING_CONTEXT * SchedulerGetLockingContext();
+
 #endif

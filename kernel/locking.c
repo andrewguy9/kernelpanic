@@ -50,7 +50,7 @@ void LockingSwitch( struct LOCKING_CONTEXT * context )
 	if( context == NULL )
 	{
 		//There is no context, so the thread must be on blocking path.
-		context = & SchedulerGetActiveThread()->LockingContext;
+		context = SchedulerGetLockingContext();
 
 		ASSERT( context->State != LOCKING_STATE_WAITING,
 			 LOCKING_SWITCH_NULL_WAITING,
@@ -110,7 +110,7 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
 	if( context == NULL )
 	{
 		//We must retrieve the context from the active thread.
-		context = & SchedulerGetActiveThread()->LockingContext;
+		context = SchedulerGetLockingContext();
 
 		//If the context is null, then we:
 		//locked successfully without blocking : state == ready or 
@@ -172,15 +172,12 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 	if( context == NULL )
 	{
 		//context is active thread, so block him.
-		context = & SchedulerGetActiveThread()->LockingContext;
+		context = SchedulerGetLockingContext();
 		context->State = LOCKING_STATE_BLOCKING;
 		struct THREAD * thread = BASE_OBJECT( 
 				context, 
 				struct THREAD, 
 				LockingContext );
-		ASSERT( thread == SchedulerGetActiveThread(),
-				LOCKING_BLOCK_WRONG_CONTEXT,
-				"the context must be owned by active thread" );
 		SchedulerBlockThread( );
 		
 	}

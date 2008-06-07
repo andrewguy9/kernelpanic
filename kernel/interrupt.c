@@ -50,6 +50,8 @@ void InterruptRunPostHandlers()
 	struct POST_HANDLER_OBJECT * postHandler;
 	HANDLER_FUNCTION * func;
 
+	ASSERT( HalIsAtomic(),0,"");
+
 	//Check to make sure we are bottom handler.
 	if( InPostInterruptHandler )
 	{
@@ -87,6 +89,8 @@ void InterruptRunPostHandlers()
 		InterruptLevel--;
 		HalEnableInterrupts();
 
+		ASSERT( !HalIsAtomic(), 0, "" );
+
 		//Run the handler
 		//We pass a pointer to the handler itself so 
 		//the handler can reschedule itself.
@@ -97,6 +101,8 @@ void InterruptRunPostHandlers()
 		InterruptLevel++;
 	}
 	InPostInterruptHandler = FALSE;
+
+	ASSERT( HalIsAtomic(), 0, "" );
 }
 
 //
@@ -158,7 +164,6 @@ void InterruptEnd()
 			INTERRUPT_END_INTERRUPTS_INCONSISTENT,
 			"Interrupt level is inconsistent with end of an ISR");
 
-	InterruptRunPostHandlers();
 	InterruptLevel--;
 }
 
