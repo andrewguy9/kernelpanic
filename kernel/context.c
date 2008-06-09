@@ -74,6 +74,8 @@ ContextSwitch()
 			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
 			"Context switch must save state atomically");
 
+	ASSERT( NextThread != NULL, 0, "" );
+
 	//Check to see if stack is valid.
 	ASSERT( ASSENDING( 
 				(unsigned int) ActiveThread->Stack.Low, 
@@ -82,14 +84,6 @@ ContextSwitch()
 			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
 			"stack overflow");
 
-	//Check for scheduling event
-	if( NextThread != NULL )
-	{
-		ActiveThread = NextThread;
-		NextThread = NULL;
-	}
-
-	InterruptEnd(); //reduce interrupt level without enabling interrupts.
 
 	HAL_SET_SP( ActiveThread->Stack.Pointer );
 
@@ -110,3 +104,15 @@ void ContextSetNextThread( struct THREAD * thread )
 	NextThread = thread;
 }
 
+void ContextSwitchIfNeeded()
+{
+	ASSERT( InterruptIsAtomic(), 0, "" );
+	ASSERT( ContextIsCritical(), 0, "" );
+
+	//We end the critical section in the switch.
+	MutexUnlock( &ContextMutex );
+	if( NextThread != NULL )
+	{
+		ContextSwitch();
+	}
+}

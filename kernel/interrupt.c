@@ -1,5 +1,6 @@
 #include"interrupt.h"
 #include"hal.h"
+#include"context.h"
 
 /*
  * Interrupt Unit Description
@@ -25,25 +26,22 @@
  * enabled. The benefit is really short atomic sections, by running heavy
  * operations in post interrupt handlers.
  *
- * To prevent infinite interrupt nesting we use the InPostInterruptHandler 
- * to only allow the bottom interrupt on the stack to process post handlers.
+ * To prevent infinite interrupt nesting we use the only allow the bottom
+ * interrupt on the stack to process post handlers.
  */
 
 //
 //Interrupt Variables
 //
 
-volatile COUNT InterruptLevel;
-volatile BOOL InPostInterruptHandler;
-struct LINKED_LIST PostInterruptHandlerList;
+COUNT InterruptHeight;//The number of interrupts on the stack
+volatile COUNT InterruptLevel;//The number of calls to InterruptDisable
+struct LINKED_LIST PostInterruptHandlerList;//List of PostInterruptHandlers
 
 //
 //Internal Helper Routines.
 //
 
-/*
- * This 
- */
 void InterruptRunPostHandlers()
 {
 	struct HANDLER_OBJECT * handler;
@@ -52,33 +50,22 @@ void InterruptRunPostHandlers()
 
 	ASSERT( HalIsAtomic(),0,"");
 
-	//Check to make sure we are bottom handler.
-	if( InPostInterruptHandler )
-	{
-		//Prevent recursion. Only the bottom level 
-		//interrupt sould run these handlers.
-		return;
-	}
+	ASSERT( InterruptHeight == 1, 0, "" );
 
-	InPostInterruptHandler = TRUE;
 	while( ! LinkedListIsEmpty( & PostInterruptHandlerList ) )
 	{
-		//fetch handler object
+		//Pull data out of structure 
 		handler = BASE_OBJECT( 
 				LinkedListPop(&PostInterruptHandlerList), 
 				struct HANDLER_OBJECT, 
 				Link);
-
-		//fetch the post handler (adjust pointer)
 		postHandler = BASE_OBJECT(
 				handler,
 				struct POST_HANDLER_OBJECT,
 				HandlerObj);
-
-		//fech values from postHandler so we can reuse postHandler Object.
 		func = postHandler->HandlerObj.Function;
 
-		//mark function is unqueued
+		//mark stucture as unqueued
 		ASSERT(postHandler->Queued,
 				INTERRUPT_RUN_POST_HANDLERS_NOT_QUEUED,
 				"post interrupt handler not queued");
@@ -89,8 +76,6 @@ void InterruptRunPostHandlers()
 		InterruptLevel--;
 		HalEnableInterrupts();
 
-		ASSERT( !HalIsAtomic(), 0, "" );
-
 		//Run the handler
 		//We pass a pointer to the handler itself so 
 		//the handler can reschedule itself.
@@ -100,9 +85,6 @@ void InterruptRunPostHandlers()
 		HalDisableInterrupts();
 		InterruptLevel++;
 	}
-	InPostInterruptHandler = FALSE;
-
-	ASSERT( HalIsAtomic(), 0, "" );
 }
 
 //
@@ -117,7 +99,7 @@ void InterruptStartup()
 			"we started in inconsistant state" );
 
 	InterruptLevel = 1;//Will be reset to 0 when startup completes
-	InPostInterruptHandler = FALSE;
+	InterruptHeight = 0;//We start in normal thread context.
 	LinkedListInit( & PostInterruptHandlerList );
 }
 
@@ -137,6 +119,9 @@ void InterruptStartup()
  *
  * Failure to call this method will make other systems think we 
  * are not atomic and will cause failures.
+ *
+ * We also have to tell the system that another interrupt is on the
+ * stack, so we dont try to fire post handlers.
  */
 void InterruptStart()
 {
@@ -146,6 +131,7 @@ void InterruptStart()
 			start of an ISR");
 
 	InterruptLevel++;
+	InterruptHeight++;
 }
 
 /*
@@ -164,13 +150,20 @@ void InterruptEnd()
 			INTERRUPT_END_INTERRUPTS_INCONSISTENT,
 			"Interrupt level is inconsistent with end of an ISR");
 
+	if( InterruptHeight == 1 )
+	{
+		InterruptRunPostHandlers();
+
+		ContextSwitchIfNeeded();
+	}
+
 	InterruptLevel--;
+	InterruptHeight--;
 }
 
 /*
  * Registers a handler object which will force funtion handler to be 
- * called before control is returned to a thread from an interrupt or 
- * critical section. 
+ * called before control is returned to a thread from an interrupt.
  *
  * Must be called inside of an atomic section.
  *
@@ -225,19 +218,15 @@ void InterruptDisable()
  */
 void InterruptEnable()
 {
+	ASSERT( HalIsAtomic(), 0, "" );
 	ASSERT( InterruptLevel > 0,
 			INTERRUPT_ENABLE_OVER_ENABLED,
 			"We cannot enable interrupts when \
 			InterruptLevel is not positive");
-	if( InterruptLevel == 1 )
+	InterruptLevel--;
+	if( InterruptLevel == 0 )
 	{
-		InterruptRunPostHandlers();
-		InterruptLevel--;
 		HalEnableInterrupts();
-	}
-	else
-	{
-		InterruptLevel--;
 	}
 }
 
@@ -269,24 +258,4 @@ BOOL InterruptIsAtomic()
 			"InterruptIsAtomic wrong interrupt mode");
 
 	return atomic;
-}
-
-/*
- * Should be used to verify that we are in 
- * a post interrupt handler. This should 
- * only be used in assertions and is not
- * gauranteed to be accurate.
- */
-BOOL InterruptIsInPostHandler()
-{
-	//
-	//If we are in a post handler, then we should not
-	//be atomic, but interrupt level should be positive.
-	//
-	ASSERT( InPostInterruptHandler ? ! HalIsAtomic() && InterruptLevel == 0 : TRUE,
-			INTERRUPT_IS_POST_HANDLER_WRONG_STATE,
-			"InterruptIsPostHandler is in handler, but\
-			interrupt flag or interrupt level invalid");
-
-	return InPostInterruptHandler;
 }

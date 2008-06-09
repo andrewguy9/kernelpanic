@@ -40,15 +40,6 @@ void InterruptStart();
 void InterruptEnd();
 
 //
-//Handle Post Interrupt Routines
-//
-
-void InterruptRegisterPostHandler( 
-		struct POST_HANDLER_OBJECT * object,
-		HANDLER_FUNCTION handler,
-		void *arg);
-
-//
 //Handle Atomic Sections
 //
 
@@ -61,7 +52,5 @@ void InterruptEnable();
 //
 
 BOOL InterruptIsAtomic();
-
-BOOL InterruptIsInPostHandler();
 
 #endif

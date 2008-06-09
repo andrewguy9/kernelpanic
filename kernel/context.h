@@ -23,4 +23,6 @@ void
 __attribute__((naked,__INTR_ATTRS))
 ContextSwitch();
 
+void ContextSwitchIfNeeded();
+
 #endif

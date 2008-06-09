@@ -123,7 +123,7 @@ SchedulerForceSwitch()
 	Schedule(); //Schedule next thread manually...
 
 	//Actually context switch.
-	ContextSwitch();
+	ContextSwitchIfNeeded();
 }
 
 /*

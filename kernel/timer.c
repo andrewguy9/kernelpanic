@@ -147,14 +147,6 @@ void TIMER0_OVF_vect(void)
 	//Queue Timers to run as Post Handlers.
 	QueueTimers( );
 
-	//Run the timers which have expired with the interrupt flag
-	//turned on. This keeps atomic sections short!
-	InterruptRunPostHandlers();
-
-	//Now that we have run all our Post Handlers
-	//we can context switch.
-	ContextSwitch();
-	
 	//Restore the interrupt level, 
 	InterruptEnd();
 }
