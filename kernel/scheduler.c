@@ -38,6 +38,7 @@
  */
 
 COUNT Schedule();
+void SchedulePostHandler( void *arg );
 
 //Scheduler variables: Protected by SchedulerLock
 struct LINKED_LIST Queue1;
@@ -75,25 +76,34 @@ void SchedulerStartCritical( )
  */
 void SchedulerEndCritical()
 {
-	//TODO TOTALLY WRONG
-	BOOL quantum;
+	COUNT priority;
 	ASSERT( ContextIsCritical( ),
 			SCHEDULER_END_CRITICAL_NOT_CRITICAL,
 		   	"Critical section cannot start.");
 
 	//Cant check QuantumExpired unless atomic.
 	InterruptDisable();
-	quantum = QuantumExpired;
-	InterruptEnable();
-
-	if( quantum )
-	{//Quantum has expired while in crit section, fire manually.
-		SchedulerForceSwitch();
+	if( QuantumExpired )
+	{//Quantum has expired while in crit section
+		InterruptEnable();
+		//Pick next thread
+		priority = Schedule();
+		//register timer (he already ran)
+		TimerRegister( &SchedulerTimer,
+				priority,
+				SchedulePostHandler,
+				NULL);
+		InterruptDisable();
+		//We are starting a new quantum.
+		QuantumExpired = FALSE;
+		//Switch threads!
+		ContextSwitchIfNeeded();
 	}
 	else
 	{//Quantum has not expired, so we'll just end the critical section. 
 		ContextUnlock( );
 	}
+	InterruptEnable();
 }
 
 /*
@@ -116,17 +126,13 @@ SchedulerForceSwitch()
 			SCHEDULER_FORCE_SWITCH_IS_CRITICAL,
 			"Schedule will not run when in critical section");
 
-	//This needs to be an atomic operation.
-	InterruptDisable();	//TODO THIS COULD BE A REALY LONG ATOMIC SECTION, DOES THE SCHEDULE PHASE HAVE TO BE ATOMIC?
-
-	//End the critical Section
-	//so that we can schedule
-	ContextUnlock( ); 
-
+	//Pick next thread to run.
 	Schedule(); //Schedule next thread manually...
 
 	//Actually context switch.
+	InterruptDisable();
 	ContextSwitchIfNeeded();
+	InterruptEnable();
 }
 
 /*
