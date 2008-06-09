@@ -1,3 +1,6 @@
-Scheduler.c: NextThread can be set by a thread calling force switch, then a timer interrupt could cause next thread to be set again causing a thread to be dropped.
+All interrupts must check for possible context switch.
+This is because an interrupt could fire and enter post handlers. 
+Then the timer could expire and file the schedule post handler.
+The orrigional interrupt will not context switch.
+That will leave the NextThread != NULL.
 
-Resource needs work. Lock and unlock work, but the conventions are not sound. Escalate is probably broken too.
