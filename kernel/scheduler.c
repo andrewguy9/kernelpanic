@@ -86,6 +86,7 @@ void SchedulerEndCritical()
 	if( QuantumExpired )
 	{//Quantum has expired while in crit section
 		InterruptEnable();
+		//TODO NOTICE WHAT QUANTUM EXIRPED CAN CHANGE NOW!!!
 		//Pick next thread
 		priority = Schedule();
 		//register timer (he already ran)
@@ -127,8 +128,9 @@ SchedulerForceSwitch()
 			"Schedule will not run when in critical section");
 
 	//Pick next thread to run.
-	Schedule(); //Schedule next thread manually...
+	Schedule(); 
 
+	//TODO DOES NOT CHECK FOR EXPIRED TIMER
 	//Actually context switch.
 	InterruptDisable();
 	ContextSwitchIfNeeded();
@@ -167,7 +169,11 @@ void SchedulerResumeThread( struct THREAD * thread )
  */
 void SchedulerBlockThread( )
 {
-	struct THREAD * activeThread = ContextGetActiveThread();
+	struct THREAD * activeThread;
+
+	ASSERT( ContextIsCritical(), 0, "" );
+
+	activeThread = ContextGetActiveThread();
 	activeThread->State = THREAD_STATE_BLOCKED;
 	DEBUG_LED = DEBUG_LED & ~activeThread->Flag;
 }
@@ -179,10 +185,13 @@ void SchedulerBlockThread( )
  */
 COUNT Schedule()
 {
-	struct THREAD * activeThread = ContextGetActiveThread();
-	struct THREAD * nextThread = NULL; 
+	struct THREAD * activeThread;
+	struct THREAD * nextThread;
 
 	ASSERT( ContextIsCritical(), 0, "" );
+
+	activeThread = ContextGetActiveThread();
+	nextThread = NULL;
 
 	//save old thread
 	if( activeThread != &IdleThread && 
@@ -230,13 +239,16 @@ COUNT Schedule()
 void SchedulePostHandler( void *arg )
 {
 	COUNT priority;
-	//See if we are allowed to schedule (not in crit section)
+
+	//We are going to try to switch to a new thread.
+	//Inorder to to this we must acquire a critical section.
 	if( ContextLock( ) )
 	{
-		//We are allowed to schedule, so pick next thread.
+		//We were able to enter a critical secion!
+		//Now we can schedule a different thread to run.
 		priority = Schedule();
 		//Register timer to end of the NextThread's quantum.
-		if( ! SchedulerTimer.Queued )//TODO THIS MAY BE WRONG
+		if( ! SchedulerTimer.Queued )//TODO THIS IS WRONG, THE TIMER COULD FIRE DURRING THIS FUNCTION!
 		{
 			TimerRegister( &SchedulerTimer,
 					priority,
@@ -251,7 +263,7 @@ void SchedulePostHandler( void *arg )
 		//mark the quantum as expired.
 		//We do not re-register since
 		//quantum is expired anyway.
-		InterruptDisable();
+		InterruptDisable();//TODO CHANGE THIS AND ABOVE TODO
 		QuantumExpired = TRUE;
 		InterruptEnable();
 	}
@@ -285,7 +297,11 @@ void SchedulerStartup()
  */
 struct LOCKING_CONTEXT * SchedulerGetLockingContext()
 {
-	struct THREAD * activeThread = ContextGetActiveThread();
+	struct THREAD * activeThread;
+   
+	ASSERT( ContextIsCritical(), 0, "" );
+
+	activeThread = ContextGetActiveThread();
 	return &activeThread->LockingContext;
 }
 
