@@ -20,8 +20,6 @@ void SchedulerBlockThread( );
 
 struct THREAD * SchedulerGetActiveThread();
 
-void Schedule( ) ;
-
 void SchedulerStartup( );
 
 void 

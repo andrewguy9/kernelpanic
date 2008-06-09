@@ -37,6 +37,8 @@
  * Only one unit can block a thread at a time.
  */
 
+COUNT Schedule();
+
 //Scheduler variables: Protected by SchedulerLock
 struct LINKED_LIST Queue1;
 struct LINKED_LIST Queue2;
@@ -73,6 +75,7 @@ void SchedulerStartCritical( )
  */
 void SchedulerEndCritical()
 {
+	//TODO TOTALLY WRONG
 	BOOL quantum;
 	ASSERT( ContextIsCritical( ),
 			SCHEDULER_END_CRITICAL_NOT_CRITICAL,
@@ -163,68 +166,90 @@ void SchedulerBlockThread( )
 	DEBUG_LED = DEBUG_LED & ~activeThread->Flag;
 }
 
-void Schedule( void *arg )
+/*
+ * Pick the next thread to run.
+ * Changes links to store threads in lists.
+ * Returns the priority of the next thread.
+ */
+COUNT Schedule()
 {
-	struct THREAD * activeThread;
+	struct THREAD * activeThread = ContextGetActiveThread();
 	struct THREAD * nextThread = NULL; 
+
+	ASSERT( ContextIsCritical(), 0, "" );
+
+	//save old thread
+	if( activeThread != &IdleThread && 
+			activeThread->State == THREAD_STATE_RUNNING)
+	{
+		LinkedListEnqueue( &activeThread->Link.LinkedListLink,
+				DoneQueue);
+	}
+
+	if( LinkedListIsEmpty( RunQueue ) )
+	{
+		//There are no threads in run queue.
+		//This is a sign we have run through
+		//all threads, so well pull from done
+		//queue now
+		struct LINKED_LIST * temp = RunQueue;
+		RunQueue = DoneQueue;
+		DoneQueue = temp;
+	}
+
+	//Pick the next thread
+	if( ! LinkedListIsEmpty( RunQueue ) )
+	{//there are threads waiting, run one
+		nextThread = BASE_OBJECT( LinkedListPop( RunQueue ),
+				struct THREAD,
+				Link);
+	}
+	else
+	{//there were no threads at all, use idle loop.
+		nextThread = &IdleThread;
+	}
+
+	ContextSetNextThread( nextThread );
+
+	return nextThread->Priority;
+
+}//end Schedule
+
+/*
+ * Called by the Timer as a PostInterruptHandler.
+ * Will try to schedule. If we cant, then we 
+ * mark the quantum as expired so that when the
+ * critical section does end we can force a switch.
+ */
+void SchedulePostHandler( void *arg )
+{
+	COUNT priority;
 	//See if we are allowed to schedule (not in crit section)
 	if( ContextLock( ) )
-	{//We are allowed to schedule.
-		activeThread = ContextGetActiveThread();
-		//save old thread
-		if( activeThread != &IdleThread && 
-				activeThread->State == THREAD_STATE_RUNNING)
-		{
-			LinkedListEnqueue( &activeThread->Link.LinkedListLink,
-				  DoneQueue);
-		}
-
-		if( LinkedListIsEmpty( RunQueue ) )
-		{
-			//There are no threads in run queue.
-			//This is a sign we have run through
-			//all threads, so well pull from done
-			//queue now
-			struct LINKED_LIST * temp = RunQueue;
-			RunQueue = DoneQueue;
-			DoneQueue = temp;
-		}
-
-		//Pick the next thread
-		if( ! LinkedListIsEmpty( RunQueue ) )
-		{//there are threads waiting, run one
-			nextThread = BASE_OBJECT( LinkedListPop( RunQueue ),
-					struct THREAD,
-					Link);
-		}
-		else
-		{//there were no threads at all, use idle loop.
-			nextThread = &IdleThread;
-		}
-
-		//restart the scheduler timer if its turned off.
-		if( ! SchedulerTimer.Queued )
+	{
+		//We are allowed to schedule, so pick next thread.
+		priority = Schedule();
+		//Register timer to end of the NextThread's quantum.
+		if( ! SchedulerTimer.Queued )//TODO THIS MAY BE WRONG
 		{
 			TimerRegister( &SchedulerTimer,
-					nextThread->Priority,
-					Schedule,
+					priority,
+					SchedulePostHandler,
 					NULL);
 			QuantumExpired = FALSE;
 		}
-
-		//Set the next thread.
-		ContextSetNextThread( nextThread );
-
-		ContextUnlock( );
 	}
 	else
-	{//we are not allowed to schedule.
+	{
+		//we are not allowed to schedule.
 		//mark the quantum as expired.
+		//We do not re-register since
+		//quantum is expired anyway.
 		InterruptDisable();
 		QuantumExpired = TRUE;
 		InterruptEnable();
 	}
-}//end Schedule
+}
 
 void SchedulerStartup()
 {
@@ -236,7 +261,7 @@ void SchedulerStartup()
 	//Initialize the timer
 	TimerRegister( & SchedulerTimer,
 		   	0, 
-			Schedule,
+			SchedulePostHandler,
 			NULL	);
 	QuantumExpired = FALSE;
 	//Create a thread for idle loop.
