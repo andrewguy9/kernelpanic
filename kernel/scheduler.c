@@ -48,7 +48,7 @@ struct LINKED_LIST * DoneQueue;
 
 //Variables that need to be edited atomically.
 struct POST_HANDLER_OBJECT SchedulerTimer;
-BOOL QuantumExpired;
+TIME QuantumEnd;
 
 //Thread for idle loop ( the start up thread too )
 struct THREAD IdleThread;
@@ -81,7 +81,7 @@ void SchedulerEndCritical()
 			SCHEDULER_END_CRITICAL_NOT_CRITICAL,
 		   	"Critical section cannot start.");
 
-	//Cant check QuantumExpired unless atomic.
+	//Cant check QuantumExpired unless atomic.//TODO NOW JUST NEED TO SEE IF TICKS HAVE EXPIRED. NEVER TOUCH TIMER.
 	InterruptDisable();
 	if( QuantumExpired )
 	{//Quantum has expired while in crit section
@@ -247,7 +247,7 @@ void SchedulePostHandler( void *arg )
 		//We were able to enter a critical secion!
 		//Now we can schedule a different thread to run.
 		priority = Schedule();
-		//Register timer to end of the NextThread's quantum.
+		//Register timer to end of the NextThread's quantum.//TODO WE NOW FIRE ON EVERY TIMER, WE ONLY ZERO TICKS WHEN WE CHANGE THREADS
 		if( ! SchedulerTimer.Queued )//TODO THIS IS WRONG, THE TIMER COULD FIRE DURRING THIS FUNCTION!
 		{
 			TimerRegister( &SchedulerTimer,
@@ -281,7 +281,7 @@ void SchedulerStartup()
 		   	0, 
 			SchedulePostHandler,
 			NULL	);
-	QuantumExpired = FALSE;
+	QuantumExpired = FALSE;//TODO REPLACE
 	//Create a thread for idle loop.
 	SchedulerCreateThread( &IdleThread, 1, NULL, 0, NULL, 0x01, FALSE );
 	//Remove IdleThread from queues... TODO fix this HACK
