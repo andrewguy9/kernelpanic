@@ -48,7 +48,7 @@ struct LINKED_LIST * DoneQueue;
 
 //Variables that need to be edited atomically.
 struct POST_HANDLER_OBJECT SchedulerTimer;
-TIME QuantumEnd;
+TIME QuantumEndTime;
 
 //Thread for idle loop ( the start up thread too )
 struct THREAD IdleThread;
@@ -76,35 +76,32 @@ void SchedulerStartCritical( )
  */
 void SchedulerEndCritical()
 {
+	TIME currentTime;
 	COUNT priority;
 	ASSERT( ContextIsCritical( ),
 			SCHEDULER_END_CRITICAL_NOT_CRITICAL,
 		   	"Critical section cannot start.");
 
-	//Cant check QuantumExpired unless atomic.//TODO NOW JUST NEED TO SEE IF TICKS HAVE EXPIRED. NEVER TOUCH TIMER.
-	InterruptDisable();
-	if( QuantumExpired )
-	{//Quantum has expired while in crit section
-		InterruptEnable();
-		//TODO NOTICE WHAT QUANTUM EXIRPED CAN CHANGE NOW!!!
+	currentTime = TimerGetTime();
+	if( currentTime > QuantumEndTime )
+	{
+		//Quantum has expired while in crit section
+		
 		//Pick next thread
 		priority = Schedule();
-		//register timer (he already ran)
-		TimerRegister( &SchedulerTimer,
-				priority,
-				SchedulePostHandler,
-				NULL);
-		InterruptDisable();
-		//We are starting a new quantum.
-		QuantumExpired = FALSE;
+
+		//set new end time.
+		QuantumEndTime = currentTime+priority;
+
 		//Switch threads!
+		InterruptDisable();
 		ContextSwitchIfNeeded();
+		InterruptEnable();
 	}
 	else
 	{//Quantum has not expired, so we'll just end the critical section. 
 		ContextUnlock( );
 	}
-	InterruptEnable();
 }
 
 /*
@@ -123,14 +120,21 @@ BOOL SchedulerIsCritical()
 void  
 SchedulerForceSwitch()
 {
+	TIME currentTime;
+	COUNT priority;
+
 	ASSERT( ContextIsCritical( ),
 			SCHEDULER_FORCE_SWITCH_IS_CRITICAL,
 			"Schedule will not run when in critical section");
 
-	//Pick next thread to run.
-	Schedule(); 
+	currentTime = TimerGetTime();
 
-	//TODO DOES NOT CHECK FOR EXPIRED TIMER
+	//Pick next thread to run.
+	priority = Schedule(); 
+	
+	//Set end of quantum.
+	QuantumEndTime = currentTime + priority;
+
 	//Actually context switch.
 	InterruptDisable();
 	ContextSwitchIfNeeded();
@@ -238,6 +242,7 @@ COUNT Schedule()
  */
 void SchedulePostHandler( void *arg )
 {
+	TIME currentTime;
 	COUNT priority;
 
 	//We are going to try to switch to a new thread.
@@ -246,27 +251,33 @@ void SchedulePostHandler( void *arg )
 	{
 		//We were able to enter a critical secion!
 		//Now we can schedule a different thread to run.
-		priority = Schedule();
-		//Register timer to end of the NextThread's quantum.//TODO WE NOW FIRE ON EVERY TIMER, WE ONLY ZERO TICKS WHEN WE CHANGE THREADS
-		if( ! SchedulerTimer.Queued )//TODO THIS IS WRONG, THE TIMER COULD FIRE DURRING THIS FUNCTION!
+		
+		//check and see if quanum has expired.
+		currentTime = TimerGetTime();
+
+		if( currentTime >= QuantumEndTime )
 		{
-			TimerRegister( &SchedulerTimer,
-					priority,
-					SchedulePostHandler,
-					NULL);
-			QuantumExpired = FALSE;
+			//quantum is over, so pick another thread.
+			priority = Schedule();
+
+			//Calculate the time to end our quantum.
+			QuantumEndTime = currentTime+priority;
+
+			//NOTE: We leak the critical section here because InterruptEnd 
+			//will end it when he does the context switch.
+		}
+		else
+		{
+			//quantim is not over, so end our critical section
+			ContextUnlock();
 		}
 	}
-	else
-	{
-		//we are not allowed to schedule.
-		//mark the quantum as expired.
-		//We do not re-register since
-		//quantum is expired anyway.
-		InterruptDisable();//TODO CHANGE THIS AND ABOVE TODO
-		QuantumExpired = TRUE;
-		InterruptEnable();
-	}
+
+	//Register timer fire again.
+	TimerRegister( &SchedulerTimer,
+			1,
+			SchedulePostHandler,
+			NULL);
 }
 
 void SchedulerStartup()
@@ -281,7 +292,8 @@ void SchedulerStartup()
 		   	0, 
 			SchedulePostHandler,
 			NULL	);
-	QuantumExpired = FALSE;//TODO REPLACE
+
+	QuantumEndTime = 0;
 	//Create a thread for idle loop.
 	SchedulerCreateThread( &IdleThread, 1, NULL, 0, NULL, 0x01, FALSE );
 	//Remove IdleThread from queues... TODO fix this HACK
