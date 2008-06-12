@@ -53,4 +53,12 @@ void InterruptEnable();
 
 BOOL InterruptIsAtomic();
 
+//
+//Functions for post handlers
+//
+
+void InterruptRegisterPostHandler( 
+		struct POST_HANDLER_OBJECT * postObject,
+		HANDLER_FUNCTION foo,
+		void * context);
 #endif
