@@ -133,10 +133,9 @@ void HalSerialStartup();
             "pop r2\n\t" \
             "pop r1\n\t" \
             "pop r0\n\t" \
-			"reti\n\t" \
 			);
 
-void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
+void __attribute__((signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 #define TimerInterrupt TIMER0_OVF_vect
 
 #endif //end if #ifdef AVR_BUILD
