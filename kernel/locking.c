@@ -174,10 +174,6 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 		//context is active thread, so block him.
 		context = SchedulerGetLockingContext();
 		context->State = LOCKING_STATE_BLOCKING;
-		struct THREAD * thread = BASE_OBJECT( 
-				context, 
-				struct THREAD, 
-				LockingContext );
 		SchedulerBlockThread( );
 		
 	}
