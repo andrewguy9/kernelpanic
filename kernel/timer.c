@@ -1,7 +1,6 @@
 #include"timer.h"
 #include"../utils/utils.h"
 #include"../utils/heap.h"
-#include"hal.h"
 #include"thread.h"
 #include"isr.h"
 #include"interrupt.h"
@@ -88,9 +87,6 @@ void TimerStartup( )
 
 	Timers = &TimerHeap1;
 	TimersOverflow = &TimerHeap2;
-
-	HalInitClock();
-
 }
 
 

@@ -3,7 +3,6 @@
 
 #include"../utils/link.h"
 #include"../utils/utils.h"
-#include"hal.h"
 #include"thread.h"
 
 void SchedulerStartCritical( );
