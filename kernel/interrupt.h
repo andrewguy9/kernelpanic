@@ -9,7 +9,7 @@
 //
 //Structure for Post Handlers
 //
-
+//TODO MOVE TO ISR
 struct POST_HANDLER_OBJECT
 {
 	//HandlerObj.Link = Storage Mechanism
@@ -26,17 +26,17 @@ struct POST_HANDLER_OBJECT
 //
 //Unit Management
 //
-
+//TODO MOVE TO ISR
 void InterruptStartup();
 
 //
 //Handle Interrupt Entry and Exit
 //
-
+//TODO MOVE TO ISR
 typedef void (INTERRUPT_HANDLER) (void);
-
+//TODO MOVE TO ISR
 void InterruptStart();
-
+//TODO MOVE TO ISR
 void InterruptEnd();
 
 //
@@ -56,7 +56,7 @@ BOOL InterruptIsAtomic();
 //
 //Functions for post handlers
 //
-
+//MOVE TO ISR
 void InterruptRegisterPostHandler( 
 		struct POST_HANDLER_OBJECT * postObject,
 		HANDLER_FUNCTION foo,

@@ -36,13 +36,15 @@
 //
 
 volatile COUNT InterruptLevel;//The number of calls to InterruptDisable
+//TODO MOVE TO ISR
 struct LINKED_LIST PostInterruptHandlerList;//List of PostInterruptHandlers
+//TODO MOVE TO ISR
 struct MUTEX PostHandlerMutex;
 
 //
 //Internal Helper Routines.
 //
-
+//MOVE TO ISR
 void InterruptRunPostHandlers()
 {
 	struct HANDLER_OBJECT * handler;
@@ -100,8 +102,8 @@ void InterruptStartup()
 			"we started in inconsistant state" );
 
 	InterruptLevel = 1;//Will be reset to 0 when startup completes
-	MutexInit(&PostHandlerMutex);
-	LinkedListInit( & PostInterruptHandlerList );
+	MutexInit(&PostHandlerMutex);//TODO MOVE TO ISR
+	LinkedListInit( & PostInterruptHandlerList );//TODO MOVE TO ISR
 }
 
 
@@ -109,6 +111,7 @@ void InterruptStartup()
 //Handle Interrupt Entry and Exit
 //
 
+//TODO MOVE TO ISR
 /*
  * Should be called as the first action in EVERY interrupt. 
  *
@@ -134,6 +137,7 @@ void InterruptStart()
 	InterruptLevel++;
 }
 
+//TODO MOVE TO ISR
 /*
  * Should be called as the last action in EVERY interrupt.
  *
@@ -162,6 +166,7 @@ void InterruptEnd()
 	InterruptLevel--;
 }
 
+//TODO MOVE TO ISR
 /*
  * Registers a handler object which will force funtion handler to be 
  * called before control is returned to a thread from an interrupt.
