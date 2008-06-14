@@ -1,6 +1,7 @@
 #include"interrupt.h"
 #include"hal.h"
 #include"context.h"
+#include"mutex.h"
 
 /*
  * Interrupt Unit Description
@@ -34,9 +35,9 @@
 //Interrupt Variables
 //
 
-COUNT InterruptHeight;//The number of interrupts on the stack
 volatile COUNT InterruptLevel;//The number of calls to InterruptDisable
 struct LINKED_LIST PostInterruptHandlerList;//List of PostInterruptHandlers
+struct MUTEX PostHandlerMutex;
 
 //
 //Internal Helper Routines.
@@ -50,7 +51,7 @@ void InterruptRunPostHandlers()
 
 	ASSERT( HalIsAtomic(),0,"");
 
-	ASSERT( InterruptHeight == 1, 0, "" );
+	ASSERT( MutexIsLocked(&PostHandlerMutex), 0, "" );
 
 	while( ! LinkedListIsEmpty( & PostInterruptHandlerList ) )
 	{
@@ -99,7 +100,7 @@ void InterruptStartup()
 			"we started in inconsistant state" );
 
 	InterruptLevel = 1;//Will be reset to 0 when startup completes
-	InterruptHeight = 0;//We start in normal thread context.
+	MutexInit(&PostHandlerMutex);
 	LinkedListInit( & PostInterruptHandlerList );
 }
 
@@ -131,7 +132,6 @@ void InterruptStart()
 			start of an ISR");
 
 	InterruptLevel++;
-	InterruptHeight++;
 }
 
 /*
@@ -150,15 +150,16 @@ void InterruptEnd()
 			INTERRUPT_END_INTERRUPTS_INCONSISTENT,
 			"Interrupt level is inconsistent with end of an ISR");
 
-	if( InterruptHeight == 1 )
+	if( MutexLock(&PostHandlerMutex) )
 	{
 		InterruptRunPostHandlers();
+
+		MutexUnlock(&PostHandlerMutex);
 
 		ContextSwitchIfNeeded();
 	}
 
 	InterruptLevel--;
-	InterruptHeight--;
 }
 
 /*
