@@ -74,6 +74,8 @@ ContextSwitch()
 			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
 			"Context switch must save state atomically");
 
+	ASSERT( MutexIsLocked( &ContextMutex ),0,"");
+
 	//Check to see if stack is valid.
 	ASSERT( ASSENDING( 
 				(unsigned int) ActiveThread->Stack.Low, 
