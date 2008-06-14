@@ -317,6 +317,21 @@ struct LOCKING_CONTEXT * SchedulerGetLockingContext()
 	return &activeThread->LockingContext;
 }
 
+void SchedulerThreadStartup()
+{
+	struct THREAD * thread;
+	
+	ASSERT( ContextIsCritical(),0,"");
+	ASSERT( InterruptIsAtomic(),0,"");
+
+	thread = ContextGetActiveThread();
+	
+	ContextUnlock();
+	InterruptEnable();
+
+	thread->Main();
+}
+
 void SchedulerCreateThread( 
 		struct THREAD * thread,
 		unsigned char priority,
@@ -330,6 +345,7 @@ void SchedulerCreateThread(
 	thread->Priority = priority;
 	thread->Flag = flag;
 	LockingInit( & thread->LockingContext );
+	thread->Main = main;
 	//Add thread to done queue.
 	if( start )
 	{
@@ -342,5 +358,5 @@ void SchedulerCreateThread(
 		thread->State = THREAD_STATE_BLOCKED;
 	}
 	//initialize stack
-	ContextInit( &thread->Stack,stack,stackSize,main);
+	ContextInit( &thread->Stack,stack,stackSize,SchedulerThreadStartup);
 }	

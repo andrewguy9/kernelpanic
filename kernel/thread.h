@@ -15,6 +15,7 @@ struct THREAD
 	enum THREAD_STATE State;
 	struct LOCKING_CONTEXT LockingContext;
 	struct STACK Stack;
+	THREAD_MAIN Main;
 	char Flag;
 };
 
