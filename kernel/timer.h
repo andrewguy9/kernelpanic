@@ -3,7 +3,7 @@
 
 #include"../utils/link.h"
 #include"../utils/utils.h"
-#include"interrupt.h"
+#include"isr.h"
 
 typedef unsigned long int TIME;
 

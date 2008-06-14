@@ -33,3 +33,5 @@ kernel/worker.o: kernel/worker.c kernel/worker.h
 kernel/gather.o: kernel/gather.c kernel/gather.h
 
 kernel/context.o: kernel/context.c kernel/context.h
+
+kernel/isr.o: kernel/isr.c kernel/isr.h

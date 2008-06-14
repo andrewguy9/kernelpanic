@@ -3,6 +3,8 @@
 #include"../utils/heap.h"
 #include"hal.h"
 #include"thread.h"
+#include"isr.h"
+#include"interrupt.h"
 
 /*
  * Timer Unit Description:
@@ -42,10 +44,6 @@ void QueueTimers( )
 {
 	struct HEAP *temp;
 
-	ASSERT( InterruptIsAtomic(), 
-			TIMER_RUN_TIMERS_MUST_BE_ATOMIC,
-			"timers can only be run from interrupt level.");
-
 	Time++;
 
 	if( Time == 0 )
@@ -75,7 +73,7 @@ void QueueTimers( )
 
 		timer->Queued = FALSE;
 
-		InterruptRegisterPostHandler(
+		IsrRegisterPostHandler(
 				timer,
 				handler->Function,
 				timer->Context);
@@ -139,7 +137,7 @@ TIME TimerGetTime()
 void TIMER0_OVF_vect(void) 
 {
 	//update interrupt level to represent that we are in inerrupt
-	InterruptStart();
+	IsrStart();
 
 	//reset the clock
     TCNT0 = 0xff-1*16; //1 ms
@@ -148,6 +146,6 @@ void TIMER0_OVF_vect(void)
 	QueueTimers( );
 
 	//Restore the interrupt level, 
-	InterruptEnd();
+	IsrEnd();
 }
 

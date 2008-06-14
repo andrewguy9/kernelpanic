@@ -41,24 +41,24 @@ test2.elf: test2.out
 
 test3.elf: test3.out
 ############################
-test0.out: test/test0.o kernel/mutex.o kernel/scheduler.o kernel/panic.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/context.o
+test0.out: test/test0.o kernel/mutex.o kernel/scheduler.o kernel/panic.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/context.o kernel/isr.o
 
-test1.out: test/test1.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/context.o 
+test1.out: test/test1.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/context.o kernel/isr.o
 
-test2.out: test/test2.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/socket.o utils/$(TARGET)_ringbuffer.o kernel/pipe.o kernel/locking.o kernel/context.o
+test2.out: test/test2.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/socket.o utils/$(TARGET)_ringbuffer.o kernel/pipe.o kernel/locking.o kernel/context.o kernel/isr.o
 
-test3.out: test/test3.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/context.o
+test3.out: test/test3.o kernel/panic.o kernel/resource.o kernel/semaphore.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/context.o kernel/isr.o
 
-test4.out: test/test4.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o kernel/interrupt.o kernel/locking.o kernel/context.o
+test4.out: test/test4.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/sleep.o kernel/interrupt.o kernel/locking.o kernel/context.o kernel/isr.o
 
-test5.out: test/test5.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/semaphore.o kernel/context.o
+test5.out: test/test5.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/semaphore.o kernel/context.o kernel/isr.o
 
-test6.out: test/test6.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/worker.o kernel/context.o
+test6.out: test/test6.o kernel/panic.o kernel/mutex.o kernel/scheduler.o kernel/timer.o kernel/startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/hal.o kernel/interrupt.o kernel/locking.o kernel/worker.o kernel/context.o kernel/isr.o
 
-test7.out: test/test7.o kernel/gather.o kernel/locking.o kernel/hal.o kernel/interrupt.o kernel/mutex.o kernel/panic.o kernel/scheduler.o kernel/startup.o kernel/timer.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/context.o
+test7.out: test/test7.o kernel/gather.o kernel/locking.o kernel/hal.o kernel/interrupt.o kernel/mutex.o kernel/panic.o kernel/scheduler.o kernel/startup.o kernel/timer.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/context.o kernel/isr.o
 
 ###############################
 #actual umouse elf file.
-umouse.out: kernel/locking.o kernel/hal.o kernel/interrupt.o kernel/io.o kernel/mutex.o kernel/panic.o kernel/pipe.o kernel/resource.o kernel/scheduler.o kernel/semaphore.o kernel/sleep.o kernel/socket.o kernel/startup.o kernel/timer.o kernel/worker.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_map.o umouse/$(TARGET)_motor.o umouse/$(TARGET)_positionlog.o utils/$(TARGET)_bham.o utils/$(TARGET)_flags.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_ringbuffer.o umouse/main.o umouse/$(TARGET)_submove.o kernel/context.o
+umouse.out: kernel/locking.o kernel/hal.o kernel/interrupt.o kernel/io.o kernel/mutex.o kernel/panic.o kernel/pipe.o kernel/resource.o kernel/scheduler.o kernel/semaphore.o kernel/sleep.o kernel/socket.o kernel/startup.o kernel/timer.o kernel/worker.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_map.o umouse/$(TARGET)_motor.o umouse/$(TARGET)_positionlog.o utils/$(TARGET)_bham.o utils/$(TARGET)_flags.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_ringbuffer.o umouse/main.o umouse/$(TARGET)_submove.o kernel/context.o kernel/isr.o
 
 umouse.elf: umouse.out
