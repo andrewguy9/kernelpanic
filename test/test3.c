@@ -38,9 +38,8 @@ void Writer()
 
 		while( !LockingIsAcquired( &block ) );
 	
-		ASSERT( BufferLock.State == RESOURCE_EXCLUSIVE ,
-				TEST_3_WRITER_RESOURCE_NOT_EXCLUSIVE,
-				"resource should be exlusive");
+		//resource should be exlusive
+		ASSERT( BufferLock.State == RESOURCE_EXCLUSIVE );
 
 		sequenceIndex++;
 		sequenceIndex%=SEQUENCE_LENGTH;
@@ -83,9 +82,8 @@ void Reader()
 	{
 		ResourceLockShared( &BufferLock, NULL );
 
-		ASSERT( BufferLock.State == RESOURCE_SHARED,
-				TEST_3_READER_RESOURCE_NOT_SHARED,
-				"the resource should be shared");
+		//the resource should be shared
+		ASSERT( BufferLock.State == RESOURCE_SHARED );
 
 		for(index=1 ; index < BUFFER_SIZE; index++)
 		{
@@ -93,7 +91,7 @@ void Reader()
 			second = Buffer[index];
 			if( (first +1) != second )
 			{
-				KernelPanic( TEST3_READER_MISMATCH );
+				KernelPanic( );
 			}
 		}
 

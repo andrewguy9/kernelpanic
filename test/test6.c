@@ -33,9 +33,8 @@ void ThreadMain()
 			SchedulerForceSwitch();
 		}
 
-		ASSERT( Count == myCount, 
-				TEST6_WORK_ITEM_DID_NOT_COMPLETE, 
-				"work item didn't complete" );
+		//Make sure work item completed.
+		ASSERT( Count == myCount );
 	}
 }
 

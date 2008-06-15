@@ -31,9 +31,9 @@ void WorkerThreadMain()
 		}
 		else
 		{//there is a item, so execute it.
-			ASSERT( ! item->Finished,
-					WORKER_HANDLER_FINISHED,
-					"The handler finished, and got scheduled anyway.");
+
+			//Make sure that item is not finished.
+			ASSERT( ! item->Finished );
 
 			//run handler
 			result = item->Foo(item);
