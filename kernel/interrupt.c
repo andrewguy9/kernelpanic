@@ -42,9 +42,7 @@ volatile COUNT InterruptLevel;//The number of calls to InterruptDisable
 //Run at kernel startup to initialize flags.
 void InterruptStartup()
 {
-	ASSERT( HalIsAtomic(),
-			INTERRUPT_STARTUP_NOT_ATOMIC,
-			"we started in inconsistant state" );
+	ASSERT( HalIsAtomic() );
 
 	InterruptLevel = 1;//Will be reset to 0 when startup completes
 }
@@ -69,11 +67,9 @@ void InterruptDisable()
  */
 void InterruptEnable()
 {
-	ASSERT( HalIsAtomic(), 0, "" );
-	ASSERT( InterruptLevel > 0,
-			INTERRUPT_ENABLE_OVER_ENABLED,
-			"We cannot enable interrupts when \
-			InterruptLevel is not positive");
+	ASSERT( HalIsAtomic() );
+	ASSERT( InterruptLevel > 0 );
+
 	InterruptLevel--;
 	if( InterruptLevel == 0 )
 	{
@@ -83,19 +79,14 @@ void InterruptEnable()
 
 void InterruptIncrement()
 {
-	ASSERT( (HalIsAtomic() && InterruptLevel == 0),
-			INTERRUPT_START_INTERRUPTS_INCONSISTENT,
-			"Interrupt level is inconsistent with \
-			start of an ISR");
+	ASSERT( HalIsAtomic() && InterruptLevel == 0 );
 
 	InterruptLevel++;
 }
 
 void InterruptDecrement()
 {
-	ASSERT( HalIsAtomic() && InterruptLevel == 1,
-			INTERRUPT_END_INTERRUPTS_INCONSISTENT,
-			"Interrupt level is inconsistent with end of an ISR");
+	ASSERT( HalIsAtomic() && InterruptLevel == 1 );
 
 	InterruptLevel--;
 }
@@ -122,9 +113,7 @@ BOOL InterruptIsAtomic()
 
 	ASSERT( atomic ? 
 			InterruptLevel > 0 :
-			InterruptLevel == 0,
-			INTERRUPT_IS_ATOMIC_WRONG_STATE,
-			"InterruptIsAtomic wrong interrupt mode");
+			InterruptLevel == 0 );
 
 	return atomic;
 }

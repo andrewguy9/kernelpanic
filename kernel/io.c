@@ -54,7 +54,7 @@ ISR(USART0_RX_vect)
 	}
 	else
 	{
-		KernelPanic( IO_INPUT_BUFF_FULL );
+		KernelPanic( );
 	}
 	IsrEnd();
 }

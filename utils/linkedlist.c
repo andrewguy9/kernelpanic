@@ -7,9 +7,8 @@
  */
 void LinkedListInsert( struct LINKED_LIST_LINK * node, struct LINKED_LIST_LINK * list )
 {
-	ASSERT( node != NULL, 
-			LINKED_LIST_INSERT_NULL_NODE,
-			"cannot insert null node" );
+	ASSERT( node != NULL );
+
 	if( list == NULL )
 	{//list is empty, so node is now only value.
 		node->Next = node;
@@ -30,9 +29,8 @@ void LinkedListInsert( struct LINKED_LIST_LINK * node, struct LINKED_LIST_LINK *
  */
 void LinkedListRemove( struct LINKED_LIST_LINK * node )
 {
-	ASSERT( node != NULL, 
-			LINKED_LIST_REMOVE_NULL_NODE,
-			"can not remove node" );
+	ASSERT( node != NULL );
+
 	node->Prev->Next = node->Next;
 	node->Next->Prev = node->Prev;
 	node->Next = node;
@@ -42,9 +40,7 @@ void LinkedListRemove( struct LINKED_LIST_LINK * node )
 //Add to front of list.
 void LinkedListPush( struct LINKED_LIST_LINK * node, struct LINKED_LIST * list )
 {
-	ASSERT( list != NULL, 
-			LINKED_LIST_PUSH_LIST_NULL,
-			"list cannot be null");
+	ASSERT( list != NULL );
 
 	LinkedListInsert( node, list->Head );
 	list->Head = node;
@@ -55,9 +51,7 @@ struct LINKED_LIST_LINK * LinkedListPop( struct LINKED_LIST * list )
 {
 	struct LINKED_LIST_LINK * top;
 
-	ASSERT( list != NULL,
-			LINKED_LIST_POP_LIST_NULL,
-			"list cannot be null" );
+	ASSERT( list != NULL );
 
 	if( list->Head == NULL )
 		return NULL;
@@ -78,9 +72,7 @@ struct LINKED_LIST_LINK * LinkedListPop( struct LINKED_LIST * list )
 //Add to the end of list.
 void LinkedListEnqueue( struct LINKED_LIST_LINK * node, struct LINKED_LIST * list )
 {
-	ASSERT( list != NULL,
-			LINKED_LIST_ENQUEUE_LIST_NULL,
-			"list cannot be null");
+	ASSERT( list != NULL );
 
 	LinkedListInsert( node, list->Head );
 	list->Head = node->Next;
@@ -88,9 +80,7 @@ void LinkedListEnqueue( struct LINKED_LIST_LINK * node, struct LINKED_LIST * lis
 
 BOOL LinkedListIsEmpty( struct LINKED_LIST * list )
 {
-	ASSERT( list != NULL,
-			LINKED_LIST_IS_EMPTY_LIST_NULL,
-			"list is empty");
+	ASSERT( list != NULL );
 
 	if( list->Head == NULL )
 		return TRUE;
@@ -105,9 +95,7 @@ void LinkedListInit( struct LINKED_LIST * list )
 
 struct LINKED_LIST_LINK * LinkedListPeek( struct LINKED_LIST * list )
 {
-	ASSERT( list != NULL,
-			LINKED_LIST_PEEK_LIST_NULL,
-			"list is null");
+	ASSERT( list != NULL );
 
 	return list->Head;
 }

@@ -474,7 +474,8 @@ enum SUB_MOVE SubMoveFindBest(
 			else
 			{
 				//printf("invalid direction for x\n");
-				ASSERT(0, SUB_MOVE_START_BAD_X_DIR,"invalid direction for x");
+				//Check if we have invalid direction for x.
+				ASSERT(0);
 			}
 		}
 		if( y%2==1 )
@@ -488,7 +489,8 @@ enum SUB_MOVE SubMoveFindBest(
 			else
 			{
 				//printf("invalid direction for y\n");
-				ASSERT(0, SUB_MOVE_START_BAD_Y_DIR,"invalid direction for y");
+				//Check if we have invalid direction for y.
+				ASSERT(0);
 			}
 		}
 		//printf("normalized corrdinates to %d,%d,%d\n",tempX,tempY,dir);

@@ -17,9 +17,7 @@
  */
 void LockingStart()
 {
-	ASSERT( !SchedulerIsCritical(),
-			LOCKING_START_NOT_CRIT,
-			"We can only start a locking session when not critical");
+	ASSERT( !SchedulerIsCritical() );
 
 	SchedulerStartCritical();
 }
@@ -30,9 +28,7 @@ void LockingStart()
  */
 void LockingEnd(  )
 {
-	ASSERT( SchedulerIsCritical(),
-		 LOCKING_END_NOT_CRIT,
-		"If we are ending a locking session we must be critical already" );
+	ASSERT( SchedulerIsCritical() );
 
 	SchedulerEndCritical();
 }
@@ -43,25 +39,19 @@ void LockingEnd(  )
  */
 void LockingSwitch( struct LOCKING_CONTEXT * context )
 {
-	ASSERT( SchedulerIsCritical(),
-			LOCKING_SWITCH_NOT_CRIT,
-			"must be crit to switch");
+	ASSERT( SchedulerIsCritical() );
 
 	if( context == NULL )
 	{
 		//There is no context, so the thread must be on blocking path.
 		context = SchedulerGetLockingContext();
 
-		ASSERT( context->State != LOCKING_STATE_WAITING,
-			 LOCKING_SWITCH_NULL_WAITING,
-			"if the context is null, its implied the thread will block, not wait" );
+		ASSERT( context->State != LOCKING_STATE_WAITING );
 	}
 	else
 	{
 		//There is a context, so thread must be on waiting path.
-		ASSERT( context->State != LOCKING_STATE_BLOCKING,
-			 LOCKING_SWITCH_CONTEXT_BLOCKING,
-			"when a context is provided its assumed we will not block" );
+		ASSERT( context->State != LOCKING_STATE_BLOCKING );
 	}
 	
 	switch( context->State )
@@ -83,7 +73,7 @@ void LockingSwitch( struct LOCKING_CONTEXT * context )
 			break;
 		case LOCKING_STATE_READY:
 			//lock is marked as ready, this is illegal
-			KernelPanic( LOCKING_SWITCH_CONTEXT_READY );
+			KernelPanic( );
 	}
 }
 
@@ -103,9 +93,7 @@ void LockingInit( struct LOCKING_CONTEXT * context )
  */
 void LockingAcquire( struct LOCKING_CONTEXT * context )
 {
-	ASSERT( SchedulerIsCritical(),
-			LOCKING_ACQUIRE_NOT_CRIT,
-			"must be crit to acquire");
+	ASSERT( SchedulerIsCritical() );
 
 	if( context == NULL )
 	{
@@ -122,7 +110,7 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
 		}
 		else
 		{
-			KernelPanic( LOCKING_ACQUIRE_THREAD_IN_WRONG_STATE );
+			KernelPanic( );
 		}
 	}
 	else //context!=NULL
@@ -154,7 +142,7 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
 
 		else
 		{
-			KernelPanic( LOCKING_ACQUIRE_CONTEXT_IN_WRONG_STATE );
+			KernelPanic( );
 		}
 	}
 }
@@ -165,9 +153,7 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
  */
 union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING_CONTEXT * context )
 {
-	ASSERT( SchedulerIsCritical(),
-			LOCKING_BLOCK_IS_CRIT,
-			"Must be crit to block");
+	ASSERT( SchedulerIsCritical() );
 
 	if( context == NULL )
 	{
@@ -187,9 +173,7 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 
 	//return link so they can store blocked thread.
 	
-	ASSERT( context != NULL, 
-			LOCKING_BLOCK_CONTEXT_NOT_NULL,
-			"we have to return a link, so context cant be null");
+	ASSERT( context != NULL );
 
 	return &context->Link;
 }
@@ -204,9 +188,7 @@ BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 	BOOL result;
 	SchedulerStartCritical();
 
-	ASSERT( context != NULL, 
-			LOCKING_IS_ACQUIRED_CONTEXT_NULL,
-		   	"context must not be null" );
+	ASSERT( context != NULL );
 
 	switch( context->State )
 	{
@@ -222,7 +204,7 @@ BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 		case LOCKING_STATE_READY:
 		case LOCKING_STATE_BLOCKING:
 		case LOCKING_STATE_CHECKED:
-			KernelPanic( LOCKING_IS_ACQUIRED_CONTEXT_IN_WRONG_STATE );
+			KernelPanic( );
 			result = FALSE;
 			break;
 	}

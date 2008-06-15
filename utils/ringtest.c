@@ -134,7 +134,7 @@ int Test()
 					delta, 
 					write);
 			PrintRing( &Ring );
-			ASSERT(delta <= writePart, 0, "Wrote past buffer");
+			ASSERT(delta <= writePart);
 		}
 		if( read < TEST_SIZE )
 		{
@@ -145,12 +145,12 @@ int Test()
 					delta, 
 					read);
 			PrintRing( &Ring );
-			ASSERT( delta <= readPart, 0, "Read past buffer");
+			ASSERT( delta <= readPart);
 		}
 	}
 
-	ASSERT( read == TEST_SIZE, 0, "read wrong size");
-	ASSERT( write == TEST_SIZE,0, "Write wrong size");
+	ASSERT( read == TEST_SIZE);
+	ASSERT( write == TEST_SIZE);
 
 	//verify the buffer
 	for( index = 0; index < TEST_SIZE; index++ )

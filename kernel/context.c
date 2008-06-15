@@ -70,19 +70,15 @@ ContextSwitch()
 	
 	HAL_SAVE_SP( ActiveThread->Stack.Pointer );
 
-	ASSERT( InterruptIsAtomic(), 
-			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
-			"Context switch must save state atomically");
+	ASSERT( InterruptIsAtomic() );
 
-	ASSERT( MutexIsLocked( &ContextMutex ),0,"");
+	ASSERT( MutexIsLocked( &ContextMutex ) );
 
-	//Check to see if stack is valid.
+	//Check to see if stack has overflowed.
 	ASSERT( ASSENDING( 
 				(unsigned int) ActiveThread->Stack.Low, 
 				(unsigned int) ActiveThread->Stack.Pointer, 
-				(unsigned int) ActiveThread->Stack.High ),
-			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
-			"stack overflow");
+				(unsigned int) ActiveThread->Stack.High ) );
 
 	//Switch threads
 	ActiveThread = NextThread;
@@ -95,21 +91,21 @@ ContextSwitch()
 
 struct THREAD * ContextGetActiveThread()
 {
-	ASSERT( ContextIsCritical(), 0,"" );
+	ASSERT( ContextIsCritical() );
 	return ActiveThread;
 }
 
 void ContextSetNextThread( struct THREAD * thread )
 {
-	ASSERT( ContextIsCritical(), 0, "" );
-	ASSERT( NextThread == NULL, 0, "" );
+	ASSERT( ContextIsCritical() );
+	ASSERT( NextThread == NULL );
 
 	NextThread = thread;
 }
 
 void ContextSwitchIfNeeded()
 {
-	ASSERT( InterruptIsAtomic(), 0, "" );
+	ASSERT( InterruptIsAtomic() );
 
 	if( MutexIsLocked( &ContextMutex ) )
 	{

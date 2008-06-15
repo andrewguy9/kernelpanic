@@ -34,7 +34,7 @@ void TimerHandler( void * Argument )
 	TimerFlag = FALSE;
 	//Check to see if thread is sleeping
 	if( ThreadFlag == FALSE )
-		KernelPanic( 0 );
+		KernelPanic( );
 }
 
 //Thread Main
@@ -69,7 +69,7 @@ void SleeperMain()
 		InterruptDisable();
 		if( TimerFlag != FALSE )
 		{
-			KernelPanic( 0 );
+			KernelPanic( );
 		}
 		InterruptEnable();
 

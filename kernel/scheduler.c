@@ -65,9 +65,9 @@ struct THREAD IdleThread;
 void SchedulerStartCritical( )
 {
 	BOOL aquired = ContextLock( );
-	ASSERT( aquired, 
-			SCHEDULER_START_CRITICAL_MUTEX_NOT_AQUIRED,
-			"Start Critical should always stop the scheduler");
+
+	//Start Critical should always stop the scheduler
+	ASSERT( aquired );
 }
 
 /*
@@ -77,9 +77,7 @@ void SchedulerEndCritical()
 {
 	TIME currentTime;
 	COUNT priority;
-	ASSERT( ContextIsCritical( ),
-			SCHEDULER_END_CRITICAL_NOT_CRITICAL,
-		   	"Critical section cannot start.");
+	ASSERT( ContextIsCritical( ) );
 
 	currentTime = TimerGetTime();
 	if( currentTime > QuantumEndTime )
@@ -122,9 +120,7 @@ SchedulerForceSwitch()
 	TIME currentTime;
 	COUNT priority;
 
-	ASSERT( ContextIsCritical( ),
-			SCHEDULER_FORCE_SWITCH_IS_CRITICAL,
-			"Schedule will not run when in critical section");
+	ASSERT( ContextIsCritical( ) );
 
 	currentTime = TimerGetTime();
 
@@ -145,15 +141,9 @@ SchedulerForceSwitch()
  */
 void SchedulerResumeThread( struct THREAD * thread )
 {
-	ASSERT( ContextIsCritical( ), 
-			SCHEDULER_RESUME_THREAD_MUST_BE_CRIT,
-			"Only run from critical section" );
-	ASSERT( thread->State == THREAD_STATE_BLOCKED, 
-			SCHEDULER_RESUME_THREAD_NOT_BLOCKED,
-			"Thread not blocked" );
-	ASSERT( thread != ContextGetActiveThread(),
-			SCHEDULER_ACTIVE_THREAD_AWAKENED,
-			"Active thread is by definition running");
+	ASSERT( ContextIsCritical( ) );
+	ASSERT( thread->State == THREAD_STATE_BLOCKED );
+	ASSERT( thread != ContextGetActiveThread() );
 
 	thread->State = THREAD_STATE_RUNNING;
 	DEBUG_LED = DEBUG_LED | thread->Flag;
@@ -174,7 +164,7 @@ void SchedulerBlockThread( )
 {
 	struct THREAD * activeThread;
 
-	ASSERT( ContextIsCritical(), 0, "" );
+	ASSERT( ContextIsCritical() );
 
 	activeThread = ContextGetActiveThread();
 	activeThread->State = THREAD_STATE_BLOCKED;
@@ -191,7 +181,7 @@ COUNT Schedule()
 	struct THREAD * activeThread;
 	struct THREAD * nextThread;
 
-	ASSERT( ContextIsCritical(), 0, "" );
+	ASSERT( ContextIsCritical() );
 
 	activeThread = ContextGetActiveThread();
 	nextThread = NULL;
@@ -310,7 +300,7 @@ struct LOCKING_CONTEXT * SchedulerGetLockingContext()
 {
 	struct THREAD * activeThread;
    
-	ASSERT( ContextIsCritical(), 0, "" );
+	ASSERT( ContextIsCritical() );
 
 	activeThread = ContextGetActiveThread();
 	return &activeThread->LockingContext;
@@ -320,8 +310,8 @@ void SchedulerThreadStartup()
 {
 	struct THREAD * thread;
 	
-	ASSERT( ContextIsCritical(),0,"");
-	ASSERT( InterruptIsAtomic(),0,"");
+	ASSERT( ContextIsCritical() );
+	ASSERT( InterruptIsAtomic() );
 
 	thread = ContextGetActiveThread();
 	

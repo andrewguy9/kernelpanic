@@ -16,9 +16,9 @@ void IsrRunPostHandlers()
 	struct POST_HANDLER_OBJECT * postHandler;
 	HANDLER_FUNCTION * func;
 
-	ASSERT( HalIsAtomic(),0,"");
+	ASSERT( HalIsAtomic() );
 
-	ASSERT( MutexIsLocked(&PostHandlerMutex), 0, "" );
+	ASSERT( MutexIsLocked(&PostHandlerMutex) );
 
 	while( ! LinkedListIsEmpty( & PostInterruptHandlerList ) )
 	{
@@ -34,9 +34,7 @@ void IsrRunPostHandlers()
 		func = postHandler->HandlerObj.Function;
 
 		//mark stucture as unqueued
-		ASSERT(postHandler->Queued,
-				INTERRUPT_RUN_POST_HANDLERS_NOT_QUEUED,
-				"post interrupt handler not queued");
+		ASSERT(postHandler->Queued );
 
 		postHandler->Queued = FALSE;
 
@@ -134,12 +132,10 @@ void IsrRegisterPostHandler(
 		HANDLER_FUNCTION foo,
 		void * context)
 {
-	ASSERT( HalIsAtomic(),
-			INTERRUPT_POST_HANDLER_REGISTER_NOT_ATOMIC,
-			"Access to the Post handler list must be atomic.");
-	ASSERT( ! postObject->Queued,
-			INTERRUPT_POST_HANDLER_REGISTER_ALREADY_ACTIVE,
-			"Adding already active post handler");
+	//Access to the Post handler list must be atomic.
+	ASSERT( HalIsAtomic() );
+	//We cannot add an object that is in use.
+	ASSERT( ! postObject->Queued );
 
 	postObject->HandlerObj.Function = foo;
 	postObject->Context = context;

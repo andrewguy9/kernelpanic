@@ -52,7 +52,7 @@ void ProducerMain()
 		write = SocketWrite( Message, MESSAGE_LENGTH, &Socket );
 
 		if( write != MESSAGE_LENGTH )
-			KernelPanic( TEST2_PRODUCER_WRITE_WRONG_LENGTH );
+			KernelPanic( );
 
 		SchedulerStartCritical();
 		TotalWrite += write;
@@ -70,11 +70,11 @@ void ConsumerMain()
 	{
 		read = SocketReadStruct( buff, MESSAGE_LENGTH, &Socket );
 		if( read != MESSAGE_LENGTH )
-			KernelPanic( TEST2_CONSUMER_READ_WRONG_LENGTH );
+			KernelPanic( );
 		for( index = 0; index < read; index++ )
 		{
 			if( Message[index] != buff[index] )
-				KernelPanic( TEST2_CONSUMER_CHARACTER_MISMATCH );
+				KernelPanic( );
 		}
 		SchedulerStartCritical();
 		TotalRead+=read;

@@ -47,9 +47,9 @@ void QueueTimers( )
 
 	if( Time == 0 )
 	{//Overflow occured, switch heaps
-		ASSERT( HeapSize( Timers ) == 0,
-				TIMER_OVERFLOW_HAD_TIMERS,
-				"There sould be no timers on overflow");
+
+		//There should be no timers left when we overflow.
+		ASSERT( HeapSize( Timers ) == 0 );
 				
 		temp = Timers;
 		Timers = TimersOverflow;
@@ -99,9 +99,8 @@ void TimerRegister(
 
 	InterruptDisable();
 
-	ASSERT( ! newTimer->Queued,
-			TIMER_REGISTER_TIMER_ALREADY_ACTIVE,
-			"timers cannot be double registered");
+	//timers cannot be double registered
+	ASSERT( ! newTimer->Queued );
 
 	//Construct timer
 	newTimer->Queued = TRUE;
