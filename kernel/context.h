@@ -6,7 +6,7 @@
 #include"thread.h"
 #include"stack.h"
 
-void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, THREAD_MAIN Foo );
+void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, STACK_INIT_ROUTINE Foo );
 
 BOOL ContextLock( );
 

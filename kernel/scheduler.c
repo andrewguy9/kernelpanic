@@ -284,7 +284,14 @@ void SchedulerStartup()
 
 	QuantumEndTime = 0;
 	//Create a thread for idle loop.
-	SchedulerCreateThread( &IdleThread, 1, NULL, 0, NULL, 0x01, FALSE );
+	SchedulerCreateThread( &IdleThread, //Thread 
+			1, //Priority
+			NULL, //Stack
+			0, //Stack Size
+			NULL, //Main
+			NULL, //Argument
+			0x01, //Flag
+			FALSE );
 	//Remove IdleThread from queues... TODO fix this HACK
 	LinkedListInit( & Queue1 );
 	LinkedListInit( & Queue2 );
@@ -318,7 +325,7 @@ void SchedulerThreadStartup()
 	ContextUnlock();
 	InterruptEnable();
 
-	thread->Main();
+	thread->Main( thread->Argument );
 }
 
 void SchedulerCreateThread( 
@@ -327,6 +334,7 @@ void SchedulerCreateThread(
 		char * stack,
 		COUNT stackSize,
 		THREAD_MAIN main,
+		void * Argument,
 		char flag,
 		BOOL start)
 {

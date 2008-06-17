@@ -13,7 +13,7 @@ struct MUTEX ContextMutex;
 struct THREAD * ActiveThread;
 struct THREAD * NextThread;
 
-void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, THREAD_MAIN Foo )
+void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, STACK_INIT_ROUTINE Foo )
 {
 	//initialize stack
 	if( Size != 0 )

@@ -8,6 +8,8 @@
 
 enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED };
 
+typedef void THREAD_MAIN(void * arg );
+
 struct THREAD 
 {
 	union LINK Link;
@@ -15,7 +17,8 @@ struct THREAD
 	enum THREAD_STATE State;
 	struct LOCKING_CONTEXT LockingContext;
 	struct STACK Stack;
-	THREAD_MAIN Main;
+	THREAD_MAIN * Main;
+	void * Argument;
 	char Flag;
 };
 

@@ -47,15 +47,15 @@ void HalInitClock()
 	TCCR0 |= TMR_PRESCALE_1024;
 }
 
-void * HalCreateStackFrame( void * stack, THREAD_MAIN main, COUNT stackSize )
+void * HalCreateStackFrame( void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize )
 {	
 	//create initial stack frame
 	stack = (char*)((unsigned int) stack + stackSize);//Pick which end of stack
 	stack -= sizeof( void * );
-	//Drop in main frame
-	*((unsigned char*)stack + 1) = (int) main;
+	//Drop in the kickoff routine
+	*((unsigned char*)stack + 1) = (int) foo;
     *((unsigned char *)(stack)) = 
-		(unsigned char)((unsigned int)(main)>>8);
+		(unsigned char)((unsigned int)(foo)>>8);
 	//Add context restore frame
 	stack -= 34*sizeof(char);
 	//Stack complete
