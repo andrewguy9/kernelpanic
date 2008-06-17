@@ -89,6 +89,7 @@ int main()
 			SleeperStack,
 			STACK_SIZE,
 			SleeperMain,
+			NULL,
 			0x02,
 			TRUE);
 	KernelStart();

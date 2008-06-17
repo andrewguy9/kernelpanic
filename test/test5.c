@@ -81,6 +81,7 @@ int main()
 			ProducerStack , 
 			STACK_SIZE , 
 			ProducerMain , 
+			NULL,
 			0x01 ,
 			TRUE );
 
@@ -90,6 +91,7 @@ int main()
 			ConsumerBlockingStack , 
 			STACK_SIZE , 
 			ConsumerBlockingMain,
+			NULL,
 		   	0x10 , 
 			TRUE );
 
@@ -99,6 +101,7 @@ int main()
 			ConsumerNonBlockingStack , 
 			STACK_SIZE , 
 			ConsumerNonBlockingMain ,
+			NULL,
 		   	0x20 , 
 			TRUE );
 

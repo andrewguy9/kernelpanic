@@ -68,6 +68,7 @@ void WorkerCreateWorker(
 			stack,
 			stackSize,
 			WorkerThreadMain,
+			NULL,
 			flag,
 			TRUE);
 }

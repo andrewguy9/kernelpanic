@@ -70,6 +70,7 @@ int main()
 			TestThreadStackIncrement,
 			500,
 			TestMainIncrement,
+			NULL,
 		   	0x10,
 			TRUE);
 
@@ -77,6 +78,7 @@ int main()
 			&TestThreadDivide,
 			4,
 			TestThreadStackDivide,
+			NULL,
 			500,
 			TestMainDivide,
 			0X20,
@@ -88,6 +90,7 @@ int main()
 			TestThreadStackExp,
 			500,
 			TestMainExp,
+			NULL,
 			0X40,
 			TRUE);
 		

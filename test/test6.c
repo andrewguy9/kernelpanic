@@ -50,6 +50,7 @@ int main()
 			MainStack, 
 			300, 
 			ThreadMain, 
+			NULL,
 			0x01 , 
 			TRUE );
 
