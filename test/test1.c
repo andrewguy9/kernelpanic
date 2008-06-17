@@ -78,9 +78,9 @@ int main()
 			&TestThreadDivide,
 			4,
 			TestThreadStackDivide,
-			NULL,
 			500,
 			TestMainDivide,
+			NULL,
 			0X20,
 			TRUE);
 

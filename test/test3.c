@@ -163,9 +163,9 @@ int main()
 			& Writer2,
 			5,
 			Writer2Stack,
-			NULL,
 			STACK_SIZE,
 			Writer,
+			NULL,
 			0x20,
 			TRUE);
 
