@@ -44,6 +44,7 @@ int main()
 			2,
 			FrequentHandler,
 		   NULL	);
+
 	SeldomCount = 0;
 	TimerRegister( 
 			&SeldomTimer,
