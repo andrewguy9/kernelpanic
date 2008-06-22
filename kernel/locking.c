@@ -213,3 +213,21 @@ BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 	return result;
 }
 
+/*
+ * Threads trying to determine if a locking
+ * context is ready for use can call this funciton.
+ */
+BOOL LockingIsFree( struct LOCKING_CONTEXT * context )
+{
+	BOOL result;
+	SchedulerStartCritical();
+	switch( context->State )
+	{
+		case LOCKING_STATE_READY:
+			result = TRUE;
+		default:
+			result = FALSE;
+	}
+	SchedulerEndCritical();
+	return result;
+}
