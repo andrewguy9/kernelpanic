@@ -3,8 +3,8 @@
 #include"scheduler.h"
 #include"hal.h"
 #include"interrupt.h"
-#include"mutex.h"
 #include"panic.h"
+#include"isr.h"
 
 /*
  * IO UNIT DESCRIPTION 
@@ -47,27 +47,27 @@ ISR(USART0_RX_vect)
 	char temp;
 	temp = UDR; 
 
-	InterruptStart();
+	IsrStart();
 	if( AsrInputCount < SCRATCH_SIZE )
 	{
 		AsrInputScratch[AsrInputCount++] = temp;
 	}
 	else
 	{
-		KernelPanic( IO_INPUT_BUFF_FULL );
+		KernelPanic( );
 	}
-	InterruptEnd();
+	IsrEnd();
 }
 
 //WRITE INTERRUPT
 ISR(USART0_TX_vect)
 {
-	InterruptStart();
+	IsrStart();
 	if( AsrOutputIndex < AsrOutputCount )
 	{
 		UDR = AsrOutputScratch[AsrOutputIndex++];
 	}
-	InterruptEnd();
+	IsrEnd();
 }
 #endif
 

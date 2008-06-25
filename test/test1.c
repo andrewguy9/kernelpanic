@@ -10,53 +10,45 @@
  */
 
 //
-//Tests of the multithreading system
+//Main routine for threads.
 //
-volatile unsigned int Value1 = 0;
-volatile unsigned int Value2 = 0;
-volatile unsigned int Value3 = 0;
-struct THREAD TestThreadIncrement;
-char TestThreadStackIncrement[500];
-void TestMainIncrement()
+
+void Test1ThreadMain( void * arg )
 {
+	COUNT * var = arg;
 	volatile unsigned char a = 0;
-	HalToggleDebugLedFlag(3);
 	while( 1 )
 	{
-		Value1++;
-		HalToggleDebugLedFlag(1);
+		(*var)++;
 		for(a=1;a>0;a++);
 
 	}
 }
+
+//
+//Vars 
+//
+
+COUNT Value1 = 0;
+COUNT Value2 = 0;
+COUNT Value3 = 0;
+
+//
+//Thread structures
+//
+
+struct THREAD TestThreadIncrement;
+char TestThreadStackIncrement[500];
 
 struct THREAD TestThreadDivide;
 char TestThreadStackDivide[500];
-void TestMainDivide()
-{
-	volatile unsigned char a = 0;
-	while( 1 )
-	{
-		Value2++;
-		HalToggleDebugLedFlag(2);
-		for(a=1;a>0;a++);
-	}
-}
 
 struct THREAD TestThreadExp;
 char TestThreadStackExp[500];
-void TestMainExp()
-{
-	volatile unsigned char a = 0;
-	while( 1 )
-	{
-		Value3++;
-		HalToggleDebugLedFlag(3);
-		for(a=1;a>0;a++);
-	}
-}
 
-
+//
+//Main
+//
 
 int main()
 {
@@ -69,7 +61,8 @@ int main()
 			2,
 			TestThreadStackIncrement,
 			500,
-			TestMainIncrement,
+			Test1ThreadMain,
+			&Value1,
 		   	4,
 			TRUE);
 
@@ -78,7 +71,8 @@ int main()
 			4,
 			TestThreadStackDivide,
 			500,
-			TestMainDivide,
+			Test1ThreadMain,
+			&Value2,
 			5,
 			TRUE);
 
@@ -87,7 +81,8 @@ int main()
 			8,
 			TestThreadStackExp,
 			500,
-			TestMainExp,
+			Test1ThreadMain,
+			&Value3,
 			6,
 			TRUE);
 		

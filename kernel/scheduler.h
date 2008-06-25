@@ -3,7 +3,6 @@
 
 #include"../utils/link.h"
 #include"../utils/utils.h"
-#include"hal.h"
 #include"thread.h"
 
 void SchedulerStartCritical( );
@@ -20,8 +19,6 @@ void SchedulerBlockThread( );
 
 struct THREAD * SchedulerGetActiveThread();
 
-void Schedule( ) ;
-
 void SchedulerStartup( );
 
 void 
@@ -31,7 +28,10 @@ SchedulerCreateThread(
 		char * stack,
 		unsigned int stackSize,
 		THREAD_MAIN main,
+		void * Argument,
 		INDEX debugFlag,
 		BOOL start);
+
+struct LOCKING_CONTEXT * SchedulerGetLockingContext();
 
 #endif

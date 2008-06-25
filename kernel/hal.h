@@ -5,15 +5,15 @@
 #include"../utils/utils.h"
 #include"../utils/flags.h"
 //-----------------------------------------------------------------------------
-//Defines (for all threads)
-typedef void (*THREAD_MAIN) ();
+//Defines (for all builds)
+typedef void (*STACK_INIT_ROUTINE) ();
 //-----------------------------------------------------------------------------
 //Prototypes ( For all Builds )
 void HalInitClock();
 void HalStartup();
 void HalStartInterrupt();
 void HalEndInterrupt();
-void * HalCreateStackFrame( void * stack, THREAD_MAIN main, COUNT stackSize);
+void * HalCreateStackFrame( void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize);
 void HalSerialStartup();
 //-----------------------------------------------------------------------------
 
@@ -134,15 +134,14 @@ void HalSerialStartup();
             "pop r2\n\t" \
             "pop r1\n\t" \
             "pop r0\n\t" \
-			"reti\n\t" \
+			"ret\n\t" \
 			);
 
-void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
+void __attribute__((signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 #define TimerInterrupt TIMER0_OVF_vect
 
 #endif //end if #ifdef AVR_BUILD
 //-----------------------------------------------------------------------------
-
 
 //
 //LINUX DEFINES

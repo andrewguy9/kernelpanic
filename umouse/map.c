@@ -112,7 +112,9 @@ BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map )
 			return MapGetFlag( x, map->Width, y, map->VWalls );
 			break;
 	}
-	ASSERT(0, 0, "Map Get Wall has invalid direction.");
+
+	//Map Get Wall has invalid direction.
+	ASSERT(0);
 	return FALSE;
 }
 

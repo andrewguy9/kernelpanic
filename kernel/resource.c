@@ -31,16 +31,17 @@
 //Private helper functions
 //
 
+/*
+ * Wakes the threads who are waiting.
+ */
 void ResourceWakeThreads( struct RESOURCE * lock )
 {
-	ASSERT( lock->NumShared == 0,
-		   RESOURCE_WAKE_THREADS_NUM_SHARED_NOT_ZERO,
-		   "Cant wake threads when shared threads present.");
+	//We should only be called when there are no shared threads holding
+	//the lock.
+	ASSERT( lock->NumShared == 0 );
 
-
-	ASSERT( ! LinkedListIsEmpty( & lock->WaitingThreads ),
-			RESOURCE_WAKE_THREADS_NO_THREADS_TO_WAKE,
-			"There is no one to wake here");
+	//We can only be called when there are threads waiting for the lock.
+	ASSERT( ! LinkedListIsEmpty( & lock->WaitingThreads ) );
 
 	//This function is called when we are going to start 
 	//reading threads out of the blocked list.
@@ -79,7 +80,7 @@ void ResourceWakeThreads( struct RESOURCE * lock )
 		}
 		else
 		{
-			KernelPanic( RESOURCE_WAKE_THREADS_INVALID_CONTEXT );
+			KernelPanic( );
 		}
 	}while(! LinkedListIsEmpty( & lock->WaitingThreads) );
 }
@@ -125,7 +126,7 @@ void ResourceLockShared( struct RESOURCE * lock, struct LOCKING_CONTEXT * contex
 	}
 	else
 	{
-		KernelPanic( RESOURCE_LOCK_SHARED_INVALID_SATE );
+		KernelPanic( );
 	}
 	LockingSwitch( context );
 }
@@ -169,7 +170,7 @@ void ResourceLockExclusive( struct RESOURCE * lock, struct LOCKING_CONTEXT * con
 	}
 	else
 	{
-		KernelPanic( RESOURCE_LOCK_EXCLUSIVE_INVALID_STATE );
+		KernelPanic( );
 	}
 
 	LockingSwitch( context );
@@ -191,7 +192,7 @@ void ResourceUnlockShared( struct RESOURCE * lock )
 	}
 	else
 	{
-		KernelPanic( RESOURCE_UNLOCK_SHARED_WRONG_STATE );
+		KernelPanic( );
 	}
 
 	LockingEnd();
@@ -202,9 +203,8 @@ void ResourceUnlockExclusive( struct RESOURCE * lock )
 
 	LockingStart();
 
-	ASSERT( lock->NumShared == 0,
-					RESOURCE_UNLOCK_EXCLUSIVE_NUMSHARED_POSITIVE,
-					"There should be no shared after exclusive unlock");
+	//There should be no shared after exclusive unlock
+	ASSERT( lock->NumShared == 0 );
 	
 	if( lock->State == RESOURCE_EXCLUSIVE )
 	{
@@ -222,7 +222,7 @@ void ResourceUnlockExclusive( struct RESOURCE * lock )
 	else
 	{
 		//Unlock came unexpectedly.
-		KernelPanic( RESOURCE_UNLOCK_EXCLUSIVE_UNLOCK_UNEXPECTED );
+		KernelPanic( );
 	}
 
 	LockingEnd();

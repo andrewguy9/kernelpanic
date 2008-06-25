@@ -1,8 +1,9 @@
 #include"timer.h"
 #include"../utils/utils.h"
 #include"../utils/heap.h"
-#include"hal.h"
 #include"thread.h"
+#include"isr.h"
+#include"interrupt.h"
 
 /*
  * Timer Unit Description:
@@ -12,13 +13,8 @@
  * Timers are registered with the system by calling TimerRegister.
  * When the timer fires, the function and argument provided to TimerRegister
  * are called as a post interrupt handler. (So interrupts will be ENABLED).
- * Its perfectly save to have a timer re-register itself.
+ * Its perfectly safe to have a timer re-register itself.
  */
-
-//Variables that the Scheduler shares ONLY with the timer unit.
-//This is because the timer unit is used to force a context switch.
-extern struct THREAD * ActiveThread;
-extern struct THREAD * NextThread;
 
 //
 //Unit Variables
@@ -40,24 +36,20 @@ struct HEAP * TimersOverflow;
 
 /*
  * Takes expired timers off of the heap,
- * and adds them to the queue that will
- * be run by InterruptEnd.
+ * and adds them to the PostInterruptHandlers
+ * list.
  */
 void QueueTimers( )
 {
 	struct HEAP *temp;
 
-	ASSERT( InterruptIsAtomic(), 
-			TIMER_RUN_TIMERS_MUST_BE_ATOMIC,
-			"timers can only be run from interrupt level.");
-
 	Time++;
 
 	if( Time == 0 )
 	{//Overflow occured, switch heaps
-		ASSERT( HeapSize( Timers ) == 0,
-				TIMER_OVERFLOW_HAD_TIMERS,
-				"There sould be no timers on overflow");
+
+		//There should be no timers left when we overflow.
+		ASSERT( HeapSize( Timers ) == 0 );
 				
 		temp = Timers;
 		Timers = TimersOverflow;
@@ -80,7 +72,7 @@ void QueueTimers( )
 
 		timer->Queued = FALSE;
 
-		InterruptRegisterPostHandler(
+		IsrRegisterPostHandler(
 				timer,
 				handler->Function,
 				timer->Context);
@@ -95,9 +87,6 @@ void TimerStartup( )
 
 	Timers = &TimerHeap1;
 	TimersOverflow = &TimerHeap2;
-
-	HalInitClock();
-
 }
 
 
@@ -110,9 +99,8 @@ void TimerRegister(
 
 	InterruptDisable();
 
-	ASSERT( ! newTimer->Queued,
-			TIMER_REGISTER_TIMER_ALREADY_ACTIVE,
-			"timers cannot be double registered");
+	//timers cannot be double registered
+	ASSERT( ! newTimer->Queued );
 
 	//Construct timer
 	newTimer->Queued = TRUE;
@@ -141,46 +129,18 @@ TIME TimerGetTime()
 	return value;
 }
 
-void __attribute__((naked,signal,__INTR_ATTRS)) TIMER0_OVF_vect(void) 
+void TIMER0_OVF_vect(void) 
 {
-	//Save state
-	HAL_SAVE_STATE
-
-	//Save the stack pointer
-	HAL_SAVE_SP( ActiveThread->Stack );
+	//update interrupt level to represent that we are in inerrupt
+	IsrStart();
 
 	//reset the clock
     //TCNT0 = 0xff-1*16; //1 ms//TODO FIX IN HAL
 
-	//update interrupt level to represent that we are in inerrupt
-	InterruptStart();
-
-	//Check to see if stack is valid.
-	ASSERT( ASSENDING( 
-				(unsigned int) ActiveThread->StackLow, 
-				(unsigned int) ActiveThread->Stack, 
-				(unsigned int) ActiveThread->StackHigh ),
-			TIMER_HANDLER_STACK_OVERFLOW,
-			"stack overflow");
-	
-	//Queue up timers
+	//Queue Timers to run as Post Handlers.
 	QueueTimers( );
 
 	//Restore the interrupt level, 
-	//and run the timers that expired.
-	InterruptEnd();
-
-	//Check for scheduling event
-	if( NextThread != NULL )
-	{
-		ActiveThread = NextThread;
-		NextThread = NULL;
-	}
-
-	//Restore stack pointer
-	HAL_SET_SP( ActiveThread->Stack );
-
-	//Restore the thread state
-	HAL_RESTORE_STATE
+	IsrEnd();
 }
 

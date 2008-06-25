@@ -78,6 +78,7 @@ int main()
 		    BlockThread1Stack,
 		    STACK_SIZE, 
 			BlockingMain,
+			NULL,
 		    0,
 		    TRUE);
 	SchedulerCreateThread(
@@ -86,6 +87,7 @@ int main()
 		    BlockThread2Stack,
 		    STACK_SIZE, 
 			BlockingMain,
+			NULL,
 		    1,
 		    TRUE);
 	SchedulerCreateThread(
@@ -94,6 +96,7 @@ int main()
 		    WaitThread1Stack,
 		    STACK_SIZE, 
 			WaitMain,
+			NULL,
 		    2,
 		    TRUE);
 	SchedulerCreateThread(
@@ -102,6 +105,7 @@ int main()
 		    WaitThread2Stack,
 		    STACK_SIZE, 
 			WaitMain,
+			NULL,
 		    3,
 		    TRUE);
 	KernelStart();

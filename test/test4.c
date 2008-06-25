@@ -4,6 +4,7 @@
 #include"../utils/utils.h"
 #include"../kernel/startup.h"
 #include"../kernel/interrupt.h"
+#include"../kernel/panic.h"
 
 /*
  * Tests the sleep unit, should panic on failure.
@@ -34,7 +35,7 @@ void TimerHandler( void * Argument )
 	TimerFlag = FALSE;
 	//Check to see if thread is sleeping
 	if( ThreadFlag == FALSE )
-		KernelPanic( 0 );
+		KernelPanic( );
 }
 
 //Thread Main
@@ -69,7 +70,7 @@ void SleeperMain()
 		InterruptDisable();
 		if( TimerFlag != FALSE )
 		{
-			KernelPanic( 0 );
+			KernelPanic( );
 		}
 		InterruptEnable();
 
@@ -89,6 +90,7 @@ int main()
 			SleeperStack,
 			STACK_SIZE,
 			SleeperMain,
+			NULL,
 			0,
 			TRUE);
 	KernelStart();

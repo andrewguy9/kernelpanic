@@ -7,7 +7,7 @@
  *
  * Mutexes should be used whenever threads and asr's need to access the same data.
  * Be aware that mutexes do not support blocking. This means that they are NOT starvation
- * safe. If a unit polls tightly on the mutex it could hold it FOREVER. Or it may not ever 
+ * safe. If a unit polls tightly on the mutex it could hold it FOREVER, or it may not ever 
  * acquire the lock.
  *
  * To make sure this does not happen only use mutexes when usage of the lock is gauranteed
@@ -43,13 +43,16 @@ BOOL MutexLock( struct MUTEX * lock )
 void MutexUnlock( struct MUTEX * lock )
 {
 	InterruptDisable();
-	ASSERT( lock->Locked == TRUE,
-			MUTEX_UNLOCK_WHILE_UNLOCKED,
-		   	"Tried to unlock an unlocked mutex");
+	ASSERT( lock->Locked == TRUE );
 	lock->Locked = FALSE;
 	InterruptEnable();
 }
 
+/*
+ * Returns the state of the lock:
+ * FALSE - Not Locked
+ * !FALSE - Locked
+ */
 BOOL MutexIsLocked( struct MUTEX * lock )
 {
 	BOOL value;
@@ -59,6 +62,9 @@ BOOL MutexIsLocked( struct MUTEX * lock )
 	return value;
 }
 
+/*
+ * Initializes a mutex to unlocked.
+ */
 void MutexInit( struct MUTEX * lock )
 {
 	lock->Locked = FALSE; 

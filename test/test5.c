@@ -81,7 +81,8 @@ int main()
 			ProducerStack , 
 			STACK_SIZE , 
 			ProducerMain , 
-			0 ,
+			NULL,
+			0,
 			TRUE );
 
 	SchedulerCreateThread( 
@@ -90,7 +91,8 @@ int main()
 			ConsumerBlockingStack , 
 			STACK_SIZE , 
 			ConsumerBlockingMain,
-		   	4 , 
+			NULL,
+		   	4, 
 			TRUE );
 
 	SchedulerCreateThread(
@@ -99,6 +101,7 @@ int main()
 			ConsumerNonBlockingStack , 
 			STACK_SIZE , 
 			ConsumerNonBlockingMain ,
+			NULL,
 		   	5, 
 			TRUE );
 

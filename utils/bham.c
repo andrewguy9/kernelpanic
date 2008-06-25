@@ -31,7 +31,8 @@
 
 void BHamInit( COUNT x, COUNT y, struct BHAM * bham )
 {
-	ASSERT( x >= y, 0, "BHam slope too steep" );
+	//Check if BHam slope too steep
+	ASSERT( x >= y );
 
 	bham->X = x;
 	bham->Y = y;

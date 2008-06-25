@@ -31,3 +31,7 @@ kernel/$(TARGET)_locking.o: kernel/locking.c kernel/locking.h
 kernel/$(TARGET)_worker.o: kernel/worker.c kernel/worker.h
 
 kernel/$(TARGET)_gather.o: kernel/gather.c kernel/gather.h
+
+kernel/$(TARGET)_context.o: kernel/context.c kernel/context.h
+
+kernel/$(TARGET)_isr.o: kernel/isr.c kernel/isr.h

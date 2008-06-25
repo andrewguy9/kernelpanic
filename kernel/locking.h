@@ -84,5 +84,6 @@ void LockingAcquire( struct LOCKING_CONTEXT *context );
 union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING_CONTEXT * waitingContext );
 //check to see if acquired.
 BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context );
-
+//check to see if a context is in use.
+BOOL LockingIsFree( struct LOCKING_CONTEXT * context );
 #endif

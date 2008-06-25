@@ -2,9 +2,17 @@
 
 /*
  * Unit Description:
- * Defines a pipe structure for theads
+ * Provides the concept of a Pipe.
+ * Pipes are a single direction byte based communication mechanism. 
+ * A thread can call PipeWrite to put information into the pipe
+ * which can be consumed by another thread through PipeRead.
+ *
+ * Calls to pipe functions can cause threads to block.
  */
 
+/*
+ * Initializes a pipe
+ */
 void PipeInit( char * buff, COUNT size, struct PIPE * pipe )
 {
 	SemaphoreInit( & pipe->Mutex, 1 );
@@ -13,6 +21,19 @@ void PipeInit( char * buff, COUNT size, struct PIPE * pipe )
 	RingBufferInit( buff, size, & pipe->Ring );
 }
 
+/*
+ * Reads data froma pipe.
+ *
+ * Arguments:
+ * buff - destination buffer
+ * size - maximum length that will be read.
+ * pipe - pipe we will read from
+ *
+ * Returns
+ * The length of data we read. 
+ *
+ * The size of the read data will be min( data in pipe, size)
+ */
 COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
 {
 	BOOL wasFull;
@@ -36,6 +57,19 @@ COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
 	return read;
 }
 
+/*
+ * Writes data to a pipe.
+ *
+ * Arguments
+ * buff - buffer we will read from
+ * size - the maximum distance we will read from.
+ * pipe - the pipe we will copy data to.
+ *
+ * Returns
+ * The length of data we read from buff.
+ *
+ * The size of the written data will be min( space left in pipe, size)
+ */
 COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
 {
 	BOOL wasEmpty;

@@ -3,6 +3,7 @@
 #include"scheduler.h"
 #include"timer.h"
 #include"interrupt.h"
+#include"context.h"
 
 /*
  * Initializes the kernel structures.

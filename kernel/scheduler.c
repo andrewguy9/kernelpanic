@@ -2,8 +2,8 @@
 #include"../utils/utils.h"
 #include"../utils/linkedlist.h"
 #include"timer.h"
-#include"mutex.h"
 #include"interrupt.h"
+#include"context.h"
 
 /*
  * Scheduler Unit:
@@ -12,9 +12,8 @@
  * picks when threads run.
  * 2) Provide a mechanism for a thread
  * to stop itself, and for others to wake it.
- * 3) Provide mechanism to prevent the sceduler
- * from splitting thread level atomic ("critical")
- * operations.
+ * 3) Provide mechanism for thread level atomic 
+ * or "critical sections".
  *
  * Scheduling next thread:
  * The actual Scheduling occurs in the Schedule
@@ -37,8 +36,8 @@
  * Only one unit can block a thread at a time.
  */
 
-//Used to mark critical sections...
-struct MUTEX SchedulerLock;
+COUNT Schedule();
+void SchedulePostHandler( void *arg );
 
 //Scheduler variables: Protected by SchedulerLock
 struct LINKED_LIST Queue1;
@@ -46,15 +45,11 @@ struct LINKED_LIST Queue2;
 struct LINKED_LIST * RunQueue;
 struct LINKED_LIST * DoneQueue;
 
-struct THREAD * ActiveThread;
-struct THREAD * NextThread;
-
-
 //Variables that need to be edited atomically.
 struct POST_HANDLER_OBJECT SchedulerTimer;
-BOOL QuantumExpired;
+TIME QuantumEndTime;
 
-//Thread for idle loop ( the start of thread too )
+//Thread for idle loop ( the start up thread too )
 struct THREAD IdleThread;
 
 //
@@ -69,10 +64,10 @@ struct THREAD IdleThread;
  */
 void SchedulerStartCritical( )
 {
-	BOOL aquired = MutexLock( & SchedulerLock );
-	ASSERT( aquired, 
-			SCHEDULER_START_CRITICAL_MUTEX_NOT_AQUIRED,
-			"Start Critical should always stop the scheduler");
+	BOOL aquired = ContextLock( );
+
+	//Start Critical should always stop the scheduler
+	ASSERT( aquired );
 }
 
 /*
@@ -80,23 +75,29 @@ void SchedulerStartCritical( )
  */
 void SchedulerEndCritical()
 {
-	BOOL quantum;
-	ASSERT( MutexIsLocked( & SchedulerLock ),
-			SCHEDULER_END_CRITICAL_NOT_CRITICAL,
-		   	"Critical section cannot start.");
+	TIME currentTime;
+	COUNT priority;
+	ASSERT( ContextIsCritical( ) );
 
-	//Cant check QuantumExpired unless atomic.
-	InterruptDisable();
-	quantum = QuantumExpired;
-	InterruptEnable();
+	currentTime = TimerGetTime();
+	if( currentTime > QuantumEndTime )
+	{
+		//Quantum has expired while in crit section
+		
+		//Pick next thread
+		priority = Schedule();
 
-	if( quantum )
-	{//Quantum has expired while in crit section, fire manually.
-		SchedulerForceSwitch();
+		//set new end time.
+		QuantumEndTime = currentTime+priority;
+
+		//Switch threads!
+		InterruptDisable();
+		ContextSwitchIfNeeded();
+		InterruptEnable();
 	}
 	else
 	{//Quantum has not expired, so we'll just end the critical section. 
-		MutexUnlock( & SchedulerLock );
+		ContextUnlock( );
 	}
 }
 
@@ -107,45 +108,7 @@ void SchedulerEndCritical()
  */
 BOOL SchedulerIsCritical()
 {
-	return MutexIsLocked( & SchedulerLock );
-}
-
-/*
- * Function which does the actual switching of the stack pointer.
- */
-void 
-__attribute__((naked,__INTR_ATTRS)) //TODO ABSTRCTIFY in HAL
-SchedulerContextSwitch()
-{
-	//perfrom context switch
-	HAL_SAVE_STATE
-	
-	HAL_SAVE_SP( ActiveThread->Stack );
-
-	ASSERT( InterruptIsAtomic(), 
-			SCHEDULER_CONTEXT_SWITCH_NOT_ATOMIC,
-			"Context switch must save state atomically");
-
-	//Check to see if stack is valid.
-	ASSERT( ASSENDING( 
-				(unsigned int) ActiveThread->StackLow, 
-				(unsigned int) ActiveThread->Stack, 
-				(unsigned int) ActiveThread->StackHigh ),
-			SCHEDULER_CONTEXT_SWITCH_STACK_OVERFLOW,
-			"stack overflow");
-
-	//Check for scheduling event
-	if( NextThread != NULL )
-	{
-		ActiveThread = NextThread;
-		NextThread = NULL;
-	}
-
-	InterruptEnd(); //reduce interrupt level without enabling interrupts.
-
-	HAL_SET_SP( ActiveThread->Stack );
-
-	HAL_RESTORE_STATE
+	return ContextIsCritical( );
 }
 
 /*
@@ -154,21 +117,23 @@ SchedulerContextSwitch()
 void  
 SchedulerForceSwitch()
 {
-	ASSERT( MutexIsLocked( & SchedulerLock ),
-			SCHEDULER_FORCE_SWITCH_IS_CRITICAL,
-			"Schedule will not run when in critical section");
+	TIME currentTime;
+	COUNT priority;
 
-	//This needs to be an atomic operation.
-	InterruptDisable();
+	ASSERT( ContextIsCritical( ) );
 
-	//End the critical Section
-	//so that we can schedule
-	MutexUnlock( & SchedulerLock ); 
+	currentTime = TimerGetTime();
 
-	Schedule(); //Schedule next thread manually...
+	//Pick next thread to run.
+	priority = Schedule(); 
+	
+	//Set end of quantum.
+	QuantumEndTime = currentTime + priority;
 
 	//Actually context switch.
-	SchedulerContextSwitch();
+	InterruptDisable();
+	ContextSwitchIfNeeded();
+	InterruptEnable();
 }
 
 /*
@@ -176,15 +141,9 @@ SchedulerForceSwitch()
  */
 void SchedulerResumeThread( struct THREAD * thread )
 {
-	ASSERT( MutexIsLocked( & SchedulerLock ), 
-			SCHEDULER_RESUME_THREAD_MUST_BE_CRIT,
-			"Only run from critical section" );
-	ASSERT( thread->State == THREAD_STATE_BLOCKED, 
-			SCHEDULER_RESUME_THREAD_NOT_BLOCKED,
-			"Thread not blocked" );
-	ASSERT( thread != ActiveThread,
-			SCHEDULER_ACTIVE_THREAD_AWAKENED,
-			"Active thread is by definition running");
+	ASSERT( ContextIsCritical( ) );
+	ASSERT( thread->State == THREAD_STATE_BLOCKED );
+	ASSERT( thread != ContextGetActiveThread() );
 
 	thread->State = THREAD_STATE_RUNNING;
 	HalSetDebugLedFlag( thread->Flag );
@@ -203,73 +162,112 @@ void SchedulerResumeThread( struct THREAD * thread )
  */
 void SchedulerBlockThread( )
 {
-	ASSERT( MutexIsLocked( &SchedulerLock ), 
-			SCHEDULER_BLOCK_THREAD_MUST_BE_CRIT,
-			"Only block thread from critical section");
-	ActiveThread->State = THREAD_STATE_BLOCKED;
-	HalClearDebugLedFlag( ActiveThread->Flag );
+	struct THREAD * activeThread;
+
+	ASSERT( ContextIsCritical() );
+
+	activeThread = ContextGetActiveThread();
+	activeThread->State = THREAD_STATE_BLOCKED;
+	HalClearDebugLedFlag( activeThread->Flag );
 }
 
-void Schedule( void *arg )
+/*
+ * Pick the next thread to run.
+ * Changes links to store threads in lists.
+ * Returns the priority of the next thread.
+ */
+COUNT Schedule()
 {
-	//See if we are allowed to schedule (not in crit section)
-	if( MutexLock( & SchedulerLock ) )
-	{//We are allowed to schedule.
-		//save old thread
-		if( ActiveThread != &IdleThread && 
-				ActiveThread->State == THREAD_STATE_RUNNING)
-		{
-			LinkedListEnqueue( &ActiveThread->Link.LinkedListLink,
-				  DoneQueue);
-		}
+	struct THREAD * activeThread;
+	struct THREAD * nextThread;
 
-		if( LinkedListIsEmpty( RunQueue ) )
-		{
-			//There are no threads in run queue.
-			//This is a sign we have run through
-			//all threads, so well pull from done
-			//queue now
-			struct LINKED_LIST * temp = RunQueue;
-			RunQueue = DoneQueue;
-			DoneQueue = temp;
-		}
+	ASSERT( ContextIsCritical() );
 
-		//Pick the next thread
-		if( ! LinkedListIsEmpty( RunQueue ) )
-		{//there are threads waiting, run one
-			ASSERT( NextThread == NULL,
-					SCHEDULER_SCHEDULE_NEXT_THREAD_NOT_NULL,
-					"Scheduler is running even though NextThread\
-					Is not null, this causes thread dropping");
-			NextThread = BASE_OBJECT( LinkedListPop( RunQueue ),
-					struct THREAD,
-					Link);
-		}
-		else
-		{//there were no threads at all, use idle loop.
-			NextThread = &IdleThread;
-		}
+	activeThread = ContextGetActiveThread();
+	nextThread = NULL;
 
-		//restart the scheduler timer if its turned off.
-		if( ! SchedulerTimer.Queued )
-		{
-			TimerRegister( &SchedulerTimer,
-					NextThread->Priority,
-					Schedule,
-					NULL);
-			QuantumExpired = FALSE;
-		}
+	//save old thread
+	if( activeThread != &IdleThread && 
+			activeThread->State == THREAD_STATE_RUNNING)
+	{
+		LinkedListEnqueue( &activeThread->Link.LinkedListLink,
+				DoneQueue);
+	}
 
-		MutexUnlock( &SchedulerLock );
+	if( LinkedListIsEmpty( RunQueue ) )
+	{
+		//There are no threads in run queue.
+		//This is a sign we have run through
+		//all threads, so well pull from done
+		//queue now
+		struct LINKED_LIST * temp = RunQueue;
+		RunQueue = DoneQueue;
+		DoneQueue = temp;
+	}
+
+	//Pick the next thread
+	if( ! LinkedListIsEmpty( RunQueue ) )
+	{//there are threads waiting, run one
+		nextThread = BASE_OBJECT( LinkedListPop( RunQueue ),
+				struct THREAD,
+				Link);
 	}
 	else
-	{//we are not allowed to schedule.
-		//mark the quantum as expired.
-		InterruptDisable();
-		QuantumExpired = TRUE;
-		InterruptEnable();
+	{//there were no threads at all, use idle loop.
+		nextThread = &IdleThread;
 	}
+
+	ContextSetNextThread( nextThread );
+
+	return nextThread->Priority;
+
 }//end Schedule
+
+/*
+ * Called by the Timer as a PostInterruptHandler.
+ * Will try to schedule. If we cant, then we 
+ * mark the quantum as expired so that when the
+ * critical section does end we can force a switch.
+ */
+void SchedulePostHandler( void *arg )
+{
+	TIME currentTime;
+	COUNT priority;
+
+	//We are going to try to switch to a new thread.
+	//Inorder to to this we must acquire a critical section.
+	if( ContextLock( ) )
+	{
+		//We were able to enter a critical secion!
+		//Now we can schedule a different thread to run.
+		
+		//check and see if quanum has expired.
+		currentTime = TimerGetTime();
+
+		if( currentTime >= QuantumEndTime )
+		{
+			//quantum is over, so pick another thread.
+			priority = Schedule();
+
+			//Calculate the time to end our quantum.
+			QuantumEndTime = currentTime+priority;
+
+			//NOTE: We leak the critical section here because InterruptEnd 
+			//will end it when he does the context switch.
+		}
+		else
+		{
+			//quantim is not over, so end our critical section
+			ContextUnlock();
+		}
+	}
+
+	//Register timer fire again.
+	TimerRegister( &SchedulerTimer,
+			1,
+			SchedulePostHandler,
+			NULL);
+}
 
 void SchedulerStartup()
 {
@@ -281,24 +279,53 @@ void SchedulerStartup()
 	//Initialize the timer
 	TimerRegister( & SchedulerTimer,
 		   	0, 
-			Schedule,
+			SchedulePostHandler,
 			NULL	);
-	QuantumExpired = FALSE;
-	//Set up Schedule Resource
-	MutexInit( & SchedulerLock );
+
+	QuantumEndTime = 0;
 	//Create a thread for idle loop.
-	SchedulerCreateThread( &IdleThread, 1, NULL, 0, NULL, 0x01, FALSE );
+	SchedulerCreateThread( &IdleThread, //Thread 
+			1, //Priority
+			NULL, //Stack
+			0, //Stack Size
+			NULL, //Main
+			NULL, //Argument
+			0x01, //Flag
+			FALSE );
 	//Remove IdleThread from queues... TODO fix this HACK
 	LinkedListInit( & Queue1 );
 	LinkedListInit( & Queue2 );
-	//Initialize ActiveThread
-	ActiveThread = & IdleThread;
-	NextThread = NULL;
+	//Initialize context unit.
+	ContextStartup( & IdleThread );
 }
 
-struct THREAD * SchedulerGetActiveThread()
+/*
+ * Returns the locking context
+ * from the active thread.
+ */
+struct LOCKING_CONTEXT * SchedulerGetLockingContext()
 {
-	return ActiveThread;
+	struct THREAD * activeThread;
+   
+	ASSERT( ContextIsCritical() );
+
+	activeThread = ContextGetActiveThread();
+	return &activeThread->LockingContext;
+}
+
+void SchedulerThreadStartup()
+{
+	struct THREAD * thread;
+	
+	ASSERT( ContextIsCritical() );
+	ASSERT( InterruptIsAtomic() );
+
+	thread = ContextGetActiveThread();
+	
+	ContextUnlock();
+	InterruptEnable();
+
+	thread->Main( thread->Argument );
 }
 
 void SchedulerCreateThread( 
@@ -307,18 +334,18 @@ void SchedulerCreateThread(
 		char * stack,
 		COUNT stackSize,
 		THREAD_MAIN main,
+		void * Argument,
 		INDEX debugFlag,
 		BOOL start)
 {
 	//Make sure data is valid
-	ASSERT( debugFlag < 8,
-			SCHEDULER_CREATE_THREAD_FLAG_TOO_BIG,
-			"debug led has only 8 leds" );
+	ASSERT( debugFlag < 8 );
 
 	//Populate thread struct
 	thread->Priority = priority;
 	thread->Flag = debugFlag;
 	LockingInit( & thread->LockingContext );
+	thread->Main = main;
 	//Add thread to done queue.
 	if( start )
 	{
@@ -331,17 +358,5 @@ void SchedulerCreateThread(
 		thread->State = THREAD_STATE_BLOCKED;
 	}
 	//initialize stack
-	if( stackSize != 0 )
-	{//Populate regular stack
-		thread->Stack = HalCreateStackFrame( stack, main, stackSize );
-		//Save the stack size.
-		thread->StackHigh = stack + stackSize;
-		thread->StackLow = stack;
-	}
-	else
-	{//Populate stack for idle thread
-		thread->Stack = NULL;
-		thread->StackHigh = (char*) -1;
-		thread->StackLow = 0;
-	}
+	ContextInit( &thread->Stack,stack,stackSize,SchedulerThreadStartup);
 }	
