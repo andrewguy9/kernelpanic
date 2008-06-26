@@ -137,8 +137,9 @@ void HalSerialStartup();
 			"ret\n\t" \
 			);
 
-void __attribute__((signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
+//void __attribute__((signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 #define TimerInterrupt TIMER0_OVF_vect
+#define HAL_NAKED_FUNCTION __attribute__((naked,__INTR_ATTRS))
 
 #endif //end if #ifdef AVR_BUILD
 //-----------------------------------------------------------------------------
@@ -152,17 +153,17 @@ void __attribute__((signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 #define HAL_SAVE_SP(dest) //TODO
 #define HAL_SET_SP(value) //TODO
 
-#define HalIsAtomic() (0)//TODO
-#define HalDisableInterrupts() (0)//TODO
-#define HalEnableInterrupts()  (0)//TODO
+inline BOOL HalIsAtomic();
+inline void HalDisableInterrupts();
+inline void HalEnableInterrupts();
 
 extern char DEBUG_LED;
 
-#define HAL_SAVE_STATE //TODO
+#define HAL_SAVE_STATE  //TODO
 
 #define HAL_RESTORE_STATE //TODO
 
-#define TimerInterrupt //TODO
+#define HAL_NAKED_FUNCTION
 
 #endif //end if #ifdef LINUX_BUILD
 //-----------------------------------------------------------------------------
@@ -176,4 +177,5 @@ extern char DEBUG_LED;
 #define HalClearDebugLedFlag( index ) (FlagOff(&(DEBUG_LED),(index)))
 #define HalToggleDebugLedFlag( index ) (FlagToggle(&(DEBUG_LED),(index)))
 #define HalGetDebugLed( ) ( DEBUG_LED )
+
 #endif //end of #ifndef HAL_H

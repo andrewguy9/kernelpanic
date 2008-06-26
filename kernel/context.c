@@ -62,7 +62,7 @@ void ContextStartup( struct THREAD * startThread )
 }
 
 void
-__attribute__((naked,__INTR_ATTRS))
+HAL_NAKED_FUNCTION
 ContextSwitch()
 {
 	//perfrom context switch
