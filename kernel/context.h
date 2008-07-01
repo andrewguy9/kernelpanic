@@ -3,7 +3,6 @@
 
 #include"../utils/utils.h"
 #include"hal.h"
-#include"thread.h"
 #include"stack.h"
 
 void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, STACK_INIT_ROUTINE Foo );
@@ -18,7 +17,7 @@ void ContextStartup( );
 
 struct THREAD * ContextGetActiveThread();
 
-void ContextSetNextThread( struct THREAD * thread );
+void ContextSetNextContext( struct STACK * stack );
 
 void ContextSwitchIfNeeded();
 

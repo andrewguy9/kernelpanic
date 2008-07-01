@@ -10,8 +10,8 @@
  */
 struct MUTEX ContextMutex;
 
-struct THREAD * ActiveThread;
-struct THREAD * NextThread;
+struct STACK * ActiveStack;
+struct STACK * NextStack;
 
 void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, STACK_INIT_ROUTINE Foo )
 {
@@ -54,11 +54,11 @@ BOOL ContextIsCritical( )
 	return MutexIsLocked( &ContextMutex );
 }
 
-void ContextStartup( struct THREAD * startThread )
+void ContextStartup( struct STACK * startStack )
 {
 	MutexInit( &ContextMutex );
-	NextThread = NULL;
-	ActiveThread = startThread;
+	NextStack = NULL;
+	ActiveStack = startStack;
 }
 
 void
@@ -68,7 +68,7 @@ ContextSwitch()
 	//perfrom context switch
 	HAL_SAVE_STATE
 	
-	HAL_SAVE_SP( ActiveThread->Stack.Pointer );
+	HAL_SAVE_SP( ActiveStack->Pointer );
 
 	ASSERT( InterruptIsAtomic() );
 
@@ -76,31 +76,32 @@ ContextSwitch()
 
 	//Check to see if stack has overflowed.
 	ASSERT( ASSENDING( 
-				(unsigned int) ActiveThread->Stack.Low, 
-				(unsigned int) ActiveThread->Stack.Pointer, 
-				(unsigned int) ActiveThread->Stack.High ) );
+				(unsigned int) ActiveStack->Low, 
+				(unsigned int) ActiveStack->Pointer, 
+				(unsigned int) ActiveStack->High ) );
 
 	//Switch threads
-	ActiveThread = NextThread;
-	NextThread = NULL;
+	ActiveStack = NextStack;
+	NextStack = NULL;
 
-	HAL_SET_SP( ActiveThread->Stack.Pointer );
+	HAL_SET_SP( ActiveStack->Pointer );
 
 	HAL_RESTORE_STATE
 }
 
+//TODO MOVE TO SCHEDULER
 struct THREAD * ContextGetActiveThread()
 {
 	ASSERT( ContextIsCritical() );
 	return ActiveThread;
 }
 
-void ContextSetNextThread( struct THREAD * thread )
+void ContextSetNextContext( struct STACK * stack )
 {
 	ASSERT( ContextIsCritical() );
-	ASSERT( NextThread == NULL );
+	ASSERT( NextStack == NULL );
 
-	NextThread = thread;
+	NextStack = stack;
 }
 
 void ContextSwitchIfNeeded()
@@ -111,7 +112,7 @@ void ContextSwitchIfNeeded()
 	{
 		//We are in critical section,
 		//lets see if we have a thread picked to run.
-		if( NextThread != NULL )
+		if( NextStack != NULL )
 		{
 			//Switch threads and end critical section.
 			ContextSwitch();
