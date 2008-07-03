@@ -45,6 +45,9 @@ struct LINKED_LIST Queue2;
 struct LINKED_LIST * RunQueue;
 struct LINKED_LIST * DoneQueue;
 
+struct THREAD * ActiveThread;
+struct THREAD * NextThread;
+
 //Variables that need to be edited atomically.
 struct POST_HANDLER_OBJECT SchedulerTimer;
 TIME QuantumEndTime;
@@ -143,7 +146,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 {
 	ASSERT( ContextIsCritical( ) );
 	ASSERT( thread->State == THREAD_STATE_BLOCKED );
-	ASSERT( thread != ContextGetActiveThread() );
+	ASSERT( thread != ActiveThread );
 
 	thread->State = THREAD_STATE_RUNNING;
 	DEBUG_LED = DEBUG_LED | thread->Flag;
@@ -162,13 +165,10 @@ void SchedulerResumeThread( struct THREAD * thread )
  */
 void SchedulerBlockThread( )
 {
-	struct THREAD * activeThread;
-
 	ASSERT( ContextIsCritical() );
 
-	activeThread = ContextGetActiveThread();
-	activeThread->State = THREAD_STATE_BLOCKED;
-	DEBUG_LED = DEBUG_LED & ~activeThread->Flag;
+	ActiveThread->State = THREAD_STATE_BLOCKED;
+	DEBUG_LED = DEBUG_LED & ~ActiveThread->Flag;
 }
 
 /*
@@ -178,19 +178,13 @@ void SchedulerBlockThread( )
  */
 COUNT Schedule()
 {
-	struct THREAD * activeThread;
-	struct THREAD * nextThread;
-
 	ASSERT( ContextIsCritical() );
 
-	activeThread = ContextGetActiveThread();
-	nextThread = NULL;
-
 	//save old thread
-	if( activeThread != &IdleThread && 
-			activeThread->State == THREAD_STATE_RUNNING)
+	if( ActiveThread != &IdleThread && 
+			ActiveThread->State == THREAD_STATE_RUNNING)
 	{
-		LinkedListEnqueue( &activeThread->Link.LinkedListLink,
+		LinkedListEnqueue( &ActiveThread->Link.LinkedListLink,
 				DoneQueue);
 	}
 
@@ -208,18 +202,18 @@ COUNT Schedule()
 	//Pick the next thread
 	if( ! LinkedListIsEmpty( RunQueue ) )
 	{//there are threads waiting, run one
-		nextThread = BASE_OBJECT( LinkedListPop( RunQueue ),
+		NextThread = BASE_OBJECT( LinkedListPop( RunQueue ),
 				struct THREAD,
 				Link);
 	}
 	else
 	{//there were no threads at all, use idle loop.
-		nextThread = &IdleThread;
+		NextThread = &IdleThread;
 	}
 
-	ContextSetNextThread( nextThread );
+	ContextSetNextContext( & NextThread->Stack );
 
-	return nextThread->Priority;
+	return NextThread->Priority;
 
 }//end Schedule
 
@@ -292,9 +286,10 @@ void SchedulerStartup()
 			NULL, //Argument
 			0x01, //Flag
 			FALSE );
-	//Remove IdleThread from queues... TODO fix this HACK
-	LinkedListInit( & Queue1 );
-	LinkedListInit( & Queue2 );
+
+	ActiveThread = &IdleThread;
+	NextThread = NULL;
+
 	//Initialize context unit.
 	ContextStartup( & IdleThread );
 }
@@ -305,12 +300,9 @@ void SchedulerStartup()
  */
 struct LOCKING_CONTEXT * SchedulerGetLockingContext()
 {
-	struct THREAD * activeThread;
-   
 	ASSERT( ContextIsCritical() );
 
-	activeThread = ContextGetActiveThread();
-	return &activeThread->LockingContext;
+	return &ActiveThread->LockingContext;
 }
 
 void SchedulerThreadStartup()
@@ -320,7 +312,7 @@ void SchedulerThreadStartup()
 	ASSERT( ContextIsCritical() );
 	ASSERT( InterruptIsAtomic() );
 
-	thread = ContextGetActiveThread();
+	thread = ActiveThread;
 	
 	ContextUnlock();
 	InterruptEnable();

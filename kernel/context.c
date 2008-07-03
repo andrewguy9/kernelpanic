@@ -89,13 +89,6 @@ ContextSwitch()
 	HAL_RESTORE_STATE
 }
 
-//TODO MOVE TO SCHEDULER
-struct THREAD * ContextGetActiveThread()
-{
-	ASSERT( ContextIsCritical() );
-	return ActiveThread;
-}
-
 void ContextSetNextContext( struct STACK * stack )
 {
 	ASSERT( ContextIsCritical() );

@@ -15,8 +15,6 @@ BOOL ContextIsCritical( );
 
 void ContextStartup( );
 
-struct THREAD * ContextGetActiveThread();
-
 void ContextSetNextContext( struct STACK * stack );
 
 void ContextSwitchIfNeeded();
