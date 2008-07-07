@@ -67,6 +67,10 @@ enum LOCKING_STATE
 	LOCKING_STATE_CHECKED
 };
 
+//Prototype for wake functions.
+struct LOCKING_CONTEXT;
+typedef void WAKE_FUNCTION ( struct LOCKING_CONTEXT * context );
+
 /*
  * Structure to unify storage of requests.
  */
@@ -75,6 +79,7 @@ struct LOCKING_CONTEXT
 	enum LOCKING_STATE State;
 	union LINK Link;
 	union BLOCKING_CONTEXT BlockingContext;
+	WAKE_FUNCTION * WakeFunction;
 };
 
 //start a locking operation
@@ -84,7 +89,7 @@ void LockingEnd();
 //end a lock operation
 void LockingSwitch( struct LOCKING_CONTEXT * context );
 //initialize a context
-void LockingInit( struct LOCKING_CONTEXT * context );
+void LockingInit( struct LOCKING_CONTEXT * context, WAKE_FUNCTION * foo );
 //aquire a lock
 void LockingAcquire( struct LOCKING_CONTEXT *context );
 //block on a lock

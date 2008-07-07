@@ -81,9 +81,10 @@ void LockingSwitch( struct LOCKING_CONTEXT * context )
  * Initialize a locking context for use.
  * NOT ATOMIC
  */
-void LockingInit( struct LOCKING_CONTEXT * context )
+void LockingInit( struct LOCKING_CONTEXT * context, WAKE_FUNCTION * foo )
 {
 	context->State = LOCKING_STATE_READY;
+	context->WakeFunction = foo;
 }
 
 /*
@@ -94,7 +95,17 @@ void LockingInit( struct LOCKING_CONTEXT * context )
 void LockingAcquire( struct LOCKING_CONTEXT * context )
 {
 	ASSERT( SchedulerIsCritical() );
+	
+	if( context == NULL )
+	{
+		//Context needs to be fetched from active thread.
+		context = SchedulerGetLockingContext();
+	}
 
+	//Now lets pass the job of waking the "thread" to the wake function.
+	context->WakeFunction(context);
+
+	/*
 	if( context == NULL )
 	{
 		//We must retrieve the context from the active thread.
@@ -102,7 +113,7 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
 
 		//If the context is null, then we:
 		//locked successfully without blocking : state == ready or 
-		//checked -> state == checked
+		//checked
 		if( context->State == LOCKING_STATE_READY || 
 				context->State == LOCKING_STATE_CHECKED )
 		{
@@ -145,6 +156,7 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
 			KernelPanic( );
 		}
 	}
+	*/
 }
 
 /*
