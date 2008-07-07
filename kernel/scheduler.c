@@ -333,7 +333,7 @@ void SchedulerCreateThread(
 	//Populate thread struct
 	thread->Priority = priority;
 	thread->Flag = flag;
-	LockingInit( & thread->LockingContext );
+	LockingInit( & thread->LockingContext, NULL );//TODO
 	thread->Main = main;
 	//Add thread to done queue.
 	if( start )

@@ -30,7 +30,7 @@ void Writer()
 	INDEX sequenceIndex=0;
 	INDEX index;
 
-	LockingInit( &block );
+	LockingInit( &block, NULL );//TODO
 
 	while(1)
 	{

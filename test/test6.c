@@ -101,10 +101,10 @@ int main()
 			0x02 );
 
 	ProducerContext.Count = 0; 
-	LockingInit( &ProducerContext.LockingContext );
+	LockingInit( &ProducerContext.LockingContext, NULL );//TODO
 
 	ConsumerContext.Count = 0;
-	LockingInit( &ConsumerContext.LockingContext );
+	LockingInit( &ConsumerContext.LockingContext, NULL );//TODO
 
 	KernelStart();
 	return 0;
