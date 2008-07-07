@@ -9,29 +9,36 @@
 State machine for a struct LOCKING_CONTEXT's state 
 through a locking operation
 
-random         checked
+[random]       [checked]
 |              |  
 Init()         Restart
 |              |
-ready,checked--checked------------------------------------
+[ready,checked]-------------------------------------------
 |                  |                   |                 |
 start()            start()             start()           start()
 startCrit          startcrit           startcrit         startcrit
 |                  |                   |                 |
 Acquire(Null)      Acquire(context)    Block(NULL)       Block(context)
-checked            acquired            blocking          waiting
-|                  |                   store thread      store context
+[checked]          [acquired]          [blocking]        [waiting]
 |                  |                   |                 |
-End()              End()               Switch(NULL)      Switch(context)
-end crit           end crit            switch thread     switch thread
-|                  *                   *                 *
-|                  *                   Acquire(context)  Acquire(context)
-|                  *                   checked           acquired
-|                  *                   |                 |
-|                  IsAcquired(conext)  |                 IsAcquired(context)
-|                  checked             |                 checked
+|                  |                   {store thread}    {store context}
 |                  |                   |                 |
-----------------------------------------------------------
+Switch(Null)       Switch(context)     Switch(NULL)      Switch(context)
+end crit           end crit            switch thread     enter wait state
+*                  *                   *                 *
+*                  *                   Start()           Start()
+*                  *                   start crit        start crit
+*                  *                   |                 |
+*                  *                   Acquire(context)  Acquire(context)
+*                  *                   checked           acquired
+*                  *                   |                 |
+*                  *                   end()             end()
+*                  *                   end crit          end crit
+*                  *                   *                 *
+*                  IsAcquired(conext)  *                 IsAcquired(context)
+*                  checked             *                 {checked}
+*                  *                   *                 *
+**********************************************************
 |
 restart
 */
@@ -40,7 +47,7 @@ restart
  * Procedure for acquiring or blocking on a lock using the locking framework.
  * LockingStart( ) - Enters a critical section
  * LockingBlock( ) or LockingAcquire(  ) - Perform locking operation
- * Calling lock stores away link in blocking case...
+ * Caller lock stores away link in blocking case...
  * LockingSwitch( ) - does the obligatory SchedulerEndCritical() or SchedulerForceSwitch
  */
 
