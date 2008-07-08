@@ -7,40 +7,48 @@
 
 /*
 State machine for a struct LOCKING_CONTEXT's state 
-through a locking operation
+through a locking operation...
 
-[random]       [checked]
-|              |  
-Init()         Restart
-|              |
-[ready,checked]-------------------------------------------
-|                  |                   |                 |
-start()            start()             start()           start()
-startCrit          startcrit           startcrit         startcrit
-|                  |                   |                 |
-Acquire(Null)      Acquire(context)    Block(NULL)       Block(context)
-[checked]          [acquired]          [blocking]        [waiting]
-|                  |                   |                 |
-|                  |                   {store thread}    {store context}
-|                  |                   |                 |
-Switch(Null)       Switch(context)     Switch(NULL)      Switch(context)
-end crit           end crit            switch thread     enter wait state
-*                  *                   *                 *
-*                  *                   Start()           Start()
-*                  *                   start crit        start crit
-*                  *                   |                 |
-*                  *                   Acquire(context)  Acquire(context)
-*                  *                   checked           acquired
-*                  *                   |                 |
-*                  *                   end()             end()
-*                  *                   end crit          end crit
-*                  *                   *                 *
-*                  IsAcquired(conext)  *                 IsAcquired(context)
-*                  checked             *                 {checked}
-*                  *                   *                 *
-**********************************************************
+THREAD(ACQUIRED)    PLAIN(ACQIRED)    THREAD(BLOCK)     PLAIN(BLOCK)       WORKER(ACUQIRED)   WORKER(BLOCK)
+[random]      [ready]
+|             |
+Init()        |
+|             |
+[ready]------------------------------------------------------------------------------------------                  
+|                  |                   |                 |                   |                  |                  
+start()            start()             start()           start()             start()            start()
+|                  |                   |                 |                   |                  |
+Acquire()          Acquire()           Block()           Block()             Acquire()          block()
+[acqired]          [acquired]          [blocking]        [blocking]          [acquired]         [blocking]
+|                  |                   |                 |                   |                  |
+|                  |                   {store thread}    {store context}     |                  {store worker}
+|                  |                   |                 |                   |                  |
+Switch()           Switch()            Switch()          Switch()            Switch()           switch()
+[ready]            [ready]             "block thread"    "enter wait state"  [ready]            "pend worker"
+end critical       end critical        end critical      end critical        end critical       end critical
+*                  *                   *                 *                   *                  *
+*                  *                   Start()           Start()             *                  start()
+*                  *                   |                 |                   *                  |
+*                  *                   Acquire()         Acquire()           *                  Acquire()
+*                  *                   "wake thread"     "end wait state"    *                  "wake work item"
+*                  *                   [acquired]        [acquired]          *                  [acquired]
+*                  *                   |                 |                   *                  |
+*                  *                   end()             end()               *                  end()
+*                  *                   *                 *                   *                  *
+*                  IsAcquired(conext)  *                 IsAcquired()        *                  *
+*                  checked             *                 {checked}           *                  *
+*                  *                   *                 *                   *                  *
+*************************************************************************************************
 |
 restart
+
+Key:
+[locking context state]
+{action that lock should take}
+LockingCall()
+"action from a wake or wait function"
+| = The prisitine execution of a well defined critical section.
+* = The piss stained waters in uncontrolled code section.
 */
 
 /*
@@ -62,14 +70,13 @@ enum LOCKING_STATE
 {
 	LOCKING_STATE_READY,
 	LOCKING_STATE_BLOCKING,
-	LOCKING_STATE_WAITING,
 	LOCKING_STATE_ACQUIRED,
-	LOCKING_STATE_CHECKED
 };
 
 //Prototype for wake functions.
 struct LOCKING_CONTEXT;
-typedef void WAKE_FUNCTION ( struct LOCKING_CONTEXT * context );
+typedef void WAKE_FUNCTION( struct LOCKING_CONTEXT * context );
+typedef void WAIT_FUNCTION( struct LOCKING_CONTEXT * context );
 
 /*
  * Structure to unify storage of requests.
