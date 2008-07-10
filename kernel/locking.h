@@ -11,32 +11,33 @@ through a locking operation...
 
 THREAD(ACQUIRED)    PLAIN(ACQIRED)    THREAD(BLOCK)     PLAIN(BLOCK)       WORKER(ACUQIRED)   WORKER(BLOCK)
 [random]      [ready]
-|             |
-Init()        |
-|             |
-[ready]------------------------------------------------------------------------------------------                  
-|                  |                   |                 |                   |                  |                  
-start()            start()             start()           start()             start()            start()
+*             *
+Init()        *
+*             *
+[ready]******************************************************************************************                  
+*                  *                   *                 *                   *                  *                  
+Start()            Start()             Start()           Start()             Start()            Start()
+start critical     start critical      start critical    start critical      start critical     start critical
 |                  |                   |                 |                   |                  |
-Acquire()          Acquire()           Block()           Block()             Acquire()          block()
+Acquire()          Acquire()           Block()           Block()             Acquire()          Block()
 [acqired]          [acquired]          [blocking]        [blocking]          [acquired]         [blocking]
 |                  |                   |                 |                   |                  |
 |                  |                   {store thread}    {store context}     |                  {store worker}
 |                  |                   |                 |                   |                  |
-Switch()           Switch()            Switch()          Switch()            Switch()           switch()
-[ready]            [ready]             "block thread"    "enter wait state"  [ready]            "pend worker"
+Switch()           Switch()            Switch()          Switch()            Switch()           Switch()
+[ready]            [acquired]          "block thread"    "enter wait state"  [ready]            "pend worker"
 end critical       end critical        end critical      end critical        end critical       end critical
 *                  *                   *                 *                   *                  *
-*                  *                   Start()           Start()             *                  start()
+*                  *                   Start()           Start()             *                  Start()
 *                  *                   |                 |                   *                  |
 *                  *                   Acquire()         Acquire()           *                  Acquire()
 *                  *                   "wake thread"     "end wait state"    *                  "wake work item"
 *                  *                   [acquired]        [acquired]          *                  [acquired]
 *                  *                   |                 |                   *                  |
-*                  *                   end()             end()               *                  end()
+*                  *                   End()             End()               *                  End()
 *                  *                   *                 *                   *                  *
 *                  IsAcquired(conext)  *                 IsAcquired()        *                  *
-*                  checked             *                 {checked}           *                  *
+*                  [ready]             *                 [ready]             *                  *
 *                  *                   *                 *                   *                  *
 *************************************************************************************************
 |
@@ -76,7 +77,7 @@ enum LOCKING_STATE
 //Prototype for wake functions.
 struct LOCKING_CONTEXT;
 typedef void WAKE_FUNCTION( struct LOCKING_CONTEXT * context );
-typedef void WAIT_FUNCTION( struct LOCKING_CONTEXT * context );
+typedef void BLOCK_FUNCTION( struct LOCKING_CONTEXT * context );
 
 /*
  * Structure to unify storage of requests.
@@ -86,6 +87,7 @@ struct LOCKING_CONTEXT
 	enum LOCKING_STATE State;
 	union LINK Link;
 	union BLOCKING_CONTEXT BlockingContext;
+	BLOCK_FUNCTION * BlockFunction;
 	WAKE_FUNCTION * WakeFunction;
 };
 
