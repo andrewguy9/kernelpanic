@@ -22,10 +22,11 @@ start critical     start critical      start critical    start critical      sta
 Acquire()          Acquire()           Block()           Block()             Acquire()          Block()
 [acqired]          [acquired]          [blocking]        [blocking]          [acquired]         [blocking]
 |                  |                   |                 |                   |                  |
-|                  |                   {store thread}    {store context}     |                  {store worker}
+|                  |                   {store context}   {store context}     |                  {store context}
 |                  |                   |                 |                   |                  |
 Switch()           Switch()            Switch()          Switch()            Switch()           Switch()
-[ready]            [acquired]          "block thread"    "enter wait state"  [ready]            "pend worker"
+""                 ""                  "block thread"    "enter wait"        ""                 "pend worker"
+[ready]            [ready]             []                []                  [ready]            []           
 end critical       end critical        end critical      end critical        end critical       end critical
 *                  *                   *                 *                   *                  *
 *                  *                   Start()           Start()             *                  Start()
