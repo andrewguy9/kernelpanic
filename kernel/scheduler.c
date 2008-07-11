@@ -79,14 +79,21 @@ void SchedulerStartCritical( )
 void SchedulerEndCritical()
 {
 	TIME currentTime;
-	COUNT priority;
+	COUNT priority;	
+	BOOL needSwitch = FALSE;
 	ASSERT( ContextIsCritical( ) );
 
+	//Check if quantum has expired while in crit section
 	currentTime = TimerGetTime();
-	if( currentTime > QuantumEndTime )
+	if( currentTime > QuantimEndTime )
+		needSwitch = TRUE;
+
+	//See if thread blocked itself.
+	if(ActiveThread->State == THREAD_STATE_BLOCKED )
+		needSwitch = TRUE;
+
+	if( needSwitch )
 	{
-		//Quantum has expired while in crit section
-		
 		//Pick next thread
 		priority = Schedule();
 
@@ -180,7 +187,7 @@ COUNT Schedule()
 {
 	ASSERT( ContextIsCritical() );
 
-	//save old thread
+	//save old thread unless its blocking or is the idle thread.
 	if( ActiveThread != &IdleThread && 
 			ActiveThread->State == THREAD_STATE_RUNNING)
 	{
