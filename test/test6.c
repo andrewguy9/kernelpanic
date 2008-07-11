@@ -24,7 +24,7 @@ struct SEMAPHORE Semaphore;
 enum WORKER_RETURN WorkerConsumerTask( struct WORKER_ITEM * item )
 {
 	struct WORKER_CONTEXT * context = item->Context;
-	if( LockingIsFree( &context->LockingContext ) )
+	if( LockingIsAcquired( &context->LockingContext ) )
 	{
 		//The context is not in use, so we have not started
 		//trying to acquire the lock! So lets try now.
@@ -101,10 +101,10 @@ int main()
 			0x02 );
 
 	ProducerContext.Count = 0; 
-	LockingInit( &ProducerContext.LockingContext, NULL );//TODO
+	LockingInit( &ProducerContext.LockingContext, NULL, NULL );//TODO
 
 	ConsumerContext.Count = 0;
-	LockingInit( &ConsumerContext.LockingContext, NULL );//TODO
+	LockingInit( &ConsumerContext.LockingContext, NULL, NULL );//TODO
 
 	KernelStart();
 	return 0;

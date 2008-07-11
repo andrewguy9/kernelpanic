@@ -61,7 +61,7 @@ COUNT NonBlocking;
 void ConsumerNonBlockingMain()
 {
 	struct LOCKING_CONTEXT context;
-	LockingInit( & context, NULL ); //TODO 
+	LockingInit( & context, NULL, NULL ); //TODO 
 	while(1)
 	{
 		SemaphoreDown( &Lock, &context );

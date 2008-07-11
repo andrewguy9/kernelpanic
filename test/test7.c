@@ -48,7 +48,7 @@ void BlockingMain()
 void WaitMain()
 {
 	struct LOCKING_CONTEXT context;
-	LockingInit( & context, NULL );//TODO
+	LockingInit( & context, NULL, NULL );//TODO
 	while(TRUE)
 	{
 		GatherSync( & Gather, &context );

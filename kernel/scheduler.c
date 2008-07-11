@@ -85,7 +85,7 @@ void SchedulerEndCritical()
 
 	//Check if quantum has expired while in crit section
 	currentTime = TimerGetTime();
-	if( currentTime > QuantimEndTime )
+	if( currentTime > QuantumEndTime )
 		needSwitch = TRUE;
 
 	//See if thread blocked itself.
@@ -340,7 +340,7 @@ void SchedulerCreateThread(
 	//Populate thread struct
 	thread->Priority = priority;
 	thread->Flag = flag;
-	LockingInit( & thread->LockingContext, NULL );//TODO
+	LockingInit( & thread->LockingContext, NULL, NULL );//TODO
 	thread->Main = main;
 	//Add thread to done queue.
 	if( start )
