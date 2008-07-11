@@ -20,12 +20,12 @@ Start()            Start()             Start()           Start()             Sta
 start critical     start critical      start critical    start critical      start critical     start critical
 |                  |                   |                 |                   |                  |
 Acquire()          Acquire()           Block()           Block()             Acquire()          Block()
+""                 ""                  "block thread"    "enter wait"        ""                 "pend worker"
 [acqired]          [acquired]          [blocking]        [blocking]          [acquired]         [blocking]
 |                  |                   |                 |                   |                  |
 |                  |                   {store context}   {store context}     |                  {store context}
 |                  |                   |                 |                   |                  |
 Switch()           Switch()            Switch()          Switch()            Switch()           Switch()
-""                 ""                  "block thread"    "enter wait"        ""                 "pend worker"
 [ready]            [ready]             []                []                  [ready]            []           
 end critical       end critical        end critical      end critical        end critical       end critical
 *                  *                   *                 *                   *                  *
@@ -33,11 +33,11 @@ end critical       end critical        end critical      end critical        end
 *                  *                   |                 |                   *                  |
 *                  *                   Acquire()         Acquire()           *                  Acquire()
 *                  *                   "wake thread"     "end wait state"    *                  "wake work item"
-*                  *                   [acquired]        [acquired]          *                  [acquired]
+*                  *                   [ready]           [ready]             *                  [ready]
 *                  *                   |                 |                   *                  |
 *                  *                   End()             End()               *                  End()
 *                  *                   *                 *                   *                  *
-*                  IsAcquired(conext)  *                 IsAcquired()        *                  *
+*                  IsAcquired()        *                 IsAcquired()        *                  *
 *                  [ready]             *                 [ready]             *                  *
 *                  *                   *                 *                   *                  *
 *************************************************************************************************
@@ -94,12 +94,10 @@ struct LOCKING_CONTEXT
 
 //start a locking operation
 void LockingStart();
-//end an unlock operation
-void LockingEnd();
 //end a lock operation
 void LockingSwitch( struct LOCKING_CONTEXT * context );
 //initialize a context
-void LockingInit( struct LOCKING_CONTEXT * context, WAKE_FUNCTION * foo );
+void LockingInit( struct LOCKING_CONTEXT * context, BLOCK_FUNCTION * block, WAKE_FUNCTION * wake );
 //aquire a lock
 void LockingAcquire( struct LOCKING_CONTEXT *context );
 //block on a lock
