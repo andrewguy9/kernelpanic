@@ -5,87 +5,55 @@
  * Unit Description
  *
  * Locking unit provides a locking state machine which
- * can be used to various locks for abstractify calls
- * to the scheduler.
- *
- * Using this statemachine, locks can be implemented 
- * to be both blocking or nonblocking with minimal effort.
+ * can be used to various locks and lock consumers to
+ * block appropriately.
  */
+
+//
+//Helper Routines
+//
+
+struct LOCKING_CONTEXT * LockingGetContext( struct LOCKING_CONTEXT * context )
+{
+	if( context == NULL )
+	{
+		//Context needs to be fetched from active thread.
+		context = SchedulerGetLockingContext();
+	}
+
+	return context;
+}
+
+//
+//Init Routines
+//
+
+/*
+ * Initialize a locking context for use.
+ * NOT ATOMIC
+ */
+void LockingInit( struct LOCKING_CONTEXT * context, BLOCK_FUNCTION * block, WAKE_FUNCTION * wake )
+{
+	context->State = LOCKING_STATE_READY;
+	context->BlockFunction = block;
+	context->WakeFunction = wake;
+}
+
+//
+//Start Routines
+//
 
 /*
  * Locks should call LockingStart to start a critical section.
  */
 void LockingStart()
 {
-	ASSERT( !SchedulerIsCritical() );
-
 	SchedulerStartCritical();
 }
 
-/*
- * Locks should call LockingEnd to end critical sections
- * on unlock() operations.
- */
-void LockingEnd(  )
-{
-	ASSERT( SchedulerIsCritical() );
-
-	SchedulerEndCritical();
-}
-
-/*
- * Locks should call LockingSwitch to end a critical section and 
- * context switch if needed. This is used in lock() operations. 
- */
-void LockingSwitch( struct LOCKING_CONTEXT * context )
-{
-	ASSERT( SchedulerIsCritical() );
-
-	if( context == NULL )
-	{
-		//There is no context, so the thread must be on blocking path.
-		context = SchedulerGetLockingContext();
-
-		ASSERT( context->State != LOCKING_STATE_WAITING );
-	}
-	else
-	{
-		//There is a context, so thread must be on waiting path.
-		ASSERT( context->State != LOCKING_STATE_BLOCKING );
-	}
-	
-	switch( context->State )
-	{
-		case LOCKING_STATE_BLOCKING:
-			//we are to block on the lock, switch out
-			SchedulerForceSwitch();
-			break;
-
-		case LOCKING_STATE_WAITING:
-			//we are to wait on the lock, continue in slice
-			SchedulerEndCritical();
-			break;
-
-		case LOCKING_STATE_CHECKED:
-		case LOCKING_STATE_ACQUIRED:
-			//we acquired the lock, continue
-			SchedulerEndCritical();
-			break;
-		case LOCKING_STATE_READY:
-			//lock is marked as ready, this is illegal
-			KernelPanic( );
-	}
-}
-
-/*
- * Initialize a locking context for use.
- * NOT ATOMIC
- */
-void LockingInit( struct LOCKING_CONTEXT * context, WAKE_FUNCTION * foo )
-{
-	context->State = LOCKING_STATE_READY;
-	context->WakeFunction = foo;
-}
+//
+//State Routines
+//
 
 /*
  * Locks should call LockingAcquire to update the statemachine to
@@ -96,67 +64,26 @@ void LockingAcquire( struct LOCKING_CONTEXT * context )
 {
 	ASSERT( SchedulerIsCritical() );
 	
-	if( context == NULL )
-	{
-		//Context needs to be fetched from active thread.
-		context = SchedulerGetLockingContext();
-	}
+	context = LockingGetContext(context);
 
-	//Now lets pass the job of waking the "thread" to the wake function.
-	context->WakeFunction(context);
-
-	/*
-	if( context == NULL )
+	switch( context->State )
 	{
-		//We must retrieve the context from the active thread.
-		context = SchedulerGetLockingContext();
-
-		//If the context is null, then we:
-		//locked successfully without blocking : state == ready or 
-		//checked
-		if( context->State == LOCKING_STATE_READY || 
-				context->State == LOCKING_STATE_CHECKED )
-		{
-			context->State = LOCKING_STATE_CHECKED;
-		}
-		else
-		{
-			KernelPanic( );
-		}
-	}
-	else //context!=NULL
-	{
-		//if we were provided a context
-		//then we are in:
-		//locked successfully without waiting : state == ready or 
-		//checked -> state == acquired
-		if( context->State == LOCKING_STATE_READY ||
-				context->State == LOCKING_STATE_CHECKED )
-		{
-			//we acquired lock right away, send notification
+		case LOCKING_STATE_READY:
+			//we acquired the lock right away. mark.
 			context->State = LOCKING_STATE_ACQUIRED;
-		}
-		//locked successfully after waiting -> state == waiting -> state == acquired
-		else if( context->State == LOCKING_STATE_WAITING )
-		{
-			//The thread was waiting, mark as acquired
-			context->State = LOCKING_STATE_ACQUIRED;
-		}
-		//locked successfully with blocking -> state == blocking
-		else if( context->State == LOCKING_STATE_BLOCKING )
-		{
-			//the thread got blocked. we need to wake him.
-			struct THREAD *thread = BASE_OBJECT(context, struct THREAD, LockingContext);
-			SchedulerResumeThread( thread );
-			context->State = LOCKING_STATE_CHECKED;
-		}
+			break;
 
-		else
-		{
-			KernelPanic( );
-		}
+		case LOCKING_STATE_BLOCKING:
+			//We acquired the lock after blocking.
+			//We need to wake the caller.
+			context->WakeFunction( context );
+			context->State = LOCKING_STATE_READY;
+			break;
+
+		case LOCKING_STATE_ACQUIRED:
+		default:
+			KernelPanic();
 	}
-	*/
 }
 
 /*
@@ -167,28 +94,67 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 {
 	ASSERT( SchedulerIsCritical() );
 
-	if( context == NULL )
-	{
-		//context is active thread, so block him.
-		context = SchedulerGetLockingContext();
-		context->State = LOCKING_STATE_BLOCKING;
-		SchedulerBlockThread( );
-		
-	}
-	else
-	{//context is user specified, make him wait.
-		context->State = LOCKING_STATE_WAITING;
-	}
+	context = LockingGetContext(context);
+
+	ASSERT( context->State == LOCKING_STATE_READY );
 
 	//assign the blocking info so they know why they are blocked
 	context->BlockingContext = * blockingInfo;
+	//call the context's blocking function so the caller gets stopped approperately.
+	context->BlockFunction( context );
+	//set the state of the context
+	context->State = LOCKING_STATE_BLOCKING;
 
-	//return link so they can store blocked thread.
-	
-	ASSERT( context != NULL );
-
+	//return link so the lock can store the blocked context.
 	return &context->Link;
 }
+
+//
+//End Routines
+//
+
+/*
+ * Locks should call LockingSwitch to end a critical section and 
+ * context switch if needed. 
+ */
+void LockingSwitch( struct LOCKING_CONTEXT * context )
+{
+	ASSERT( SchedulerIsCritical() );
+
+	context = LockingGetContext( context );
+	
+	switch( context->State )
+	{
+		case LOCKING_STATE_READY:
+			//When this routine is called the lock must have specified 
+			//weather its acquired or blocked.
+			KernelPanic();
+			break;
+
+		case LOCKING_STATE_BLOCKING:
+			//This caller is going to be blocked, continue.
+			break;
+
+		case LOCKING_STATE_ACQUIRED:
+			//The lock said that this context was granted the lock.
+			//We'll mark the context as ready to acnolege this and retrun.
+			context->State = LOCKING_STATE_READY;
+			break;
+	}
+
+	//The lock calling switch is the singal to end the locking operation.
+	//Now we end the critical section and switch threads (if needed).
+	SchedulerEndCritical();
+}
+
+void LockingEnd()
+{
+	SchedulerEndCritical();
+}
+
+//
+//State Validation Routines
+//
 
 /*
  * Threads which are trying to acquire a lock non blocking
@@ -198,48 +164,29 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 {
 	BOOL result;
+
 	SchedulerStartCritical();
 
 	ASSERT( context != NULL );
 
 	switch( context->State )
 	{
-		case LOCKING_STATE_ACQUIRED:
-			context->State = LOCKING_STATE_CHECKED;
+		case LOCKING_STATE_READY:
 			result = TRUE;
 			break;
 
-		case LOCKING_STATE_WAITING:
+		case LOCKING_STATE_BLOCKING:
 			result = FALSE;
 			break;
 
-		case LOCKING_STATE_READY:
-		case LOCKING_STATE_BLOCKING:
-		case LOCKING_STATE_CHECKED:
+		case LOCKING_STATE_ACQUIRED:
+		default:
 			KernelPanic( );
 			result = FALSE;
 			break;
 	}
 
 	SchedulerEndCritical();
-	return result;
-}
 
-/*
- * Threads trying to determine if a locking
- * context is ready for use can call this funciton.
- */
-BOOL LockingIsFree( struct LOCKING_CONTEXT * context )
-{
-	BOOL result;
-	SchedulerStartCritical();
-	switch( context->State )
-	{
-		case LOCKING_STATE_READY:
-			result = TRUE;
-		default:
-			result = FALSE;
-	}
-	SchedulerEndCritical();
 	return result;
 }
