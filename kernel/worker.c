@@ -5,24 +5,70 @@
 
 struct LINKED_LIST WorkerItemQueue;
 
+//
+//Helper Functions
+//
+
+struct WORKER_ITEM * WorkerGetItem()
+{
+	struct LINKED_LIST_LINK * link;
+
+	link = LinkedListPop( &WorkerItemQueue );
+
+	if( link == NULL )
+		return NULL;
+	else
+		return BASE_OBJECT( link, struct WORKER_ITEM, Link );
+}
+
+void AddItem( struct WORKER_ITEM * worker )
+{
+	InterruptDisable();
+	LinkedListEnqueue( &worker->Link.LinkedListLink, &WorkerItemQueue );
+	InterruptEnable();
+}
+
+//
+//Locking block and wake functions
+//
+
+void WorkerBlockOnLock( struct LOCKING_CONTEXT * context )
+{
+	//We do nothing because the work item is automatically
+	//pulled out of the work queue, and is added to the lock list.
+	return;
+}
+
+void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
+{
+	struct WORK_ITEM * worker;
+
+	worker = BASE_OBJECT( context,
+				struct WORKER_ITEM,
+				LockingContext);
+
+	//Now that the work item is unblocked, we can
+	//add it back to the work item queue.
+	AddItem( worker );
+}
+
+//
+//Public Functions
+//
+
 void WorkerStartup()
 {
-	LinkedListInit( &WorkerItemQueue );	
+	LinkedListInit( & WorkerItemQueue );	
 }
 
 void WorkerThreadMain()
 {
 	struct WORKER_ITEM * item;
-	enum WORKER_RETURN result;
 	
 	while(TRUE)
 	{
 		//Fetch a handler
-		InterruptDisable();
-		item = BASE_OBJECT( LinkedListPop( &WorkerItemQueue ),
-				struct WORKER_ITEM,
-				Link);
-		InterruptEnable();
+		item = GetItem();
 
 		if( item == NULL )
 		{//there is no item, lets switch threads
@@ -32,13 +78,10 @@ void WorkerThreadMain()
 		else
 		{//there is a item, so execute it.
 
-			//Make sure that item is not finished.
-			ASSERT( ! item->Finished );
-
 			//run handler
 			result = item->Foo(item);
 
-			//
+			//Determine what to do with work item.
 			InterruptDisable();
 			if( result == WORKER_FINISHED )
 			{
@@ -50,6 +93,11 @@ void WorkerThreadMain()
 				//the item needs more processing. 
 				//add back into queue.
 				LinkedListEnqueue( &item->Link.LinkedListLink, &WorkerItemQueue );
+			}
+			else if( result == WORKER_BLOCKED )
+			{
+				//the work item is blocked on a lock, do
+				//nothing.
 			}
 			InterruptEnable();
 		}
@@ -73,7 +121,7 @@ void WorkerCreateWorker(
 			TRUE);
 }
 
-void WorkerAddItem( WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  )
+void WorkerInitItem( WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  )
 {
 	InterruptDisable();
 
