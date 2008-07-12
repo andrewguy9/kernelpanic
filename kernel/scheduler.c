@@ -56,6 +56,39 @@ TIME QuantumEndTime;
 struct THREAD IdleThread;
 
 //
+//Private Helper Functions
+//
+
+void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
+{
+	//The context is embeded in a thread, extract it.
+	struct THREAD * thread = BASE_OBJECT( context,
+				struct THREAD,
+				LockingContext);
+
+	//Lets make sure that context belongs to the active thread
+	ASSERT( thread == ActiveThread );
+
+	//We need to block the thread so it is not rescheduled 
+	//until the lock is acquired.
+	SchedulerBlockThread();
+}
+
+void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
+{
+	//The context is embeded in a thread, extract it.
+	struct THREAD * thread = BASE_OBJECT( context,
+				struct THREAD,
+				LockingContext);
+
+	//This thread should be currently blocked.
+	ASSERT( thread->State == THREAD_STATE_BLOCKED );
+
+	//Wake this thread from his slumber.
+	SchedulerResumeThread( thread );
+}
+
+//
 //Public Functions
 //
 
@@ -340,7 +373,7 @@ void SchedulerCreateThread(
 	//Populate thread struct
 	thread->Priority = priority;
 	thread->Flag = flag;
-	LockingInit( & thread->LockingContext, NULL, NULL );//TODO
+	LockingInit( & thread->LockingContext, SchedulerBlockOnLock, SchedulerWakeOnLock );
 	thread->Main = main;
 	//Add thread to done queue.
 	if( start )
