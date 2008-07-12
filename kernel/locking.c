@@ -190,3 +190,18 @@ BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 
 	return result;
 }
+
+//
+//Wake and Block functions for NonBlocking Consumers
+//
+
+void LockingWakeNonBlocking( struct LOCKING_CONTEXT * context )
+{
+	return;
+}
+
+void LockingBlockNonBlocking( struct LOCKING_CONTEXT * context )
+{
+	return;
+}
+

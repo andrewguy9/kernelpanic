@@ -106,4 +106,12 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context );
 //check to see if a context is in use.
 BOOL LockingIsFree( struct LOCKING_CONTEXT * context );
+
+//
+//Wake and Block functions for NonBlocking Consumers
+//
+
+void LockingWakeNonBlocking( struct LOCKING_CONTEXT * context );
+void LockingBlockNonBlocking( struct LOCKING_CONTEXT * context );
+
 #endif
