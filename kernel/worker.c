@@ -41,7 +41,7 @@ void WorkerBlockOnLock( struct LOCKING_CONTEXT * context )
 
 void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
 {
-	struct WORK_ITEM * worker;
+	struct WORKER_ITEM * worker;
 
 	worker = BASE_OBJECT( context,
 				struct WORKER_ITEM,
@@ -64,42 +64,44 @@ void WorkerStartup()
 void WorkerThreadMain()
 {
 	struct WORKER_ITEM * item;
+	enum WORKER_RETURN result;
 	
 	while(TRUE)
 	{
 		//Fetch a handler
-		item = GetItem();
+		item = WorkerGetItem();
 
 		if( item == NULL )
-		{//there is no item, lets switch threads
+		{
+			//there is no item, lets switch threads
 			SchedulerStartCritical();
 			SchedulerForceSwitch();
 		}
 		else
-		{//there is a item, so execute it.
-
-			//run handler
+		{
+			ASSERT(! item->Finished);
+			//there is a item, so execute it.
 			result = item->Foo(item);
 
 			//Determine what to do with work item.
-			InterruptDisable();
-			if( result == WORKER_FINISHED )
+			switch( result )
 			{
-				//the item is done, mark so caller knows.
-				item->Finished = TRUE;
-			}
-			else if( result == WORKER_PENDED )
-			{
+				case WORKER_FINISHED:
+					//the item is done, mark so caller knows.
+					item->Finished = TRUE;
+					break;
+
+				case WORKER_BLOCKED:
+					//the work item is blocked on a lock, do
+					//nothing.
+					break;
+
+				case WORKER_PENDED:
 				//the item needs more processing. 
 				//add back into queue.
 				LinkedListEnqueue( &item->Link.LinkedListLink, &WorkerItemQueue );
+				break;
 			}
-			else if( result == WORKER_BLOCKED )
-			{
-				//the work item is blocked on a lock, do
-				//nothing.
-			}
-			InterruptEnable();
 		}
 	}
 }
@@ -126,11 +128,11 @@ void WorkerInitItem( WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * i
 	InterruptDisable();
 
 	item->Foo = foo;
-	item->Finished = FALSE;
+	LockingInit( &item->LockingContext, WorkerBlockOnLock, WorkerWakeOnLock );
 	item->Context = context;
 
 	LinkedListEnqueue( &item->Link.LinkedListLink, &WorkerItemQueue );
-	
+	item->Finished = FALSE;
 	InterruptEnable();
 }
 
@@ -141,4 +143,15 @@ BOOL WorkerItemIsFinished( struct WORKER_ITEM * item )
 	result = item->Finished;
 	InterruptEnable();
 	return result;
+}
+
+void * WorkerGetContext( struct WORKER_ITEM * item )
+{
+	return item->Context;
+}
+
+struct LOCKING_CONTEXT * WorkerGetLockingContext( struct WORKER_ITEM * item )
+{
+	ASSERT( item!=NULL );
+	return &item->LockingContext;
 }

@@ -143,6 +143,14 @@ BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
 	return result;
 }
 
+BOOL LockingIsFree( struct LOCKING_CONTEXT * context )
+{
+	if( context->State == LOCKING_STATE_READY )
+		return TRUE;
+	else
+		return FALSE;
+}
+
 //
 //Wake and Block functions for NonBlocking Consumers
 //

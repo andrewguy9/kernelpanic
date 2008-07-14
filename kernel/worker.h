@@ -5,7 +5,7 @@
 
 struct WORKER_ITEM;
 
-enum WORKER_RETURN { WORKER_QUEUED, WORKER_PENDED, WORKER_BLOCKED };
+enum WORKER_RETURN { WORKER_QUEUED, WORKER_PENDED, WORKER_BLOCKED, WORKER_FINISHED };
 
 typedef enum WORKER_RETURN (* WORKER_FUNCTION) ( struct WORKER_ITEM * item );
 
@@ -14,8 +14,8 @@ struct WORKER_ITEM
 	union LINK Link;
 	WORKER_FUNCTION Foo;
 	struct LOCKING_CONTEXT LockingContext;
-	BOOL Finished;
 	void * Context;
+	BOOL Finished;
 };
 
 void WorkerStartup();
@@ -30,4 +30,7 @@ void WorkerInitItem( WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * i
 
 BOOL WorkerItemIsFinished( struct WORKER_ITEM * item );
 
+void * WorkerGetContext( struct WORKER_ITEM * item );
+
+struct LOCKING_CONTEXT * WorkerGetLockingContext( struct WORKER_ITEM * item );
 #endif
