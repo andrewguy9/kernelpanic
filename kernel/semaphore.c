@@ -37,7 +37,7 @@ void SemaphoreDown( struct SEMAPHORE * lock, struct LOCKING_CONTEXT * context )
 		lock->Count--;
 		LockingAcquire( context );	
 	}
-	LockingSwitch( context );
+	LockingEnd();
 }
 
 void SemaphoreUp( struct SEMAPHORE * lock )

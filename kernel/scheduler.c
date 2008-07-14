@@ -72,6 +72,8 @@ void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 	//We need to block the thread so it is not rescheduled 
 	//until the lock is acquired.
 	SchedulerBlockThread();
+	//blocking calls do not require notification. Set locking state to ready.
+	context->State = LOCKING_STATE_READY;
 }
 
 void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )

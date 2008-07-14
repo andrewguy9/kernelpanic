@@ -67,6 +67,6 @@ void GatherSync( struct GATHER * gather, struct LOCKING_CONTEXT * context )
 		LinkedListEnqueue( &link->LinkedListLink, &gather->List );
 
 		//We may need to switch threads.	
-		LockingSwitch( context );
+		LockingEnd();
 	}
 }

@@ -128,7 +128,7 @@ void ResourceLockShared( struct RESOURCE * lock, struct LOCKING_CONTEXT * contex
 	{
 		KernelPanic( );
 	}
-	LockingSwitch( context );
+	LockingEnd();
 }
 
 void ResourceLockExclusive( struct RESOURCE * lock, struct LOCKING_CONTEXT * context )
@@ -173,7 +173,7 @@ void ResourceLockExclusive( struct RESOURCE * lock, struct LOCKING_CONTEXT * con
 		KernelPanic( );
 	}
 
-	LockingSwitch( context );
+	LockingEnd();
 }
 
 void ResourceUnlockShared( struct RESOURCE * lock )

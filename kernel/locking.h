@@ -20,25 +20,24 @@ Start()            Start()             Start()           Start()             Sta
 start critical     start critical      start critical    start critical      start critical     start critical
 |                  |                   |                 |                   |                  |
 Acquire()          Acquire()           Block()           Block()             Acquire()          Block()
-""                 ""                  "block thread"    "enter wait"        ""                 "pend worker"
-[acqired]          [acquired]          [blocking]        [blocking]          [acquired]         [blocking]
+"set state"        "set state"         "block thread"    "enter wait"        "set state"        "pend worker"
+[ready]            [acquired]          [blocking]        [blocking]          [acquried]         [blocking]
 |                  |                   |                 |                   |                  |
 |                  |                   {store context}   {store context}     |                  {store context}
 |                  |                   |                 |                   |                  |
-Switch()           Switch()            Switch()          Switch()            Switch()           Switch()
-[ready]            [ready]             []                []                  [ready]            []           
+End()              End()               End()             End()               End()              End()
 end critical       end critical        end critical      end critical        end critical       end critical
 *                  *                   *                 *                   *                  *
 *                  *                   Start()           Start()             *                  Start()
 *                  *                   |                 |                   *                  |
 *                  *                   Acquire()         Acquire()           *                  Acquire()
 *                  *                   "wake thread"     "end wait state"    *                  "wake work item"
-*                  *                   [ready]           [ready]             *                  [ready]
+*                  *                   [ready]           [acquired]          *                  [ready]
 *                  *                   |                 |                   *                  |
 *                  *                   End()             End()               *                  End()
 *                  *                   *                 *                   *                  *
-*                  IsAcquired()        *                 IsAcquired()        *                  *
-*                  [ready]             *                 [ready]             *                  *
+*                  IsAcquired()        *                 IsAcquired()        IsAcquired()       IsAcquired()
+*                  [ready]             *                 [ready]             [ready]            [ready]
 *                  *                   *                 *                   *                  *
 *************************************************************************************************
 |
@@ -58,7 +57,7 @@ LockingCall()
  * LockingStart( ) - Enters a critical section
  * LockingBlock( ) or LockingAcquire(  ) - Perform locking operation
  * Caller lock stores away link in blocking case...
- * LockingSwitch( ) - does the obligatory SchedulerEndCritical() or SchedulerForceSwitch
+ * End( ) - does the obligatory SchedulerEndCritical which may context switch.
  */
 
 /*
@@ -94,8 +93,6 @@ struct LOCKING_CONTEXT
 
 //start a locking operation
 void LockingStart();
-//end a lock operation
-void LockingSwitch( struct LOCKING_CONTEXT * context );
 //initialize a context
 void LockingInit( struct LOCKING_CONTEXT * context, BLOCK_FUNCTION * block, WAKE_FUNCTION * wake );
 //aquire a lock
