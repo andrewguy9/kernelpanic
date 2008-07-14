@@ -29,7 +29,7 @@ SchedulerCreateThread(
 		unsigned int stackSize,
 		THREAD_MAIN main,
 		void * Argument,
-		char flag,
+		INDEX debugFlag,
 		BOOL start);
 
 struct LOCKING_CONTEXT * SchedulerGetLockingContext();

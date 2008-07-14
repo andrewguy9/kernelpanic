@@ -63,7 +63,7 @@ int main()
 			500,
 			Test1ThreadMain,
 			&Value1,
-		   	0x10,
+		   	4,
 			TRUE);
 
 	SchedulerCreateThread(
@@ -73,7 +73,7 @@ int main()
 			500,
 			Test1ThreadMain,
 			&Value2,
-			0X20,
+			5,
 			TRUE);
 
 	SchedulerCreateThread(
@@ -83,7 +83,7 @@ int main()
 			500,
 			Test1ThreadMain,
 			&Value3,
-			0X40,
+			6,
 			TRUE);
 		
 	KernelStart();

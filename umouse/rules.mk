@@ -21,4 +21,4 @@ umouse/$(TARGET)_motor.o: umouse/motor.c umouse/motor.h
 umouse/motortest.o: umouse/motortest.c
 
 #actual umouse exe
-umouse/main.o: umouse/main.c
+umouse/$(TARGET)_main.o: umouse/main.c

@@ -4,6 +4,7 @@
 #include"thread.h"
 #include"isr.h"
 #include"interrupt.h"
+#include"hal.h"
 
 /*
  * Timer Unit Description:
@@ -87,6 +88,8 @@ void TimerStartup( )
 
 	Timers = &TimerHeap1;
 	TimersOverflow = &TimerHeap2;
+
+	HalInitClock();
 }
 
 
@@ -129,13 +132,13 @@ TIME TimerGetTime()
 	return value;
 }
 
-void TIMER0_OVF_vect(void) 
+void TimerInterrupt(void) 
 {
 	//update interrupt level to represent that we are in inerrupt
 	IsrStart();
 
 	//reset the clock
-    TCNT0 = 0xff-1*16; //1 ms
+    //TCNT0 = 0xff-1*16; //1 ms//TODO FIX IN HAL
 
 	//Queue Timers to run as Post Handlers.
 	QueueTimers( );

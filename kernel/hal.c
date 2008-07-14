@@ -29,8 +29,6 @@ void HalStartup()
 	DEBUG_LED_DDR = 0xff;
     DEBUG_SW_DDR = 0x00;
     DEBUG_SW_PORT = 0xff;
-
-	HalInitClock();
 }
 
 void HalInitClock()
@@ -70,6 +68,96 @@ void HalSerialStartup()
 	UCSRC = UCSZ_8BIT;
 	UCSRB = _BV(TXCIE) | _BV(RXCIE) | _BV(RXEN) | _BV(TXEN);
 }
+#endif// end avr build
+//-----------------------------------------------------------------------------
+//
+//PC CODE
+//
+#ifdef PC_BUILD
+
+#include<sys/time.h>
+#include<signal.h>
+
+char DEBUG_LED;
+BOOL AtomicState;
+struct itimerval TimerInterval;
+
+void HalLinuxTimer();
+
+void HalStartup()
+{
+	DEBUG_LED = 0;
+	AtomicState = TRUE;
+}
+
+void HalInitClock()
+{
+	int result;
+	
+	//Set the timer handler.
+	signal(SIGVTALRM, HalLinuxTimer );
+
+	//Set the timer interval.
+	TimerInterval.it_interval.tv_sec = 0;
+	TimerInterval.it_interval.tv_usec = 1;
+	TimerInterval.it_value.tv_sec = 0;
+	TimerInterval.it_value.tv_usec = 1;
+	result = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
+	ASSERT(result == 0 );
+}
+
+void * HalCreateStackFrame( void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize )
+{
+	//TODO	
+	return NULL;
+}
+
+void HalSerialStartup()
+{
+	//TODO
+}
+
+inline BOOL HalIsAtomic()
+{
+	return AtomicState;
+}
+
+inline void HalDisableInterrupts()
+{
+	AtomicState = TRUE;
+}
+
+inline void HalEnableInterrupts()
+{
+	AtomicState = FALSE;
+}
+
+
+//prototype for handler.
+void TimerInterrupt();
+
+/*
+ * Acts like the hardware clock.
+ * Calls TimerInterrupt if he can.
+ */
+void HalLinuxTimer()
+{
+	//Check to see if we are atomic. If we are
+	//then the timer "could not have fired" and we
+	//can return. Otherwise call timer.
+	
+	signal(SIGVTALRM, HalLinuxTimer);//remember to reset the timer...
+
+	if( AtomicState )
+		return;
+	else//AtomicState == 0
+	{
+		AtomicState = TRUE;//We are simulating a hardware interrupt, so atomic goes to true.
+		TimerInterrupt();
+		AtomicState = FALSE;//We are simulating a hardware interrupt, so when timer interrupt returns there is an implied release of interrupt flag.
+	}
+}
+
 #endif
 //-----------------------------------------------------------------------------
 

@@ -5,7 +5,7 @@ include build_rules.mk
 .PHONY: all tests umouse board motortest clean 
 
 tests:
-	make $(PC_STRING) -f makefile.main tests
+	make $(PC_STRING) -f makefile.main tests umouse
 umouse:
 	make $(AVR_STRING) -f makefile.main umouse
 board:

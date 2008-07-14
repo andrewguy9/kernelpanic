@@ -25,5 +25,10 @@ void TimerRegister(
 		HANDLER_FUNCTION * handler,
 		void * argument );
 
+//
+//  Timer Handler
+//
+
+void TimerInterrupt(void);
 
 #endif

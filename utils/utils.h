@@ -19,10 +19,12 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#define ASSERT( condition ) if( ! (condition) ) {\
-		printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__); exit(0); } \
-		printf("dead\n")
-
+#define ASSERT( condition ) \
+	if( !(condition) )      \
+		printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__);	\
+	if( !(condition) )		\
+		exit(0)
+	
 #endif
 
 //

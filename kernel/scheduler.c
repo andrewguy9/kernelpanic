@@ -191,7 +191,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 	ASSERT( thread != ActiveThread );
 
 	thread->State = THREAD_STATE_RUNNING;
-	DEBUG_LED = DEBUG_LED | thread->Flag;
+	HalSetDebugLedFlag( thread->Flag );
 
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 }
@@ -210,7 +210,7 @@ void SchedulerBlockThread( )
 	ASSERT( ContextIsCritical() );
 
 	ActiveThread->State = THREAD_STATE_BLOCKED;
-	DEBUG_LED = DEBUG_LED & ~ActiveThread->Flag;
+	HalClearDebugLedFlag( ActiveThread->Flag );
 }
 
 /*
@@ -369,19 +369,22 @@ void SchedulerCreateThread(
 		COUNT stackSize,
 		THREAD_MAIN main,
 		void * Argument,
-		char flag,
+		INDEX debugFlag,
 		BOOL start)
 {
+	//Make sure data is valid
+	ASSERT( debugFlag < 8 );
+
 	//Populate thread struct
 	thread->Priority = priority;
-	thread->Flag = flag;
+	thread->Flag = debugFlag;
 	LockingInit( & thread->LockingContext, SchedulerBlockOnLock, SchedulerWakeOnLock );
 	thread->Main = main;
 	//Add thread to done queue.
 	if( start )
 	{
 		thread->State = THREAD_STATE_RUNNING;
-		DEBUG_LED = DEBUG_LED | flag;
+		HalSetDebugLedFlag( debugFlag );
 		LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 	}
 	else

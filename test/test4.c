@@ -4,6 +4,7 @@
 #include"../utils/utils.h"
 #include"../kernel/startup.h"
 #include"../kernel/interrupt.h"
+#include"../kernel/panic.h"
 
 /*
  * Tests the sleep unit, should panic on failure.
@@ -90,7 +91,7 @@ int main()
 			STACK_SIZE,
 			SleeperMain,
 			NULL,
-			0x02,
+			0,
 			TRUE);
 	KernelStart();
 	return 0;

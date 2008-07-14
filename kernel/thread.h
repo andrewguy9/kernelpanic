@@ -19,7 +19,7 @@ struct THREAD
 	struct STACK Stack;
 	THREAD_MAIN * Main;
 	void * Argument;
-	char Flag;
+	INDEX Flag;
 };
 
 

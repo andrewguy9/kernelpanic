@@ -90,14 +90,14 @@ int main()
 			300, 
 			ThreadMain, 
 			NULL,
-			0x01 , 
+			0, 
 			TRUE );
 
 	WorkerCreateWorker(
 			&WorkerThread,
 			WorkerStack,
 			300,
-			0x02 );
+			1 );
 
 	ProducerContext.Count = 0; 
 	ConsumerContext.Count = 0;

@@ -1,5 +1,6 @@
 #include"locking.h"
 #include"scheduler.h"
+#include"panic.h"
 
 /*
  * Unit Description
