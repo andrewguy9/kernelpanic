@@ -327,13 +327,13 @@ void SchedulerStartup()
 			NULL, //Main
 			NULL, //Argument
 			0x01, //Flag
-			FALSE );
+			FALSE );//Start
 
 	ActiveThread = &IdleThread;
 	NextThread = NULL;
 
 	//Initialize context unit.
-	ContextStartup( & IdleThread );
+	ContextStartup( & IdleThread.Stack );
 }
 
 /*
