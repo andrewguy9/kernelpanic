@@ -60,6 +60,8 @@ void HalSerialStartup();
 #define DEBUG_SW_PORT      PORTA
 #define DEBUG_SW_DDR       DDRA
 
+#define HAL_RESET_CLOCK (TCNT0 = 0xff-1*16)
+
 #define HAL_SAVE_STATE \
 		asm( \
 			"push r0\n\t" \
@@ -164,6 +166,8 @@ extern char DEBUG_LED;
 #define HAL_RESTORE_STATE //TODO
 
 #define HAL_NAKED_FUNCTION
+
+#define HAL_RESET_CLOCK
 
 #endif //end if #ifdef LINUX_BUILD
 //-----------------------------------------------------------------------------
