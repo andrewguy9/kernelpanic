@@ -15,7 +15,7 @@
  * Disables interrupts and enters busy loop. Call for errors inside
  * of kernel. 
  */
-void Panic( char * file, int line )
+void Panic( char file[], int line )
 {
 	volatile char failed = 1;
 	InterruptDisable();
