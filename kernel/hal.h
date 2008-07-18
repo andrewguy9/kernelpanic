@@ -139,7 +139,7 @@ void HalSerialStartup();
 			"ret\n\t" \
 			);
 
-//void __attribute__((signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
+void __attribute__((signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 #define TimerInterrupt TIMER0_OVF_vect
 #define HAL_NAKED_FUNCTION __attribute__((naked,__INTR_ATTRS))
 
