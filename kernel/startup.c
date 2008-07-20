@@ -4,6 +4,7 @@
 #include"timer.h"
 #include"interrupt.h"
 #include"context.h"
+#include"panic.h"
 
 /*
  * Initializes the kernel structures.
@@ -27,5 +28,6 @@ void KernelStart()
 {
 	InterruptEnable();
 	while(1);
+	KernelPanic();
 }
 
