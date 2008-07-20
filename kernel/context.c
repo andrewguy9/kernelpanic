@@ -113,3 +113,8 @@ void ContextSwitchIfNeeded()
 		}
 	}
 }
+
+struct STACK * ContextGetStack( )
+{
+	return ActiveStack;
+}

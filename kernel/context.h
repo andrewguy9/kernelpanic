@@ -13,10 +13,11 @@ void ContextUnlock( );
 
 BOOL ContextIsCritical( );
 
-void ContextStartup( );
+void ContextStartup( struct STACK * stack );
 
 void ContextSetNextContext( struct STACK * stack );
 
 void ContextSwitchIfNeeded();
 
+struct STACK * ContextGetStack( );
 #endif

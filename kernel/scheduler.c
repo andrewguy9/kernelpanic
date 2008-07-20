@@ -4,6 +4,7 @@
 #include"timer.h"
 #include"interrupt.h"
 #include"context.h"
+#include"panic.h"
 
 /*
  * Scheduler Unit:
@@ -45,9 +46,6 @@ struct LINKED_LIST Queue2;
 struct LINKED_LIST * RunQueue;
 struct LINKED_LIST * DoneQueue;
 
-struct THREAD * ActiveThread;
-struct THREAD * NextThread;
-
 //Variables that need to be edited atomically.
 struct POST_HANDLER_OBJECT SchedulerTimer;
 TIME QuantumEndTime;
@@ -59,19 +57,23 @@ struct THREAD IdleThread;
 //Private Helper Functions
 //
 
+#define SchedulerGetActiveThread( ) ( BASE_OBJECT( ContextGetStack(), struct THREAD, Stack ) )
+
 void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 {
+	struct THREAD * activeThread = SchedulerGetActiveThread();
+	
 	//The context is embeded in a thread, extract it.
 	struct THREAD * thread = BASE_OBJECT( context,
 				struct THREAD,
 				LockingContext);
 
 	//Lets make sure that context belongs to the active thread
-	ASSERT( thread == ActiveThread );
+	ASSERT( thread == activeThread );
 
 	//We need to block the thread so it is not rescheduled 
 	//until the lock is acquired.
-	SchedulerBlockThread();
+	SchedulerBlockThread( );
 	//blocking calls do not require notification. Set locking state to ready.
 	context->State = LOCKING_STATE_READY;
 }
@@ -114,6 +116,7 @@ void SchedulerStartCritical( )
 void SchedulerEndCritical()
 {
 	TIME currentTime;
+	struct THREAD * activeThread;
 	COUNT priority;	
 	BOOL needSwitch = FALSE;
 	ASSERT( ContextIsCritical( ) );
@@ -124,7 +127,8 @@ void SchedulerEndCritical()
 		needSwitch = TRUE;
 
 	//See if thread blocked itself.
-	if(ActiveThread->State == THREAD_STATE_BLOCKED )
+	activeThread = SchedulerGetActiveThread();
+	if(activeThread->State == THREAD_STATE_BLOCKED )
 		needSwitch = TRUE;
 
 	if( needSwitch )
@@ -188,7 +192,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 {
 	ASSERT( ContextIsCritical( ) );
 	ASSERT( thread->State == THREAD_STATE_BLOCKED );
-	ASSERT( thread != ActiveThread );
+	ASSERT( thread != SchedulerGetActiveThread() );
 
 	thread->State = THREAD_STATE_RUNNING;
 	HalSetDebugLedFlag( thread->Flag );
@@ -207,10 +211,13 @@ void SchedulerResumeThread( struct THREAD * thread )
  */
 void SchedulerBlockThread( )
 {
+	struct THREAD * activeThread;
 	ASSERT( ContextIsCritical() );
 
-	ActiveThread->State = THREAD_STATE_BLOCKED;
-	HalClearDebugLedFlag( ActiveThread->Flag );
+	activeThread = SchedulerGetActiveThread();
+
+	activeThread->State = THREAD_STATE_BLOCKED;
+	HalClearDebugLedFlag( activeThread->Flag );
 }
 
 /*
@@ -220,13 +227,18 @@ void SchedulerBlockThread( )
  */
 COUNT Schedule()
 {
+	struct THREAD * activeThread;
+	struct THREAD * nextThread;
+
 	ASSERT( ContextIsCritical() );
 
+	activeThread = SchedulerGetActiveThread( );
+
 	//save old thread unless its blocking or is the idle thread.
-	if( ActiveThread != &IdleThread && 
-			ActiveThread->State == THREAD_STATE_RUNNING)
+	if( activeThread != &IdleThread && 
+			activeThread->State == THREAD_STATE_RUNNING)
 	{
-		LinkedListEnqueue( &ActiveThread->Link.LinkedListLink,
+		LinkedListEnqueue( &activeThread->Link.LinkedListLink,
 				DoneQueue);
 	}
 
@@ -244,18 +256,18 @@ COUNT Schedule()
 	//Pick the next thread
 	if( ! LinkedListIsEmpty( RunQueue ) )
 	{//there are threads waiting, run one
-		NextThread = BASE_OBJECT( LinkedListPop( RunQueue ),
+		nextThread = BASE_OBJECT( LinkedListPop( RunQueue ),
 				struct THREAD,
 				Link);
 	}
 	else
 	{//there were no threads at all, use idle loop.
-		NextThread = &IdleThread;
+		nextThread = &IdleThread;
 	}
 
-	ContextSetNextContext( & NextThread->Stack );
+	ContextSetNextContext( & nextThread->Stack );
 
-	return NextThread->Priority;
+	return nextThread->Priority;
 
 }//end Schedule
 
@@ -329,9 +341,6 @@ void SchedulerStartup()
 			0x01, //Flag
 			FALSE );//Start
 
-	ActiveThread = &IdleThread;
-	NextThread = NULL;
-
 	//Initialize context unit.
 	ContextStartup( & IdleThread.Stack );
 }
@@ -342,24 +351,31 @@ void SchedulerStartup()
  */
 struct LOCKING_CONTEXT * SchedulerGetLockingContext()
 {
+	struct THREAD * activeThread;
+
 	ASSERT( ContextIsCritical() );
 
-	return &ActiveThread->LockingContext;
+	activeThread = SchedulerGetActiveThread();
+	return &activeThread->LockingContext;
 }
 
 void SchedulerThreadStartup()
 {
 	struct THREAD * thread;
+	struct THREAD * activeThread;
 	
 	ASSERT( ContextIsCritical() );
 	ASSERT( InterruptIsAtomic() );
 
-	thread = ActiveThread;
+	activeThread = SchedulerGetActiveThread();
+	thread = activeThread;
 	
 	ContextUnlock();
 	InterruptEnable();
 
 	thread->Main( thread->Argument );
+
+	KernelPanic();//TODO we should support threads ending... just not now.
 }
 
 void SchedulerCreateThread( 
@@ -380,6 +396,7 @@ void SchedulerCreateThread(
 	thread->Flag = debugFlag;
 	LockingInit( & thread->LockingContext, SchedulerBlockOnLock, SchedulerWakeOnLock );
 	thread->Main = main;
+	thread->Argument = Argument;
 	//Add thread to done queue.
 	if( start )
 	{
