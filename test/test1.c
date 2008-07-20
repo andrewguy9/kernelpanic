@@ -15,7 +15,7 @@
 
 void Test1ThreadMain( void * arg )
 {
-	COUNT * var = arg;
+	COUNT * var = (COUNT *) arg;
 	volatile unsigned char a = 0;
 	while( 1 )
 	{
