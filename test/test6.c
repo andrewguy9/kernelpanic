@@ -44,8 +44,8 @@ enum WORKER_RETURN WorkerConsumerTask( struct WORKER_ITEM * item )
 	}
 	else
 	{
-		//the lock is not acquired, so lets pend the work item.
-		return WORKER_PENDED; 
+		//the lock is not acquired, so lets block the work item.
+		return WORKER_BLOCKED; 
 	}
 }
 

@@ -24,13 +24,13 @@ struct RESOURCE BufferLock;
 COUNT TimesWritten;
 COUNT TimesRead;
 
-void Writer()
+void Writer( void * arg )
 {
 	struct LOCKING_CONTEXT block;
 	INDEX sequenceIndex=0;
 	INDEX index;
 
-	LockingInit( &block, NULL, NULL );//TODO
+	LockingInit( &block, LockingBlockNonBlocking, LockingWakeNonBlocking );
 
 	while(1)
 	{
@@ -57,7 +57,7 @@ void Writer()
 	}
 }
 
-void Reader()
+void Reader( void * arg )
 {
 	INDEX index;
 
