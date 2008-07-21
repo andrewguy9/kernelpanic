@@ -2,6 +2,7 @@
 #include"../utils/linkedlist.h"
 #include"interrupt.h"
 #include"scheduler.h"
+#include"panic.h"
 
 struct LINKED_LIST WorkerItemQueue;
 
@@ -47,9 +48,26 @@ void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
 				struct WORKER_ITEM,
 				LockingContext);
 
-	//Now that the work item is unblocked, we can
-	//add it back to the work item queue.
-	AddItem( worker );
+	switch( context->State )
+	{
+		case LOCKING_STATE_READY:
+			//we acquired the lock right away.
+			//mark is acquired.
+			context->State = LOCKING_STATE_ACQUIRED;
+			break;
+
+		case LOCKING_STATE_BLOCKING:
+			//We acquired the lock after blocking.
+			//mark as acquired and add to work queue.
+			AddItem(worker);
+			context->State = LOCKING_STATE_ACQUIRED;
+			break;
+
+		case LOCKING_STATE_ACQUIRED:
+		default:
+			KernelPanic();
+			break;
+	}
 }
 
 //
@@ -92,8 +110,8 @@ void WorkerThreadMain()
 					break;
 
 				case WORKER_BLOCKED:
-					//the work item is blocked on a lock, do
-					//nothing.
+					//the work item is blocked on a lock, the lock will store 
+					//a link to the item. do nothing.
 					break;
 
 				case WORKER_PENDED:

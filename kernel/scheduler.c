@@ -73,8 +73,11 @@ void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 
 	//We need to block the thread so it is not rescheduled 
 	//until the lock is acquired.
+	
 	SchedulerBlockThread( );
-	//blocking calls do not require notification. Set locking state to ready.
+
+	//blocking calls do not require notification. 
+	//Set locking state to ready.
 	context->State = LOCKING_STATE_READY;
 }
 
@@ -85,11 +88,26 @@ void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
 				struct THREAD,
 				LockingContext);
 
-	//This thread should be currently blocked.
-	ASSERT( thread->State == THREAD_STATE_BLOCKED );
+	switch( context->State )
+	{
+		case LOCKING_STATE_READY:
+			//we acquired the lock right away. 
+			//Since threads no not require notification, mark as ready.
+			context->State = LOCKING_STATE_READY;
+			break;
 
-	//Wake this thread from his slumber.
-	SchedulerResumeThread( thread );
+		case LOCKING_STATE_BLOCKING:
+			//we acquired the lock after blocking.
+			//mark as acquired and wake thread.
+			context->State = LOCKING_STATE_READY;
+			SchedulerResumeThread( thread );
+			break;
+
+		case LOCKING_STATE_ACQUIRED:
+		default:
+			KernelPanic();
+			break;
+	}
 }
 
 //
