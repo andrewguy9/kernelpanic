@@ -76,10 +76,12 @@ void HalSerialStartup()
 #ifdef PC_BUILD
 
 #include<sys/time.h>
+#include<string.h>
 #include<signal.h>
 
 char DEBUG_LED;
-BOOL AtomicState;
+sigset_t InterruptDisabledSet;
+sigset_t InterruptEnabledSet;
 struct itimerval TimerInterval;
 
 void HalLinuxTimer();
@@ -87,7 +89,13 @@ void HalLinuxTimer();
 void HalStartup()
 {
 	DEBUG_LED = 0;
-	AtomicState = TRUE;
+
+	//Start with all handlers blocked.
+	sigemptyset( &InterruptDisabledSet );
+	sigemptyset( &InterruptEnabledSet );
+
+	sigaddset( &InterruptEnabledSet, SIGVTALRM );
+	sigaddset( &InterruptEnabledSet, SIGUSR1 );
 }
 
 void HalInitClock()
@@ -95,7 +103,6 @@ void HalInitClock()
 	int result;
 	
 	//Set the timer handler.
-	signal(SIGVTALRM, HalLinuxTimer );
 
 	//Set the timer interval.
 	TimerInterval.it_interval.tv_sec = 0;
@@ -104,6 +111,8 @@ void HalInitClock()
 	TimerInterval.it_value.tv_usec = 1;
 	result = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
 	ASSERT(result == 0 );
+
+	HalResetClock();
 }
 
 void * HalCreateStackFrame( void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize )
@@ -119,17 +128,58 @@ void HalSerialStartup()
 
 inline BOOL HalIsAtomic()
 {
-	return AtomicState;
+
+	sigset_t curState;
+	
+	//Get the current signal mask
+	int ret = sigprocmask( SIG_SETMASK, NULL, & curState );
+	if( ret != 0 )
+	{
+		printf("sigprocmask error\n");
+		exit(0);
+	}
+
+	//See if the SIGUSR1 signal is enabled (since it is used to simulate the interrupt flag.)
+	ret = sigismember( &curState, SIGUSR1 );
+
+
+	if( ret == 1 )
+	{
+		//SIGUSR1 is enabled, so interrupts must be enabled.
+		return FALSE;
+	}
+	else if( ret == 0 )
+	{
+		//SIGUSR1 is disabled, so interrupts must be.
+		return TRUE;
+	}
+	else 
+	{
+		printf("sigismember failed \n");
+		exit(0);
+	}
 }
 
 inline void HalDisableInterrupts()
 {
-	AtomicState = TRUE;
+	int ret = sigprocmask( SIG_SETMASK, & InterruptDisabledSet, NULL );
+	
+	if( ret != 0 )
+	{
+		printf("sigprocmask error\n");
+		exit(0);
+	}
 }
 
 inline void HalEnableInterrupts()
 {
-	AtomicState = FALSE;
+	int ret = sigprocmask( SIG_SETMASK, & InterruptEnabledSet, NULL );
+
+	if( ret != 0 )
+	{
+		printf("sigprocmask error\n");
+		exit(0);
+	}
 }
 
 
@@ -142,22 +192,34 @@ void TimerInterrupt();
  */
 void HalLinuxTimer()
 {
-	//Check to see if we are atomic. If we are
-	//then the timer "could not have fired" and we
-	//can return. Otherwise call timer.
-	
-	signal(SIGVTALRM, HalLinuxTimer);//remember to reset the timer...
+	//There is an implied disable interrupts call when the timer
+	//fires. 
+	HalDisableInterrupts();
 
-	if( AtomicState )
-		return;
-	else//AtomicState == 0
-	{
-		AtomicState = TRUE;//We are simulating a hardware interrupt, so atomic goes to true.
-		TimerInterrupt();
-		AtomicState = FALSE;//We are simulating a hardware interrupt, so when timer interrupt returns there is an implied release of interrupt flag.
-	}
+	//Call the kernel's timer handler.
+	TimerInterrupt();
+
+	//There is an implied enable interrupts call when the timer
+	//returns.
+	HalEnableInterrupts();
 }
 
+inline void HalResetClock()
+{
+	//signal(SIGVTALRM, HalLinuxTimer);
+	struct sigaction action;
+	action.sa_handler = HalLinuxTimer;
+	action.sa_flags = SA_NODEFER;
+	sigemptyset( & action.sa_mask );
+
+	int ret = sigaction(SIGVTALRM, &action, NULL );
+
+	if( ret == -1 )
+	{
+		printf("sig action failure.\n");
+		exit(0);
+	}
+}
 #endif
 //-----------------------------------------------------------------------------
 

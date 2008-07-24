@@ -138,7 +138,7 @@ void TimerInterrupt(void)
 	IsrStart();
 
 	//reset the clock
-	HAL_RESET_CLOCK;
+	HalResetClock();
 
 	//Queue Timers to run as Post Handlers.
 	QueueTimers( );
