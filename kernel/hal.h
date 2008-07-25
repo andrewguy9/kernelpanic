@@ -155,9 +155,9 @@ void __attribute__((signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 #define HAL_SAVE_SP(dest) //TODO
 #define HAL_SET_SP(value) //TODO
 
-inline BOOL HalIsAtomic();
-inline void HalDisableInterrupts();
-inline void HalEnableInterrupts();
+BOOL HalIsAtomic();
+void HalDisableInterrupts();
+void HalEnableInterrupts();
 
 extern char DEBUG_LED;
 
@@ -167,7 +167,7 @@ extern char DEBUG_LED;
 
 #define HAL_NAKED_FUNCTION 
 
-inline void HalResetClock();
+void HalResetClock();
 
 #endif //end if #ifdef LINUX_BUILD
 //-----------------------------------------------------------------------------

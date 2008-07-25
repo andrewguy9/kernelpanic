@@ -69,10 +69,13 @@ void HalSerialStartup()
 	UCSRB = _BV(TXCIE) | _BV(RXCIE) | _BV(RXEN) | _BV(TXEN);
 }
 #endif// end avr build
+
 //-----------------------------------------------------------------------------
+
 //
 //PC CODE
 //
+
 #ifdef PC_BUILD
 
 #include<sys/time.h>
@@ -80,30 +83,45 @@ void HalSerialStartup()
 #include<signal.h>
 
 char DEBUG_LED;
+
 sigset_t InterruptDisabledSet;
 sigset_t InterruptEnabledSet;
+
 struct itimerval TimerInterval;
 
+//Prototype for later use.
 void HalLinuxTimer();
 
 void HalStartup()
 {
+	int ret;
 	DEBUG_LED = 0;
 
-	//Start with all handlers blocked.
-	sigemptyset( &InterruptDisabledSet );
-	sigemptyset( &InterruptEnabledSet );
+	//
+	//Set up signal masks for atomic and non atomic sections.
+	//
+	
+	//Allow all signals.
+	ret = sigemptyset( &InterruptDisabledSet );
+	ASSERT( ret == 0 );
+	ret = sigemptyset( &InterruptEnabledSet );
+	ASSERT( ret == 0 );
 
-	sigaddset( &InterruptEnabledSet, SIGVTALRM );
-	sigaddset( &InterruptEnabledSet, SIGUSR1 );
+	//When interrupts are disabled, turn off the clock and user1.
+	ret = sigaddset( &InterruptEnabledSet, SIGVTALRM );
+	ASSERT( ret == 0 );
+	ret = sigaddset( &InterruptEnabledSet, SIGUSR1 );
+	ASSERT( ret == 0 );
+
+	//Turn off signal handlers since hardware starts in disabled state.
+	ret = sigprocmask( SIG_SETMASK, &InterruptDisabledSet, NULL );
+	ASSERT( ret == 0 );
 }
 
 void HalInitClock()
 {
 	int result;
 	
-	//Set the timer handler.
-
 	//Set the timer interval.
 	TimerInterval.it_interval.tv_sec = 0;
 	TimerInterval.it_interval.tv_usec = 1;
@@ -112,7 +130,8 @@ void HalInitClock()
 	result = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
 	ASSERT(result == 0 );
 
-	HalResetClock();
+	//Turn on the timer signal handler.
+	signal( SIGVTALRM, HalLinuxTimer );
 }
 
 void * HalCreateStackFrame( void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize )
@@ -126,22 +145,17 @@ void HalSerialStartup()
 	//TODO
 }
 
-inline BOOL HalIsAtomic()
+BOOL HalIsAtomic()
 {
-
+	int ret;
 	sigset_t curState;
 	
 	//Get the current signal mask
-	int ret = sigprocmask( SIG_SETMASK, NULL, & curState );
-	if( ret != 0 )
-	{
-		printf("sigprocmask error\n");
-		exit(0);
-	}
+	ret = sigprocmask( 0, NULL, &curState );
+	ASSERT( ret == 0 );
 
 	//See if the SIGUSR1 signal is enabled (since it is used to simulate the interrupt flag.)
 	ret = sigismember( &curState, SIGUSR1 );
-
 
 	if( ret == 1 )
 	{
@@ -155,33 +169,24 @@ inline BOOL HalIsAtomic()
 	}
 	else 
 	{
-		printf("sigismember failed \n");
-		exit(0);
+		ASSERT(0);
+		return TRUE;
 	}
 }
 
-inline void HalDisableInterrupts()
+void HalDisableInterrupts()
 {
-	int ret = sigprocmask( SIG_SETMASK, & InterruptDisabledSet, NULL );
-	
-	if( ret != 0 )
-	{
-		printf("sigprocmask error\n");
-		exit(0);
-	}
+	int ret;
+	ret = sigprocmask(SIG_SETMASK, &InterruptDisabledSet, NULL );
+	ASSERT( ret == 0 );
 }
 
-inline void HalEnableInterrupts()
+void HalEnableInterrupts()
 {
-	int ret = sigprocmask( SIG_SETMASK, & InterruptEnabledSet, NULL );
-
-	if( ret != 0 )
-	{
-		printf("sigprocmask error\n");
-		exit(0);
-	}
+	int ret;
+	ret = sigprocmask(SIG_SETMASK, &InterruptEnabledSet, NULL );
+	ASSERT( ret == 0 );
 }
-
 
 //prototype for handler.
 void TimerInterrupt();
@@ -192,8 +197,7 @@ void TimerInterrupt();
  */
 void HalLinuxTimer()
 {
-	//There is an implied disable interrupts call when the timer
-	//fires. 
+	//There is an implied disable interrupts call when the timer fires. 
 	HalDisableInterrupts();
 
 	//Call the kernel's timer handler.
@@ -204,21 +208,12 @@ void HalLinuxTimer()
 	HalEnableInterrupts();
 }
 
-inline void HalResetClock()
+void HalResetClock()
 {
-	//signal(SIGVTALRM, HalLinuxTimer);
-	struct sigaction action;
-	action.sa_handler = HalLinuxTimer;
-	action.sa_flags = SA_NODEFER;
-	sigemptyset( & action.sa_mask );
+	int ret;
 
-	int ret = sigaction(SIGVTALRM, &action, NULL );
-
-	if( ret == -1 )
-	{
-		printf("sig action failure.\n");
-		exit(0);
-	}
+	ret = signal(SIGVTALRM, HalLinuxTimer);
+	ASSERT( ret == 0 );
 }
 #endif
 //-----------------------------------------------------------------------------
