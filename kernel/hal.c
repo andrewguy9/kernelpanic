@@ -108,9 +108,9 @@ void HalStartup()
 	ASSERT( ret == 0 );
 
 	//When interrupts are disabled, turn off the clock and user1.
-	ret = sigaddset( &InterruptEnabledSet, SIGVTALRM );
+	ret = sigaddset( &InterruptDisabledSet, SIGVTALRM );
 	ASSERT( ret == 0 );
-	ret = sigaddset( &InterruptEnabledSet, SIGUSR1 );
+	ret = sigaddset( &InterruptDisabledSet, SIGUSR1 );
 	ASSERT( ret == 0 );
 
 	//Turn off signal handlers since hardware starts in disabled state.
@@ -159,13 +159,13 @@ BOOL HalIsAtomic()
 
 	if( ret == 1 )
 	{
-		//SIGUSR1 is enabled, so interrupts must be enabled.
-		return FALSE;
+		//SIGUSR1 is masked, so interrupts must be disabled.
+		return TRUE;
 	}
 	else if( ret == 0 )
 	{
-		//SIGUSR1 is disabled, so interrupts must be.
-		return TRUE;
+		//SIGUSR1 is not masked, so interrupts must be enabled.
+		return FALSE;
 	}
 	else 
 	{
