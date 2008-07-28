@@ -212,8 +212,7 @@ void HalResetClock()
 {
 	int ret;
 
-	ret = signal(SIGVTALRM, HalLinuxTimer);
-	ASSERT( ret == 0 );
+	signal(SIGVTALRM, HalLinuxTimer);
 }
 #endif
 //-----------------------------------------------------------------------------
