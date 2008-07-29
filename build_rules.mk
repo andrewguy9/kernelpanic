@@ -1,6 +1,15 @@
-#prefix
-PC_PREFIX = pc
-AVR_PREFIX = avr
+##############################################
+# Build strings (Prefix)
+##############################################
+#arch
+PC_PREFIX = pc_
+AVR_PREFIX = avr_
+#debug
+DBG_PREFIX = dbg_
+FRE_PREFIX = fre_
+#target
+APP_PREFIX = app_
+KERN_PREFIX = kern_
 ##############################################
 #C flags
 PC_CFLAGS = -p -g -Wall 
@@ -15,21 +24,31 @@ PC_CC = gcc
 AVR_CC = avr-gcc
 ##############################################
 # macros
-AVR_BUILD = AVR_BUILD
-PC_BUILD = PC_BUILD
-
+##############################################
+#Archetecture
+ARCH_AVR = AVR
+ARCH_PC = PC
 #############################################
-
-#BUILD = $(PC_BUILD)
-#CFLAGS = $(PC_CFLAGS)
-#BUILD = $(PC_BUILD)
-#CC = $(PC_CC)
-
+#Debug
+DEBUG_FRE = FRE
+DEBUG_DBG = DBG
+#############################################
+#Build
+BUILD_APP = APP
+BUILD_KERNEL = KERNEL
 #############################################
 #combined strings
-PC_STRING = -e TARGET=$(PC_PREFIX) -e CC=$(PC_CC) -e -e BUILD=$(PC_BUILD) CFLAGS="$(PC_CFLAGS)"
-
-AVR_STRING = -e TARGET=$(AVR_PREFIX) -e CC=$(AVR_CC) -e BUILD=$(AVR_BUILD) -e CFLAGS="$(AVR_CFLAGS)"
+#############################################
+#target for pc tests (non kernel build)
+TEST_STRING = -e TARGET="$(PC_PREFIX)$(DBG_PREFIX)$(APP_PREFIX)" -e CC=$(PC_CC) -e CFLAGS="$(PC_CFLAGS)" -e ARCH=$(ARCH_PC) -e DEBUG=$(DEBUG_DBG) -e BUILD=$(BUILD_APP)
+#target for pc kernel builds with debug enabled.
+PC_STRING = -e TARGET="$(PC_PREFIX)$(DBG_PREFIX)$(KERN_PREFIX)" -e CC=$(PC_CC) -e CFLAGS="$(PC_CFLAGS)" -e ARCH=$(ARCH_PC) -e DEBUG=$(DEBUG_DBG) -e BUILD=$(BUILD_KERNEL)
+#target for avr kenrel builds with debug enabled.
+AVR_STRING = -e TARGET="$(AVR_PREFIX)$(DBG_PREFIX)$(KERN_PREFIX)" -e CC=$(AVR_CC) -e CFLAGS="$(AVR_CFLAGS)" -e ARCH=$(ARCH_AVR) -e DEBUG=$(DEBUG_DBG) -e BUILD=$(BUILD_KERNEL)
+#target for pc kernel without debug
+PC_FRE_STRING = -e TARGET="$(PC_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CC=$(PC_CC) -e CFLAGS="$(PC_CFLAGS)" -e ARCH=$(ARCH_PC) -e DEBUG=$(DEBUG_FRE) -e BUILD=$(BUILD_KERNEL)
+#target for avr kernel without debug
+AVR_FRE_STRING = -e TARGET="$(AVR_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CC=$(AVR_CC) -e CFLAGS="$(AVR_CFLAGS)" -e ARCH=$(ARCH_AVR) -e DEBUG=$(DEBUG_FRE) -e BUILD=$(BUILD_KERNEL)
 #############################################
 #build rules
 %.o: 

@@ -1,15 +1,21 @@
-all: umouse tests
+all: tests avr pc pc_fre board
 
 include build_rules.mk
 
 .PHONY: all tests umouse board motortest clean 
 
 tests:
-	make $(PC_STRING) -f makefile.main tests umouse
-umouse:
+	make $(TEST_STRING) -f makefile.main tests
+avr:
 	make $(AVR_STRING) -f makefile.main umouse
+avr_fre:
+	make $(AVR_STRING) -f makefile.main umouse
+pc:
+	make $(PC_STRING) -f makefile.main umouse
+pc_fre: 
+	make $(PC_FRE_STRING) -f makefile.main umouse
 board:
-	make $(AVR_STRING) -f makefile.main umouse.hex
+	make $(AVR_FRE_STRING) -f makefile.main umouse.hex
 	avrdude -p m128 -U f:w:umouse.hex
 
 clean: 

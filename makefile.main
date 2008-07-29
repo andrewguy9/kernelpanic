@@ -17,21 +17,21 @@ umouse: $(TARGET)_test0.elf $(TARGET)_test1.elf $(TARGET)_test2.elf $(TARGET)_te
 #########################
 #utils on board tests
 
-utils/linktest.out: utils/linktest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_heap.o
+utils/linktest.out: utils/$(TARGET)_linktest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_heap.o
 
-utils/ringtest.out: utils/ringtest.o utils/$(TARGET)_ringbuffer.o
+utils/ringtest.out: utils/$(TARGET)_ringtest.o utils/$(TARGET)_ringbuffer.o
 
-utils/flagtest.out: utils/flagtest.o utils/$(TARGET)_flags.o
+utils/flagtest.out: utils/$(TARGET)_flagtest.o utils/$(TARGET)_flags.o
 
-utils/bhamtest.out: utils/bhamtest.o utils/$(TARGET)_bham.o
+utils/bhamtest.out: utils/$(TARGET)_bhamtest.o utils/$(TARGET)_bham.o
 
-umouse/maptest.out: umouse/maptest.o umouse/$(TARGET)_map.o
+umouse/maptest.out: umouse/$(TARGET)_maptest.o umouse/$(TARGET)_map.o
 
 umouse/motortest.out: umouse/$(TARGET)_motor.o umouse/motortest.o
 
-umouse/floodfilltest.out: umouse/floodfilltest.o umouse/$(TARGET)_floodfill.o utils/$(TARGET)_flags.o umouse/$(TARGET)_map.o
+umouse/floodfilltest.out: umouse/$(TARGET)_floodfilltest.o umouse/$(TARGET)_floodfill.o utils/$(TARGET)_flags.o umouse/$(TARGET)_map.o
 
-umouse/movetest.out: umouse/movetest.o umouse/$(TARGET)_map.o utils/$(TARGET)_flags.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_positionlog.o umouse/$(TARGET)_submove.o
+umouse/movetest.out: umouse/$(TARGET)_movetest.o umouse/$(TARGET)_map.o utils/$(TARGET)_flags.o umouse/$(TARGET)_floodfill.o umouse/$(TARGET)_positionlog.o umouse/$(TARGET)_submove.o
 ############################
 $(TARGET)_test0.elf: $(TARGET)_test0.out
 
