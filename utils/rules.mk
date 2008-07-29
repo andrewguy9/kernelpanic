@@ -12,10 +12,10 @@ utils/$(TARGET)_bham.o: utils/bham.c utils/bham.h
 
 ###################
 #tests
-utils/linktest.o: utils/linktest.c 
+utils/$(TARGET)_linktest.o: utils/linktest.c 
 
-utils/ringtest.o: utils/ringtest.c
+utils/$(TARGET)_ringtest.o: utils/ringtest.c
 
-utils/flagtest.o: utils/flagtest.c
+utils/$(TARGET)_flagtest.o: utils/flagtest.c
 
-utils/bhamtest.o: utils/bhamtest.c
+utils/$(TARGET)_bhamtest.o: utils/bhamtest.c
