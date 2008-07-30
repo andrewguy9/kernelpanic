@@ -61,6 +61,12 @@ struct THREAD IdleThread;
 
 void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 {
+	//
+	//  We need to validate that the active thread owns the locking
+	//  context provided.
+	//
+	
+#ifdef DEBUG
 	struct THREAD * activeThread = SchedulerGetActiveThread();
 	
 	//The context is embeded in a thread, extract it.
@@ -70,6 +76,7 @@ void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 
 	//Lets make sure that context belongs to the active thread
 	ASSERT( thread == activeThread );
+#endif
 
 	//We need to block the thread so it is not rescheduled 
 	//until the lock is acquired.
