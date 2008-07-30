@@ -13,33 +13,6 @@
 #define TRUE ((BOOL)(! FALSE ))
 
 //
-//PC BUILD DEFINITIONS
-//
-#ifdef PC_BUILD
-
-#include<stdio.h>
-#include<stdlib.h>
-#define ASSERT( condition ) \
-	if( !(condition) )      \
-		printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__);	\
-	if( !(condition) )		\
-		exit(0)
-	
-#endif
-
-//
-//AVR BUILD DEFINITIONS
-//
-#ifdef AVR_BUILD
-#include"../kernel/panic.h"
-#define ASSERT( condition ) \
-	if( ! (condition) ) \
-		Panic( __FILE__, __LINE__ )
-
-#endif
-
-
-//
 //TYPEDEFS
 //
 typedef unsigned int COUNT;
@@ -58,4 +31,40 @@ typedef unsigned char BOOL;
 //Returns a pointer to the base structure 
 //given a pointer to a field.
 #define BASE_OBJECT( PTR, BASE, FIELD ) ((BASE*)((int)(PTR) - OFFSET_OF(BASE,FIELD)))
+
+//
+//  Assert
+//
+
+#ifdef DEBUG
+
+#ifdef TEST_BUILD
+
+//This is a test build. Asserts result in printf/exit.
+#include<stdio.h>
+#include<stdlib.h>
+#define ASSERT( condition ) \
+	if( !(condition) )      \
+		printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__)
+
+#endif //TEST_BUILD
+
+#ifdef KERNEL_BUILD
+
+//This is a kernel build. Asserts result in a kernel panic.
+#include"../kernel/panic.h"
+#define ASSERT( condition ) \
+	if( ! (condition) ) \
+		Panic( __FILE__, __LINE__ )
+
+#endif //ifdef KERNEL_BUILD
+
+#else //ifdef DEBUG
+
+//This is a fre build, no asserts enabled.
+#define ASSERT( condition ) 
+
+#endif //ifdef DEBUG
+
+
 #endif
