@@ -1,6 +1,7 @@
 ##############################################
-# Build strings (Prefix)
+# Build strings (Object file prefix)
 ##############################################
+#prefix is defined as arch_debug_target
 #arch
 PC_PREFIX = pc_
 AVR_PREFIX = avr_
@@ -10,59 +11,73 @@ FRE_PREFIX = fre_
 #target
 APP_PREFIX = app_
 KERN_PREFIX = kern_
+
+
 ##############################################
-#C flags
-PC_CFLAGS = -p -g -Wall 
+#Compiler Parameters
+##############################################
+#c flags
+PC_CFLAGS = "-p -g -Wall"
 ifeq ($(shell uname), Darwin)
-AVR_CFLAGS = -Wall -mmcu=atmega128 -O2
+AVR_CFLAGS = "-Wall -mmcu=atmega128 -O2"
 else
-AVR_CFLAGS = -Wall -mmcu=atmega128 -gdwarf-2
+AVR_CFLAGS = "-Wall -mmcu=atmega128 -gdwarf-2"
 endif
 ##############################################
 # cc
 PC_CC = gcc
 AVR_CC = avr-gcc
+
+
 ##############################################
-# macros
+# Macros
 ##############################################
-#Archetecture
-ARCH_AVR = AVR
-ARCH_PC = PC
+#Architecture
+#ARCH_MACRO
+ARCH_AVR = AVR_BUILD 
+ARCH_PC = PC_BUILD
 #############################################
 #Debug
-DEBUG_FRE = FRE
-DEBUG_DBG = DBG
+#DEBUG_MACRO
+DEBUG_FRE = NO_DEBUG
+DEBUG_DBG = DEBUG
 #############################################
 #Build
-BUILD_APP = APP
-BUILD_KERNEL = KERNEL
+#BUILD_MACRO
+BUILD_APP = TEST_BUILD
+BUILD_KERNEL = KERNEL_BUILD
+
+
 #############################################
 #combined strings
 #############################################
 #target for pc tests (non kernel build)
-TEST_STRING = -e TARGET="$(PC_PREFIX)$(DBG_PREFIX)$(APP_PREFIX)" -e CC=$(PC_CC) -e CFLAGS="$(PC_CFLAGS)" -e ARCH=$(ARCH_PC) -e DEBUG=$(DEBUG_DBG) -e BUILD=$(BUILD_APP)
+#string carries parameters to lower makefile. 
+#string_name = TARGET CFLAGS CC ARCH_MACRO DEBUG_MACRO BUILD_MACRO
+TEST_STRING = -e TARGET="$(PC_PREFIX)$(DBG_PREFIX)$(APP_PREFIX)" -e CFLAGS=$(PC_CFLAGS) -e CC=$(PC_CC) -e ARCH_MACRO=$(ARCH_PC) -e DEBUG_MACRO=$(DEBUG_DBG) -e BUILD_MACRO=$(BUILD_APP)
 #target for pc kernel builds with debug enabled.
-PC_STRING = -e TARGET="$(PC_PREFIX)$(DBG_PREFIX)$(KERN_PREFIX)" -e CC=$(PC_CC) -e CFLAGS="$(PC_CFLAGS)" -e ARCH=$(ARCH_PC) -e DEBUG=$(DEBUG_DBG) -e BUILD=$(BUILD_KERNEL)
-#target for avr kenrel builds with debug enabled.
-AVR_STRING = -e TARGET="$(AVR_PREFIX)$(DBG_PREFIX)$(KERN_PREFIX)" -e CC=$(AVR_CC) -e CFLAGS="$(AVR_CFLAGS)" -e ARCH=$(ARCH_AVR) -e DEBUG=$(DEBUG_DBG) -e BUILD=$(BUILD_KERNEL)
+PC_STRING = -e TARGET="$(PC_PREFIX)$(DBG_PREFIX)$(KERN_PREFIX)" -e CFLAGS=$(PC_CFLAGS) -e CC=$(PC_CC) -e ARCH_MACRO=$(ARCH_PC) -e DEBUG_MACRO=$(DEBUG_DBG) -e BUILD_MACRO=$(BUILD_KERNEL)
 #target for pc kernel without debug
-PC_FRE_STRING = -e TARGET="$(PC_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CC=$(PC_CC) -e CFLAGS="$(PC_CFLAGS)" -e ARCH=$(ARCH_PC) -e DEBUG=$(DEBUG_FRE) -e BUILD=$(BUILD_KERNEL)
+PC_FRE_STRING = -e TARGET="$(PC_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CFLAGS=$(PC_CFLAGS) -e CC=$(PC_CC) -e ARCH_MACRO=$(ARCH_PC) -e DEBUG_MACRO=$(DEBUG_FRE) -e BUILD_MACRO=$(BUILD_KERNEL)
+#target for avr kernel builds with debug enabled.
+AVR_STRING = -e TARGET="$(AVR_PREFIX)$(DBG_PREFIX)$(KERN_PREFIX)" -e CFLAGS=$(AVR_CFLAGS) -e CC=$(AVR_CC) -e ARCH_MACRO=$(ARCH_AVR) -e DEBUG_MACRO=$(DEBUG_DBG) -e BUILD_MACRO=$(BUILD_KERNEL)
 #target for avr kernel without debug
-AVR_FRE_STRING = -e TARGET="$(AVR_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CC=$(AVR_CC) -e CFLAGS="$(AVR_CFLAGS)" -e ARCH=$(ARCH_AVR) -e DEBUG=$(DEBUG_FRE) -e BUILD=$(BUILD_KERNEL)
+AVR_FRE_STRING = -e TARGET="$(AVR_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CFLAGS=$(AVR_CFLAGS) -e CC=$(AVR_CC) -e ARCH_MACRO=$(ARCH_AVR) -e DEBUG_MACRO=$(DEBUG_FRE) -e BUILD_MACRO=$(BUILD_KERNEL)
+
 #############################################
 #build rules
+#############################################
 %.o: 
-	$(CC) $(CFLAGS) -D $(BUILD) -o $@ -c $<
+	$(CC) $(CFLAGS) -D $(ARCH_MACRO) -D $(DEBUG_MACRO) -D $(BUILD_MACRO) -o $@ -c $<
 
 %.out:
-	$(CC) $(CFLAGS) -D $(BUILD) -o $@ $^
+	$(CC) $(CFLAGS) -D $(ARCH_MACRO) -D $(DEBUG_MACRO) -D $(BUILD_MACRO) -o $@ $^
 
 %.hex: %.out
 	avr-objcopy -j .text -j .data -O ihex $< $@
 
 %.elf: %.out
 	cp $< $@
-	
 #########################################
 #clean dir
 .phony cleandir:
@@ -74,11 +89,8 @@ AVR_FRE_STRING = -e TARGET="$(AVR_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CC=$(AV
 	rm -f $(DIR)/*.hex
 	rm -f $(DIR)/*.elf
 	rm -f $(DIR)/*.aws
-
 ###########################
 # tags 
-#
 ctags: 
 	ctags --fields=+S -R .
-
-#########################
+#########################################
