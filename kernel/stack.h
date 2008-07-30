@@ -4,8 +4,11 @@
 struct STACK
 {
 	char * Pointer;
+
+#ifdef DEBUG
 	char * High;
 	char * Low;
+#endif
 };
 
 #endif

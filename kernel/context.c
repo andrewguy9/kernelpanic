@@ -20,14 +20,18 @@ void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, STACK_INIT_R
 	{//Populate regular stack
 		Stack->Pointer = HalCreateStackFrame( pointer, Foo, Size );
 		//Save the stack size.
+#ifdef DEBUG
 		Stack->High = pointer + Size;
 		Stack->Low = pointer;
+#endif
 	}
 	else
 	{//Populate stack for idle thread
 		Stack->Pointer = NULL;
+#ifdef DEBUG
 		Stack->High = (char*) -1;
 		Stack->Low = 0;
+#endif
 	}
 }
 
@@ -75,11 +79,12 @@ ContextSwitch()
 	ASSERT( MutexIsLocked( &ContextMutex ) );
 
 	//Check to see if stack has overflowed.
+#ifdef DEBUG
 	ASSERT( ASSENDING( 
 				(unsigned int) ActiveStack->Low, 
 				(unsigned int) ActiveStack->Pointer, 
 				(unsigned int) ActiveStack->High ) );
-
+#endif
 	//Switch threads
 	ActiveStack = NextStack;
 	NextStack = NULL;
