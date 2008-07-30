@@ -1,5 +1,6 @@
 #include"flags.h"
 #include<stdio.h>
+#include<stdlib.h>
 
 /*
  * Tests the flag unit. Prints the flag buffer to termainal for validation.

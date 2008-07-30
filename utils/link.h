@@ -1,6 +1,7 @@
 #ifndef LINK_H
 #define LINK_H
 
+#include"utils.h"
 typedef unsigned long int WEIGHT;
 
 struct LINKED_LIST_LINK 

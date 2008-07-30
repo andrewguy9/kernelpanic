@@ -21,4 +21,5 @@ struct LINKED_LIST_LINK * LinkedListPeek( struct LINKED_LIST * list );
 BOOL LinkedListIsEmpty( struct LINKED_LIST * list );
 
 void LinkedListInit( struct LINKED_LIST * list );
+
 #endif
