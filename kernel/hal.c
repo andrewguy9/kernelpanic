@@ -69,34 +69,59 @@ void HalSerialStartup()
 	UCSRB = _BV(TXCIE) | _BV(RXCIE) | _BV(RXEN) | _BV(TXEN);
 }
 #endif// end avr build
+
 //-----------------------------------------------------------------------------
+
 //
 //PC CODE
 //
+
 #ifdef PC_BUILD
 
 #include<sys/time.h>
+#include<string.h>
 #include<signal.h>
 
 char DEBUG_LED;
-BOOL AtomicState;
+
+sigset_t InterruptDisabledSet;
+sigset_t InterruptEnabledSet;
+
 struct itimerval TimerInterval;
 
+//Prototype for later use.
 void HalLinuxTimer();
 
 void HalStartup()
 {
+	int ret;
 	DEBUG_LED = 0;
-	AtomicState = TRUE;
+
+	//
+	//Set up signal masks for atomic and non atomic sections.
+	//
+	
+	//Allow all signals.
+	ret = sigemptyset( &InterruptDisabledSet );
+	ASSERT( ret == 0 );
+	ret = sigemptyset( &InterruptEnabledSet );
+	ASSERT( ret == 0 );
+
+	//When interrupts are disabled, turn off the clock and user1.
+	ret = sigaddset( &InterruptDisabledSet, SIGVTALRM );
+	ASSERT( ret == 0 );
+	ret = sigaddset( &InterruptDisabledSet, SIGUSR1 );
+	ASSERT( ret == 0 );
+
+	//Turn off signal handlers since hardware starts in disabled state.
+	ret = sigprocmask( SIG_SETMASK, &InterruptDisabledSet, NULL );
+	ASSERT( ret == 0 );
 }
 
 void HalInitClock()
 {
 	int result;
 	
-	//Set the timer handler.
-	signal(SIGVTALRM, HalLinuxTimer );
-
 	//Set the timer interval.
 	TimerInterval.it_interval.tv_sec = 0;
 	TimerInterval.it_interval.tv_usec = 1;
@@ -104,6 +129,9 @@ void HalInitClock()
 	TimerInterval.it_value.tv_usec = 1;
 	result = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
 	ASSERT(result == 0 );
+
+	//Turn on the timer signal handler.
+	signal( SIGVTALRM, HalLinuxTimer );
 }
 
 void * HalCreateStackFrame( void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize )
@@ -117,21 +145,48 @@ void HalSerialStartup()
 	//TODO
 }
 
-inline BOOL HalIsAtomic()
+BOOL HalIsAtomic()
 {
-	return AtomicState;
+	int ret;
+	sigset_t curState;
+	
+	//Get the current signal mask
+	ret = sigprocmask( 0, NULL, &curState );
+	ASSERT( ret == 0 );
+
+	//See if the SIGUSR1 signal is enabled (since it is used to simulate the interrupt flag.)
+	ret = sigismember( &curState, SIGUSR1 );
+
+	if( ret == 1 )
+	{
+		//SIGUSR1 is masked, so interrupts must be disabled.
+		return TRUE;
+	}
+	else if( ret == 0 )
+	{
+		//SIGUSR1 is not masked, so interrupts must be enabled.
+		return FALSE;
+	}
+	else 
+	{
+		ASSERT(0);
+		return TRUE;
+	}
 }
 
-inline void HalDisableInterrupts()
+void HalDisableInterrupts()
 {
-	AtomicState = TRUE;
+	int ret;
+	ret = sigprocmask(SIG_SETMASK, &InterruptDisabledSet, NULL );
+	ASSERT( ret == 0 );
 }
 
-inline void HalEnableInterrupts()
+void HalEnableInterrupts()
 {
-	AtomicState = FALSE;
+	int ret;
+	ret = sigprocmask(SIG_SETMASK, &InterruptEnabledSet, NULL );
+	ASSERT( ret == 0 );
 }
-
 
 //prototype for handler.
 void TimerInterrupt();
@@ -142,22 +197,23 @@ void TimerInterrupt();
  */
 void HalLinuxTimer()
 {
-	//Check to see if we are atomic. If we are
-	//then the timer "could not have fired" and we
-	//can return. Otherwise call timer.
-	
-	signal(SIGVTALRM, HalLinuxTimer);//remember to reset the timer...
+	//There is an implied disable interrupts call when the timer fires. 
+	HalDisableInterrupts();
 
-	if( AtomicState )
-		return;
-	else//AtomicState == 0
-	{
-		AtomicState = TRUE;//We are simulating a hardware interrupt, so atomic goes to true.
-		TimerInterrupt();
-		AtomicState = FALSE;//We are simulating a hardware interrupt, so when timer interrupt returns there is an implied release of interrupt flag.
-	}
+	//Call the kernel's timer handler.
+	TimerInterrupt();
+
+	//There is an implied enable interrupts call when the timer
+	//returns.
+	HalEnableInterrupts();
 }
 
+void HalResetClock()
+{
+	int ret;
+
+	signal(SIGVTALRM, HalLinuxTimer);
+}
 #endif //end of pc build
 //-----------------------------------------------------------------------------
 
