@@ -17,7 +17,12 @@ void ContextStartup( struct STACK * stack );
 
 void ContextSetNextContext( struct STACK * stack );
 
-void ContextSwitchIfNeeded();
+BOOL ContextSwitchNeeded();
+
+void
+HAL_NAKED_FUNCTION
+ContextSwitch();
+
 
 struct STACK * ContextGetStack( );
 #endif

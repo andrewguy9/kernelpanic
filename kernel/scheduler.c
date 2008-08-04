@@ -166,8 +166,15 @@ void SchedulerEndCritical()
 
 		//Switch threads!
 		InterruptDisable();
-		ContextSwitchIfNeeded();
-		InterruptEnable();
+		if( ContextSwitchNeeded() )
+		{
+			InterruptIncrement();
+			ContextSwitch();
+		}
+		else
+		{
+			InterruptEnable();
+		}
 	}
 	else
 	{//Quantum has not expired, so we'll just end the critical section. 
@@ -206,8 +213,15 @@ SchedulerForceSwitch()
 
 	//Actually context switch.
 	InterruptDisable();
-	ContextSwitchIfNeeded();
-	InterruptEnable();
+	if( ContextSwitchNeeded() )
+	{
+		InterruptIncrement();
+		ContextSwitch();
+	}
+	else
+	{
+		InterruptEnable();
+	}
 }
 
 /*
