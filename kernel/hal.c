@@ -236,8 +236,8 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldContext, struct MACHINE_CONTEX
 
 char DEBUG_LED;
 
-sigset_t InterruptDisabledSet;
-sigset_t InterruptEnabledSet;
+sigset_t InterruptDisabledSet;//Set of interrupts which are disabled while atomic
+sigset_t InterruptEnabledSet;//set of interrupt which are disabled while in thread
 
 struct itimerval TimerInterval;
 
@@ -253,16 +253,18 @@ void HalStartup()
 	//Set up signal masks for atomic and non atomic sections.
 	//
 	
-	//Allow all signals.
+	//Create disabled signal mask for atomic sections.
+	//When interrupts are disabled, turn off the clock and user1.
 	ret = sigemptyset( &InterruptDisabledSet );
 	ASSERT( ret == 0 );
-	ret = sigemptyset( &InterruptEnabledSet );
-	ASSERT( ret == 0 );
-
-	//When interrupts are disabled, turn off the clock and user1.
 	ret = sigaddset( &InterruptDisabledSet, SIGVTALRM );
 	ASSERT( ret == 0 );
 	ret = sigaddset( &InterruptDisabledSet, SIGUSR1 );
+	ASSERT( ret == 0 );
+
+	//Create disabled signal mask for threaded sections.
+	//No signals should be masked.
+	ret = sigemptyset( &InterruptEnabledSet );
 	ASSERT( ret == 0 );
 
 	//Turn off signal handlers since hardware starts in disabled state.
@@ -319,6 +321,7 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 
 void HalContextSwitch(struct MACHINE_CONTEXT * oldContext, struct MACHINE_CONTEXT * newContext )
 {
+	HalEnableInterrupts();
 	(void)swapcontext(&((oldContext)->State), &((newContext)->State));
 }
 
