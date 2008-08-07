@@ -10,27 +10,22 @@
  */
 struct MUTEX ContextMutex;
 
-struct STACK * ActiveStack;
-struct STACK * NextStack;
+struct MACHINE_CONTEXT * ActiveStack;
+struct MACHINE_CONTEXT * NextStack;
 
-void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, STACK_INIT_ROUTINE Foo )
+void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo )
 {
 	//initialize stack
 	if( Size != 0 )
 	{//Populate regular stack
-		Stack->Pointer = HalCreateStackFrame( pointer, Foo, Size );
-		//Save the stack size.
-#ifdef DEBUG
-		Stack->High = pointer + Size;
-		Stack->Low = pointer;
-#endif
+		HalCreateStackFrame( MachineState, Pointer, Foo, Size );
 	}
 	else
-	{//Populate stack for idle thread
-		Stack->Pointer = NULL;
+	{//Populate stack for idle thread (machine's start thread).
+		HalGetInitialStackFrame( MachineState );
 #ifdef DEBUG
-		Stack->High = (char*) -1;
-		Stack->Low = 0;
+		MachineState->High = (char*) -1;
+		MachineState->Low = 0;
 #endif
 	}
 }
@@ -58,45 +53,14 @@ BOOL ContextIsCritical( )
 	return MutexIsLocked( &ContextMutex );
 }
 
-void ContextStartup( struct STACK * startStack )
+void ContextStartup( struct MACHINE_CONTEXT * startContext )
 {
 	MutexInit( &ContextMutex );
 	NextStack = NULL;
-	ActiveStack = startStack;
+	ActiveStack = startContext;
 }
 
-void
-HAL_NAKED_FUNCTION
-ContextSwitch()
-{
-	//perfrom context switch
-	HAL_SAVE_STATE
-	
-	HAL_SAVE_SP( ActiveStack->Pointer );
-
-	//We need to have the Isr unit to think were back in the thread
-	//context, and the machine to be atomic.
-	ASSERT( HalIsAtomic() && !InterruptIsAtomic() );
-
-	ASSERT( MutexIsLocked( &ContextMutex ) );
-
-	//Check to see if stack has overflowed.
-#ifdef DEBUG
-	ASSERT( ASSENDING( 
-				(unsigned int) ActiveStack->Low, 
-				(unsigned int) ActiveStack->Pointer, 
-				(unsigned int) ActiveStack->High ) );
-#endif
-	//Switch threads
-	ActiveStack = NextStack;
-	NextStack = NULL;
-
-	HAL_SET_SP( ActiveStack->Pointer );
-
-	HAL_RESTORE_STATE
-}
-
-void ContextSetNextContext( struct STACK * stack )
+void ContextSetNextContext( struct MACHINE_CONTEXT * stack )
 {
 	ASSERT( ContextIsCritical() );
 	ASSERT( NextStack == NULL );
@@ -104,34 +68,53 @@ void ContextSetNextContext( struct STACK * stack )
 	NextStack = stack;
 }
 
-BOOL ContextSwitchNeeded()
+void ContextSwitch()
 {
-	//We need to have the machine in a physically atomic state
-	//and we need the isr unit to think that we already returned from
-	//interrupt.
-	ASSERT( HalIsAtomic() && ! InterruptIsAtomic() );
+	struct MACHINE_CONTEXT * oldStack;
+
+	ASSERT( InterruptIsAtomic() );
+	ASSERT( HalIsAtomic() );
 
 	if( MutexIsLocked( &ContextMutex ) )
 	{
 		//We are in critical section,
 		//lets see if we have a thread picked to run.
-		if( NextStack != NULL )
+		if( NextStack == NULL )
 		{
-			//We need a context switch.
-			return TRUE;
+			//we are critical but no thread was picked, so we dont 
+			//have to do a context switch.
+			InterruptIncrement();
+			ASSERT(HalIsAtomic() && !InterruptIsAtomic());
+			//returning will restore the machine state.
+			return;
 		}
 		else
 		{
-			//we are critical but no thread was picked.
-			return FALSE;
+			//we have to do a switch.
+			//get system state into post switch status.
+			oldStack = ActiveStack;
+			ActiveStack = NextStack;
+			NextStack = NULL;
+
+			MutexUnlock( &ContextMutex );
+			InterruptDecrement();
+
+			//now that the system looks like the switch has
+			//happened, go ahead and do the switch.
+
+			HalContextSwitch(oldStack,ActiveStack);
+			return;
 		}
 	}
 	//We are not in a critical section, so no new thread could have been
 	//picked, no context switch needed.
-	return FALSE;
+	InterruptDecrement();
+	ASSERT(HalIsAtomic() && !InterruptIsAtomic());
+	//returning will restore the machine state.
+	return;
 }
 
-struct STACK * ContextGetStack( )
+struct MACHINE_CONTEXT * ContextGetContext( )
 {
 	return ActiveStack;
 }

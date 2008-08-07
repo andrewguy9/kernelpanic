@@ -4,7 +4,6 @@
 #include"../utils/utils.h"
 #include"locking.h"
 #include"context.h"
-#include"stack.h"
 
 enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED };
 
@@ -14,12 +13,12 @@ struct THREAD
 {
 	union LINK Link;
 	unsigned char Priority;
-	enum THREAD_STATE State;
-	struct LOCKING_CONTEXT LockingContext;
-	struct STACK Stack;
-	THREAD_MAIN * Main;
-	void * Argument;
-	INDEX Flag;
+	enum THREAD_STATE State;//Running or blocked state of thread.
+	struct LOCKING_CONTEXT LockingContext;//Info on why the thread is blocked.
+	struct MACHINE_CONTEXT MachineContext;//Info on registers/stack for thread.
+	THREAD_MAIN * Main;//The thread's main function ptr.
+	void * Argument;//The thread's arguments.
+	INDEX Flag;//Thread number which gets lit on the debug leds.
 };
 
 

@@ -57,7 +57,7 @@ struct THREAD IdleThread;
 //Private Helper Functions
 //
 
-#define SchedulerGetActiveThread( ) ( BASE_OBJECT( ContextGetStack(), struct THREAD, Stack ) )
+#define SchedulerGetActiveThread( ) ( BASE_OBJECT( ContextGetContext(), struct THREAD, MachineContext ) )
 
 void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 {
@@ -166,15 +166,7 @@ void SchedulerEndCritical()
 
 		//Switch threads!
 		InterruptDisable();
-		if( ContextSwitchNeeded() )
-		{
-			InterruptIncrement();
-			ContextSwitch();
-		}
-		else
-		{
-			InterruptEnable();
-		}
+		ContextSwitch();
 	}
 	else
 	{//Quantum has not expired, so we'll just end the critical section. 
@@ -213,15 +205,7 @@ SchedulerForceSwitch()
 
 	//Actually context switch.
 	InterruptDisable();
-	if( ContextSwitchNeeded() )
-	{
-		InterruptIncrement();
-		ContextSwitch();
-	}
-	else
-	{
-		InterruptEnable();
-	}
+	ContextSwitch();
 }
 
 /*
@@ -304,7 +288,7 @@ COUNT Schedule()
 		nextThread = &IdleThread;
 	}
 
-	ContextSetNextContext( & nextThread->Stack );
+	ContextSetNextContext( & nextThread->MachineContext );
 
 	return nextThread->Priority;
 
@@ -381,7 +365,7 @@ void SchedulerStartup()
 			FALSE );//Start
 
 	//Initialize context unit.
-	ContextStartup( & IdleThread.Stack );
+	ContextStartup( & IdleThread.MachineContext );
 }
 
 /*
@@ -401,17 +385,9 @@ struct LOCKING_CONTEXT * SchedulerGetLockingContext()
 void SchedulerThreadStartup()
 {
 	struct THREAD * thread;
-	struct THREAD * activeThread;
 	
-	ASSERT( ContextIsCritical() );
-	ASSERT( InterruptIsAtomic() );
-
-	activeThread = SchedulerGetActiveThread();
-	thread = activeThread;
+	thread = SchedulerGetActiveThread();
 	
-	ContextUnlock();
-	InterruptEnable();
-
 	thread->Main( thread->Argument );
 
 	KernelPanic();//TODO we should support threads ending... just not now.
@@ -448,5 +424,5 @@ void SchedulerCreateThread(
 		thread->State = THREAD_STATE_BLOCKED;
 	}
 	//initialize stack
-	ContextInit( &thread->Stack,stack,stackSize,SchedulerThreadStartup);
+	ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup );
 }	

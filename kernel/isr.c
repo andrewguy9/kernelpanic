@@ -97,7 +97,7 @@ void IsrStart()
  */
 void IsrEnd()
 {
-	ASSERT( InterruptLevel() > 0 );
+	ASSERT( InterruptIsAtomic() );
 
 	if( MutexLock(&PostHandlerMutex) )
 	{
@@ -105,20 +105,7 @@ void IsrEnd()
 
 		MutexUnlock(&PostHandlerMutex);
 
-		if( ContextSwitchNeeded() )
-		{
-			//If we are going to context switch,
-			//it has to be the last action. It will
-			//end the interrupt and restart in thread section.
-			InterruptDecrement();
-			ContextSwitch();
-		}
-		else
-		{
-			//We are not going to context switch, so do normal 
-			//interrupt exit.
-			InterruptDecrement();
-		}
+		ContextSwitch();
 	}
 	else
 	{

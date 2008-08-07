@@ -3,9 +3,8 @@
 
 #include"../utils/utils.h"
 #include"hal.h"
-#include"stack.h"
 
-void ContextInit( struct STACK * Stack, char * pointer, COUNT Size, STACK_INIT_ROUTINE Foo );
+void ContextInit( struct MACHINE_CONTEXT * context, char * pointer, COUNT Size, STACK_INIT_ROUTINE Foo );
 
 BOOL ContextLock( );
 
@@ -13,16 +12,11 @@ void ContextUnlock( );
 
 BOOL ContextIsCritical( );
 
-void ContextStartup( struct STACK * stack );
+void ContextStartup( struct MACHINE_CONTEXT * stack );
 
-void ContextSetNextContext( struct STACK * stack );
+void ContextSetNextContext( struct MACHINE_CONTEXT * stack );
 
-BOOL ContextSwitchNeeded();
+void ContextSwitch();
 
-void
-HAL_NAKED_FUNCTION
-ContextSwitch();
-
-
-struct STACK * ContextGetStack( );
+struct MACHINE_CONTEXT * ContextGetContext( );
 #endif

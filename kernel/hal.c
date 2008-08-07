@@ -20,7 +20,109 @@
 //
 //AVR CODE
 //
+
 #ifdef AVR_BUILD
+
+//Assembly to aid in context switch
+
+#define HAL_SAVE_STATE \
+		asm( \
+			"push r0\n\t" \
+			"push r1\n\t" \
+			"push r2\n\t" \
+			"push r3\n\t" \
+			"push r4\n\t" \
+			"push r5\n\t" \
+			"push r6\n\t" \
+			"push r7\n\t" \
+			"push r8\n\t" \
+			"push r9\n\t" \
+			"push r10\n\t" \
+			"push r11\n\t" \
+			"push r12\n\t" \
+			"push r13\n\t" \
+			"push r14\n\t" \
+			"push r15\n\t" \
+			"push r16\n\t" \
+			"push r17\n\t" \
+			"push r18\n\t" \
+			"push r19\n\t" \
+			"push r20\n\t" \
+			"push r21\n\t" \
+			"push r22\n\t" \
+			"push r23\n\t" \
+			"push r24\n\t" \
+			"push r25\n\t" \
+			"push r26\n\t" \
+			"push r27\n\t" \
+			"push r28\n\t" \
+			"push r29\n\t" \
+			"push r30\n\t" \
+			"push r31\n\t" \
+			"in r0, 0x3F\n\t" \
+			"push r0\n\t" \
+			);
+
+#define HAL_RESTORE_STATE \
+	asm( \
+            "pop r0\n\t" \
+            "out 0x3F, r0\n\t" \
+            "pop r31\n\t" \
+            "pop r30\n\t" \
+            "pop r29\n\t" \
+            "pop r28\n\t" \
+            "pop r27\n\t" \
+            "pop r26\n\t" \
+            "pop r25\n\t" \
+            "pop r24\n\t" \
+            "pop r23\n\t" \
+            "pop r22\n\t" \
+            "pop r21\n\t" \
+            "pop r20\n\t" \
+            "pop r19\n\t" \
+            "pop r18\n\t" \
+            "pop r17\n\t" \
+            "pop r16\n\t" \
+            "pop r15\n\t" \
+            "pop r14\n\t" \
+            "pop r13\n\t" \
+            "pop r12\n\t" \
+            "pop r11\n\t" \
+            "pop r10\n\t" \
+            "pop r9\n\t" \
+            "pop r8\n\t" \
+            "pop r7\n\t" \
+            "pop r6\n\t" \
+            "pop r5\n\t" \
+            "pop r4\n\t" \
+            "pop r3\n\t" \
+            "pop r2\n\t" \
+            "pop r1\n\t" \
+            "pop r0\n\t" \
+			"ret\n\t" \
+			);
+
+//Hal Save SP and Set SP are used by the avr
+//context switch to manipulate the stack pointer.
+#define HAL_SAVE_SP(dest) (dest = (void *) SP)
+#define HAL_SET_SP(value) (SP = (int) (value) )
+
+#define BAUD_19200 51
+#define BAUD_9600 103
+#define BAUD_56000 16
+
+#define UCSZ_8BIT 3<<1
+
+//Defines for the timer.
+#define TMR_PRESCALE_NONE  0xF4
+#define TMR_PRESCALE_1024  0x07
+#define TMR_PRESCALE_MASK  0x07
+#define TMR_MS             16
+
+
+#define DEBUG_SW           PINA
+#define DEBUG_SW_PORT      PORTA
+#define DEBUG_SW_DDR       DDRA
 
 void HalStartup()
 {
@@ -45,7 +147,7 @@ void HalInitClock()
 	TCCR0 |= TMR_PRESCALE_1024;
 }
 
-void * HalCreateStackFrame( void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize )
+void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
 {	
 	//create initial stack frame
 	stack = (char*)((unsigned int) stack + stackSize);//Pick which end of stack
@@ -56,8 +158,27 @@ void * HalCreateStackFrame( void * stack, STACK_INIT_ROUTINE foo, COUNT stackSiz
 		(unsigned char)((unsigned int)(foo)>>8);
 	//Add context restore frame
 	stack -= 34*sizeof(char);
-	//Stack complete
-	return stack;
+	//Stack complete, place in machine context.
+	Context->Stack = stack;
+
+	//Save the stack size boundaries.
+#ifdef DEBUG
+		Context->High = stack + stackSize;
+		Context->Low = stack;
+#endif
+}
+
+void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
+{
+	//Null out inital stack pointer since it will be set on first
+	//context switch.
+	Context->Stack = NULL;
+
+	//The stack bounderies are infinite for the initial stack.
+#ifdef DEBUG
+		Context->High = (char *) -1;
+		Context->Low = (char *) 0;
+#endif
 }
 
 void HalSerialStartup()
@@ -68,6 +189,27 @@ void HalSerialStartup()
 	UCSRC = UCSZ_8BIT;
 	UCSRB = _BV(TXCIE) | _BV(RXCIE) | _BV(RXEN) | _BV(TXEN);
 }
+
+void HalContextSwitch(struct MACHINE_CONTEXT * oldContext, struct MACHINE_CONTEXT * newContext )
+{
+	//perfrom context switch
+	HAL_SAVE_STATE
+	
+	HAL_SAVE_SP( oldContext->Stack );
+
+	//Check to see if stack has overflowed.
+#ifdef DEBUG
+	ASSERT( ASSENDING( 
+				(unsigned int) oldContext->Low, 
+				(unsigned int) oldContext->Stack, 
+				(unsigned int) oldContext->High ) );
+#endif
+
+	HAL_SET_SP( newContext->Stack );
+
+	HAL_RESTORE_STATE
+}
+
 #endif// end avr build
 
 //-----------------------------------------------------------------------------
@@ -81,6 +223,16 @@ void HalSerialStartup()
 #include<sys/time.h>
 #include<string.h>
 #include<signal.h>
+
+#define SAVE_STATE( context ) \
+	(void)getcontext( &(context)->State)
+
+#define RESTORE_STATE( context ) \
+	(void)setcontext(&(context)->State)
+
+#define SWITCH_CONTEXT( old, new ) \
+	(void)swapcontext(&((old)->State), &((new)->State))
+
 
 char DEBUG_LED;
 
@@ -134,10 +286,40 @@ void HalInitClock()
 	signal( SIGVTALRM, HalLinuxTimer );
 }
 
-void * HalCreateStackFrame( void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize )
+void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
 {
-	//TODO	
-	return NULL;
+	getcontext(&(Context->State));
+
+	/* adjust to new context */
+	Context->State.uc_link = NULL;
+	Context->State.uc_stack.ss_sp = stack;
+	Context->State.uc_stack.ss_size = stackSize;
+	Context->State.uc_stack.ss_flags = 0;
+
+	/*make new context */
+	makecontext( &(Context->State), foo, 1, NULL );
+
+	//Save the stack size boundaries.
+#ifdef DEBUG
+		Context->High = stack + stackSize;
+		Context->Low = stack;
+#endif
+}
+
+void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
+{
+	//Store the system's stste
+	getcontext(&(Context->State));
+	//The stack bounderies are infinite for the initial stack.
+#ifdef DEBUG
+		Context->High = (char *) -1;
+		Context->Low = (char *) 0;
+#endif
+}
+
+void HalContextSwitch(struct MACHINE_CONTEXT * oldContext, struct MACHINE_CONTEXT * newContext )
+{
+	(void)swapcontext(&((oldContext)->State), &((newContext)->State));
 }
 
 void HalSerialStartup()
