@@ -85,7 +85,8 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 	ASSERT( context->State == LOCKING_STATE_READY );
 
 	//assign the blocking info so they know why they are blocked
-	context->BlockingContext = * blockingInfo;
+	if( blockingInfo != NULL )
+		context->BlockingContext = * blockingInfo;
 	//call the context's blocking function so the caller gets stopped approperately.
 	context->BlockFunction( context );
 	//set the locking context's state to blocked.
