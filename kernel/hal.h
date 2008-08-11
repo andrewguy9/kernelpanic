@@ -17,7 +17,6 @@ void HalEndInterrupt();
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize);
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context );
 void HalSerialStartup();
-void HalContextSwitch(struct MACHINE_CONTEXT * oldContext, struct MACHINE_CONTEXT * newContext );
 
 //-----------------------------------------------------------------------------
 
@@ -40,6 +39,7 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldContext, struct MACHINE_CONTEX
  * which point to the Top and Bottom of the stack.
  */
 
+#define HAL_NAKED_FUNCTION __attribute__((naked,__INTR_ATTRS))
 struct MACHINE_CONTEXT
 {
 	char * Stack;
@@ -71,6 +71,9 @@ struct MACHINE_CONTEXT
 
 void __attribute__((signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
 #define TimerInterrupt TIMER0_OVF_vect
+
+
+void HAL_NAKED_FUNCTION HalContextSwitch();
 
 #endif //end if #ifdef AVR_BUILD
 //-----------------------------------------------------------------------------
@@ -107,6 +110,7 @@ struct MACHINE_CONTEXT
 BOOL HalIsAtomic();
 void HalDisableInterrupts();
 void HalEnableInterrupts();
+void HalContextSwitch();
 
 extern char DEBUG_LED;
 

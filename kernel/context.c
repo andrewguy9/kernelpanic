@@ -70,8 +70,6 @@ void ContextSetNextContext( struct MACHINE_CONTEXT * stack )
 
 void ContextSwitch()
 {
-	struct MACHINE_CONTEXT * oldStack;
-
 	ASSERT( InterruptIsAtomic() );
 	ASSERT( HalIsAtomic() );
 
@@ -83,35 +81,38 @@ void ContextSwitch()
 		{
 			//we are critical but no thread was picked, so we dont 
 			//have to do a context switch.
-			InterruptIncrement();
+			InterruptDecrement();
 			ASSERT(HalIsAtomic() && !InterruptIsAtomic());
 			//returning will restore the machine state.
 			return;
 		}
-		else
+		else if( NextStack != ActiveStack )
 		{
-			//we have to do a switch.
-			//get system state into post switch status.
-			oldStack = ActiveStack;
-			ActiveStack = NextStack;
-			NextStack = NULL;
-
 			MutexUnlock( &ContextMutex );
 			InterruptDecrement();
 
 			//now that the system looks like the switch has
 			//happened, go ahead and do the switch.
 
-			HalContextSwitch(oldStack,ActiveStack);
+			HalContextSwitch( );
 			return;
 		}
+		else
+		{
+			//we are critical but the thread was the same,
+			//so dont bother doing context switch. 
+			InterruptDecrement();
+			ASSERT(HalIsAtomic() && !InterruptIsAtomic());
+		}
 	}
-	//We are not in a critical section, so no new thread could have been
-	//picked, no context switch needed.
-	InterruptDecrement();
-	ASSERT(HalIsAtomic() && !InterruptIsAtomic());
-	//returning will restore the machine state.
-	return;
+	else
+	{
+		//We are not in a critical section, so no new thread could have been
+		//picked, no context switch needed.
+		InterruptDecrement();
+		//returning will restore the machine state.
+		return;
+	}
 }
 
 struct MACHINE_CONTEXT * ContextGetContext( )

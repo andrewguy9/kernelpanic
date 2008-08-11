@@ -109,11 +109,8 @@ BOOL InterruptIsAtomic()
 	//interrupts enabled.
 	//
 
-	BOOL atomic = HalIsAtomic();
-
-	ASSERT( atomic ? 
-			InterruptLevel > 0 :
-			InterruptLevel == 0 );
-
-	return atomic;
+	if( InterruptLevel == 0 )
+		return FALSE;
+	else 
+		return TRUE;
 }

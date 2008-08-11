@@ -17,6 +17,9 @@
  * so they dont have to gaurantee atomicy. 
  */
 
+extern struct MACHINE_CONTEXT * ActiveStack;
+extern struct MACHINE_CONTEXT * NextStack;
+
 //
 //AVR CODE
 //
@@ -149,17 +152,26 @@ void HalInitClock()
 
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
 {	
+	char reg;
+	char * sp = (char *) stack;
 	//create initial stack frame
-	stack = (char*)((unsigned int) stack + stackSize);//Pick which end of stack
-	stack -= sizeof( void * );
+	sp = (char*)((unsigned int) stack + stackSize);//Pick which end of stack
+	sp -= sizeof( void * );
 	//Drop in the kickoff routine
-	*((unsigned char*)stack + 1) = (int) foo;
-    *((unsigned char *)(stack)) = 
+	*((unsigned char*)sp + 1) = (int) foo;
+    *((unsigned char *)(sp)) = 
 		(unsigned char)((unsigned int)(foo)>>8);
 	//Add context restore frame
-	stack -= 34*sizeof(char);
+	for( reg = 0; reg < 33; reg++ )
+	{
+		sp -= sizeof(char);
+		*sp = reg;
+	}
+	//overwrite last register (sreg) with interrupt flag.
+	*sp = 0x80;
+	sp -= sizeof(char);
 	//Stack complete, place in machine context.
-	Context->Stack = stack;
+	Context->Stack = sp;
 
 	//Save the stack size boundaries.
 #ifdef DEBUG
@@ -190,22 +202,26 @@ void HalSerialStartup()
 	UCSRB = _BV(TXCIE) | _BV(RXCIE) | _BV(RXEN) | _BV(TXEN);
 }
 
-void HalContextSwitch(struct MACHINE_CONTEXT * oldContext, struct MACHINE_CONTEXT * newContext )
+void HalContextSwitch( )
 {
 	//perfrom context switch
 	HAL_SAVE_STATE
 	
-	HAL_SAVE_SP( oldContext->Stack );
+	HAL_SAVE_SP( ActiveStack->Stack );
 
 	//Check to see if stack has overflowed.
 #ifdef DEBUG
 	ASSERT( ASSENDING( 
-				(unsigned int) oldContext->Low, 
-				(unsigned int) oldContext->Stack, 
-				(unsigned int) oldContext->High ) );
+				(unsigned int) ActiveStack->Low, 
+				(unsigned int) ActiveStack->Stack, 
+				(unsigned int) ActiveStack->High ) );
 #endif
 
-	HAL_SET_SP( newContext->Stack );
+	//Switch the stacks.
+	ActiveStack = NextStack;
+	NextStack = NULL;
+
+	HAL_SET_SP( ActiveStack->Stack );
 
 	HAL_RESTORE_STATE
 }
@@ -223,9 +239,10 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldContext, struct MACHINE_CONTEX
 #include<sys/time.h>
 #include<string.h>
 #include<signal.h>
+#include<stdio.h>
 
 #define SAVE_STATE( context ) \
-	(void)getcontext( &(context)->State)
+	(void)getcontext(&(context)->State)
 
 #define RESTORE_STATE( context ) \
 	(void)setcontext(&(context)->State)
@@ -233,6 +250,20 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldContext, struct MACHINE_CONTEX
 #define SWITCH_CONTEXT( old, new ) \
 	(void)swapcontext(&((old)->State), &((new)->State))
 
+#define SET_SIGNAL(signum, handler) \
+	signal(signum, handler )
+
+#define SIG_PROC_MASK( new, old ) \
+	sigprocmask( SIG_SETMASK, new, old )
+
+#define SIG_PROC_UNMASK( new ) \
+	sigprocmask( SIG_SETMASK, new, NULL )
+
+#define SIG_PROC_QUERY( dest ) \
+	sigprocmask( SIG_SETMASK, NULL, dest )
+
+#define AlarmSignal SIGVTALRM
+#define InterruptFlagSignal SIGUSR1
 
 char DEBUG_LED;
 
@@ -240,6 +271,8 @@ sigset_t InterruptDisabledSet;//Set of interrupts which are disabled while atomi
 sigset_t InterruptEnabledSet;//set of interrupt which are disabled while in thread
 
 struct itimerval TimerInterval;
+
+volatile BOOL atomic;
 
 //Prototype for later use.
 void HalLinuxTimer();
@@ -257,9 +290,9 @@ void HalStartup()
 	//When interrupts are disabled, turn off the clock and user1.
 	ret = sigemptyset( &InterruptDisabledSet );
 	ASSERT( ret == 0 );
-	ret = sigaddset( &InterruptDisabledSet, SIGVTALRM );
+	ret = sigaddset( &InterruptDisabledSet, AlarmSignal );
 	ASSERT( ret == 0 );
-	ret = sigaddset( &InterruptDisabledSet, SIGUSR1 );
+	ret = sigaddset( &InterruptDisabledSet, InterruptFlagSignal );
 	ASSERT( ret == 0 );
 
 	//Create disabled signal mask for threaded sections.
@@ -268,8 +301,11 @@ void HalStartup()
 	ASSERT( ret == 0 );
 
 	//Turn off signal handlers since hardware starts in disabled state.
-	ret = sigprocmask( SIG_SETMASK, &InterruptDisabledSet, NULL );
-	ASSERT( ret == 0 );
+	SIG_PROC_MASK( &InterruptDisabledSet, NULL );
+
+	//Turn off user signal 1 as it could cause problems.
+	SET_SIGNAL( InterruptFlagSignal, SIG_IGN );
+	atomic = TRUE;
 }
 
 void HalInitClock()
@@ -285,12 +321,12 @@ void HalInitClock()
 	ASSERT(result == 0 );
 
 	//Turn on the timer signal handler.
-	signal( SIGVTALRM, HalLinuxTimer );
+	SET_SIGNAL( AlarmSignal, HalLinuxTimer );
 }
 
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
 {
-	getcontext(&(Context->State));
+	SAVE_STATE(Context);
 
 	/* adjust to new context */
 	Context->State.uc_link = NULL;
@@ -311,7 +347,7 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
 	//Store the system's stste
-	getcontext(&(Context->State));
+	SAVE_STATE(Context);
 	//The stack bounderies are infinite for the initial stack.
 #ifdef DEBUG
 		Context->High = (char *) -1;
@@ -319,10 +355,15 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 #endif
 }
 
-void HalContextSwitch(struct MACHINE_CONTEXT * oldContext, struct MACHINE_CONTEXT * newContext )
+void HalContextSwitch( )
 {
-	HalEnableInterrupts();
-	(void)swapcontext(&((oldContext)->State), &((newContext)->State));
+	struct MACHINE_CONTEXT * oldContext = ActiveStack;
+	struct MACHINE_CONTEXT * newContext = NextStack;
+
+	ActiveStack = NextStack;
+	NextStack = NULL;
+
+	SWITCH_CONTEXT(oldContext, newContext);
 }
 
 void HalSerialStartup()
@@ -336,20 +377,21 @@ BOOL HalIsAtomic()
 	sigset_t curState;
 	
 	//Get the current signal mask
-	ret = sigprocmask( 0, NULL, &curState );
-	ASSERT( ret == 0 );
+	SIG_PROC_QUERY( &curState );
 
 	//See if the SIGUSR1 signal is enabled (since it is used to simulate the interrupt flag.)
-	ret = sigismember( &curState, SIGUSR1 );
+	ret = sigismember( &curState, InterruptFlagSignal );
 
 	if( ret == 1 )
 	{
 		//SIGUSR1 is masked, so interrupts must be disabled.
+		ASSERT(atomic);
 		return TRUE;
 	}
 	else if( ret == 0 )
 	{
 		//SIGUSR1 is not masked, so interrupts must be enabled.
+		ASSERT(!atomic);
 		return FALSE;
 	}
 	else 
@@ -362,15 +404,15 @@ BOOL HalIsAtomic()
 void HalDisableInterrupts()
 {
 	int ret;
-	ret = sigprocmask(SIG_SETMASK, &InterruptDisabledSet, NULL );
-	ASSERT( ret == 0 );
+	SIG_PROC_MASK(&InterruptDisabledSet, NULL );
+	atomic = TRUE;
 }
 
 void HalEnableInterrupts()
 {
 	int ret;
-	ret = sigprocmask(SIG_SETMASK, &InterruptEnabledSet, NULL );
-	ASSERT( ret == 0 );
+	SIG_PROC_UNMASK( &InterruptEnabledSet );
+	atomic = FALSE;
 }
 
 //prototype for handler.
@@ -397,7 +439,7 @@ void HalResetClock()
 {
 	int ret;
 
-	signal(SIGVTALRM, HalLinuxTimer);
+	SET_SIGNAL(AlarmSignal, HalLinuxTimer);
 }
 #endif //end of pc build
 //-----------------------------------------------------------------------------
