@@ -73,12 +73,17 @@ void ContextSwitch()
 	ASSERT( InterruptIsAtomic() );
 	ASSERT( HalIsAtomic() );
 
+	printf("tying context switch: ");
+
 	if( MutexIsLocked( &ContextMutex ) )
 	{
+		printf("critical ");
+
 		//We are in critical section,
 		//lets see if we have a thread picked to run.
 		if( NextStack == NULL )
 		{
+			printf("no thread\n");
 			//we are critical but no thread was picked, so we dont 
 			//have to do a context switch.
 			InterruptDecrement();
@@ -88,6 +93,8 @@ void ContextSwitch()
 		}
 		else if( NextStack != ActiveStack )
 		{
+			printf("SWITCH from %x to %x\n", ActiveStack, NextStack );
+
 			MutexUnlock( &ContextMutex );
 			InterruptDecrement();
 
@@ -99,6 +106,8 @@ void ContextSwitch()
 		}
 		else
 		{
+			printf("SAME THREAD %x\n", ActiveStack );
+
 			//we are critical but the thread was the same,
 			//so dont bother doing context switch. 
 			InterruptDecrement();
@@ -107,6 +116,8 @@ void ContextSwitch()
 	}
 	else
 	{
+		printf("not critical\n");
+
 		//We are not in a critical section, so no new thread could have been
 		//picked, no context switch needed.
 		InterruptDecrement();

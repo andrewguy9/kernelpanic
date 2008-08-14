@@ -37,14 +37,22 @@ COUNT Value3 = 0;
 //Thread structures
 //
 
+#ifdef PC_BUILD 
+#define STACK_SIZE 0x5000
+#endif
+
+#ifdef AVR_BUILD
+#define STACK_SIZE 0x500
+#endif
+
 struct THREAD TestThreadIncrement;
-char TestThreadStackIncrement[500];
+char TestThreadStackIncrement[STACK_SIZE];
 
 struct THREAD TestThreadDivide;
-char TestThreadStackDivide[500];
+char TestThreadStackDivide[STACK_SIZE];
 
 struct THREAD TestThreadExp;
-char TestThreadStackExp[500];
+char TestThreadStackExp[STACK_SIZE];
 
 //
 //Main
@@ -76,6 +84,7 @@ int main()
 			5,
 			TRUE);
 
+	/*
 	SchedulerCreateThread(
 			&TestThreadExp,
 			8,
@@ -85,7 +94,7 @@ int main()
 			&Value3,
 			6,
 			TRUE);
-		
+*/		
 	KernelStart();
 	return 0;
 }

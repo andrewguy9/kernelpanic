@@ -22,6 +22,9 @@ void IsrRunPostHandlers()
 
 	while( ! LinkedListIsEmpty( & PostInterruptHandlerList ) )
 	{
+
+		printf("ISR WORK ITEM\n");
+
 		//Pull data out of structure 
 		handler = BASE_OBJECT( 
 				LinkedListPop(&PostInterruptHandlerList), 
@@ -41,6 +44,7 @@ void IsrRunPostHandlers()
 		//Change State to "not atomic"
 		InterruptEnable();
 
+		printf("running item %x\n", postHandler );
 		//Run the handler
 		//We pass a pointer to the handler itself so 
 		//the handler can reschedule itself.
@@ -48,6 +52,8 @@ void IsrRunPostHandlers()
 
 		//make atomic again.
 		InterruptDisable();
+
+		printf("ISR WORK ITEM FINISHED\n");
 	}
 }
 

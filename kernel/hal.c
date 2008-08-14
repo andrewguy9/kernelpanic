@@ -154,22 +154,27 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 {	
 	char reg;
 	char * sp = (char *) stack;
+
 	//create initial stack frame
 	sp = (char*)((unsigned int) stack + stackSize);//Pick which end of stack
 	sp -= sizeof( void * );
-	//Drop in the kickoff routine
+	
+	//Drop in the kickoff routine (function pointer)
 	*((unsigned char*)sp + 1) = (int) foo;
     *((unsigned char *)(sp)) = 
 		(unsigned char)((unsigned int)(foo)>>8);
-	//Add context restore frame
+
+	//Add context restore frame (regs r0-r31 + sreg)
 	for( reg = 0; reg < 33; reg++ )
 	{
 		sp -= sizeof(char);
 		*sp = reg;
 	}
-	//overwrite last register (sreg) with interrupt flag.
-	*sp = 0x80;
+
+	//overwrite last register (sreg) with 0 (interrupt disabled, all flags 0 )
+	*sp = 0x00;
 	sp -= sizeof(char);
+
 	//Stack complete, place in machine context.
 	Context->Stack = sp;
 
@@ -242,24 +247,31 @@ void HalContextSwitch( )
 #include<stdio.h>
 
 #define SAVE_STATE( context ) \
-	(void)getcontext(&(context)->State)
+	printf("getcontext()\n"); \
+	(void)getcontext( &(context)->State)
 
 #define RESTORE_STATE( context ) \
+	printf("setcontext()\n"); \
 	(void)setcontext(&(context)->State)
 
 #define SWITCH_CONTEXT( old, new ) \
+	printf("swapcontext()\n"); \
 	(void)swapcontext(&((old)->State), &((new)->State))
 
 #define SET_SIGNAL(signum, handler) \
+	printf("signal()\n"); \
 	signal(signum, handler )
 
 #define SIG_PROC_MASK( new, old ) \
+	printf("sigprocmask(MASK)\n");  \
 	sigprocmask( SIG_SETMASK, new, old )
 
 #define SIG_PROC_UNMASK( new ) \
+	printf("sigprocmask(UNMASK)\n"); \
 	sigprocmask( SIG_SETMASK, new, NULL )
 
 #define SIG_PROC_QUERY( dest ) \
+	printf("sigprocmask(QUERY)\n"); \
 	sigprocmask( SIG_SETMASK, NULL, dest )
 
 #define AlarmSignal SIGVTALRM
@@ -301,9 +313,11 @@ void HalStartup()
 	ASSERT( ret == 0 );
 
 	//Turn off signal handlers since hardware starts in disabled state.
+	printf("startup turned off interrupts\n");
 	SIG_PROC_MASK( &InterruptDisabledSet, NULL );
 
 	//Turn off user signal 1 as it could cause problems.
+	printf("startup is ignoring usersig1\n");
 	SET_SIGNAL( InterruptFlagSignal, SIG_IGN );
 	atomic = TRUE;
 }
@@ -321,11 +335,14 @@ void HalInitClock()
 	ASSERT(result == 0 );
 
 	//Turn on the timer signal handler.
+	printf("hal is turning on clock (startup)\n");
 	SET_SIGNAL( AlarmSignal, HalLinuxTimer );
 }
 
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
 {
+	printf("hal creating stack frame\n");
+
 	SAVE_STATE(Context);
 
 	/* adjust to new context */
@@ -346,6 +363,7 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
+	printf("hal creating idle loop frame\n");
 	//Store the system's stste
 	SAVE_STATE(Context);
 	//The stack bounderies are infinite for the initial stack.
@@ -424,6 +442,8 @@ void TimerInterrupt();
  */
 void HalLinuxTimer()
 {
+	printf("caught interrupt\n");
+
 	//There is an implied disable interrupts call when the timer fires. 
 	HalDisableInterrupts();
 
@@ -433,12 +453,15 @@ void HalLinuxTimer()
 	//There is an implied enable interrupts call when the timer
 	//returns.
 	HalEnableInterrupts();
+
+	printf("leaving interrupt\n");
 }
 
 void HalResetClock()
 {
 	int ret;
 
+	printf("reset clock\n");
 	SET_SIGNAL(AlarmSignal, HalLinuxTimer);
 }
 #endif //end of pc build
