@@ -294,31 +294,6 @@ void HalStartup()
 	int ret;
 	DEBUG_LED = 0;
 
-	//
-	//Set up signal masks for atomic and non atomic sections.
-	//
-	
-	//Create disabled signal mask for atomic sections.
-	//When interrupts are disabled, turn off the clock and user1.
-	ret = sigemptyset( &InterruptDisabledSet );
-	ASSERT( ret == 0 );
-	ret = sigaddset( &InterruptDisabledSet, AlarmSignal );
-	ASSERT( ret == 0 );
-	ret = sigaddset( &InterruptDisabledSet, InterruptFlagSignal );
-	ASSERT( ret == 0 );
-
-	//Create disabled signal mask for threaded sections.
-	//No signals should be masked.
-	ret = sigemptyset( &InterruptEnabledSet );
-	ASSERT( ret == 0 );
-
-	//Turn off signal handlers since hardware starts in disabled state.
-	printf("startup turned off interrupts\n");
-	SIG_PROC_MASK( &InterruptDisabledSet, NULL );
-
-	//Turn off user signal 1 as it could cause problems.
-	printf("startup is ignoring usersig1\n");
-	SET_SIGNAL( InterruptFlagSignal, SIG_IGN );
 	atomic = TRUE;
 }
 
@@ -391,45 +366,16 @@ void HalSerialStartup()
 
 BOOL HalIsAtomic()
 {
-	int ret;
-	sigset_t curState;
-	
-	//Get the current signal mask
-	SIG_PROC_QUERY( &curState );
-
-	//See if the SIGUSR1 signal is enabled (since it is used to simulate the interrupt flag.)
-	ret = sigismember( &curState, InterruptFlagSignal );
-
-	if( ret == 1 )
-	{
-		//SIGUSR1 is masked, so interrupts must be disabled.
-		ASSERT(atomic);
-		return TRUE;
-	}
-	else if( ret == 0 )
-	{
-		//SIGUSR1 is not masked, so interrupts must be enabled.
-		ASSERT(!atomic);
-		return FALSE;
-	}
-	else 
-	{
-		ASSERT(0);
-		return TRUE;
-	}
+	return atomic;
 }
 
 void HalDisableInterrupts()
 {
-	int ret;
-	SIG_PROC_MASK(&InterruptDisabledSet, NULL );
 	atomic = TRUE;
 }
 
 void HalEnableInterrupts()
 {
-	int ret;
-	SIG_PROC_UNMASK( &InterruptEnabledSet );
 	atomic = FALSE;
 }
 
@@ -444,6 +390,12 @@ void HalLinuxTimer()
 {
 	printf("caught interrupt\n");
 
+	if( atomic )
+	{
+		printf("timer fired while in atomic section, exiting...\n");
+		return;
+	}
+
 	//There is an implied disable interrupts call when the timer fires. 
 	HalDisableInterrupts();
 
@@ -454,15 +406,16 @@ void HalLinuxTimer()
 	//returns.
 	HalEnableInterrupts();
 
+	printf("really reset clock\n");
+
+	SET_SIGNAL(AlarmSignal, HalLinuxTimer);
+
 	printf("leaving interrupt\n");
 }
 
 void HalResetClock()
 {
-	int ret;
-
-	printf("reset clock\n");
-	SET_SIGNAL(AlarmSignal, HalLinuxTimer);
+	printf("kernel reset clock\n");
 }
 #endif //end of pc build
 //-----------------------------------------------------------------------------
