@@ -11,9 +11,10 @@ struct WORKER_CONTEXT
 	COUNT * Count;
 };
 
+#define STACK_SIZE 0x5000
 
-char WorkerStack[300];
-char MainStack[300];
+char WorkerStack[STACK_SIZE];
+char MainStack[STACK_SIZE];
 
 struct THREAD WorkerThread;
 struct THREAD MainThread;
@@ -87,7 +88,7 @@ int main()
 			&MainThread, 
 			2, 
 			MainStack, 
-			300, 
+			STACK_SIZE, 
 			ThreadMain, 
 			NULL,
 			0, 
@@ -96,7 +97,7 @@ int main()
 	WorkerCreateWorker(
 			&WorkerThread,
 			WorkerStack,
-			300,
+			STACK_SIZE,
 			1 );
 
 	ProducerContext.Count = 0; 

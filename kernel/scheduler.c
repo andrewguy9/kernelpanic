@@ -386,15 +386,11 @@ void SchedulerThreadStartup()
 {
 	struct THREAD * thread;
 	
-	printf("starting thread\n");
-
 	thread = SchedulerGetActiveThread();
 	
 	HalEnableInterrupts();
 
 	thread->Main( thread->Argument );
-
-	printf("ending thread\n");
 
 	KernelPanic();//TODO we should support threads ending... just not now.
 }

@@ -244,26 +244,20 @@ void HalContextSwitch( )
 #include<sys/time.h>
 #include<string.h>
 #include<signal.h>
-#include<stdio.h>
 
 #define SAVE_STATE( context ) \
-	printf("getcontext(" #context ")\n"); \
 	(void)getcontext( &(context)->uc)
 
 #define RESTORE_STATE( context ) \
-	printf("setcontext(" #context ")\n"); \
 	(void)setcontext(&(context)->uc)
 
 #define SWITCH_CONTEXT( old, new ) \
-	printf("swapcontext(" #old "," #new ")\n"); \
 	(void)swapcontext(&((old)->uc), &((new)->uc))
 
 #define SET_SIGNAL(signum, handler) \
-	printf("signal(" #signum "," #handler ")\n"); \
 	signal(signum, handler )
 
 #define SIG_PROC_MASK( new, old ) \
-	printf("sigprocmask(" #new "," #old ")\n");  \
 	sigprocmask( SIG_SETMASK, new, old )
 
 #define AlarmSignal SIGVTALRM
@@ -293,22 +287,19 @@ void HalInitClock()
 	int result;
 	
 	//Set the timer interval.
-	TimerInterval.it_interval.tv_sec = 2;
-	TimerInterval.it_interval.tv_usec = 0;
-	TimerInterval.it_value.tv_sec = 2;
-	TimerInterval.it_value.tv_usec = 0;
+	TimerInterval.it_interval.tv_sec = 0;
+	TimerInterval.it_interval.tv_usec = 1;
+	TimerInterval.it_value.tv_sec = 0;
+	TimerInterval.it_value.tv_usec = 1;
 	result = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
 	ASSERT(result == 0 );
 
 	//Turn on the timer signal handler.
-	printf("hal is turning on clock (startup)\n");
 	SET_SIGNAL( AlarmSignal, HalLinuxTimer );
 }
 
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
 {
-	printf("hal creating stack frame\n");
-
 	SAVE_STATE(Context);
 
 	/* adjust to new context */
@@ -329,7 +320,6 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
-	printf("hal creating idle loop frame\n");
 	//Store the system's stste
 	SAVE_STATE(Context);
 	//The stack bounderies are infinite for the initial stack.
@@ -379,11 +369,8 @@ void TimerInterrupt();
  */
 void HalLinuxTimer()
 {
-	printf("caught interrupt\n");
-
 	if( atomic )
 	{
-		printf("timer fired while in atomic section, exiting...\n");
 		return;
 	}
 
@@ -397,16 +384,12 @@ void HalLinuxTimer()
 	//returns.
 	HalEnableInterrupts();
 
-	printf("really reset clock\n");
-
 	SET_SIGNAL(AlarmSignal, HalLinuxTimer);
 
-	printf("leaving interrupt\n");
 }
 
 void HalResetClock()
 {
-	printf("kernel reset clock\n");
 }
 #endif //end of pc build
 //-----------------------------------------------------------------------------

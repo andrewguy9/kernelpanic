@@ -84,7 +84,6 @@ void HAL_NAKED_FUNCTION HalContextSwitch();
 #ifdef PC_BUILD
 
 #include<ucontext.h>
-#include<stdio.h>
 #include<stdlib.h>
 
 /*

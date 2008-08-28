@@ -57,8 +57,6 @@ void InterruptStartup()
  */
 void InterruptDisable()
 {
-	printf("interrupts disabled %d\n", InterruptLevel+1);
-
 	HalDisableInterrupts();
 	InterruptLevel++;
 }
@@ -76,13 +74,7 @@ void InterruptEnable()
 
 	if( InterruptLevel == 0 )
 	{
-		printf("interrupts re-enabled*************\n");
-
 		HalEnableInterrupts();
-	}
-	else
-	{
-		printf("interrupts re-enabled %d\n",InterruptLevel);
 	}
 }
 
@@ -90,16 +82,12 @@ void InterruptIncrement()
 {
 	ASSERT( HalIsAtomic() && InterruptLevel == 0 );
 
-	printf("implied increment %d\n", InterruptLevel +1);
-
 	InterruptLevel++;
 }
 
 void InterruptDecrement()
 {
 	ASSERT( HalIsAtomic() && InterruptLevel == 1 );
-
-	printf("implied decrement %d\n", InterruptLevel-1);
 
 	InterruptLevel--;
 }

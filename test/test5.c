@@ -25,7 +25,7 @@ struct THREAD ConsumerNonBlocking;
 //Stacks
 //
 
-#define STACK_SIZE 300
+#define STACK_SIZE 0x5000
 
 char ProducerStack[STACK_SIZE];
 char ConsumerNonBlockingStack[STACK_SIZE];

@@ -109,7 +109,7 @@ struct THREAD Reader1;
 struct THREAD Reader2;
 struct THREAD Reader3;
 
-#define STACK_SIZE 400
+#define STACK_SIZE 0x5000
 char Writer1Stack[STACK_SIZE];
 char Writer2Stack[STACK_SIZE];
 char Reader1Stack[STACK_SIZE];

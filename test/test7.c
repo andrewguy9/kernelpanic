@@ -6,7 +6,7 @@
 
 struct GATHER Gather;
 
-#define STACK_SIZE 300
+#define STACK_SIZE 0x5000
 
 struct THREAD BlockThread1;
 struct THREAD BlockThread2;

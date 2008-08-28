@@ -24,7 +24,7 @@ struct PIPE Pipe;
 struct SOCKET Socket;
 
 //Allocation for workers. 
-#define STACK_SIZE 300
+#define STACK_SIZE 0x5000
 char ProducerStack1[STACK_SIZE];
 char ProducerStack2[STACK_SIZE];
 

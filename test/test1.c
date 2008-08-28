@@ -42,7 +42,7 @@ COUNT Value3 = 0;
 #endif
 
 #ifdef AVR_BUILD
-#define STACK_SIZE 0x500
+#define STACK_SIZE 0x5000
 #endif
 
 struct THREAD TestThreadIncrement;
