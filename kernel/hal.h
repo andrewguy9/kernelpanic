@@ -99,7 +99,7 @@ void HAL_NAKED_FUNCTION HalContextSwitch();
 
 struct MACHINE_CONTEXT
 {
-	ucontext_t State;
+	ucontext_t uc;
 
 #ifdef DEBUG
 	char * High;

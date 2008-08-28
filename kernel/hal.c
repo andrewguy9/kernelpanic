@@ -247,32 +247,24 @@ void HalContextSwitch( )
 #include<stdio.h>
 
 #define SAVE_STATE( context ) \
-	printf("getcontext()\n"); \
-	(void)getcontext( &(context)->State)
+	printf("getcontext(" #context ")\n"); \
+	(void)getcontext( &(context)->uc)
 
 #define RESTORE_STATE( context ) \
-	printf("setcontext()\n"); \
-	(void)setcontext(&(context)->State)
+	printf("setcontext(" #context ")\n"); \
+	(void)setcontext(&(context)->uc)
 
 #define SWITCH_CONTEXT( old, new ) \
-	printf("swapcontext()\n"); \
-	(void)swapcontext(&((old)->State), &((new)->State))
+	printf("swapcontext(" #old "," #new ")\n"); \
+	(void)swapcontext(&((old)->uc), &((new)->uc))
 
 #define SET_SIGNAL(signum, handler) \
-	printf("signal()\n"); \
+	printf("signal(" #signum "," #handler ")\n"); \
 	signal(signum, handler )
 
 #define SIG_PROC_MASK( new, old ) \
-	printf("sigprocmask(MASK)\n");  \
+	printf("sigprocmask(" #new "," #old ")\n");  \
 	sigprocmask( SIG_SETMASK, new, old )
-
-#define SIG_PROC_UNMASK( new ) \
-	printf("sigprocmask(UNMASK)\n"); \
-	sigprocmask( SIG_SETMASK, new, NULL )
-
-#define SIG_PROC_QUERY( dest ) \
-	printf("sigprocmask(QUERY)\n"); \
-	sigprocmask( SIG_SETMASK, NULL, dest )
 
 #define AlarmSignal SIGVTALRM
 #define InterruptFlagSignal SIGUSR1
@@ -291,7 +283,6 @@ void HalLinuxTimer();
 
 void HalStartup()
 {
-	int ret;
 	DEBUG_LED = 0;
 
 	atomic = TRUE;
@@ -302,10 +293,10 @@ void HalInitClock()
 	int result;
 	
 	//Set the timer interval.
-	TimerInterval.it_interval.tv_sec = 0;
-	TimerInterval.it_interval.tv_usec = 1;
-	TimerInterval.it_value.tv_sec = 0;
-	TimerInterval.it_value.tv_usec = 1;
+	TimerInterval.it_interval.tv_sec = 2;
+	TimerInterval.it_interval.tv_usec = 0;
+	TimerInterval.it_value.tv_sec = 2;
+	TimerInterval.it_value.tv_usec = 0;
 	result = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
 	ASSERT(result == 0 );
 
@@ -321,13 +312,13 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 	SAVE_STATE(Context);
 
 	/* adjust to new context */
-	Context->State.uc_link = NULL;
-	Context->State.uc_stack.ss_sp = stack;
-	Context->State.uc_stack.ss_size = stackSize;
-	Context->State.uc_stack.ss_flags = 0;
+	Context->uc.uc_link = NULL;
+	Context->uc.uc_stack.ss_sp = stack;
+	Context->uc.uc_stack.ss_size = stackSize;
+	Context->uc.uc_stack.ss_flags = 0;
 
 	/*make new context */
-	makecontext( &(Context->State), foo, 1, NULL );
+	makecontext( &(Context->uc), foo, 0 );
 
 	//Save the stack size boundaries.
 #ifdef DEBUG
