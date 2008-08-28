@@ -68,7 +68,7 @@ int main()
 			&TestThreadIncrement,
 			2,
 			TestThreadStackIncrement,
-			500,
+			STACK_SIZE,
 			Test1ThreadMain,
 			&Value1,
 		   	4,
@@ -78,23 +78,22 @@ int main()
 			&TestThreadDivide,
 			4,
 			TestThreadStackDivide,
-			500,
+			STACK_SIZE,
 			Test1ThreadMain,
 			&Value2,
 			5,
 			TRUE);
 
-	/*
 	SchedulerCreateThread(
 			&TestThreadExp,
 			8,
 			TestThreadStackExp,
-			500,
+			STACK_SIZE,
 			Test1ThreadMain,
 			&Value3,
 			6,
 			TRUE);
-*/		
+
 	KernelStart();
 	return 0;
 }
