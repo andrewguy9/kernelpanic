@@ -11,7 +11,13 @@ struct WORKER_CONTEXT
 	COUNT * Count;
 };
 
+#ifdef PC_BUILD 
 #define STACK_SIZE 0x5000
+#endif
+
+#ifdef AVR_BUILD
+#define STACK_SIZE 0x500
+#endif
 
 char WorkerStack[STACK_SIZE];
 char MainStack[STACK_SIZE];

@@ -25,7 +25,13 @@ struct THREAD ConsumerNonBlocking;
 //Stacks
 //
 
+#ifdef PC_BUILD 
 #define STACK_SIZE 0x5000
+#endif
+
+#ifdef AVR_BUILD
+#define STACK_SIZE 0x500
+#endif
 
 char ProducerStack[STACK_SIZE];
 char ConsumerNonBlockingStack[STACK_SIZE];

@@ -6,7 +6,13 @@
 
 struct GATHER Gather;
 
+#ifdef PC_BUILD 
 #define STACK_SIZE 0x5000
+#endif
+
+#ifdef AVR_BUILD
+#define STACK_SIZE 0x500
+#endif
 
 struct THREAD BlockThread1;
 struct THREAD BlockThread2;

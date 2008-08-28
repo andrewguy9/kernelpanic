@@ -17,7 +17,14 @@ COUNT Sequence[SEQUENCE_LENGTH] = {2,4,8,16,32,64,128,256};
 //Define Thread
 struct THREAD SleeperThread;
 
+#ifdef PC_BUILD 
 #define STACK_SIZE 0x5000
+#endif
+
+#ifdef AVR_BUILD
+#define STACK_SIZE 0x500
+#endif
+
 char SleeperStack[STACK_SIZE];
 
 //Define Timer
