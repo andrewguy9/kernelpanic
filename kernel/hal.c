@@ -231,6 +231,10 @@ void HalContextSwitch( )
 	HAL_RESTORE_STATE
 }
 
+void HalPanic(char file[], int line)
+{
+	return;
+}
 #endif// end avr build
 
 //-----------------------------------------------------------------------------
@@ -244,6 +248,8 @@ void HalContextSwitch( )
 #include<sys/time.h>
 #include<string.h>
 #include<signal.h>
+#include<stdlib.h>
+#include<stdio.h>
 
 #define SAVE_STATE( context ) \
 	(void)getcontext( &(context)->uc)
@@ -390,6 +396,12 @@ void HalLinuxTimer()
 
 void HalResetClock()
 {
+}
+
+void HalPanic(char file[], int line)
+{
+	printf("PANIC: %s:%d\n",file,line);
+	exit(-1);
 }
 #endif //end of pc build
 //-----------------------------------------------------------------------------
