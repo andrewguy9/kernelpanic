@@ -390,8 +390,6 @@ void HalLinuxTimer()
 	//returns.
 	HalEnableInterrupts();
 
-	SET_SIGNAL(AlarmSignal, HalLinuxTimer);
-
 }
 
 void HalResetClock()
