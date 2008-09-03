@@ -31,9 +31,9 @@ char SleeperStack[STACK_SIZE];
 struct POST_HANDLER_OBJECT Timer;
 
 //Define Global Flags
-BOOL TimerFlag;
-BOOL ThreadFlag;
-COUNT TimerCycles;
+BOOL TimerFlag;//Is TRUE when we have the timer registered. (approx)
+BOOL ThreadFlag;//Is TRUE when sleeping, FALSE when awake (approx)
+COUNT TimerCycles;//Times we have run the test.
 
 //TimerFunction
 void TimerHandler( void * Argument )
@@ -41,7 +41,7 @@ void TimerHandler( void * Argument )
 	//Clear Flag
 	TimerFlag = FALSE;
 	//Check to see if thread is sleeping
-	if( ThreadFlag == FALSE )
+	if( ! ThreadFlag )
 		KernelPanic( );
 }
 
@@ -51,39 +51,40 @@ void SleeperMain()
 	INDEX cur=0;
 	while(1)
 	{
-		//Register Timer
-		InterruptDisable();
-		TimerFlag = TRUE;
-		InterruptEnable();
-
-		TimerRegister(
-				& Timer,
-				Sequence[cur] - 1,
-				TimerHandler,
-				NULL);
-
-		//Go to sleep
-		InterruptDisable();
-		ThreadFlag = TRUE;
-		InterruptEnable();
-
-		Sleep( Sequence[cur] );
-
-		InterruptDisable();
-		ThreadFlag = FALSE;
-		InterruptEnable();
-
-		//Check to see timer fired
-		InterruptDisable();
-		if( TimerFlag != FALSE )
+		for( cur = 0; cur < SEQUENCE_LENGTH; cur++)
 		{
-			KernelPanic( );
-		}
-		InterruptEnable();
+			//Register Timer: The timer should run before we wake.
+			InterruptDisable();
+			TimerFlag = TRUE;
+			InterruptEnable();
+			TimerRegister(
+					& Timer,
+					Sequence[cur] - 1,
+					TimerHandler,
+					NULL);
 
-		//Move to next sequence
-		cur = cur+1 % SEQUENCE_LENGTH;
-		TimerCycles++;
+			//Go to sleep:
+			InterruptDisable();
+			ThreadFlag = TRUE;
+			InterruptEnable();
+			Sleep( Sequence[cur] );
+
+			//Now that we are awake, Clear the thread flag.
+			InterruptDisable();
+			ThreadFlag = FALSE;
+			InterruptEnable();
+
+			//Check to see if the timer fired before we woke.
+			InterruptDisable();
+			if( TimerFlag )
+			{
+				KernelPanic( );
+			}
+			InterruptEnable();
+
+			//Increase our iteration count.
+			TimerCycles++;
+		}
 	}
 }
 
