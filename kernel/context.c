@@ -72,46 +72,38 @@ void ContextSwitch()
 {
 	ASSERT( InterruptIsAtomic() );
 	ASSERT( HalIsAtomic() );
+	ASSERT( MutexIsLocked( &ContextMutex ) );
 
-	if( MutexIsLocked( &ContextMutex ) )
+	//We are in critical section,
+	//lets see if we have a thread picked to run.
+	if( NextStack == NULL )
 	{
-		//We are in critical section,
-		//lets see if we have a thread picked to run.
-		if( NextStack == NULL )
-		{
-			//we are critical but no thread was picked, so we dont 
-			//have to do a context switch.
-			InterruptDecrement();
-			ASSERT(HalIsAtomic() && !InterruptIsAtomic());
-			//returning will restore the machine state.
-			return;
-		}
-		else if( NextStack != ActiveStack )
-		{
-			MutexUnlock( &ContextMutex );
-			InterruptDecrement();
+		//we are critical but no thread was picked, so we dont 
+		//have to do a context switch.
+		MutexUnlock( &ContextMutex );
+		InterruptDecrement();
 
-			//now that the system looks like the switch has
-			//happened, go ahead and do the switch.
+		//returning will restore the machine state.
+	}
+	else if( NextStack != ActiveStack )
+	{
+		MutexUnlock( &ContextMutex );
+		InterruptDecrement();
 
-			HalContextSwitch( );
-			return;
-		}
-		else
-		{
-			//we are critical but the thread was the same,
-			//so dont bother doing context switch. 
-			InterruptDecrement();
-			ASSERT(HalIsAtomic() && !InterruptIsAtomic());
-		}
+		//now that the system looks like the switch has
+		//happened, go ahead and do the switch.
+
+		HalContextSwitch( );
 	}
 	else
 	{
-		//We are not in a critical section, so no new thread could have been
-		//picked, no context switch needed.
+		//we are critical but the thread was the same,
+		//so dont bother doing context switch. 
+		ASSERT( NextStack == ActiveStack );
+
+		NextStack = NULL;
+		MutexUnlock( &ContextMutex );
 		InterruptDecrement();
-		//returning will restore the machine state.
-		return;
 	}
 }
 

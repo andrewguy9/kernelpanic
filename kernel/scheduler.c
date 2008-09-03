@@ -85,7 +85,7 @@ void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 
 	//blocking calls do not require notification. 
 	//Set locking state to ready.
-	context->State = LOCKING_STATE_READY;
+	context->State = LOCKING_STATE_READY;//TODO TO WE WANT TO DO THIS?
 }
 
 void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
@@ -144,6 +144,7 @@ void SchedulerEndCritical()
 	struct THREAD * activeThread;
 	COUNT priority;	
 	BOOL needSwitch = FALSE;
+
 	ASSERT( ContextIsCritical( ) );
 
 	//Check if quantum has expired while in crit section
@@ -167,6 +168,14 @@ void SchedulerEndCritical()
 		//Switch threads!
 		InterruptDisable();
 		ContextSwitch();
+
+		//
+		//The context switch relies on hardware to
+		//re-enable interrupts. Since we we not
+		//in an interrupt, we have to do it ourselves.
+		//
+
+		HalEnableInterrupts();
 	}
 	else
 	{//Quantum has not expired, so we'll just end the critical section. 
@@ -187,8 +196,7 @@ BOOL SchedulerIsCritical()
 /*
  * Ends a critical section and forces an immediate context switch
  */
-void  
-SchedulerForceSwitch()
+void  SchedulerForceSwitch()
 {
 	TIME currentTime;
 	COUNT priority;
@@ -206,6 +214,7 @@ SchedulerForceSwitch()
 	//Actually context switch.
 	InterruptDisable();
 	ContextSwitch();
+	HalEnableInterrupts();
 }
 
 /*
@@ -322,15 +331,11 @@ void SchedulePostHandler( void *arg )
 
 			//Calculate the time to end our quantum.
 			QuantumEndTime = currentTime+priority;
+		}
 
-			//NOTE: We leak the critical section here because InterruptEnd 
-			//will end it when he does the context switch.
-		}
-		else
-		{
-			//quantim is not over, so end our critical section
-			ContextUnlock();
-		}
+		//End our critical section, so that ContextSwitch 
+		//can acquire it.
+		ContextUnlock();
 	}
 
 	//Register timer fire again.

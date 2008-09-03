@@ -107,7 +107,31 @@ void IsrEnd()
 
 		MutexUnlock(&PostHandlerMutex);
 
-		ContextSwitch();
+		//
+		//Try to acquire a critical section.
+		//If we can, then the thread is not in 
+		//a critical section.
+		//
+
+		if( ContextLock() )
+		{
+			//
+			//The thread is not in a critical section,
+			//so we are allowed to context switch.
+			//
+
+			ContextSwitch();
+		}
+		else
+		{
+			//
+			//The thread is in a critical section.
+			//We should reduce our interrupt level
+			//and return.
+			//
+
+			InterruptDecrement();
+		}
 	}
 	else
 	{
