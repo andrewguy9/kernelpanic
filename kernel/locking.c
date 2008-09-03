@@ -90,7 +90,7 @@ union LINK * LockingBlock( union BLOCKING_CONTEXT * blockingInfo, struct LOCKING
 	//call the context's blocking function so the caller gets stopped approperately.
 	context->BlockFunction( context );
 	//set the locking context's state to blocked.
-	context->State = LOCKING_STATE_BLOCKING;  //TODO DO WE WANT TO DO THIS?
+	context->State = LOCKING_STATE_BLOCKING;  
 
 	//return link so the lock can store the blocked context.
 	return &context->Link;
@@ -179,6 +179,6 @@ void LockingWakeNonBlocking( struct LOCKING_CONTEXT * context )
 
 void LockingBlockNonBlocking( struct LOCKING_CONTEXT * context )
 {
-	return;//TODO IS THIS CORRECT
+	return;
 }
 

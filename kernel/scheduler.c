@@ -83,9 +83,6 @@ void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 	
 	SchedulerBlockThread( );
 
-	//blocking calls do not require notification. 
-	//Set locking state to ready.
-	context->State = LOCKING_STATE_READY;//TODO TO WE WANT TO DO THIS?
 }
 
 void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
