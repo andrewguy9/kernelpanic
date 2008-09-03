@@ -1,5 +1,6 @@
 #include"panic.h"
 #include"interrupt.h"
+#include"hal.h"
 
 /*
  * Panic Unit Description:
