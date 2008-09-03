@@ -37,7 +37,7 @@ void WorkerBlockOnLock( struct LOCKING_CONTEXT * context )
 {
 	//We do nothing because the work item is automatically
 	//pulled out of the work queue, and is added to the lock list.
-	return;
+	return;//TODO IS THIS CORRECT.
 }
 
 void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
