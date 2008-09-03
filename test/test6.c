@@ -19,6 +19,9 @@ struct WORKER_CONTEXT
 #define STACK_SIZE 0x500
 #endif
 
+COUNT Produced;
+COUNT Consumed;
+
 char WorkerStack[STACK_SIZE];
 char MainStack[STACK_SIZE];
 
@@ -46,6 +49,7 @@ enum WORKER_RETURN WorkerConsumerTask( struct WORKER_ITEM * item )
 	{
 		// we got the lock. Lets do the work.
 		workContext->Count++;
+		Consumed++;
 		//we have done the work, now lets finish the work item.
 		return WORKER_FINISHED;
 	}
@@ -59,6 +63,7 @@ enum WORKER_RETURN WorkerConsumerTask( struct WORKER_ITEM * item )
 enum WORKER_RETURN WorkerProducerTask( struct WORKER_ITEM * item )
 {
 	SemaphoreUp( &Semaphore );
+	Produced++;
 	return WORKER_FINISHED;
 }
 
@@ -89,6 +94,9 @@ void ThreadMain()
 int main()
 {
 	KernelInit();
+
+	Produced = 0;
+	Consumed = 0;
 
 	SchedulerCreateThread( 
 			&MainThread, 
