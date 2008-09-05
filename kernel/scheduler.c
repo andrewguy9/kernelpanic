@@ -358,6 +358,7 @@ void SchedulerStartup()
 	RunQueue = & Queue1;
 	DoneQueue = & Queue2;
 	//Initialize the timer
+	TimerInit( & SchedulerTimer );
 	TimerRegister( & SchedulerTimer,
 		   	0, 
 			SchedulePostHandler,
