@@ -126,10 +126,14 @@ void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
  */
 void SchedulerStartCritical( )
 {
+#ifdef DEBUG
 	BOOL aquired = ContextLock( );
 
 	//Start Critical should always stop the scheduler
 	ASSERT( aquired );
+#else
+	ContextLock();
+#endif
 }
 
 /*
