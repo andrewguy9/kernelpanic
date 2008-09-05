@@ -14,7 +14,9 @@ struct WORKER_ITEM * WorkerGetItem()
 {
 	struct LINKED_LIST_LINK * link;
 
+	InterruptDisable();
 	link = LinkedListPop( &WorkerItemQueue );
+	InterruptEnable();
 
 	if( link == NULL )
 		return NULL;
