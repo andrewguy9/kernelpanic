@@ -12,12 +12,19 @@ struct POST_HANDLER_OBJECT FrequentTimer;
 COUNT FrequentCount;
 void FrequentHandler( void * arg )
 {
-	FrequentCount++;
+	struct POST_HANDLER_OBJECT * timer = arg;
+
+	int * count = timer->Context;
+
+	ASSERT( timer == &FrequentTimer );
+
+	(*count)++;
+
 	TimerRegister( 
-			&FrequentTimer,
+			timer,
 			2,
 			FrequentHandler,
-		   NULL	);
+		    count );
 }
 
 struct POST_HANDLER_OBJECT SeldomTimer;
@@ -39,18 +46,21 @@ int main()
 
 	//Initialize timers.
 	FrequentCount = 0;
+	TimerInit(&FrequentTimer);
 	TimerRegister( 
 			&FrequentTimer,
 			2,
 			FrequentHandler,
-		   NULL	);
+		    &FrequentCount );
+
 
 	SeldomCount = 0;
+	TimerInit(&SeldomTimer);
 	TimerRegister( 
 			&SeldomTimer,
 			3,
 			SeldomHandler,
-		   NULL	);
+			&SeldomCount );
 
 	KernelStart();
 	return 0;
