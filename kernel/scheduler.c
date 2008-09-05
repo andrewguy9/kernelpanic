@@ -57,7 +57,11 @@ struct THREAD IdleThread;
 //Private Helper Functions
 //
 
-#define SchedulerGetActiveThread( ) ( BASE_OBJECT( ContextGetContext(), struct THREAD, MachineContext ) )
+
+struct THREAD * SchedulerGetActiveThread()
+{
+	return BASE_OBJECT( ContextGetContext(), struct THREAD, MachineContext );
+}
 
 void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 {
