@@ -23,7 +23,7 @@ void IsrRunPostHandlers()
 	while( ! LinkedListIsEmpty( & PostInterruptHandlerList ) )
 	{
 
-		//Pull data out of structure 
+		//Get a pointer to the Post Handler.
 		handler = BASE_OBJECT( 
 				LinkedListPop(&PostInterruptHandlerList), 
 				struct HANDLER_OBJECT, 
@@ -32,6 +32,8 @@ void IsrRunPostHandlers()
 				handler,
 				struct POST_HANDLER_OBJECT,
 				HandlerObj);
+
+		//Pull data out of structure 
 		func = postHandler->HandlerObj.Function;
 
 		//mark stucture as unqueued
