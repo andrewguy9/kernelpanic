@@ -112,8 +112,8 @@ void WorkerThreadMain()
 					break;
 
 				case WORKER_BLOCKED:
-					//the work item is blocked on a lock, the lock will store 
-					//a link to the item. do nothing.
+					//the work item is blocked on a lock, the lock will 
+					//re-queue the work item when the lock has been acquired.
 					break;
 
 				case WORKER_PENDED:
@@ -145,17 +145,38 @@ void WorkerCreateWorker(
 
 void WorkerInitItem( WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  )
 {
-	InterruptDisable();
-
+	//Its assumed that the caller of WorkerInitItem is the sole owner of the item
+	//at the time it is called. This means we dont have to disable interrupts around
+	//the init code.
+	
 	item->Foo = foo;
 	LockingInit( &item->LockingContext, WorkerBlockOnLock, WorkerWakeOnLock );
 	item->Context = context;
 
-	LinkedListEnqueue( &item->Link.LinkedListLink, &WorkerItemQueue );
+
+	//Now we are going to insert the work item into the list.
+	//We mark finished inside interrupt section so that WorkerItemIsFinished
+	//returns accurate results.
+	InterruptDisable();
 	item->Finished = FALSE;
+	LinkedListEnqueue( &item->Link.LinkedListLink, &WorkerItemQueue );
 	InterruptEnable();
 }
 
+/*
+ * WorkerItemIsFinished should be used by creator of a work item
+ * to see if his work item structure is free for use. If 
+ * WorkerItemIsFinished returns TRUE, then it is safe to use
+ * the work item.
+ *
+ * If it returns FALSE, then the work item is still either
+ * queued, or currently running. 
+ *
+ * USAGE:
+ * Only the work item's owner should call WorkerItemIsFinished. 
+ * It is the caller's responsibility to avoid racing to reclaim 
+ * work items.
+ */
 BOOL WorkerItemIsFinished( struct WORKER_ITEM * item )
 {
 	BOOL result;
@@ -165,11 +186,29 @@ BOOL WorkerItemIsFinished( struct WORKER_ITEM * item )
 	return result;
 }
 
+/*
+ * Returns the work item's context field. This is provided by the
+ * owner of the work item.
+ */
 void * WorkerGetContext( struct WORKER_ITEM * item )
 {
 	return item->Context;
 }
 
+/*
+ * when acquiring a lock in a work item you must use the work item's 
+ * locking context (dont use NULL!). This is because blocking the 
+ * worker thread may starve another work item which holds the lock
+ * you are waiting on. To solve this the work item structure
+ * contains a locking context so that every work item can just use the 
+ * provided context. To get access to the context first call
+ * Worker GetLockingContext. Once you have a pointer to the context, 
+ * acquire the lock with it. (Lock(somelock, workerlockingcontext)).
+ * Use LockingIsAcquired to determine if you actually acquired the lock
+ * or if you are waiting. If you are waiting, you can return WORKER_BLOCKED
+ * to wait until you own the lock.
+ * 
+ */
 struct LOCKING_CONTEXT * WorkerGetLockingContext( struct WORKER_ITEM * item )
 {
 	ASSERT( item!=NULL );
