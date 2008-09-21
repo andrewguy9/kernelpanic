@@ -92,6 +92,14 @@ void TimerStartup( )
 	HalInitClock();
 }
 
+/*
+ * Zeroes out fields in a timer. 
+ */
+void TimerInit( struct POST_HANDLER_OBJECT *newTimer )
+{
+	newTimer->Context = NULL;
+	newTimer->Queued = FALSE;
+}
 
 void TimerRegister( 
 		struct POST_HANDLER_OBJECT * newTimer,

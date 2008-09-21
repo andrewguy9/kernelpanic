@@ -5,6 +5,7 @@
 #include"../kernel/startup.h"
 #include"../kernel/interrupt.h"
 #include"../kernel/panic.h"
+#include"../kernel/worker.h"
 
 /*
  * Tests the sleep unit, should panic on failure.
@@ -16,6 +17,7 @@ COUNT Sequence[SEQUENCE_LENGTH] = {2,4,8,16,32,64,128,256};
 
 //Define Thread
 struct THREAD SleeperThread;
+struct THREAD WorkerThread;
 
 #ifdef PC_BUILD 
 #define STACK_SIZE 0x5000
@@ -26,6 +28,7 @@ struct THREAD SleeperThread;
 #endif
 
 char SleeperStack[STACK_SIZE];
+char WorkerStack[STACK_SIZE];
 
 //Define Timer
 struct POST_HANDLER_OBJECT Timer;
@@ -99,8 +102,15 @@ int main()
 			STACK_SIZE,
 			SleeperMain,
 			NULL,
-			0,
+			2,
 			TRUE);
+
+	WorkerCreateWorker(
+			&WorkerThread,
+			WorkerStack,
+			STACK_SIZE,
+			3);
+
 	KernelStart();
 	return 0;
 }

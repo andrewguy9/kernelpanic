@@ -57,7 +57,11 @@ struct THREAD IdleThread;
 //Private Helper Functions
 //
 
-#define SchedulerGetActiveThread( ) ( BASE_OBJECT( ContextGetContext(), struct THREAD, MachineContext ) )
+
+struct THREAD * SchedulerGetActiveThread()
+{
+	return BASE_OBJECT( ContextGetContext(), struct THREAD, MachineContext );
+}
 
 void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 {
@@ -354,6 +358,7 @@ void SchedulerStartup()
 	RunQueue = & Queue1;
 	DoneQueue = & Queue2;
 	//Initialize the timer
+	TimerInit( & SchedulerTimer );
 	TimerRegister( & SchedulerTimer,
 		   	0, 
 			SchedulePostHandler,
