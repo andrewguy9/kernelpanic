@@ -7,24 +7,24 @@
  * These are also called duel mode locks. A thread can lock a 
  * resource in two ways:
  * Shared - RESOURCE_SHARED - Multiple threads can hold a lock in shared mode
- * 	at the same time. 
+ * at the same time. 
  * Exclusive - RESOURCE_EXCLUSIVE - Only one thread can hold the lock exclusive
  *  at a time.
  *
- * Resources are commonly used on buffers where multiple threads are interrested
- * in data. Many threads shoud be able to share read access on a buffer, since 
+ * Resources are commonly used on buffers where multiple threads are interested
+ * in data. Many threads should be able to share read access on a buffer, since 
  * reading does not affect other readers. Write access to a buffer would require
  * exclusive locking since readers would be confused if they saw a partial 
  * write.
  *
  * The resource unit enforces these rules by blocking threads which cannot 
- * aquire the lock immediatly. 
+ * acquire the lock immediately. 
  *
  * This unit is starvation safe and should only be called by threads.
  *
  * The system does not store who holds the lock, so calls to this unit
  * are on the honor system. It is up to each thread to make sure it holds the
- * lock before calling ResourceUnlock, or ResourceEscalate or ResourceDeescalate.
+ * lock before calling ResourceUnlock.
  */
 
 //

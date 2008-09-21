@@ -4,6 +4,12 @@
 #include"scheduler.h"
 #include"panic.h"
 
+/*
+ * Worker Unit:
+ * The worker unit allows for threads or ISRs to
+ * queue work items. 
+ */
+
 struct LINKED_LIST WorkerItemQueue;
 
 //

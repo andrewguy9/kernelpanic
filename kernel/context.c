@@ -3,6 +3,20 @@
 #include"interrupt.h"
 
 /*
+ * Context Unit:
+ * The context unit manages "what context is on the stack".
+ * In other words the context unit allows for critical sections
+ * by preventing context switches. It is solely responsible for
+ * calling the HAL's context switch code.
+ *
+ * The context unit manages the context switch lock in similarly
+ * to how the interrupt unit manages the interrupt flag. 
+ *
+ * The rule is that locking the ContextMutex with ContextLock() 
+ * "locks the stack".
+ */
+
+/*
  * This lock protects the current
  * Stack. This allows for
  * people to set the next stack

@@ -3,7 +3,7 @@
 
 /*
  * MUTEX UNIT DESCRIPTION
- * The mutex library is a thread and asr safe primative syncronization mechanism.
+ * The mutex library is a thread and ISR safe primitive synchronization mechanism.
  *
  * Mutexes should be used whenever threads and asr's need to access the same data.
  * Be aware that mutexes do not support blocking. This means that they are NOT starvation
@@ -11,7 +11,7 @@
  * acquire the lock.
  *
  * To make sure this does not happen only use mutexes when usage of the lock is gauranteed
- * to be sparce. 
+ * to be sparse. 
  */
 
 

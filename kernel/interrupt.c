@@ -3,7 +3,7 @@
 
 /*
  * Interrupt Unit Description
- * The interrupt unit provides additional control to the interrupt flag.
+ * The interrupt unit provides additional control of the interrupt flag.
  *
  * Calls to InterruptDisable/InterruptEnable allow functions to nest 
  * disable/enable pairings so that we don't have to track all code paths 
@@ -14,19 +14,6 @@
  * When InterruptLevel == 0, then interrupts should be allowed.
  * When InterruptLevel > 0, then interrupt will be disabled.
  *
- * Inorder to reduce the time in which interrupts are disabled,
- * the interrupt unit allows for "post interrupt callbacks" 
- * which can be scheduled using InterruptRegisterPostHandler( ).
- * 
- * When exiting an atomic section (as intterupt level goes from 1 to 0), 
- * we reenable interrupts and run 
- * the post interrupt handlers with the interrupts off and then return.
- * This allows the heavy lifting in interrupts to be done with interrupts
- * enabled. The benefit is really short atomic sections, by running heavy
- * operations in post interrupt handlers.
- *
- * To prevent infinite interrupt nesting we use the only allow the bottom
- * interrupt on the stack to process post handlers.
  */
 
 //

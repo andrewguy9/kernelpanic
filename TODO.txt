@@ -8,4 +8,3 @@ Write RingBuffer -- DONE
 		Write Thread to fill/drain pipes. - DONE
 Fix Strings into program memory
 Refactor blocking contexts into their own unit. -- DONE
-We sould remove hal dependancy in scheduler. The scheduler should depend on hal not the other way around.

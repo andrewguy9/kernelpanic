@@ -8,11 +8,11 @@
 
 /*
  * Timer Unit Description:
- * Timers allow for function calls to be scheduled for specific time
- * in the future. 
+ * The timer unit keeps time for the kernel. The current time can be queried 
+ * by calling TimerGetTime(). 
  *
- * Timers are registered with the system by calling TimerRegister.
- * When the timer fires, the function and argument provided to TimerRegister
+ * Timers can be registered with the system by calling TimerRegister().
+ * When the timer fires, the function and argument provided to TimerRegister()
  * are called as a post interrupt handler. (So interrupts will be ENABLED).
  * Its perfectly safe to have a timer re-register itself.
  */

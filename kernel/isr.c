@@ -3,6 +3,27 @@
 #include"mutex.h"
 #include"interrupt.h"
 
+/*
+ * The isr unit provides utilities for interrupts to call.
+ *
+ * Interrupts should call IsrStart and IsrEnd at the beginning
+ * and end of an interrupt. 
+ *
+ * In-order to reduce the time in which interrupts are disabled,
+ * the isr unit allows for "post interrupt callbacks" 
+ * which can be scheduled using IsrRegisterPostHandler( ).
+ *
+ * When exiting an atomic section (as interrupt level goes from 1 to 0), 
+ * we re-enable interrupts and run 
+ * the post interrupt handlers with the interrupts off and then return to the
+ * thread.
+ * This allows the heavy lifting in interrupts to be done with interrupts
+ * enabled. The benefit is really short atomic sections, by running heavy
+ * operations in post interrupt handlers.
+ * To prevent infinite interrupt nesting we use the only allow the bottom
+ * interrupt on the stack to process post handlers.
+ */
+
 struct LINKED_LIST PostInterruptHandlerList;//List of PostInterruptHandlers
 struct MUTEX PostHandlerMutex;
 

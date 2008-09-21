@@ -3,8 +3,8 @@
 #include"hal.h"
 
 /*
- * Panic Unit Description:
- * When the system encounters an error it sould call a panic function. 
+ * Panic Unit Description:TODO THIS COMMENT IS OLD/WRONG
+ * When the system encounters an error it should call a panic function. 
  * We support two types of panic. 
  * GeneralPanic is for thread panicing and Kernel is for kernel 
  * (and isr) panicing. The panic routines poll on their local failed

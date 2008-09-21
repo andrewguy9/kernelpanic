@@ -23,7 +23,7 @@
  * system is in a thread critical section. 
  * We enforce this rule using a mutex. 
  * Threads entering a critical section
- * aquire the mutex, and then release it
+ * acquire the mutex, and then release it
  * at the end of their critical section. 
  *
  * Blocking Contexts:

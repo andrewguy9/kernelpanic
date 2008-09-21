@@ -7,6 +7,11 @@
 #include"panic.h"
 
 /*
+ * Startup Unit:
+ * The startup unit bootstraps the kernel. 
+ */
+
+/*
  * Initializes the kernel structures.
  * Should be called before any other kernel function.
  */
@@ -22,7 +27,8 @@ void KernelInit()
 }
 
 /*
- * Called to complete start up.
+ * Called to complete start up. This function
+ * never returns.
  */
 void KernelStart()
 {
