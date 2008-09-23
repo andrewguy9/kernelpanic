@@ -237,6 +237,20 @@ void SchedulerResumeThread( struct THREAD * thread )
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 }
 
+BOOL SchedulerIsThreadDead( struct THREAD * thread )
+{
+	ASSERT( ContextIsCritical( ) );
+	
+	return thread->State == THREAD_STATE_DONE;
+}
+
+BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
+{
+	ASSERT( ContextIsCritical( ) );
+	
+	return thread->State == THREAD_STATE_BLOCKED;
+}
+
 /*
  * A thread can call SchedulerBlockThread to prevent it from being
  * added back into the thread queue when its switched out.
@@ -397,13 +411,21 @@ void SchedulerThreadStartup()
 {
 	struct THREAD * thread;
 	
+	//Start the thread.
+	
 	thread = SchedulerGetActiveThread();
 	
 	HalEnableInterrupts();
 
 	thread->Main( thread->Argument );
 
-	KernelPanic();//TODO we should support threads ending... just not now.
+	//Stop the thread
+	SchedulerStartCritical();
+	thread->State = THREAD_STATE_DONE;
+	SchedulerForceSwitch();
+
+	//We should never get here.
+	ASSERT(0);
 }
 
 void SchedulerCreateThread( 
@@ -416,6 +438,7 @@ void SchedulerCreateThread(
 		INDEX debugFlag,
 		BOOL start)
 {
+	//TODO MUST BE CRITICAL???
 	//Make sure data is valid
 	ASSERT( debugFlag < 8 );
 
