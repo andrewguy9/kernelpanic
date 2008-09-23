@@ -232,7 +232,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 	ASSERT( thread != SchedulerGetActiveThread() );
 
 	thread->State = THREAD_STATE_RUNNING;
-	HalSetDebugLedFlag( thread->Flag );
+	HalSetDebugLedFlag( thread->Flag );//TODO REFACTOR
 
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 }
@@ -254,7 +254,7 @@ void SchedulerBlockThread( )
 	activeThread = SchedulerGetActiveThread();
 
 	activeThread->State = THREAD_STATE_BLOCKED;
-	HalClearDebugLedFlag( activeThread->Flag );
+	HalClearDebugLedFlag( activeThread->Flag );//TODO REFACTOR
 }
 
 /*
@@ -429,7 +429,7 @@ void SchedulerCreateThread(
 	if( start )
 	{
 		thread->State = THREAD_STATE_RUNNING;
-		HalSetDebugLedFlag( debugFlag );
+		HalSetDebugLedFlag( debugFlag );//TODO REFACTOR
 		LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 	}
 	else

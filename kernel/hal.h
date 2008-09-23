@@ -122,10 +122,13 @@ void HalResetClock();
 //Cross Platform Macros
 //
 
-#define HalSetDebugLedMask( mask ) ( DEBUG_LED = mask )
+//TODO WE ARE GOING TO REMOVE THE DEBUG_LED CONSTRUCT AND REPLACE IT WITH
+//TODO A NEW WATCHDOG SCHEME.
+
+#define HalSetDebugLedMask( mask ) ( DEBUG_LED = mask )//TODO NEVER USED
 #define HalSetDebugLedFlag( index ) ( FlagOn( &(DEBUG_LED),(index)) )
 #define HalClearDebugLedFlag( index ) (FlagOff(&(DEBUG_LED),(index)))
-#define HalToggleDebugLedFlag( index ) (FlagToggle(&(DEBUG_LED),(index)))
-#define HalGetDebugLed( ) ( DEBUG_LED )
+#define HalToggleDebugLedFlag( index ) (FlagToggle(&(DEBUG_LED),(index)))//TODO NEVER USED
+#define HalGetDebugLed( ) ( DEBUG_LED )//TODO NEVER USED
 
 #endif //end of #ifndef HAL_H
