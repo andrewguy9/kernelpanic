@@ -5,6 +5,7 @@
 #include"interrupt.h"
 #include"context.h"
 #include"panic.h"
+#include"watchdog.h"
 
 /*
  * Scheduler Unit:
@@ -232,7 +233,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 	ASSERT( thread != SchedulerGetActiveThread() );
 
 	thread->State = THREAD_STATE_RUNNING;
-	HalSetDebugLedFlag( thread->Flag );//TODO REFACTOR
+	WatchdogNotify( thread->Flag );
 
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 }
@@ -254,7 +255,7 @@ void SchedulerBlockThread( )
 	activeThread = SchedulerGetActiveThread();
 
 	activeThread->State = THREAD_STATE_BLOCKED;
-	HalClearDebugLedFlag( activeThread->Flag );//TODO REFACTOR
+	WatchdogNotify( activeThread->Flag );
 }
 
 /*
@@ -429,7 +430,7 @@ void SchedulerCreateThread(
 	if( start )
 	{
 		thread->State = THREAD_STATE_RUNNING;
-		HalSetDebugLedFlag( debugFlag );//TODO REFACTOR
+		WatchdogNotify( debugFlag );
 		LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 	}
 	else

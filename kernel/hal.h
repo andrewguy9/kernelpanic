@@ -12,6 +12,8 @@ typedef void (*STACK_INIT_ROUTINE) ();
 struct MACHINE_CONTEXT;
 void HalInitClock();
 void HalStartup();
+void HalStartupWatchdog( int frequency );
+void HalPetWatchdog( );
 void HalStartInterrupt();
 void HalEndInterrupt();
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize);
@@ -56,9 +58,9 @@ struct MACHINE_CONTEXT
 #define HalEnableInterrupts()  asm(" sei")
 
 //Avr defines to help with debug leds.
-//Each platform must define DEBUG_LED variable, but not DDR
-#define DEBUG_LED          PORTC
-#define DEBUG_LED_DDR      DDRC
+//Each platform must define HAL_RUNNING_MASK variable, but not DDR
+#define HAL_RUNNING_MASK		PORTC
+#define HAL_RUNNING_MASK_DDR	DDRC
 
 //usart registers
 #define UCSRA   UCSR0A
@@ -111,7 +113,7 @@ void HalDisableInterrupts();
 void HalEnableInterrupts();
 void HalContextSwitch();
 
-extern char DEBUG_LED;
+extern char HAL_RUNNING_MASK;
 
 void HalResetClock();
 
@@ -122,13 +124,10 @@ void HalResetClock();
 //Cross Platform Macros
 //
 
-//TODO WE ARE GOING TO REMOVE THE DEBUG_LED CONSTRUCT AND REPLACE IT WITH
-//TODO A NEW WATCHDOG SCHEME.
 
-#define HalSetDebugLedMask( mask ) ( DEBUG_LED = mask )//TODO NEVER USED
-#define HalSetDebugLedFlag( index ) ( FlagOn( &(DEBUG_LED),(index)) )
-#define HalClearDebugLedFlag( index ) (FlagOff(&(DEBUG_LED),(index)))
-#define HalToggleDebugLedFlag( index ) (FlagToggle(&(DEBUG_LED),(index)))//TODO NEVER USED
-#define HalGetDebugLed( ) ( DEBUG_LED )//TODO NEVER USED
+
+#define HalClearWatchdogMask() (HAL_RUNNING_MASK = 0 )
+#define HalSetWatchdogFlag(index) (FlagOn( &(HAL_RUNNING_MASK),(index)) )
+#define HalGetWatchdogMask() (HAL_RUNNING_MASK)
 
 #endif //end of #ifndef HAL_H

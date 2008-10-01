@@ -29,6 +29,8 @@ extern struct MACHINE_CONTEXT * NextStack;
 
 #ifdef AVR_BUILD
 
+#include<avr/wdt.h>
+
 //Assembly to aid in context switch
 
 #define HAL_SAVE_STATE \
@@ -132,10 +134,11 @@ extern struct MACHINE_CONTEXT * NextStack;
 
 void HalStartup()
 {
-	//Turn setup generic registers.
-	//Not timing or interrupt registers.
-	DEBUG_LED_DDR = 0xff;
+	//Setup debug led port IO Direction
+	HAL_RUNNING_MASK_DDR = 0xff;
+	//Setup Switch IO Direction
     DEBUG_SW_DDR = 0x00;
+	//set Switch IO values
     DEBUG_SW_PORT = 0xff;
 }
 
@@ -238,6 +241,47 @@ void HalPanic(char file[], int line)
 {
 	return;
 }
+
+void HalStartupWatchdog( int frequency )
+{
+	if( frequency <= 15 )
+	{
+		wdt_enable( WDTO_15MS );
+	} 
+	else if( frequency <= 30 )
+	{
+		wdt_enable( WDTO_30MS );
+	}
+	else if( frequency <= 60 )
+	{
+		wdt_enable( WDTO_60MS );
+	}else if( frequency <= 120 )
+	{
+		wdt_enable( WDTO_120MS );
+	}
+	else if( frequency <= 250 )
+	{
+		wdt_enable( WDTO_250MS );
+	}
+	else if( frequency <= 500 )
+	{
+		wdt_enable( WDTO_500MS );
+	}
+	else if( frequency <= 1000 )
+	{
+		wdt_enable( WDTO_1S );
+	}
+	else 
+	{
+		wdt_enable( WDTO_2S );
+	}
+}
+
+void HalPetWatchdog( )
+{
+	wdt_reset();
+}
+
 #endif// end avr build
 
 //-----------------------------------------------------------------------------
@@ -272,7 +316,10 @@ void HalPanic(char file[], int line)
 #define AlarmSignal SIGVTALRM
 #define InterruptFlagSignal SIGUSR1
 
-char DEBUG_LED;
+char HAL_RUNNING_MASK;
+BOOL HalWatchdogOn;
+unsigned int HalWatchDogFrequency;
+unsigned int HalWatchdogCount;
 
 sigset_t InterruptDisabledSet;//Set of interrupts which are disabled while atomic
 sigset_t InterruptEnabledSet;//set of interrupt which are disabled while in thread
@@ -286,9 +333,11 @@ void HalLinuxTimer();
 
 void HalStartup()
 {
-	DEBUG_LED = 0;
-
 	atomic = TRUE;
+	HalWatchdogOn = FALSE;
+	HAL_RUNNING_MASK = 0;
+	HalWatchDogFrequency = 0;
+	HalWatchdogCount = 0;
 }
 
 void HalInitClock()
@@ -378,20 +427,33 @@ void TimerInterrupt();
  */
 void HalLinuxTimer()
 {
-	if( atomic )
+	//Do watchdog check irrespective of weather we are atomic.
+	if( HalWatchdogOn )
 	{
-		return;
+		HalWatchdogCount ++;
+
+		if( HalWatchdogCount >= HalWatchDogFrequency )
+		{
+			//The time for a match has expried. Panic!!!
+			printf("WATCHDOG TIMEOUT!!!");
+			exit(0);
+		}
 	}
 
-	//There is an implied disable interrupts call when the timer fires. 
-	HalDisableInterrupts();
+	if( ! atomic )
+	{
 
-	//Call the kernel's timer handler.
-	TimerInterrupt();
+		//There is an implied disable interrupts call when the timer fires. 
+		HalDisableInterrupts();
 
-	//There is an implied enable interrupts call when the timer
-	//returns.
-	HalEnableInterrupts();
+		//Call the kernel's timer handler.
+		TimerInterrupt();
+
+		//There is an implied enable interrupts call when the timer
+		//returns.
+		HalEnableInterrupts();
+
+	}
 
 }
 
@@ -404,6 +466,17 @@ void HalPanic(char file[], int line)
 	printf("PANIC: %s:%d\n",file,line);
 	exit(-1);
 }
+
+void HalStartupWatchdog( int frequency )
+{
+	HalWatchdogOn = TRUE;
+	HalWatchDogFrequency = frequency;
+}
+
+void HalPetWatchdog( )
+{
+	HalWatchdogCount = 0;	
+}
+
 #endif //end of pc build
 //-----------------------------------------------------------------------------
-
