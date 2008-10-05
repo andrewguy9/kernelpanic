@@ -135,7 +135,7 @@ extern struct MACHINE_CONTEXT * NextStack;
 void HalStartup()
 {
 	//Setup debug led port IO Direction
-	HAL_RUNNING_MASK_DDR = 0xff;
+	HAL_WATCHDOG_MASK_DDR = 0xff;
 	//Setup Switch IO Direction
     DEBUG_SW_DDR = 0x00;
 	//set Switch IO values
@@ -316,7 +316,7 @@ void HalPetWatchdog( )
 #define AlarmSignal SIGVTALRM
 #define InterruptFlagSignal SIGUSR1
 
-char HAL_RUNNING_MASK;
+char HAL_WATCHDOG_MASK;
 BOOL HalWatchdogOn;
 unsigned int HalWatchDogFrequency;
 unsigned int HalWatchdogCount;
@@ -335,7 +335,7 @@ void HalStartup()
 {
 	atomic = TRUE;
 	HalWatchdogOn = FALSE;
-	HAL_RUNNING_MASK = 0;
+	HAL_WATCHDOG_MASK = 0;
 	HalWatchDogFrequency = 0;
 	HalWatchdogCount = 0;
 }

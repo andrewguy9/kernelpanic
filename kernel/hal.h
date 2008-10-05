@@ -58,9 +58,9 @@ struct MACHINE_CONTEXT
 #define HalEnableInterrupts()  asm(" sei")
 
 //Avr defines to help with debug leds.
-//Each platform must define HAL_RUNNING_MASK variable, but not DDR
-#define HAL_RUNNING_MASK		PORTC
-#define HAL_RUNNING_MASK_DDR	DDRC
+//Each platform must define HAL_WATCHDOG_MASK variable, but not DDR
+#define HAL_WATCHDOG_MASK		PORTC
+#define HAL_WATCHDOG_MASK_DDR	DDRC
 
 //usart registers
 #define UCSRA   UCSR0A
@@ -113,21 +113,11 @@ void HalDisableInterrupts();
 void HalEnableInterrupts();
 void HalContextSwitch();
 
-extern char HAL_RUNNING_MASK;
+extern char HAL_WATCHDOG_MASK;
 
 void HalResetClock();
 
 #endif //end if #ifdef LINUX_BUILD
 //-----------------------------------------------------------------------------
-
-//
-//Cross Platform Macros
-//
-
-
-
-#define HalClearWatchdogMask() (HAL_RUNNING_MASK = 0 )
-#define HalSetWatchdogFlag(index) (FlagOn( &(HAL_RUNNING_MASK),(index)) )
-#define HalGetWatchdogMask() (HAL_RUNNING_MASK)
 
 #endif //end of #ifndef HAL_H

@@ -42,15 +42,15 @@ void WatchdogStartup(char desiredMask, int frequency)
 void WatchdogNotify( INDEX index )
 {
 	InterruptDisable();
-	HalSetWatchdogFlag( index );
-	if( (HalGetWatchdogMask() ^ WatchdogDesiredMask) == 0 )
+	FlagOn( &(HAL_WATCHDOG_MASK),(index));
+	if( (HAL_WATCHDOG_MASK ^ WatchdogDesiredMask) == 0 )
 	{
 		//We have flipped all the flags required.
 		//So lets pet the watchdog.
 		HalPetWatchdog();
 		//Now lets clear the mask because we need to
 		//restart our checking.
-		HalClearWatchdogMask();
+		HAL_WATCHDOG_MASK=0;
 	}
 	InterruptEnable();
 }
