@@ -82,7 +82,7 @@ void IsrRunPostHandlers()
 
 void IsrStartup()
 {
-	MutexInit( & PostHandlerMutex );
+	MutexInit( & PostHandlerMutex, FALSE );
 	LinkedListInit( & PostInterruptHandlerList );
 }
 

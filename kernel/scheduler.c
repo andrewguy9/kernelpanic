@@ -390,7 +390,7 @@ void SchedulerStartup()
 			FALSE );//Start
 
 	//Initialize context unit.
-	ContextStartup( & IdleThread.MachineContext );
+	ContextSetActiveContext( & IdleThread.MachineContext );
 }
 
 /*
@@ -425,7 +425,7 @@ void SchedulerThreadStartup()
 	SchedulerForceSwitch();
 
 	//We should never get here.
-	ASSERT(0);
+	KernelPanic();
 }
 
 void SchedulerCreateThread( 
@@ -438,9 +438,9 @@ void SchedulerCreateThread(
 		INDEX debugFlag,
 		BOOL start)
 {
-	//TODO MUST BE CRITICAL???
 	//Make sure data is valid
 	ASSERT( debugFlag < 8 );
+	ASSERT( ContextIsCritical() );
 
 	//Populate thread struct
 	thread->Priority = priority;
@@ -448,17 +448,20 @@ void SchedulerCreateThread(
 	LockingInit( & thread->LockingContext, SchedulerBlockOnLock, SchedulerWakeOnLock );
 	thread->Main = main;
 	thread->Argument = Argument;
+
+	//initialize stack
+	ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup );
+
 	//Add thread to done queue.
 	if( start )
 	{
 		thread->State = THREAD_STATE_RUNNING;
 		HalSetDebugLedFlag( debugFlag );
+
 		LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 	}
 	else
 	{
 		thread->State = THREAD_STATE_BLOCKED;
 	}
-	//initialize stack
-	ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup );
 }	
