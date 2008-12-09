@@ -35,8 +35,10 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
 		HalCreateStackFrame( MachineState, Pointer, Foo, Size );
 	}
 	else
-	{//Populate stack for idle thread (machine's start thread).
+	{
+		//Populate stack for idle thread (machine's start thread).
 		HalGetInitialStackFrame( MachineState );
+
 #ifdef DEBUG
 		MachineState->High = (char*) -1;
 		MachineState->Low = 0;

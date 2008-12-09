@@ -33,7 +33,7 @@ typedef unsigned char BOOL;
 #define BASE_OBJECT( PTR, BASE, FIELD ) ((BASE*)((int)(PTR) - OFFSET_OF(BASE,FIELD)))
 
 //
-//  Assert
+//  Assert and Assume
 //
 
 #ifdef DEBUG
@@ -47,6 +47,9 @@ typedef unsigned char BOOL;
 	if( !(condition) )      \
 		printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__)
 
+//This is a test build. Assumes result in a test and printf/exit.
+#define ASSUME( expression, result ) (ASSERT( (condition) == (result) ))
+
 #endif //TEST_BUILD
 
 #ifdef KERNEL_BUILD
@@ -57,12 +60,17 @@ typedef unsigned char BOOL;
 	if( ! (condition) ) \
 		Panic( __FILE__, __LINE__ )
 
+#define ASSUME( expression, result ) ASSERT(expression == result )
+
 #endif //ifdef KERNEL_BUILD
 
 #else //ifdef DEBUG
 
 //This is a fre build, no asserts enabled.
 #define ASSERT( condition ) 
+
+//This is a fre build, ASSUME runs expression, but no check.
+#define ASSUME( expression, result ) (expression)
 
 #endif //ifdef DEBUG
 

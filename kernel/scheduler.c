@@ -393,7 +393,7 @@ struct LOCKING_CONTEXT * SchedulerGetLockingContext()
 	return &activeThread->LockingContext;
 }
 
-void SchedulerThreadStartup()
+void SchedulerThreadStartup( void )
 {
 	struct THREAD * thread;
 	
@@ -437,5 +437,5 @@ void SchedulerCreateThread(
 		thread->State = THREAD_STATE_BLOCKED;
 	}
 	//initialize stack
-	ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup );
+	ContextInit( &thread->MachineContext, stack, stackSize, SchedulerThreadStartup );
 }	

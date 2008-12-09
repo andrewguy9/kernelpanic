@@ -251,38 +251,39 @@ void HalPanic(char file[], int line)
 #include<sys/time.h>
 #include<string.h>
 #include<signal.h>
+#include<unistd.h>
 #include<stdlib.h>
 #include<stdio.h>
+#include<ucontext.h>
 
+/*
 #define SAVE_STATE( context ) \
-	(void)getcontext( &(context)->uc)
+	ASSUME( getcontext( &(context)->uc), 0 )
 
 #define RESTORE_STATE( context ) \
-	(void)setcontext(&(context)->uc)
+	ASSUME( setcontext(&(context)->uc), 0 )
 
 #define SWITCH_CONTEXT( old, new ) \
-	(void)swapcontext(&((old)->uc), &((new)->uc))
+	ASSUME( swapcontext(&((old)->uc), &((new)->uc)), 0 )
 
 #define SET_SIGNAL(signum, handler) \
-	signal(signum, handler )
+	ASSUME( signal(signum, handler ), (!SIG_ERR) )
 
 #define SIG_PROC_MASK( new, old ) \
-	sigprocmask( SIG_SETMASK, new, old )
+	ASSUME( sigprocmask( SIG_SETMASK, new, old ), 0 )
+*/
 
-#define AlarmSignal SIGVTALRM
-#define InterruptFlagSignal SIGUSR1
+#define AlarmSignal SIGALRM
 
 char DEBUG_LED;
 
 sigset_t InterruptDisabledSet;//Set of interrupts which are disabled while atomic
 sigset_t InterruptEnabledSet;//set of interrupt which are disabled while in thread
 
-struct itimerval TimerInterval;
-
 volatile BOOL atomic;
 
 //Prototype for later use.
-void HalLinuxTimer();
+void HalLinuxTimer( int SignalNumber );
 
 void HalStartup()
 {
@@ -293,32 +294,39 @@ void HalStartup()
 
 void HalInitClock()
 {
-	int result;
-	
-	//Set the timer interval.
-	TimerInterval.it_interval.tv_sec = 0;
-	TimerInterval.it_interval.tv_usec = 1;
-	TimerInterval.it_value.tv_sec = 0;
-	TimerInterval.it_value.tv_usec = 1;
-	result = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
-	ASSERT(result == 0 );
-
+	void * result;
+	printf("init clock\n");
 	//Turn on the timer signal handler.
-	SET_SIGNAL( AlarmSignal, HalLinuxTimer );
+	printf("\tsignal\n");
+	result = signal( AlarmSignal, HalLinuxTimer );//TODO
+	ASSERT( result != SIG_ERR );
+
+
+	//Set the timer interval.
+	printf("\tualarm\n");
+	ualarm( 1000, 1000 );//TODO
 }
 
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
 {
-	SAVE_STATE(Context);
+	int status;
 
-	/* adjust to new context */
+	ASSERT( Context != NULL );
+
+	printf("hal create stack frame\n");
+	printf("\tget context\n");
+	status = getcontext( &(Context)->uc);//TODO
+	ASSERT(status == 0);
+
+	//Initialize new context.
 	Context->uc.uc_link = NULL;
 	Context->uc.uc_stack.ss_sp = stack;
 	Context->uc.uc_stack.ss_size = stackSize;
 	Context->uc.uc_stack.ss_flags = 0;
 
 	/*make new context */
-	makecontext( &(Context->uc), foo, 0 );
+	printf("\tmake context\n");
+	makecontext( &Context->uc, foo, 0 );//TODO
 
 	//Save the stack size boundaries.
 #ifdef DEBUG
@@ -327,26 +335,40 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 #endif
 }
 
+extern int IdleThread;
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
-	//Store the system's stste
-	SAVE_STATE(Context);
-	//The stack bounderies are infinite for the initial stack.
+	//We do nothing for the initial stack frame.
+	int status;
+	printf("hal get initial stack frame\n");
+	printf("\tget context\n");
+	status = getcontext( &(Context)->uc);//TODO
+	ASSERT(status == 0);
+
 #ifdef DEBUG
-		Context->High = (char *) -1;
-		Context->Low = (char *) 0;
+	//The stack bounderies are infinite for the initial stack.
+	Context->High = (char *) -1;
+	Context->Low = (char *) 0;
 #endif
 }
 
 void HalContextSwitch( )
 {
+	int status;
+
 	struct MACHINE_CONTEXT * oldContext = ActiveStack;
 	struct MACHINE_CONTEXT * newContext = NextStack;
 
+	printf("hal context switch\n");
 	ActiveStack = NextStack;
 	NextStack = NULL;
 
-	SWITCH_CONTEXT(oldContext, newContext);
+	ASSERT( oldContext != NULL );
+	ASSERT( newContext != NULL );
+
+	printf("\tswap context\n");
+	status = swapcontext( &oldContext->uc, &newContext->uc );//TODO
+	ASSERT( status == 0 );
 }
 
 void HalSerialStartup()
@@ -372,14 +394,22 @@ void HalEnableInterrupts()
 //prototype for handler.
 void TimerInterrupt();
 
+volatile int count = 0;
+void HalLinuxTimer( int SignalNumber )
 /*
  * Acts like the hardware clock.
  * Calls TimerInterrupt if he can.
  */
-void HalLinuxTimer()
 {
+
+	count++;
+
+	//ASSERT( count <= 1 );
+
+	//If we are not atomic, then we need to return.
 	if( atomic )
 	{
+		count --;
 		return;
 	}
 
@@ -393,6 +423,7 @@ void HalLinuxTimer()
 	//returns.
 	HalEnableInterrupts();
 
+	count--;
 }
 
 void HalResetClock()
