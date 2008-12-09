@@ -83,6 +83,8 @@ void HAL_NAKED_FUNCTION HalContextSwitch();
 //
 #ifdef PC_BUILD
 
+#define _XOPEN_SOURCE 600
+
 #include<ucontext.h>
 #include<stdlib.h>
 
