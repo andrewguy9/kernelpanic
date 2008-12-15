@@ -294,6 +294,9 @@ void HalStartup()
 void HalInitClock()
 {
 	int result;
+
+	//Turn on the timer signal handler.
+	SET_SIGNAL( AlarmSignal, HalLinuxTimer );
 	
 	//Set the timer interval.
 	TimerInterval.it_interval.tv_sec = 0;
@@ -302,9 +305,6 @@ void HalInitClock()
 	TimerInterval.it_value.tv_usec = 1;
 	result = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
 	ASSERT(result == 0 );
-
-	//Turn on the timer signal handler.
-	SET_SIGNAL( AlarmSignal, HalLinuxTimer );
 }
 
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
@@ -397,6 +397,7 @@ void HalLinuxTimer()
 
 void HalResetClock()
 {
+	SET_SIGNAL( AlarmSignal, HalLinuxTimer );
 }
 
 void HalPanic(char file[], int line)
