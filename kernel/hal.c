@@ -254,20 +254,17 @@ void HalPanic(char file[], int line)
 #include<stdlib.h>
 #include<stdio.h>
 
-#define SET_SIGNAL(signum, handler) \
-       signal(signum, handler )
-
 #define AlarmSignal SIGVTALRM
 #define InterruptFlagSignal SIGUSR1
 
 char DEBUG_LED;
 
-sigset_t InterruptDisabledSet;//Set of interrupts which are disabled while atomic
-sigset_t InterruptEnabledSet;//set of interrupt which are disabled while in thread
-
 struct itimerval TimerInterval;
 
-volatile BOOL atomic;
+sigset_t EmptySet;
+sigset_t TimerSet;
+struct sigaction TimerAction;
+
 int depth = 0;
 
 //Prototype for later use.
@@ -275,28 +272,50 @@ void HalLinuxTimer();
 
 void HalStartup()
 {
+	int status;
 	DEBUG_LED = 0;
-
-	atomic = TRUE;
 	depth = 0;
 
-	printf("startup: %d %d\n", atomic, depth );
+
+	//Create the empty set.
+	status = sigemptyset( &EmptySet );
+	ASSERT( status == 0 );
+
+	//Create the timer set.
+	status = sigemptyset( &TimerSet );
+	ASSERT( status == 0 );
+	status = sigaddset( &TimerSet, AlarmSignal );
+	ASSERT( status == 0 );
+	ASSERT( sigismember( &TimerSet, AlarmSignal ) == 1 );
+
+	//Create the timer action.
+	TimerAction.sa_handler = HalLinuxTimer;
+	status = sigemptyset( &TimerAction.sa_mask);
+	ASSERT( status ==  0 );
+	TimerAction.sa_flags = 0;
+
+	//We start with the timer disabled.
+	status = sigprocmask( SIG_BLOCK, &TimerSet, NULL );
+	ASSERT( status == 0 );
+
+	printf("startup: %d\n", depth );
 }
 
 void HalInitClock()
 {
-	int result;
+	int status;
 
 	//Turn on the timer signal handler.
-	SET_SIGNAL( AlarmSignal, HalLinuxTimer );
-	
+	status = sigaction( AlarmSignal, &TimerAction, NULL );
+	ASSERT( status == 0 );	
+
 	//Set the timer interval.
-	TimerInterval.it_interval.tv_sec = 1;
+	TimerInterval.it_interval.tv_sec = 0;
 	TimerInterval.it_interval.tv_usec = 100;
-	TimerInterval.it_value.tv_sec = 1;
+	TimerInterval.it_value.tv_sec = 0;
 	TimerInterval.it_value.tv_usec = 100;
-	result = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
-	ASSERT(result == 0 );
+	status = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
+	ASSERT(status == 0 );
 }
 
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
@@ -386,21 +405,46 @@ void HalSerialStartup()
 
 BOOL HalIsAtomic()
 {
-	return atomic;
+	sigset_t curSet;
+	int status;
+
+	status = sigprocmask( 0, NULL, &curSet );
+	ASSERT( status == 0 );
+
+	status = sigismember( &curSet, AlarmSignal );
+	ASSERT( status != -1 );
+	if( status == 1 )
+	{
+		//Alarm was a member of the "blocked" mask, so we are atomic.
+		return TRUE;
+	}
+	else 
+	{
+		//Alarm was not a member of the "blocked" mask, so we are not atomic.
+		return FALSE; 
+	}
 }
 
 void HalDisableInterrupts()
 {
-	if( atomic == FALSE )
+	int status;
+
+	if( HalIsAtomic() == FALSE )
 		printf("\t\t\tdisabled\n");
-	atomic = TRUE;
+
+	status = sigprocmask( SIG_BLOCK, &TimerSet, NULL ); 
+	ASSERT( status == 0 );
 }
 
 void HalEnableInterrupts()
 {
-	ASSERT( atomic );
+	int status;
+
+	ASSERT( HalIsAtomic() );
 	printf("\t\tenabled\n");
-	atomic = FALSE;
+	
+	status = sigprocmask( SIG_UNBLOCK, &TimerSet, NULL );
+	ASSERT( status == 0 );
 }
 
 //prototype for handler.
@@ -413,30 +457,28 @@ void TimerInterrupt();
 void HalLinuxTimer()
 {
 	depth++;
-	if( atomic )
-	{
-		depth--;
-		return;
-	}
 
-	printf("timer handled: atomic %d %d\n", atomic, depth);
+	printf("timer handled: atomic %d\n", depth);
 
-	//There is an implied disable interrupts call when the timer fires. 
-	HalDisableInterrupts();
+	//The kernel should add this signal to the blocked list inorder to avoid 
+	//nesting calls the the handler.
+	//verify this.
+	ASSERT( HalIsAtomic() );
 
 	//Call the kernel's timer handler.
 	TimerInterrupt();
 
 	//There is an implied enable interrupts call when the timer
 	//returns.
-	HalEnableInterrupts();
+	//HalEnableInterrupts();//TODO THERE IS AN IMPLIED RE-ENABLE (I THINK).
 	depth --;
 	printf("timer returned\n");
 }
 
 void HalResetClock()
 {
-	SET_SIGNAL( AlarmSignal, HalLinuxTimer );
+	//TODO NO NOTHING FOR NOW SINCE ALARM IS OUR GLOBAL FLAG.
+	//and the alarm is already periodic. (unlike the avr).
 }
 
 void HalPanic(char file[], int line)
