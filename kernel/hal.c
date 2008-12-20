@@ -265,8 +265,6 @@ sigset_t EmptySet;
 sigset_t TimerSet;
 struct sigaction TimerAction;
 
-int depth = 0;
-
 //Prototype for later use.
 void HalLinuxTimer();
 
@@ -274,8 +272,6 @@ void HalStartup()
 {
 	int status;
 	DEBUG_LED = 0;
-	depth = 0;
-
 
 	//Create the empty set.
 	status = sigemptyset( &EmptySet );
@@ -297,8 +293,6 @@ void HalStartup()
 	//We start with the timer disabled.
 	status = sigprocmask( SIG_BLOCK, &TimerSet, NULL );
 	ASSERT( status == 0 );
-
-	printf("startup: %d\n", depth );
 }
 
 void HalInitClock()
@@ -311,9 +305,9 @@ void HalInitClock()
 
 	//Set the timer interval.
 	TimerInterval.it_interval.tv_sec = 0;
-	TimerInterval.it_interval.tv_usec = 200;
+	TimerInterval.it_interval.tv_usec = 100;
 	TimerInterval.it_value.tv_sec = 0;
-	TimerInterval.it_value.tv_usec = 200;
+	TimerInterval.it_value.tv_usec = 100;
 	status = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
 	ASSERT(status == 0 );
 }
@@ -378,8 +372,6 @@ void HalContextSwitch( )
 	struct MACHINE_CONTEXT * oldContext = ActiveStack;
 	struct MACHINE_CONTEXT * newContext = NextStack;
 
-	printf("\tcontext switch 0x%p 0x%p\n", ActiveStack, NextStack);
-
 	ActiveStack = NextStack;
 	NextStack = NULL;
 
@@ -394,7 +386,6 @@ void HalContextSwitch( )
 	{
 		//This was the restore call started by longjmp call.
 		//We have just switched into a different thread.
-		printf("switched threads************************\n");
 	}
 }
 
@@ -450,10 +441,6 @@ void TimerInterrupt();
  */
 void HalLinuxTimer()
 {
-	depth++;
-
-	printf("timer handled: atomic %d\n", depth);
-
 	//The kernel should add this signal to the blocked list inorder to avoid 
 	//nesting calls the the handler.
 	//verify this.
@@ -465,8 +452,6 @@ void HalLinuxTimer()
 	//There is an implied enable interrupts call when the timer
 	//returns.
 	//HalEnableInterrupts();//TODO THERE IS AN IMPLIED RE-ENABLE (I THINK).
-	depth --;
-	printf("timer returned\n");
 }
 
 void HalResetClock()
