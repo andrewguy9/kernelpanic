@@ -263,8 +263,8 @@ void HalPanic(char file[], int line)
 #endif
 
 #ifdef BSD
-#define ESP_OFFSET
-#define EIP_OFFSET
+#define ESP_OFFSET 3
+#define EIP_OFFSET 0
 #endif
 
 #ifdef DARWIN
