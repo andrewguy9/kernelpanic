@@ -17,18 +17,10 @@ KERN_PREFIX = kern_
 #Compiler Parameters
 ##############################################
 #c flags
-ifeq (${SHELL uname}, Darwin)
-PC_CFLAGS  = "-p -g -Wall"
+PC_CFLAGS = "-p -g -Wall"
+ifeq ($(shell uname), Darwin)
 AVR_CFLAGS = "-Wall -mmcu=atmega128 -O2"
-endif
-
-ifeq (${SHELL uname}, FreeBSD)
-PC_CFLAGS  = "-p -g -Wall"
-AVR_CFLAGS = "-Wall -mmcu=atmega128 -02"
-endif
-
-ifeq (${SHELL uname}, Linux)
-PC_CFLAGS  = "-p -g -Wall"
+else
 AVR_CFLAGS = "-Wall -mmcu=atmega128 -gdwarf-2"
 endif
 ##############################################
@@ -54,7 +46,7 @@ DEBUG_DBG = DEBUG
 #BUILD_MACRO
 BUILD_APP = TEST_BUILD
 BUILD_KERNEL = KERNEL_BUILD
-MAKE_PROG = $_
+
 
 #############################################
 #combined strings
