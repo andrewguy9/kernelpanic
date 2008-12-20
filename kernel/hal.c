@@ -254,20 +254,8 @@ void HalPanic(char file[], int line)
 #include<stdlib.h>
 #include<stdio.h>
 
-#define SAVE_STATE( context ) \
-	(void)getcontext( &(context)->uc)
-
-#define RESTORE_STATE( context ) \
-	(void)setcontext(&(context)->uc)
-
-#define SWITCH_CONTEXT( old, new ) \
-	(void)swapcontext(&((old)->uc), &((new)->uc))
-
 #define SET_SIGNAL(signum, handler) \
-	signal(signum, handler )
-
-#define SIG_PROC_MASK( new, old ) \
-	sigprocmask( SIG_SETMASK, new, old )
+       signal(signum, handler )
 
 #define AlarmSignal SIGVTALRM
 #define InterruptFlagSignal SIGUSR1
@@ -280,6 +268,7 @@ sigset_t InterruptEnabledSet;//set of interrupt which are disabled while in thre
 struct itimerval TimerInterval;
 
 volatile BOOL atomic;
+int depth = 0;
 
 //Prototype for later use.
 void HalLinuxTimer();
@@ -289,6 +278,9 @@ void HalStartup()
 	DEBUG_LED = 0;
 
 	atomic = TRUE;
+	depth = 0;
+
+	printf("startup: %d %d\n", atomic, depth );
 }
 
 void HalInitClock()
@@ -299,38 +291,61 @@ void HalInitClock()
 	SET_SIGNAL( AlarmSignal, HalLinuxTimer );
 	
 	//Set the timer interval.
-	TimerInterval.it_interval.tv_sec = 0;
-	TimerInterval.it_interval.tv_usec = 1;
-	TimerInterval.it_value.tv_sec = 0;
-	TimerInterval.it_value.tv_usec = 1;
+	TimerInterval.it_interval.tv_sec = 1;
+	TimerInterval.it_interval.tv_usec = 100;
+	TimerInterval.it_value.tv_sec = 1;
+	TimerInterval.it_value.tv_usec = 100;
 	result = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
 	ASSERT(result == 0 );
 }
 
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
 {
-	SAVE_STATE(Context);
 
-	/* adjust to new context */
-	Context->uc.uc_link = NULL;
-	Context->uc.uc_stack.ss_sp = stack;
-	Context->uc.uc_stack.ss_size = stackSize;
-	Context->uc.uc_stack.ss_flags = 0;
+	int status;
+	unsigned char * top;
+	STACK_INIT_ROUTINE * eip;
+	unsigned int *esp;
+	unsigned char * cstack = stack;
 
-	/*make new context */
-	makecontext( &(Context->uc), foo, 0 );
+	status = sigsetjmp( Context->Registers, 1 );
 
-	//Save the stack size boundaries.
+	if( status == 0 )
+	{
+		//We need to save foo into the context so we know who to call
+		//when longjmp gets called.
+		Context->Foo = foo;
+
+		//Calculate the stop of the stack
+		top = &cstack[stackSize];
+		top = top - sizeof( sigjmp_buf );
+
+		//We need to write new values to the register buffer.
+		//Find the eip and esp regisers and overwrite them
+		eip = (STACK_INIT_ROUTINE*) ( ((unsigned char *) &Context->Registers)+(12*sizeof(int)) );
+		esp = (unsigned int*)       ( ((unsigned char *) &Context->Registers)+( 9*sizeof(int)) );
+
+		*eip = (void *) foo;
+		*esp = (int) top;
 #ifdef DEBUG
-		Context->High = stack + stackSize;
+		//This is the call where we did
+		//the inital setup. Lets set the stack boundry.
+		Context->High = (char *) top;
 		Context->Low = stack;
 #endif
+	}
+	else
+	{
+		//Because we overwrote eip, when longjmp is called 
+		ASSERT(0);
+	}
 }
 
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
-	//Store the system's stste
-	SAVE_STATE(Context);
+	int status = sigsetjmp( Context->Registers, 1 );
+	ASSERT( status == 0 );//We should never wake here.
+
 	//The stack bounderies are infinite for the initial stack.
 #ifdef DEBUG
 		Context->High = (char *) -1;
@@ -340,13 +355,28 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 
 void HalContextSwitch( )
 {
+	int status;
 	struct MACHINE_CONTEXT * oldContext = ActiveStack;
 	struct MACHINE_CONTEXT * newContext = NextStack;
+
+	printf("\tcontext switch 0x%p 0x%p\n", ActiveStack, NextStack);
 
 	ActiveStack = NextStack;
 	NextStack = NULL;
 
-	SWITCH_CONTEXT(oldContext, newContext);
+	//Save the state into old context.
+	status = sigsetjmp( oldContext->Registers, 1 );
+	if( status == 0 )
+	{
+		//This was the saving call to setjmp.
+		siglongjmp( newContext->Registers, 1 );
+	}
+	else
+	{
+		//This was the restore call started by longjmp call.
+		//We have just switched into a different thread.
+		printf("switched threads************************\n");
+	}
 }
 
 void HalSerialStartup()
@@ -361,11 +391,15 @@ BOOL HalIsAtomic()
 
 void HalDisableInterrupts()
 {
+	if( atomic == FALSE )
+		printf("\t\t\tdisabled\n");
 	atomic = TRUE;
 }
 
 void HalEnableInterrupts()
 {
+	ASSERT( atomic );
+	printf("\t\tenabled\n");
 	atomic = FALSE;
 }
 
@@ -378,10 +412,14 @@ void TimerInterrupt();
  */
 void HalLinuxTimer()
 {
+	depth++;
 	if( atomic )
 	{
+		depth--;
 		return;
 	}
+
+	printf("timer handled: atomic %d %d\n", atomic, depth);
 
 	//There is an implied disable interrupts call when the timer fires. 
 	HalDisableInterrupts();
@@ -392,7 +430,8 @@ void HalLinuxTimer()
 	//There is an implied enable interrupts call when the timer
 	//returns.
 	HalEnableInterrupts();
-
+	depth --;
+	printf("timer returned\n");
 }
 
 void HalResetClock()
