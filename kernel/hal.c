@@ -311,9 +311,9 @@ void HalInitClock()
 
 	//Set the timer interval.
 	TimerInterval.it_interval.tv_sec = 0;
-	TimerInterval.it_interval.tv_usec = 100;
+	TimerInterval.it_interval.tv_usec = 200;
 	TimerInterval.it_value.tv_sec = 0;
-	TimerInterval.it_value.tv_usec = 100;
+	TimerInterval.it_value.tv_usec = 200;
 	status = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
 	ASSERT(status == 0 );
 }
@@ -429,9 +429,6 @@ void HalDisableInterrupts()
 {
 	int status;
 
-	if( HalIsAtomic() == FALSE )
-		printf("\t\t\tdisabled\n");
-
 	status = sigprocmask( SIG_BLOCK, &TimerSet, NULL ); 
 	ASSERT( status == 0 );
 }
@@ -440,9 +437,6 @@ void HalEnableInterrupts()
 {
 	int status;
 
-	ASSERT( HalIsAtomic() );
-	printf("\t\tenabled\n");
-	
 	status = sigprocmask( SIG_UNBLOCK, &TimerSet, NULL );
 	ASSERT( status == 0 );
 }

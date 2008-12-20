@@ -326,10 +326,16 @@ void SchedulePostHandler( void *arg )
 		//We were able to enter a critical secion!
 		//Now we can schedule a different thread to run.
 		
+		//If this fails, then the scheduler ran twice without a 
+		//context switch occuring. This means that the interrupts 
+		//are taking too long and multiple calls are occuring before
+		//thread control is restored.
+		ASSERT( ContextCanSwitch() );
+
 		//check and see if quanum has expired.
 		currentTime = TimerGetTime();
 
-		if( currentTime >= QuantumEndTime )
+		if( currentTime >= QuantumEndTime )//TODO THE OVERFLOW CASE IS A BUG
 		{
 			//quantum is over, so pick another thread.
 			priority = Schedule();
