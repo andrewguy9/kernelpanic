@@ -256,94 +256,129 @@ void HalPanic(char file[], int line)
 #include<stdio.h>
 #include<ucontext.h>
 
-/*
-#define SAVE_STATE( context ) \
-	ASSUME( getcontext( &(context)->uc), 0 )
+#define AlarmSignal SIGVTALRM
+#define InterruptFlagSignal SIGUSR1
 
-#define RESTORE_STATE( context ) \
-	ASSUME( setcontext(&(context)->uc), 0 )
+#ifdef LINUX
+#define ESP_OFFSET 3
+#endif
 
-#define SWITCH_CONTEXT( old, new ) \
-	ASSUME( swapcontext(&((old)->uc), &((new)->uc)), 0 )
+#ifdef BSD
+#define ESP_OFFSET 3
+#endif
 
-#define SET_SIGNAL(signum, handler) \
-	ASSUME( signal(signum, handler ), (!SIG_ERR) )
-
-#define SIG_PROC_MASK( new, old ) \
-	ASSUME( sigprocmask( SIG_SETMASK, new, old ), 0 )
-*/
-
-#define AlarmSignal SIGALRM
+#ifdef DARWIN
+#define ESP_OFFSET 9
+#endif
 
 char DEBUG_LED;
 
-sigset_t InterruptDisabledSet;//Set of interrupts which are disabled while atomic
-sigset_t InterruptEnabledSet;//set of interrupt which are disabled while in thread
+struct itimerval TimerInterval;
 
-volatile BOOL atomic;
+sigset_t EmptySet;
+sigset_t TimerSet;
+struct sigaction TimerAction;
 
 //Prototype for later use.
 void HalLinuxTimer( int SignalNumber );
 
 void HalStartup()
 {
+	int status;
 	DEBUG_LED = 0;
 
-	atomic = TRUE;
+	//Create the empty set.
+	status = sigemptyset( &EmptySet );
+	ASSERT( status == 0 );
+
+	//Create the timer set.
+	status = sigemptyset( &TimerSet );
+	ASSERT( status == 0 );
+	status = sigaddset( &TimerSet, AlarmSignal );
+	ASSERT( status == 0 );
+	ASSERT( sigismember( &TimerSet, AlarmSignal ) == 1 );
+
+	//Create the timer action.
+	TimerAction.sa_handler = HalLinuxTimer;
+	status = sigemptyset( &TimerAction.sa_mask);
+	ASSERT( status ==  0 );
+	TimerAction.sa_flags = 0;
+
+	//We start with the timer disabled.
+	status = sigprocmask( SIG_BLOCK, &TimerSet, NULL );
+	ASSERT( status == 0 );
 }
 
 void HalInitClock()
 {
-	void * result;
-	printf("init clock\n");
-	//Turn on the timer signal handler.
-	printf("\tsignal\n");
-	result = signal( AlarmSignal, HalLinuxTimer );//TODO
-	ASSERT( result != SIG_ERR );
+	int status;
 
+	//Turn on the timer signal handler.
+	status = sigaction( AlarmSignal, &TimerAction, NULL );
+	ASSERT( status == 0 );	
 
 	//Set the timer interval.
-	printf("\tualarm\n");
-	ualarm( 1000, 1000 );//TODO
+	TimerInterval.it_interval.tv_sec = 0;
+	TimerInterval.it_interval.tv_usec = 100;
+	TimerInterval.it_value.tv_sec = 0;
+	TimerInterval.it_value.tv_usec = 100;
+	status = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
+	ASSERT(status == 0 );
 }
 
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
 {
+
 	int status;
+	unsigned char * top;
+	unsigned int *esp;
+	unsigned char * cstack = stack;
 
-	ASSERT( Context != NULL );
+	status = sigsetjmp( Context->Registers, 1 );
 
-	printf("hal create stack frame\n");
-	printf("\tget context\n");
-	status = getcontext( &(Context)->uc);//TODO
-	ASSERT(status == 0);
+	if( status == 0 )
+	{
+		//Because status was 0 we know that this is the creation of
+		//the stack frame. We can use the locals to construct the frame.
+		
+		//We need to store foo into the machine context so we know who to call
+		//when the new frame is activated.
+		Context->Foo = foo;
 
-	//Initialize new context.
-	Context->uc.uc_link = NULL;
-	Context->uc.uc_stack.ss_sp = stack;
-	Context->uc.uc_stack.ss_size = stackSize;
-	Context->uc.uc_stack.ss_flags = 0;
+		//Calculate the stop of the stack
+		top = &cstack[stackSize];
+		top = top - sizeof( sigjmp_buf );
 
-	/*make new context */
-	printf("\tmake context\n");
-	makecontext( &Context->uc, foo, 0 );//TODO
+		//We need to write new stack pointer into the register buffer.
+		esp = (unsigned int*) ( ((unsigned char *) &Context->Registers)+( ESP_OFFSET*sizeof(int)) );
+		*esp = (int) top;
 
-	//Save the stack size boundaries.
 #ifdef DEBUG
-		Context->High = stack + stackSize;
+		//Set up the stack boundry.
+		Context->High = (char *) top;
 		Context->Low = stack;
 #endif
+	}
+	else
+	{
+		//On linux systems we call foo directly because those 
+		//fuckers hide their program registers somwhere.
+
+		//Our local variables are missing, but we know ActiveThread
+		//is the current thread which we can to run. We can get main from there.
+		ActiveStack->Foo();
+		
+		//Returning from a function which was invoked by siglongjmp is not
+		//supported. Foo should never retrun.
+		ASSERT(0);
+	}
 }
 
 extern int IdleThread;
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
-	//We do nothing for the initial stack frame.
-	int status;
-	printf("hal get initial stack frame\n");
-	printf("\tget context\n");
-	status = getcontext( &(Context)->uc);//TODO
-	ASSERT(status == 0);
+	int status = sigsetjmp( Context->Registers, 1 );
+	ASSERT( status == 0 );//We should never wake here.
 
 #ifdef DEBUG
 	//The stack bounderies are infinite for the initial stack.
@@ -355,7 +390,6 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 void HalContextSwitch( )
 {
 	int status;
-
 	struct MACHINE_CONTEXT * oldContext = ActiveStack;
 	struct MACHINE_CONTEXT * newContext = NextStack;
 
@@ -363,12 +397,18 @@ void HalContextSwitch( )
 	ActiveStack = NextStack;
 	NextStack = NULL;
 
-	ASSERT( oldContext != NULL );
-	ASSERT( newContext != NULL );
-
-	printf("\tswap context\n");
-	status = swapcontext( &oldContext->uc, &newContext->uc );//TODO
-	ASSERT( status == 0 );
+	//Save the state into old context.
+	status = sigsetjmp( oldContext->Registers, 1 );
+	if( status == 0 )
+	{
+		//This was the saving call to setjmp.
+		siglongjmp( newContext->Registers, 1 );
+	}
+	else
+	{
+		//This was the restore call started by longjmp call.
+		//We have just switched into a different thread.
+	}
 }
 
 void HalSerialStartup()
@@ -378,17 +418,40 @@ void HalSerialStartup()
 
 BOOL HalIsAtomic()
 {
-	return atomic;
+	sigset_t curSet;
+	int status;
+
+	status = sigprocmask( 0, NULL, &curSet );
+	ASSERT( status == 0 );
+
+	status = sigismember( &curSet, AlarmSignal );
+	ASSERT( status != -1 );
+	if( status == 1 )
+	{
+		//Alarm was a member of the "blocked" mask, so we are atomic.
+		return TRUE;
+	}
+	else 
+	{
+		//Alarm was not a member of the "blocked" mask, so we are not atomic.
+		return FALSE; 
+	}
 }
 
 void HalDisableInterrupts()
 {
-	atomic = TRUE;
+	int status;
+
+	status = sigprocmask( SIG_BLOCK, &TimerSet, NULL ); 
+	ASSERT( status == 0 );
 }
 
 void HalEnableInterrupts()
 {
-	atomic = FALSE;
+	int status;
+
+	status = sigprocmask( SIG_UNBLOCK, &TimerSet, NULL );
+	ASSERT( status == 0 );
 }
 
 //prototype for handler.
@@ -401,33 +464,23 @@ void HalLinuxTimer( int SignalNumber )
  * Calls TimerInterrupt if he can.
  */
 {
-
-	count++;
-
-	//ASSERT( count <= 1 );
-
-	//If we are not atomic, then we need to return.
-	if( atomic )
-	{
-		count --;
-		return;
-	}
-
-	//There is an implied disable interrupts call when the timer fires. 
-	HalDisableInterrupts();
+	//The kernel should add this signal to the blocked list inorder to avoid 
+	//nesting calls the the handler.
+	//verify this.
+	ASSERT( HalIsAtomic() );
 
 	//Call the kernel's timer handler.
 	TimerInterrupt();
 
 	//There is an implied enable interrupts call when the timer
 	//returns.
-	HalEnableInterrupts();
-
-	count--;
+	//HalEnableInterrupts();//TODO THERE IS AN IMPLIED RE-ENABLE (I THINK).
 }
 
 void HalResetClock()
 {
+	//TODO NO NOTHING FOR NOW SINCE ALARM IS OUR GLOBAL FLAG.
+	//and the alarm is already periodic. (unlike the avr).
 }
 
 void HalPanic(char file[], int line)

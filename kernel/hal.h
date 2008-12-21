@@ -83,9 +83,7 @@ void HAL_NAKED_FUNCTION HalContextSwitch();
 //
 #ifdef PC_BUILD
 
-#define _XOPEN_SOURCE 600
-
-#include<ucontext.h>
+#include<setjmp.h>
 #include<stdlib.h>
 
 /*
@@ -100,9 +98,8 @@ void HAL_NAKED_FUNCTION HalContextSwitch();
 
 struct MACHINE_CONTEXT
 {
-	//char PreBuff[4000];
-	ucontext_t uc;
-	//char PostBuff[4000];
+	STACK_INIT_ROUTINE Foo;
+	sigjmp_buf Registers;
 
 #ifdef DEBUG
 	char * High;

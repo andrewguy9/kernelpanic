@@ -20,23 +20,24 @@ KERN_PREFIX = kern_
 ifeq ($(shell uname), Darwin)
 PC_CFLAGS  = "-p -g -Wall"
 AVR_CFLAGS = "-Wall -mmcu=atmega128 -O2"
+OS = "DARWIN"
 endif
 
 ifeq ($(shell uname), FreeBSD)
 PC_CFLAGS  = "-p -g -Wall"
 AVR_CFLAGS = "-Wall -mmcu=atmega128 -02"
+OS  = "BSD"
 endif
 
 ifeq ($(shell uname), Linux)
 PC_CFLAGS  = "-p -g -Wall"
 AVR_CFLAGS = "-Wall -mmcu=atmega128 -gdwarf-2"
+OS = "LINUX"
 endif
 ##############################################
 # cc
 PC_CC = gcc
 AVR_CC = avr-gcc
-
-
 ##############################################
 # Macros
 ##############################################
@@ -55,31 +56,30 @@ DEBUG_DBG = DEBUG
 BUILD_APP = TEST_BUILD
 BUILD_KERNEL = KERNEL_BUILD
 MAKE_PROG = $_
-
 #############################################
 #combined strings
 #############################################
 #target for pc tests (non kernel build)
 #string carries parameters to lower makefile. 
 #string_name = TARGET CFLAGS CC ARCH_MACRO DEBUG_MACRO BUILD_MACRO
-TEST_STRING = -e TARGET="$(PC_PREFIX)$(DBG_PREFIX)$(APP_PREFIX)" -e CFLAGS=$(PC_CFLAGS) -e CC=$(PC_CC) -e ARCH_MACRO=$(ARCH_PC) -e DEBUG_MACRO=$(DEBUG_DBG) -e BUILD_MACRO=$(BUILD_APP)
+TEST_STRING = -e TARGET="$(PC_PREFIX)$(DBG_PREFIX)$(APP_PREFIX)" -e CFLAGS=$(PC_CFLAGS) -e CC=$(PC_CC) -e ARCH_MACRO=$(ARCH_PC) -e DEBUG_MACRO=$(DEBUG_DBG) -e BUILD_MACRO=$(BUILD_APP) -e OS_MACRO=$(OS)
 #target for pc kernel builds with debug enabled.
-PC_STRING = -e TARGET="$(PC_PREFIX)$(DBG_PREFIX)$(KERN_PREFIX)" -e CFLAGS=$(PC_CFLAGS) -e CC=$(PC_CC) -e ARCH_MACRO=$(ARCH_PC) -e DEBUG_MACRO=$(DEBUG_DBG) -e BUILD_MACRO=$(BUILD_KERNEL)
+PC_STRING = -e TARGET="$(PC_PREFIX)$(DBG_PREFIX)$(KERN_PREFIX)" -e CFLAGS=$(PC_CFLAGS) -e CC=$(PC_CC) -e ARCH_MACRO=$(ARCH_PC) -e DEBUG_MACRO=$(DEBUG_DBG) -e BUILD_MACRO=$(BUILD_KERNEL) -e OS_MACRO=$(OS)
 #target for pc kernel without debug
-PC_FRE_STRING = -e TARGET="$(PC_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CFLAGS=$(PC_CFLAGS) -e CC=$(PC_CC) -e ARCH_MACRO=$(ARCH_PC) -e DEBUG_MACRO=$(DEBUG_FRE) -e BUILD_MACRO=$(BUILD_KERNEL)
+PC_FRE_STRING = -e TARGET="$(PC_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CFLAGS=$(PC_CFLAGS) -e CC=$(PC_CC) -e ARCH_MACRO=$(ARCH_PC) -e DEBUG_MACRO=$(DEBUG_FRE) -e BUILD_MACRO=$(BUILD_KERNEL) -e OS_MACRO=$(OS)
 #target for avr kernel builds with debug enabled.
-AVR_STRING = -e TARGET="$(AVR_PREFIX)$(DBG_PREFIX)$(KERN_PREFIX)" -e CFLAGS=$(AVR_CFLAGS) -e CC=$(AVR_CC) -e ARCH_MACRO=$(ARCH_AVR) -e DEBUG_MACRO=$(DEBUG_DBG) -e BUILD_MACRO=$(BUILD_KERNEL)
+AVR_STRING = -e TARGET="$(AVR_PREFIX)$(DBG_PREFIX)$(KERN_PREFIX)" -e CFLAGS=$(AVR_CFLAGS) -e CC=$(AVR_CC) -e ARCH_MACRO=$(ARCH_AVR) -e DEBUG_MACRO=$(DEBUG_DBG) -e BUILD_MACRO=$(BUILD_KERNEL) -e OS_MACRO=$(OS)
 #target for avr kernel without debug
-AVR_FRE_STRING = -e TARGET="$(AVR_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CFLAGS=$(AVR_CFLAGS) -e CC=$(AVR_CC) -e ARCH_MACRO=$(ARCH_AVR) -e DEBUG_MACRO=$(DEBUG_FRE) -e BUILD_MACRO=$(BUILD_KERNEL)
+AVR_FRE_STRING = -e TARGET="$(AVR_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CFLAGS=$(AVR_CFLAGS) -e CC=$(AVR_CC) -e ARCH_MACRO=$(ARCH_AVR) -e DEBUG_MACRO=$(DEBUG_FRE) -e BUILD_MACRO=$(BUILD_KERNEL) -e OS_MACRO=$(OS)
 
 #############################################
 #build rules
 #############################################
 %.o: 
-	$(CC) $(CFLAGS) -D $(ARCH_MACRO) -D $(DEBUG_MACRO) -D $(BUILD_MACRO) -o $@ -c $<
+	$(CC) $(CFLAGS) -D $(ARCH_MACRO) -D $(DEBUG_MACRO) -D $(BUILD_MACRO) -D $(OS_MACRO) -o $@ -c $<
 
 %.out:
-	$(CC) $(CFLAGS) -D $(ARCH_MACRO) -D $(DEBUG_MACRO) -D $(BUILD_MACRO) -o $@ $^
+	$(CC) $(CFLAGS) -D $(ARCH_MACRO) -D $(DEBUG_MACRO) -D $(BUILD_MACRO) -D $(OS_MACRO) -o $@ $^
 
 %.hex: %.out
 	avr-objcopy -j .text -j .data -O ihex $< $@

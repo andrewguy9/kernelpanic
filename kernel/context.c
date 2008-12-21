@@ -69,6 +69,20 @@ BOOL ContextIsCritical( )
 	return MutexIsLocked( &ContextMutex );
 }
 
+BOOL ContextCanSwitch()
+{
+	ASSERT( ContextIsCritical() );
+
+	if( NextStack == NULL )
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
 void ContextStartup( struct MACHINE_CONTEXT * startContext )
 {
 	MutexInit( &ContextMutex );
