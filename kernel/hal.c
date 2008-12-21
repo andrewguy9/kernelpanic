@@ -257,6 +257,21 @@ void HalPanic(char file[], int line)
 #define AlarmSignal SIGVTALRM
 #define InterruptFlagSignal SIGUSR1
 
+#ifdef LINUX
+#define ESP_OFFSET 3
+#define EIP_OFFSET 0
+#endif
+
+#ifdef BSD
+#define ESP_OFFSET
+#define EIP_OFFSET
+#endif
+
+#ifdef DARWIN
+#define ESP_OFFSET 9
+#define EIP_OFFSET 12 
+#endif
+
 char DEBUG_LED;
 
 struct itimerval TimerInterval;
@@ -335,8 +350,8 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 
 		//We need to write new values to the register buffer.
 		//Find the eip and esp regisers and overwrite them
-		eip = (STACK_INIT_ROUTINE*) ( ((unsigned char *) &Context->Registers)+(12*sizeof(int)) );
-		esp = (unsigned int*)       ( ((unsigned char *) &Context->Registers)+( 9*sizeof(int)) );
+		eip = (STACK_INIT_ROUTINE*) ( ((unsigned char *) &Context->Registers)+(EIP_OFFSET*sizeof(int)) );
+		esp = (unsigned int*)       ( ((unsigned char *) &Context->Registers)+( ESP_OFFSET*sizeof(int)) );
 
 		*eip = (void *) foo;
 		*esp = (int) top;
