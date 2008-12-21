@@ -393,7 +393,6 @@ void HalContextSwitch( )
 	struct MACHINE_CONTEXT * oldContext = ActiveStack;
 	struct MACHINE_CONTEXT * newContext = NextStack;
 
-	printf("hal context switch\n");
 	ActiveStack = NextStack;
 	NextStack = NULL;
 
