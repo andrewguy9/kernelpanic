@@ -355,6 +355,10 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 
 		*eip = (void *) foo;
 		*esp = (int) top;
+
+		//For linux systems we write foo into the machine context so we can resume.
+		Context->Foo = foo;
+
 #ifdef DEBUG
 		//This is the call where we did
 		//the inital setup. Lets set the stack boundry.
@@ -364,6 +368,11 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 	}
 	else
 	{
+		//On linux systems we call foo directly because those 
+		//fuckers hide their program registers somwhere.
+		//Our local variables are fucked, but we know ActiveThread
+		//is the current thread.
+		ActiveStack->Foo();
 		//Because we overwrote eip, when longjmp is called 
 		ASSERT(0);
 	}
