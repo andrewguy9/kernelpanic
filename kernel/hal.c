@@ -259,17 +259,14 @@ void HalPanic(char file[], int line)
 
 #ifdef LINUX
 #define ESP_OFFSET 3
-#define EIP_OFFSET 0
 #endif
 
 #ifdef BSD
 #define ESP_OFFSET 3
-#define EIP_OFFSET 0
 #endif
 
 #ifdef DARWIN
 #define ESP_OFFSET 9
-#define EIP_OFFSET 12 
 #endif
 
 char DEBUG_LED;
@@ -332,7 +329,6 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 
 	int status;
 	unsigned char * top;
-	STACK_INIT_ROUTINE * eip;
 	unsigned int *esp;
 	unsigned char * cstack = stack;
 
@@ -340,28 +336,23 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 
 	if( status == 0 )
 	{
-		//We need to save foo into the context so we know who to call
-		//when longjmp gets called.
+		//Because status was 0 we know that this is the creation of
+		//the stack frame. We can use the locals to construct the frame.
+		
+		//We need to store foo into the machine context so we know who to call
+		//when the new frame is activated.
 		Context->Foo = foo;
 
 		//Calculate the stop of the stack
 		top = &cstack[stackSize];
 		top = top - sizeof( sigjmp_buf );
 
-		//We need to write new values to the register buffer.
-		//Find the eip and esp regisers and overwrite them
-		eip = (STACK_INIT_ROUTINE*) ( ((unsigned char *) &Context->Registers)+(EIP_OFFSET*sizeof(int)) );
-		esp = (unsigned int*)       ( ((unsigned char *) &Context->Registers)+( ESP_OFFSET*sizeof(int)) );
-
-		*eip = (void *) foo;
+		//We need to write new stack pointer into the register buffer.
+		esp = (unsigned int*) ( ((unsigned char *) &Context->Registers)+( ESP_OFFSET*sizeof(int)) );
 		*esp = (int) top;
 
-		//For linux systems we write foo into the machine context so we can resume.
-		Context->Foo = foo;
-
 #ifdef DEBUG
-		//This is the call where we did
-		//the inital setup. Lets set the stack boundry.
+		//Set up the stack boundry.
 		Context->High = (char *) top;
 		Context->Low = stack;
 #endif
@@ -370,10 +361,13 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 	{
 		//On linux systems we call foo directly because those 
 		//fuckers hide their program registers somwhere.
-		//Our local variables are fucked, but we know ActiveThread
-		//is the current thread.
+
+		//Our local variables are missing, but we know ActiveThread
+		//is the current thread which we can to run. We can get main from there.
 		ActiveStack->Foo();
-		//Because we overwrote eip, when longjmp is called 
+		
+		//Returning from a function which was invoked by siglongjmp is not
+		//supported. Foo should never retrun.
 		ASSERT(0);
 	}
 }
