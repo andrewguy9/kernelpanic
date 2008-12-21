@@ -11,6 +11,6 @@ struct MUTEX
 BOOL MutexLock( struct MUTEX * lock );
 void MutexUnlock( struct MUTEX * lock );
 BOOL MutexIsLocked( struct MUTEX * lock );
-void MutexInit( struct MUTEX * lock );
+void MutexInit( struct MUTEX * lock, BOOL initialState );
 
 #endif

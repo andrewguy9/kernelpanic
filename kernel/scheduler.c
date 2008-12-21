@@ -237,6 +237,20 @@ void SchedulerResumeThread( struct THREAD * thread )
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 }
 
+BOOL SchedulerIsThreadDead( struct THREAD * thread )
+{
+	ASSERT( ContextIsCritical( ) );
+	
+	return thread->State == THREAD_STATE_DONE;
+}
+
+BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
+{
+	ASSERT( ContextIsCritical( ) );
+	
+	return thread->State == THREAD_STATE_BLOCKED;
+}
+
 /*
  * A thread can call SchedulerBlockThread to prevent it from being
  * added back into the thread queue when its switched out.
@@ -382,7 +396,7 @@ void SchedulerStartup()
 			FALSE );//Start
 
 	//Initialize context unit.
-	ContextStartup( & IdleThread.MachineContext );
+	ContextSetActiveContext( & IdleThread.MachineContext );
 }
 
 /*
@@ -403,13 +417,21 @@ void SchedulerThreadStartup( void )
 {
 	struct THREAD * thread;
 	
+	//Start the thread.
+	
 	thread = SchedulerGetActiveThread();
 	
 	HalEnableInterrupts();
 
 	thread->Main( thread->Argument );
 
-	KernelPanic();//TODO we should support threads ending... just not now.
+	//Stop the thread
+	SchedulerStartCritical();
+	thread->State = THREAD_STATE_DONE;
+	SchedulerForceSwitch();
+
+	//We should never get here.
+	KernelPanic();
 }
 
 void SchedulerCreateThread( 
@@ -424,6 +446,7 @@ void SchedulerCreateThread(
 {
 	//Make sure data is valid
 	ASSERT( debugFlag < 8 );
+	ASSERT( ContextIsCritical() );
 
 	//Populate thread struct
 	thread->Priority = priority;
@@ -431,17 +454,20 @@ void SchedulerCreateThread(
 	LockingInit( & thread->LockingContext, SchedulerBlockOnLock, SchedulerWakeOnLock );
 	thread->Main = main;
 	thread->Argument = Argument;
+
+	//initialize stack
+	ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup );
+
 	//Add thread to done queue.
 	if( start )
 	{
 		thread->State = THREAD_STATE_RUNNING;
 		HalSetDebugLedFlag( debugFlag );
+
 		LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 	}
 	else
 	{
 		thread->State = THREAD_STATE_BLOCKED;
 	}
-	//initialize stack
-	ContextInit( &thread->MachineContext, stack, stackSize, SchedulerThreadStartup );
 }	

@@ -1,9 +1,9 @@
-#include"timer.h"
 #include"hal.h"
-#include"scheduler.h"
-#include"timer.h"
 #include"interrupt.h"
 #include"context.h"
+#include"isr.h"
+#include"timer.h"
+#include"scheduler.h"
 #include"panic.h"
 
 /*
@@ -21,6 +21,10 @@ void KernelInit()
 
 	InterruptStartup();
 
+	ContextStartup( );
+
+	IsrStartup();
+
 	TimerStartup();
 
 	SchedulerStartup();
@@ -32,8 +36,11 @@ void KernelInit()
  */
 void KernelStart()
 {
+	ContextUnlock();
 	InterruptEnable();
+
 	while(1);
+
 	KernelPanic();
 }
 

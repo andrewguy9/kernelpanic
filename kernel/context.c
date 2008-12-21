@@ -27,6 +27,9 @@ struct MUTEX ContextMutex;
 struct MACHINE_CONTEXT * ActiveStack;
 struct MACHINE_CONTEXT * NextStack;
 
+/*
+ * Sets up a machine context for a future thread.
+ */
 void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo )
 {
 	//initialize stack
@@ -83,11 +86,11 @@ BOOL ContextCanSwitch()
 	}
 }
 
-void ContextStartup( struct MACHINE_CONTEXT * startContext )
+void ContextStartup( )
 {
-	MutexInit( &ContextMutex );
+	MutexInit( &ContextMutex, TRUE );
 	NextStack = NULL;
-	ActiveStack = startContext;
+	ActiveStack = NULL;
 }
 
 void ContextSetNextContext( struct MACHINE_CONTEXT * stack )
@@ -98,6 +101,19 @@ void ContextSetNextContext( struct MACHINE_CONTEXT * stack )
 	NextStack = stack;
 }
 
+/*
+ * Should only be called at startup when the thread 
+ * is specified by the scheduler.
+ */
+void ContextSetActiveContext( struct MACHINE_CONTEXT * stack )
+{
+	ASSERT( InterruptIsAtomic() );
+	ASSERT( ActiveStack == NULL );
+	ASSERT( NextStack == NULL );
+
+	ActiveStack = stack;
+
+}
 void ContextSwitch()
 {
 	ASSERT( InterruptIsAtomic() );

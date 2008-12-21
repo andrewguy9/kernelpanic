@@ -14,7 +14,9 @@ BOOL ContextIsCritical( );
 
 BOOL ContextCanSwitch( );
 
-void ContextStartup( struct MACHINE_CONTEXT * stack );
+void ContextStartup( );
+
+void ContextSetActiveContext( struct MACHINE_CONTEXT * stack );
 
 void ContextSetNextContext( struct MACHINE_CONTEXT * stack );
 
