@@ -65,7 +65,7 @@ BOOL MutexIsLocked( struct MUTEX * lock )
 /*
  * Initializes a mutex to unlocked.
  */
-void MutexInit( struct MUTEX * lock )
+void MutexInit( struct MUTEX * lock, BOOL intialState )
 {
-	lock->Locked = FALSE; 
+	lock->Locked = intialState; 
 }

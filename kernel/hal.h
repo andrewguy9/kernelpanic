@@ -6,7 +6,7 @@
 #include"../utils/flags.h"
 //-----------------------------------------------------------------------------
 //Defines (for all builds)
-typedef void (*STACK_INIT_ROUTINE) ();
+typedef void (*STACK_INIT_ROUTINE) (void);
 //-----------------------------------------------------------------------------
 //Prototypes ( For all Builds )
 struct MACHINE_CONTEXT;
@@ -85,7 +85,7 @@ void HAL_NAKED_FUNCTION HalContextSwitch();
 //
 #ifdef PC_BUILD
 
-#include<ucontext.h>
+#include<setjmp.h>
 #include<stdlib.h>
 
 /*
@@ -100,7 +100,8 @@ void HAL_NAKED_FUNCTION HalContextSwitch();
 
 struct MACHINE_CONTEXT
 {
-	ucontext_t uc;
+	STACK_INIT_ROUTINE Foo;
+	sigjmp_buf Registers;
 
 #ifdef DEBUG
 	char * High;

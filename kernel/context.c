@@ -27,6 +27,9 @@ struct MUTEX ContextMutex;
 struct MACHINE_CONTEXT * ActiveStack;
 struct MACHINE_CONTEXT * NextStack;
 
+/*
+ * Sets up a machine context for a future thread.
+ */
 void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo )
 {
 	//initialize stack
@@ -35,8 +38,10 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
 		HalCreateStackFrame( MachineState, Pointer, Foo, Size );
 	}
 	else
-	{//Populate stack for idle thread (machine's start thread).
+	{
+		//Populate stack for idle thread (machine's start thread).
 		HalGetInitialStackFrame( MachineState );
+
 #ifdef DEBUG
 		MachineState->High = (char*) -1;
 		MachineState->Low = 0;
@@ -67,11 +72,25 @@ BOOL ContextIsCritical( )
 	return MutexIsLocked( &ContextMutex );
 }
 
-void ContextStartup( struct MACHINE_CONTEXT * startContext )
+BOOL ContextCanSwitch()
 {
-	MutexInit( &ContextMutex );
+	ASSERT( ContextIsCritical() );
+
+	if( NextStack == NULL )
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+void ContextStartup( )
+{
+	MutexInit( &ContextMutex, TRUE );
 	NextStack = NULL;
-	ActiveStack = startContext;
+	ActiveStack = NULL;
 }
 
 void ContextSetNextContext( struct MACHINE_CONTEXT * stack )
@@ -82,6 +101,19 @@ void ContextSetNextContext( struct MACHINE_CONTEXT * stack )
 	NextStack = stack;
 }
 
+/*
+ * Should only be called at startup when the thread 
+ * is specified by the scheduler.
+ */
+void ContextSetActiveContext( struct MACHINE_CONTEXT * stack )
+{
+	ASSERT( InterruptIsAtomic() );
+	ASSERT( ActiveStack == NULL );
+	ASSERT( NextStack == NULL );
+
+	ActiveStack = stack;
+
+}
 void ContextSwitch()
 {
 	ASSERT( InterruptIsAtomic() );

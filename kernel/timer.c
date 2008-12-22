@@ -118,6 +118,7 @@ void TimerRegister(
 	newTimer->HandlerObj.Link.WeightedLink.Weight = Time + wait;
 	newTimer->HandlerObj.Function = handler;
 	newTimer->Context = context;
+
 	//Add to heap
 	if( newTimer->HandlerObj.Link.WeightedLink.Weight >= Time )
 	{

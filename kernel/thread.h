@@ -5,7 +5,7 @@
 #include"locking.h"
 #include"context.h"
 
-enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED };
+enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED, THREAD_STATE_DONE };
 
 typedef void THREAD_MAIN(void * arg );
 

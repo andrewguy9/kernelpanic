@@ -13,6 +13,10 @@ BOOL SchedulerIsCritical();
 
 void SchedulerForceSwitch( );
 
+BOOL SchedulerIsThreadDead( struct THREAD * thread );
+
+BOOL SchedulerIsThreadBlocked( struct THREAD * thread );
+
 void SchedulerResumeThread( struct THREAD * thread );
 
 void SchedulerBlockThread( );
