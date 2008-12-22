@@ -332,7 +332,6 @@ void HalLinuxTimer( int SignalNumber );
 void HalStartup()
 {
 	int status;
-	DEBUG_LED = 0;
 
 	//Create the empty set.
 	status = sigemptyset( &EmptySet );
