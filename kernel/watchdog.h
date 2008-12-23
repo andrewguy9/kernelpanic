@@ -3,7 +3,9 @@
 
 #include"timer.h"
 
-void WatchdogStartup(char desiredMask, int frequency);
+void WatchdogStartup();
+void WatchdogEnable( int frequency );
 void WatchdogNotify( INDEX index );
+void WatchdogAddFlag( INDEX index );
 
 #endif

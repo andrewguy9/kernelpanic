@@ -5,7 +5,6 @@
 #include"interrupt.h"
 #include"context.h"
 #include"panic.h"
-#include"watchdog.h"
 
 /*
  * Scheduler Unit:
@@ -233,7 +232,6 @@ void SchedulerResumeThread( struct THREAD * thread )
 	ASSERT( thread != SchedulerGetActiveThread() );
 
 	thread->State = THREAD_STATE_RUNNING;
-	WatchdogNotify( thread->Flag );
 
 	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 }
@@ -269,7 +267,6 @@ void SchedulerBlockThread( )
 	activeThread = SchedulerGetActiveThread();
 
 	activeThread->State = THREAD_STATE_BLOCKED;
-	WatchdogNotify( activeThread->Flag );
 }
 
 /*
@@ -393,7 +390,7 @@ void SchedulerStartup()
 			0, //Stack Size
 			NULL, //Main
 			NULL, //Argument
-			0x01, //Flag
+			0x00, //Flag
 			FALSE );//Start
 
 	//Initialize context unit.
@@ -451,19 +448,17 @@ void SchedulerCreateThread(
 
 	//Populate thread struct
 	thread->Priority = priority;
-	thread->Flag = debugFlag;
 	LockingInit( & thread->LockingContext, SchedulerBlockOnLock, SchedulerWakeOnLock );
 	thread->Main = main;
 	thread->Argument = Argument;
 
 	//initialize stack
-	ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup );
+	ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup, debugFlag );
 
 	//Add thread to done queue.
 	if( start )
 	{
 		thread->State = THREAD_STATE_RUNNING;
-		WatchdogNotify( debugFlag );
 		LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
 	}
 	else

@@ -12,7 +12,7 @@ typedef void (*STACK_INIT_ROUTINE) (void);
 struct MACHINE_CONTEXT;
 void HalInitClock();
 void HalStartup();
-void HalStartupWatchdog( int frequency );
+void HalEnableWatchdog( int frequency );
 void HalPetWatchdog( );
 void HalStartInterrupt();
 void HalEndInterrupt();
@@ -44,6 +44,7 @@ void HalPanic(char file[], int line);
 #define HAL_NAKED_FUNCTION __attribute__((naked,__INTR_ATTRS))
 struct MACHINE_CONTEXT
 {
+	INDEX Flag;//Thread number which gets used for the watchdog and debug leds.
 	char * Stack;
 
 #ifdef DEBUG
@@ -100,10 +101,12 @@ void HAL_NAKED_FUNCTION HalContextSwitch();
 
 struct MACHINE_CONTEXT
 {
-	STACK_INIT_ROUTINE Foo;
-	sigjmp_buf Registers;
-
+	INDEX Flag;//Thread number which gets used for the watchdog and debug leds.
+	STACK_INIT_ROUTINE Foo;//Pointer to the first function the thread calls.
+	sigjmp_buf Registers;//Buffer to hold register state in context switches.
+	
 #ifdef DEBUG
+	//Pointers to the top and bottom of the stack. Used to detect stack overflow.
 	char * High;
 	char * Low;
 #endif

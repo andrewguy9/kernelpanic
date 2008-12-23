@@ -242,7 +242,7 @@ void HalPanic(char file[], int line)
 	return;
 }
 
-void HalStartupWatchdog( int frequency )
+void HalEnableWatchdog( int frequency )
 {
 	if( frequency <= 15 )
 	{
@@ -520,6 +520,7 @@ void HalLinuxTimer( int SignalNumber )
 	//verify this.
 	ASSERT( HalIsAtomic() );
 
+	//TODO IF POSSIBLE, MOVE WATCHDOG INTO OWN TIMER.
 	//Run the watchdog check
 	if( HalWatchdogOn )
 	{
@@ -528,8 +529,7 @@ void HalLinuxTimer( int SignalNumber )
 		if( HalWatchdogCount >= HalWatchDogFrequency )
 		{
 			//The time for a match has expried. Panic!!!
-			printf("WATCHDOG TIMEOUT!!!");
-			exit(0);
+			HalPanic("Watchdog Timeout", 0 );
 		}
 	}
 
@@ -553,7 +553,7 @@ void HalPanic(char file[], int line)
 	exit(-1);
 }
 
-void HalStartupWatchdog( int frequency )
+void HalEnableWatchdog( int frequency )
 {
 	HalWatchdogOn = TRUE;
 	HalWatchDogFrequency = frequency;

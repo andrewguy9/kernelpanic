@@ -18,7 +18,6 @@ struct THREAD
 	struct MACHINE_CONTEXT MachineContext;//Info on registers/stack for thread.
 	THREAD_MAIN * Main;//The thread's main function ptr.
 	void * Argument;//The thread's arguments.
-	INDEX Flag;//Thread number which gets lit on the debug leds.
 };
 
 

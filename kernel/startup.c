@@ -5,6 +5,7 @@
 #include"timer.h"
 #include"scheduler.h"
 #include"panic.h"
+#include"watchdog.h"
 
 /*
  * Startup Unit:
@@ -18,6 +19,8 @@
 void KernelInit()
 {//entry point for kernel...
 	HalStartup();
+
+	WatchdogStartup();
 
 	InterruptStartup();
 

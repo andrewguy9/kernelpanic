@@ -2,6 +2,7 @@
 #include"hal.h"
 #include"panic.h"
 #include"interrupt.h"
+#include"../utils/flags.h"
 
 /*
  * Watchdog System:
@@ -29,10 +30,14 @@ char WatchdogDesiredMask;
 /*
  * Call this to setup the watchdog system
  */
-void WatchdogStartup(char desiredMask, int frequency)
+void WatchdogStartup( )
 {
-	WatchdogDesiredMask = desiredMask;
-	HalStartupWatchdog( frequency );
+	WatchdogDesiredMask = 0;
+}
+
+void WatchdogEnable( int frequency )
+{
+	HalEnableWatchdog( frequency );
 }
 
 /*
@@ -41,8 +46,24 @@ void WatchdogStartup(char desiredMask, int frequency)
  */
 void WatchdogNotify( INDEX index )
 {
+	char flag;
+
+	//We ignore index 0.
+	if( index == 0 )
+	{
+		return;
+	}
+	else
+	{
+		index--;
+	}
+
+	//find the bit we want to flip.
+	FlagOn(&flag, index);
+	
 	InterruptDisable();
-	FlagOn( &(HAL_WATCHDOG_MASK),(index));
+	HAL_WATCHDOG_MASK |= flag;//apply flag.
+	//check to see if all of the players have shown up.
 	if( (HAL_WATCHDOG_MASK ^ WatchdogDesiredMask) == 0 )
 	{
 		//We have flipped all the flags required.
@@ -55,3 +76,24 @@ void WatchdogNotify( INDEX index )
 	InterruptEnable();
 }
 
+void WatchdogAddFlag( INDEX index )
+{
+	char flag = 0;
+	ASSERT(index < 8 );
+
+	if( index == 0 )
+	{
+		return;
+	}
+	else
+	{
+		//We shift index down because we start numbering bits at 1.
+		//zero should be ignored.
+		index--;
+	}
+
+	FlagOn( &flag, index );
+	InterruptDisable();
+	WatchdogDesiredMask |= flag;
+	InterruptEnable();
+}

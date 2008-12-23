@@ -1,6 +1,7 @@
 #include"context.h"
 #include"mutex.h"
 #include"interrupt.h"
+#include"watchdog.h"
 
 /*
  * Context Unit:
@@ -30,8 +31,12 @@ struct MACHINE_CONTEXT * NextStack;
 /*
  * Sets up a machine context for a future thread.
  */
-void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo )
+void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo, INDEX debugFlag )
 {
+	//Set up the watchdog flag.
+	MachineState->Flag = debugFlag;
+	WatchdogAddFlag( debugFlag );
+
 	//initialize stack
 	if( Size != 0 )
 	{//Populate regular stack
@@ -119,6 +124,13 @@ void ContextSwitch()
 	ASSERT( InterruptIsAtomic() );
 	ASSERT( HalIsAtomic() );
 	ASSERT( MutexIsLocked( &ContextMutex ) );
+
+	//We need to update the watchdog for the next thread.
+	if( NextStack != NULL )
+	{
+		WatchdogNotify( NextStack->Flag );
+	}
+
 
 	//We are in critical section,
 	//lets see if we have a thread picked to run.
