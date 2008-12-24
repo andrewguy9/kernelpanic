@@ -282,6 +282,11 @@ void HalPetWatchdog( )
 	wdt_reset();
 }
 
+void HalSleepProcessor( )
+{
+
+}
+
 #endif// end avr build
 
 //-----------------------------------------------------------------------------
@@ -300,7 +305,7 @@ void HalPetWatchdog( )
 #include<stdio.h>
 #include<ucontext.h>
 
-#define AlarmSignal SIGVTALRM
+#define AlarmSignal SIGALRM
 #define InterruptFlagSignal SIGUSR1
 
 #ifdef LINUX
@@ -371,10 +376,10 @@ void HalInitClock()
 
 	//Set the timer interval.
 	TimerInterval.it_interval.tv_sec = 0;
-	TimerInterval.it_interval.tv_usec = 100;
+	TimerInterval.it_interval.tv_usec = 150;
 	TimerInterval.it_value.tv_sec = 0;
-	TimerInterval.it_value.tv_usec = 100;
-	status = setitimer( ITIMER_VIRTUAL, &TimerInterval, NULL );
+	TimerInterval.it_value.tv_usec = 150;
+	status = setitimer( ITIMER_REAL, &TimerInterval, NULL );
 	ASSERT(status == 0 );
 }
 
@@ -564,5 +569,9 @@ void HalPetWatchdog( )
 	HalWatchdogCount = 0;	
 }
 
+void HalSleepProcessor()
+{
+	pause();
+}
 #endif //end of pc build
 //-----------------------------------------------------------------------------

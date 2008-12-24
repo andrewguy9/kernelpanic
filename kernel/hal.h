@@ -20,6 +20,7 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context );
 void HalSerialStartup();
 void HalPanic(char file[], int line);
+void HalSleepProcessor();
 //-----------------------------------------------------------------------------
 
 //

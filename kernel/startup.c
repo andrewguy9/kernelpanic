@@ -42,7 +42,10 @@ void KernelStart()
 	ContextUnlock();
 	InterruptEnable();
 
-	while(1);
+	while(1)
+	{
+		HalSleepProcessor();
+	}
 
 	KernelPanic();
 }
