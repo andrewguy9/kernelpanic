@@ -18,19 +18,19 @@ KERN_PREFIX = kern_
 ##############################################
 #c flags
 ifeq ($(shell uname), Darwin)
-PC_CFLAGS  = "-p -g -Wall"
+PC_CFLAGS  = "-g -Wall"
 AVR_CFLAGS = "-Wall -mmcu=atmega128 -O2"
 OS = "DARWIN"
 endif
 
 ifeq ($(shell uname), FreeBSD)
-PC_CFLAGS  = "-p -g -Wall"
+PC_CFLAGS  = "-g -Wall"
 AVR_CFLAGS = "-Wall -mmcu=atmega128 -02"
 OS  = "BSD"
 endif
 
 ifeq ($(shell uname), Linux)
-PC_CFLAGS  = "-p -g -Wall"
+PC_CFLAGS  = "-g -Wall"
 AVR_CFLAGS = "-Wall -mmcu=atmega128 -gdwarf-2"
 OS = "LINUX"
 endif
