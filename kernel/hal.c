@@ -376,9 +376,9 @@ void HalInitClock()
 
 	//Set the timer interval.
 	TimerInterval.it_interval.tv_sec = 0;
-	TimerInterval.it_interval.tv_usec = 150;
+	TimerInterval.it_interval.tv_usec = 1000;
 	TimerInterval.it_value.tv_sec = 0;
-	TimerInterval.it_value.tv_usec = 150;
+	TimerInterval.it_value.tv_usec = 1000;
 	status = setitimer( ITIMER_REAL, &TimerInterval, NULL );
 	ASSERT(status == 0 );
 }
