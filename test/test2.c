@@ -5,7 +5,7 @@
 
 /*
  * Tests the socket unit, and by extension the resource and ringbuffer units.
- * Overtime TotalRead = TotalWrite += RingSize.
+ * Overtime TotalRead = TotalWrite +- RingSize.
  */
 
 //
