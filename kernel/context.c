@@ -77,6 +77,9 @@ BOOL ContextIsCritical( )
 	return MutexIsLocked( &ContextMutex );
 }
 
+/*
+ * Call this to determine if a context switch has already been scheduled.
+ */
 BOOL ContextCanSwitch()
 {
 	ASSERT( ContextIsCritical() );
