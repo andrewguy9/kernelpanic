@@ -20,10 +20,17 @@ struct THREAD BlockThread2;
 struct THREAD WaitThread1;
 struct THREAD WaitThread2;
 
+struct THREAD SpinThread1;
+struct THREAD SpinThread2;
+
 char BlockThread1Stack[STACK_SIZE];
 char BlockThread2Stack[STACK_SIZE];
+
 char WaitThread1Stack[STACK_SIZE];
 char WaitThread2Stack[STACK_SIZE];
+
+char SpinThread1Stack[STACK_SIZE];
+char SpinThread2Stack[STACK_SIZE];
 
 //
 //Counter
@@ -70,13 +77,33 @@ void WaitMain()
 	}
 }
 
+//
+//Spinning Main
+//
+
+void SpinMain()
+{
+	struct LOCKING_CONTEXT context;
+	LockingInit( & context, LockingBlockNonBlocking, LockingWakeNonBlocking );
+	while(TRUE)
+	{
+		GatherSync( & Gather, &context );
+
+		while( !LockingIsAcquired( & context ) );
+
+		SchedulerStartCritical();
+		Count++;
+		SchedulerEndCritical();
+	}
+}
+
 int main()
 {
 	KernelInit();
 
 	Count = 0;
 
-	GatherInit( &Gather, 4 );
+	GatherInit( &Gather, 6 );
 
 	SchedulerCreateThread(
 			&BlockThread1,
@@ -97,20 +124,20 @@ int main()
 		    1,
 		    TRUE);
 	SchedulerCreateThread(
-			&WaitThread1,
+			&SpinThread1,
 			1,
-		    WaitThread1Stack,
+		    SpinThread1Stack,
 		    STACK_SIZE, 
-			WaitMain,
+			SpinMain,
 			NULL,
 		    2,
 		    TRUE);
 	SchedulerCreateThread(
-			&WaitThread2,
+			&SpinThread2,
 			1,
-		    WaitThread2Stack,
+		    SpinThread2Stack,
 		    STACK_SIZE, 
-			WaitMain,
+			SpinMain,
 			NULL,
 		    3,
 		    TRUE);
