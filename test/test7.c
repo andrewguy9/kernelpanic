@@ -124,6 +124,24 @@ int main()
 		    1,
 		    TRUE);
 	SchedulerCreateThread(
+			&WaitThread1,
+			1,
+		    WaitThread1Stack,
+		    STACK_SIZE, 
+			WaitMain,
+			NULL,
+		    2,
+		    TRUE);
+	SchedulerCreateThread(
+			&WaitThread2,
+			1,
+		    WaitThread2Stack,
+		    STACK_SIZE, 
+			WaitMain,
+			NULL,
+		    3,
+		    TRUE);
+	SchedulerCreateThread(
 			&SpinThread1,
 			1,
 		    SpinThread1Stack,
