@@ -107,6 +107,9 @@ struct MACHINE_CONTEXT
 	sigjmp_buf Registers;//Buffer to hold register state in context switches.
 	
 #ifdef DEBUG
+	//Counters to keep track of thread usage.
+	COUNT TimesRun;
+	COUNT TimesSwitched;
 	//Pointers to the top and bottom of the stack. Used to detect stack overflow.
 	char * High;
 	char * Low;

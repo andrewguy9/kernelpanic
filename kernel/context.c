@@ -39,7 +39,8 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
 
 	//initialize stack
 	if( Size != 0 )
-	{//Populate regular stack
+	{
+		//Populate regular stack
 		HalCreateStackFrame( MachineState, Pointer, Foo, Size );
 	}
 	else
@@ -48,6 +49,9 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
 		HalGetInitialStackFrame( MachineState );
 
 #ifdef DEBUG
+		MachineState->TimesRun = 0;
+		MachineState->TimesSwitched = 0;
+
 		MachineState->High = (char*) -1;
 		MachineState->Low = 0;
 #endif
@@ -122,6 +126,7 @@ void ContextSetActiveContext( struct MACHINE_CONTEXT * stack )
 	ActiveStack = stack;
 
 }
+
 void ContextSwitch()
 {
 	ASSERT( InterruptIsAtomic() );
@@ -148,11 +153,15 @@ void ContextSwitch()
 	}
 	else if( NextStack != ActiveStack )
 	{
-		MutexUnlock( &ContextMutex );
-		InterruptDecrement();
-
+		//The NextStack is set, so we need to context switch.
+#ifdef DEBUG
+		NextStack->TimesSwitched++;
+		NextStack->TimesRun++;
+#endif
 		//now that the system looks like the switch has
 		//happened, go ahead and do the switch.
+		MutexUnlock( &ContextMutex );
+		InterruptDecrement();
 
 		HalContextSwitch( );
 	}
@@ -160,8 +169,9 @@ void ContextSwitch()
 	{
 		//we are critical but the thread was the same,
 		//so dont bother doing context switch. 
-		ASSERT( NextStack == ActiveStack );
-
+#ifdef DEBUG
+		NextStack->TimesRun++;
+#endif
 		NextStack = NULL;
 		MutexUnlock( &ContextMutex );
 		InterruptDecrement();
