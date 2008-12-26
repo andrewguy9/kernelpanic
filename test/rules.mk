@@ -17,3 +17,5 @@ test/$(TARGET)_test7.o: test/test7.c
 test/$(TARGET)_test8.o: test/test8.c
 
 test/$(TARGET)_test9.o: test/test9.c
+
+test/$(TARGET)_test10.o: test/test10.c
