@@ -207,12 +207,12 @@ void  SchedulerForceSwitch()
 	COUNT priority;
 
 	ASSERT( ContextIsCritical( ) );
+	ASSERT( ContextCanSwitch() );
 
 	currentTime = TimerGetTime();
 
-	//Pick next thread to run.
 	priority = Schedule(); 
-	
+
 	//Set end of quantum.
 	QuantumEndTime = currentTime + priority;
 
@@ -422,6 +422,8 @@ void SchedulerThreadStartup( void )
 	
 	HalEnableInterrupts();
 
+	//Now we are in normal context (not atomic not critical)
+	//run the thread.
 	thread->Main( thread->Argument );
 
 	//Stop the thread
