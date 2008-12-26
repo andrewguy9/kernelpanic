@@ -45,14 +45,14 @@ COUNT Value3 = 0;
 #define STACK_SIZE 0x500
 #endif
 
-struct THREAD TestThreadIncrement;
-char TestThreadStackIncrement[STACK_SIZE];
+struct THREAD TestThread1;
+char TestThread1Stack[STACK_SIZE];
 
-struct THREAD TestThreadDivide;
-char TestThreadStackDivide[STACK_SIZE];
+struct THREAD TestThread2;
+char TestThread2Stack[STACK_SIZE];
 
-struct THREAD TestThreadExp;
-char TestThreadStackExp[STACK_SIZE];
+struct THREAD TestThread3;
+char TestThread3Stack[STACK_SIZE];
 
 //
 //Main
@@ -65,9 +65,9 @@ int main()
 
 	//Initialize Threads
 	SchedulerCreateThread(
-			&TestThreadIncrement,
+			&TestThread1,
 			2,
-			TestThreadStackIncrement,
+			TestThread1Stack,
 			STACK_SIZE,
 			Test1ThreadMain,
 			&Value1,
@@ -75,9 +75,9 @@ int main()
 			TRUE);
 
 	SchedulerCreateThread(
-			&TestThreadDivide,
+			&TestThread2,
 			4,
-			TestThreadStackDivide,
+			TestThread2Stack,
 			STACK_SIZE,
 			Test1ThreadMain,
 			&Value2,
@@ -85,9 +85,9 @@ int main()
 			TRUE);
 
 	SchedulerCreateThread(
-			&TestThreadExp,
+			&TestThread3,
 			8,
-			TestThreadStackExp,
+			TestThread3Stack,
 			STACK_SIZE,
 			Test1ThreadMain,
 			&Value3,
