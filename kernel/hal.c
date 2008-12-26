@@ -402,9 +402,14 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 		//when the new frame is activated.
 		Context->Foo = foo;
 
-		//Calculate the stop of the stack
+		//Calculate the top of the stack
+		//For some kernels we need the stack to be 16 byte alligned.
 		top = &cstack[stackSize];
 		top = top - sizeof( sigjmp_buf );
+		top = (unsigned char *)(((unsigned int) top) & 0xFFFFFFF0);
+		ASSERT( ((unsigned int) top) % 16 == 0 );
+		ASSERT( (unsigned int) top > (unsigned int) stack );
+
 
 		//We need to write new stack pointer into the register buffer.
 		esp = (unsigned int*) ( ((unsigned char *) &Context->Registers)+( ESP_OFFSET*sizeof(int)) );
