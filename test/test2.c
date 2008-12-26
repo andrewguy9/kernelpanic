@@ -12,8 +12,8 @@
 //Tests the Producer consumer model for the socket system. 
 //
 
-char Message[] = "Thread text message";
 #define MESSAGE_LENGTH 20
+char Message[MESSAGE_LENGTH] = "Thread text message";
 
 //Allocation for buffers.
 #define RING_SIZE 64

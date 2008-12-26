@@ -5,6 +5,7 @@
 
 /*
  * Tests the semaphore unit, both blocking and non blocking unit.
+ * Over time Produced = (Blocking+NonBlocking)+-1
  */
 
 //
