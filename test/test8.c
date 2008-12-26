@@ -12,14 +12,16 @@
 //
 
 int DeathCount;
+int TotalDeath;
 int StallCount;
+int TotalStall;
 
 //
 //Thread structures
 //
 
 #ifdef PC_BUILD 
-#define STACK_SIZE 0x5000
+#define STACK_SIZE (0x5000*2)
 #endif
 
 #ifdef AVR_BUILD
@@ -45,6 +47,7 @@ void DeathThreadMain( void * arg )
 	ASSERT(DeathCount == 0 );
 
 	DeathCount++;
+	TotalDeath++;
 }
 
 void StallThreadMain( void * arg )
@@ -54,6 +57,7 @@ void StallThreadMain( void * arg )
 		ASSERT(StallCount == 0 );
 
 		StallCount++;
+		TotalStall++;
 		SchedulerStartCritical();
 		SchedulerBlockThread();
 		SchedulerForceSwitch();
@@ -106,7 +110,9 @@ int main()
 
 	//Initialize variables
 	DeathCount = 0;
+	TotalDeath = 0;
 	StallCount = 0;
+	TotalStall = 0;
 
 	//Initialize Threads
 	SchedulerCreateThread(
