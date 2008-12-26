@@ -33,6 +33,10 @@ struct MACHINE_CONTEXT * NextStack;
  */
 void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo, INDEX debugFlag )
 {
+#ifdef DEBUG
+	int cur;
+#endif
+
 	//Set up the watchdog flag.
 	MachineState->Flag = debugFlag;
 	WatchdogAddFlag( debugFlag );
@@ -40,6 +44,12 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
 	//initialize stack
 	if( Size != 0 )
 	{
+#ifdef DEBUG
+		//Write pattern over stack so we can expose
+		//variable initialization errors.
+		for(cur=0; cur<Size; cur++)
+			Pointer[cur] = 0xaa;
+#endif
 		//Populate regular stack
 		HalCreateStackFrame( MachineState, Pointer, Foo, Size );
 	}
