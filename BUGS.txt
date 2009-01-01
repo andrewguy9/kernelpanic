@@ -1,6 +1,0 @@
-All interrupts must check for possible context switch.
-This is because an interrupt could fire and enter post handlers. 
-Then the timer could expire and file the schedule post handler.
-The orrigional interrupt will not context switch.
-That will leave the NextThread != NULL.
-

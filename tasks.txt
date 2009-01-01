@@ -1,4 +1,0 @@
-1) Get rid of thread main since we dont construct a frame for main
-2) add an argument parameter to thread structure so we can save it away
-3) Modify all thread main's so they take a parameter.
-4) restructure tests so they use their parameter. 
