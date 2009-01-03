@@ -49,6 +49,10 @@ struct MACHINE_CONTEXT
 	char * Stack;
 
 #ifdef DEBUG
+	//Counters to keep track of thread usage.
+	COUNT TimesRun;
+	COUNT TimesSwitched;
+	//Pointers to the top and buttom of the stack. Used to detect stack overflow.
 	char * High;
 	char * Low;
 #endif
