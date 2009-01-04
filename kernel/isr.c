@@ -143,7 +143,24 @@ void IsrEnd()
 			//so we are allowed to context switch.
 			//
 
+			ASSERT( InterruptIsAtomic() );
+			ASSERT( HalIsAtomic() );
+
 			ContextSwitch();
+
+			//
+			//If we get here then we have switched back to this context
+			//after a context switch. Interrupts should be disabled,
+			//we need to adjust the count and return to the thread context.
+			//Returing will restore the interrupt flags.
+			//
+			ASSERT( InterruptIsAtomic() );
+			ASSERT( HalIsAtomic() );
+
+			InterruptDecrement();
+			
+			ASSERT( !InterruptIsAtomic() );
+			ASSERT( HalIsAtomic() );
 		}
 		else
 		{
@@ -154,12 +171,18 @@ void IsrEnd()
 			//
 
 			InterruptDecrement();
+
+			ASSERT( !InterruptIsAtomic() );
+			ASSERT( HalIsAtomic() );
 		}
 	}
 	else
 	{
 		//We are not the bottom interrupt, so do normal exit.
 		InterruptDecrement();
+
+		ASSERT( !InterruptIsAtomic() );
+		ASSERT( HalIsAtomic() );
 	}
 }
 

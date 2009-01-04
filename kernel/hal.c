@@ -420,9 +420,15 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 		Context->High = (char *) top;
 		Context->Low = stack;
 #endif
+
+		return;
 	}
 	else
 	{
+		//If we get here, then someone has jumped into a newly created thread.
+		//Test to make sure we are atomic
+		//ASSERT( HalIsAtomic() );
+
 		//On linux systems we call foo directly because those 
 		//fuckers hide their program registers somwhere.
 
@@ -432,7 +438,8 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 		
 		//Returning from a function which was invoked by siglongjmp is not
 		//supported. Foo should never retrun.
-		ASSERT(0);
+		KernelPanic();
+		return;
 	}
 }
 
@@ -560,7 +567,7 @@ void HalResetClock()
 void HalPanic(char file[], int line)
 {
 	printf("PANIC: %s:%d\n",file,line);
-	exit(-1);
+	//exit(-1);//Don't exit for now.
 }
 
 void HalEnableWatchdog( int frequency )

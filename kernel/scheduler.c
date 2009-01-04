@@ -172,15 +172,10 @@ void SchedulerEndCritical()
 
 		//Switch threads!
 		InterruptDisable();
+		ASSERT( InterruptIsAtomic() && HalIsAtomic() );
 		ContextSwitch();
-
-		//
-		//The context switch relies on hardware to
-		//re-enable interrupts. Since we we not
-		//in an interrupt, we have to do it ourselves.
-		//
-
-		HalEnableInterrupts();
+		InterruptEnable();
+		ASSERT( !InterruptIsAtomic() && !HalIsAtomic() );
 	}
 	else
 	{//Quantum has not expired, so we'll just end the critical section. 
@@ -218,8 +213,10 @@ void  SchedulerForceSwitch()
 
 	//Actually context switch.
 	InterruptDisable();
+	ASSERT( InterruptIsAtomic() && HalIsAtomic() );
 	ContextSwitch();
-	HalEnableInterrupts();
+	InterruptEnable();
+	ASSERT( !InterruptIsAtomic() && !HalIsAtomic() );
 }
 
 /*
@@ -416,13 +413,19 @@ void SchedulerThreadStartup( void )
 {
 	struct THREAD * thread;
 	
+	//Thread startup should occur in atomic section.
+	//We should not be in a critical section
+	ASSERT( InterruptIsAtomic() );
+	ASSERT( HalIsAtomic() );
+	ASSERT( !ContextIsCritical() );
+
 	//Start the thread.
-	
 	thread = SchedulerGetActiveThread();
 	
-	HalEnableInterrupts();
+	//We need to end atomic section before starting thread's main.
+	InterruptEnable();
+	ASSERT( !InterruptIsAtomic() && !HalIsAtomic() );
 
-	//Now we are in normal context (not atomic not critical)
 	//run the thread.
 	thread->Main( thread->Argument );
 
@@ -432,6 +435,7 @@ void SchedulerThreadStartup( void )
 	SchedulerForceSwitch();
 
 	//We should never get here.
+	//This function should not return.
 	KernelPanic();
 }
 

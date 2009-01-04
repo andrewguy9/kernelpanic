@@ -3,6 +3,8 @@
 #include"../kernel/hal.h"
 #include"../kernel/panic.h"
 
+#include<stdio.h>
+
 /*
  * Demonstrates how to start and stop a thread.
  */
@@ -46,6 +48,8 @@ void DeathThreadMain( void * arg )
 {
 	ASSERT(DeathCount == 0 );
 
+	printf("death thread\n");
+
 	DeathCount++;
 	TotalDeath++;
 }
@@ -75,6 +79,7 @@ void RestartThreadMain( void * arg )
 
 		if( SchedulerIsThreadDead( &DeathThread ) )
 		{
+			printf("resurection\n");
 			SchedulerCreateThread(
 					&DeathThread,
 					1,

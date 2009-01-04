@@ -139,8 +139,7 @@ void ContextSetActiveContext( struct MACHINE_CONTEXT * stack )
 
 void ContextSwitch()
 {
-	ASSERT( InterruptIsAtomic() );
-	ASSERT( HalIsAtomic() );
+	ASSERT( InterruptIsAtomic() && HalIsAtomic() );
 	ASSERT( MutexIsLocked( &ContextMutex ) );
 
 	//We need to update the watchdog for the next thread.
@@ -157,9 +156,6 @@ void ContextSwitch()
 		//we are critical but no thread was picked, so we dont 
 		//have to do a context switch.
 		MutexUnlock( &ContextMutex );
-		InterruptDecrement();
-
-		//returning will restore the machine state.
 	}
 	else if( NextStack != ActiveStack )
 	{
@@ -171,7 +167,6 @@ void ContextSwitch()
 		//now that the system looks like the switch has
 		//happened, go ahead and do the switch.
 		MutexUnlock( &ContextMutex );
-		InterruptDecrement();
 
 		HalContextSwitch( );
 	}
@@ -184,8 +179,13 @@ void ContextSwitch()
 #endif
 		NextStack = NULL;
 		MutexUnlock( &ContextMutex );
-		InterruptDecrement();
 	}
+
+
+	//We should be atomic, non-critical with no next stack.
+	ASSERT( InterruptIsAtomic() && HalIsAtomic() );
+	ASSERT( !MutexIsLocked( &ContextMutex ) );
+	ASSERT( NextStack == NULL );
 }
 
 struct MACHINE_CONTEXT * ContextGetContext( )
