@@ -37,7 +37,7 @@ void IsrRunPostHandlers()
 	struct POST_HANDLER_OBJECT * postHandler;
 	HANDLER_FUNCTION * func;
 
-	ASSERT( HalIsAtomic() );
+	ASSERT( InterruptIsAtomic() );
 
 	ASSERT( MutexIsLocked(&PostHandlerMutex) );
 
@@ -144,7 +144,6 @@ void IsrEnd()
 			//
 
 			ASSERT( InterruptIsAtomic() );
-			ASSERT( HalIsAtomic() );
 
 			ContextSwitch();
 
@@ -154,13 +153,12 @@ void IsrEnd()
 			//we need to adjust the count and return to the thread context.
 			//Returing will restore the interrupt flags.
 			//
+
 			ASSERT( InterruptIsAtomic() );
-			ASSERT( HalIsAtomic() );
 
 			InterruptDecrement();
-			
-			ASSERT( !InterruptIsAtomic() );
-			ASSERT( HalIsAtomic() );
+
+			ASSERT( InterruptIsEdge() );
 		}
 		else
 		{
@@ -172,8 +170,7 @@ void IsrEnd()
 
 			InterruptDecrement();
 
-			ASSERT( !InterruptIsAtomic() );
-			ASSERT( HalIsAtomic() );
+			ASSERT( InterruptIsEdge() );
 		}
 	}
 	else
@@ -181,8 +178,7 @@ void IsrEnd()
 		//We are not the bottom interrupt, so do normal exit.
 		InterruptDecrement();
 
-		ASSERT( !InterruptIsAtomic() );
-		ASSERT( HalIsAtomic() );
+		ASSERT( InterruptIsEdge() );
 	}
 }
 
@@ -210,7 +206,7 @@ void IsrRegisterPostHandler(
 		void * context)
 {
 	//Access to the Post handler list must be atomic.
-	ASSERT( HalIsAtomic() );
+	ASSERT( InterruptIsAtomic() );
 	//We cannot add an object that is in use.
 	ASSERT( ! postObject->Queued );
 

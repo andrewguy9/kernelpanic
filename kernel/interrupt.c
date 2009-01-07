@@ -67,14 +67,16 @@ void InterruptEnable()
 
 void InterruptIncrement()
 {
-	ASSERT( HalIsAtomic() && InterruptLevel == 0 );
+	ASSERT( HalIsAtomic() );
+	ASSERT( InterruptLevel == 0 );
 
 	InterruptLevel++;
 }
 
 void InterruptDecrement()
 {
-	ASSERT( HalIsAtomic() && InterruptLevel == 1 );
+	ASSERT( HalIsAtomic() );
+	ASSERT( InterruptLevel == 1 );
 
 	InterruptLevel--;
 }
@@ -99,10 +101,26 @@ BOOL InterruptIsAtomic()
 
 	if( InterruptLevel == 0 )
 	{
+
+		ASSERT( ! HalIsAtomic() );
 		return FALSE;
 	}
 	else 
 	{
+		ASSERT( HalIsAtomic() );
 		return TRUE;
 	}
 }
+
+/*
+ * Should be called only by assertions at top and bottom
+ * of ISRs.
+ */
+BOOL InterruptIsEdge()
+{
+	if( HalIsAtomic() && InterruptLevel == 0 )
+		return TRUE;
+	else 
+		return FALSE;
+}
+

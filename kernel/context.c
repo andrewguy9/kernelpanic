@@ -139,7 +139,7 @@ void ContextSetActiveContext( struct MACHINE_CONTEXT * stack )
 
 void ContextSwitch()
 {
-	ASSERT( InterruptIsAtomic() && HalIsAtomic() );
+	ASSERT( InterruptIsAtomic() );
 	ASSERT( MutexIsLocked( &ContextMutex ) );
 
 	//We need to update the watchdog for the next thread.
@@ -183,7 +183,7 @@ void ContextSwitch()
 
 
 	//We should be atomic, non-critical with no next stack.
-	ASSERT( InterruptIsAtomic() && HalIsAtomic() );
+	ASSERT( InterruptIsAtomic() );
 	ASSERT( !MutexIsLocked( &ContextMutex ) );
 	ASSERT( NextStack == NULL );
 }

@@ -172,10 +172,10 @@ void SchedulerEndCritical()
 
 		//Switch threads!
 		InterruptDisable();
-		ASSERT( InterruptIsAtomic() && HalIsAtomic() );
+		ASSERT( InterruptIsAtomic() );
 		ContextSwitch();
 		InterruptEnable();
-		ASSERT( !InterruptIsAtomic() && !HalIsAtomic() );
+		ASSERT( !InterruptIsAtomic() );
 	}
 	else
 	{//Quantum has not expired, so we'll just end the critical section. 
@@ -213,10 +213,10 @@ void  SchedulerForceSwitch()
 
 	//Actually context switch.
 	InterruptDisable();
-	ASSERT( InterruptIsAtomic() && HalIsAtomic() );
+	ASSERT( InterruptIsAtomic() );
 	ContextSwitch();
 	InterruptEnable();
-	ASSERT( !InterruptIsAtomic() && !HalIsAtomic() );
+	ASSERT( !InterruptIsAtomic() );
 }
 
 /*
@@ -416,7 +416,6 @@ void SchedulerThreadStartup( void )
 	//Thread startup should occur in atomic section.
 	//We should not be in a critical section
 	ASSERT( InterruptIsAtomic() );
-	ASSERT( HalIsAtomic() );
 	ASSERT( !ContextIsCritical() );
 
 	//Start the thread.
@@ -424,7 +423,7 @@ void SchedulerThreadStartup( void )
 	
 	//We need to end atomic section before starting thread's main.
 	InterruptEnable();
-	ASSERT( !InterruptIsAtomic() && !HalIsAtomic() );
+	ASSERT( !InterruptIsAtomic() );
 
 	//run the thread.
 	thread->Main( thread->Argument );

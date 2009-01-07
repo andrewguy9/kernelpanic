@@ -27,4 +27,6 @@ void InterruptDecrement();
 
 BOOL InterruptIsAtomic();
 
+BOOL InterruptIsEdge();
+
 #endif
