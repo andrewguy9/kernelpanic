@@ -358,6 +358,7 @@ void HalStartup()
 	//We start with the timer disabled.
 	status = sigprocmask( SIG_BLOCK, &TimerSet, NULL );
 	ASSERT( status == 0 );
+	ASSERT( HalIsAtomic() );
 
 	//Set up the watchdog.
 	HalWatchdogOn = FALSE;
@@ -391,13 +392,18 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 	unsigned int *esp;
 	unsigned char * cstack = stack;
 
+	sigset_t oldSet;
+
+	sigprocmask( SIG_BLOCK, &TimerSet, &oldSet );
 	status = sigsetjmp( Context->Registers, 1 );
 
 	if( status == 0 )
 	{
 		//Because status was 0 we know that this is the creation of
 		//the stack frame. We can use the locals to construct the frame.
-		
+	
+		sigprocmask( SIG_SETMASK, &oldSet, NULL );
+	
 		//We need to store foo into the machine context so we know who to call
 		//when the new frame is activated.
 		Context->Foo = foo;
@@ -427,7 +433,7 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 	{
 		//If we get here, then someone has jumped into a newly created thread.
 		//Test to make sure we are atomic
-		//ASSERT( HalIsAtomic() );
+		ASSERT( HalIsAtomic() );
 
 		//On linux systems we call foo directly because those 
 		//fuckers hide their program registers somwhere.
