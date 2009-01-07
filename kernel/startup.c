@@ -20,9 +20,9 @@ void KernelInit()
 {//entry point for kernel...
 	HalStartup();
 
-	WatchdogStartup();
-
 	InterruptStartup();
+
+	WatchdogStartup();
 
 	ContextStartup( );
 
