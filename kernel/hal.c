@@ -329,6 +329,7 @@ struct itimerval TimerInterval;
 
 sigset_t EmptySet;
 sigset_t TimerSet;
+sigset_t CurrentSet;
 struct sigaction TimerAction;
 
 //Prototype for later use.
@@ -355,8 +356,9 @@ void HalStartup()
 	ASSERT( status ==  0 );
 	TimerAction.sa_flags = 0;
 
-	//We start with the timer disabled.
-	status = sigprocmask( SIG_BLOCK, &TimerSet, NULL );
+	//The current set should be equal to the timer set.
+	CurrentSet = TimerSet;
+	status = sigprocmask( SIG_BLOCK, &CurrentSet, NULL );
 	ASSERT( status == 0 );
 	ASSERT( HalIsAtomic() );
 
@@ -394,7 +396,8 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 
 	sigset_t oldSet;
 
-	sigprocmask( SIG_BLOCK, &TimerSet, &oldSet );
+	status = sigprocmask( SIG_BLOCK, &TimerSet, &oldSet );
+	ASSERT( status == 0 );
 	status = sigsetjmp( Context->Registers, 1 );
 
 	if( status == 0 )
@@ -402,7 +405,8 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 		//Because status was 0 we know that this is the creation of
 		//the stack frame. We can use the locals to construct the frame.
 	
-		sigprocmask( SIG_SETMASK, &oldSet, NULL );
+		status = sigprocmask( SIG_SETMASK, &oldSet, NULL );
+		ASSERT( status == 0 );
 	
 		//We need to store foo into the machine context so we know who to call
 		//when the new frame is activated.
@@ -471,7 +475,11 @@ void HalContextSwitch( )
 	ActiveStack = NextStack;
 	NextStack = NULL;
 
-	//Save the state into old context.
+	//We need to get the current signal mask state.
+	status = sigprocmask( 0, NULL, &CurrentSet );
+	ASSERT( status == 0 );
+
+	//Save the stack state into old context.
 	status = sigsetjmp( oldContext->Registers, 1 );
 	if( status == 0 )
 	{
@@ -482,6 +490,10 @@ void HalContextSwitch( )
 	{
 		//This was the restore call started by longjmp call.
 		//We have just switched into a different thread.
+		//Now lets apply the old signal mask from the origional thread.
+		status = sigprocmask( SIG_SETMASK, &CurrentSet, NULL );
+		ASSERT( status == 0 );
+		
 	}
 }
 
@@ -538,10 +550,17 @@ void HalLinuxTimer( int SignalNumber )
  * Calls TimerInterrupt if he can.
  */
 {
+	int status;
+
 	//The kernel should add this signal to the blocked list inorder to avoid 
 	//nesting calls the the handler.
 	//verify this.
 	ASSERT( HalIsAtomic() );
+
+	//The current mask changed when this was called. 
+	//save the change over the mask.
+	status = sigprocmask( 0, NULL, &CurrentSet );
+	ASSERT( status == 0 );
 
 	//TODO IF POSSIBLE, MOVE WATCHDOG INTO OWN TIMER.
 	//Run the watchdog check
