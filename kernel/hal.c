@@ -448,7 +448,7 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 		
 		//Returning from a function which was invoked by siglongjmp is not
 		//supported. Foo should never retrun.
-		KernelPanic();
+		HalPanic("Tried to return from ActiveStack->Foo()\n", 0 );
 		return;
 	}
 }
