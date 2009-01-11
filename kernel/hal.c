@@ -530,14 +530,25 @@ void HalDisableInterrupts()
 
 	status = sigprocmask( SIG_BLOCK, &TimerSet, NULL ); 
 	ASSERT( status == 0 );
+
+	//We just disabled,
+	//update current set.
+	CurrentSet = TimerSet;
+
+	ASSERT( HalIsAtomic() );
 }
 
 void HalEnableInterrupts()
 {
 	int status;
 
+	//We are about to enable, update current set.
+	CurrentSet = EmptySet;
+
 	status = sigprocmask( SIG_UNBLOCK, &TimerSet, NULL );
 	ASSERT( status == 0 );
+
+	ASSERT( ! HalIsAtomic() );
 }
 
 //prototype for handler.
@@ -608,6 +619,7 @@ void HalPetWatchdog( )
 
 void HalSleepProcessor()
 {
+	ASSERT( !HalIsAtomic() );
 	pause();
 }
 #endif //end of pc build
