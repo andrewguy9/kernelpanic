@@ -603,7 +603,7 @@ void HalResetClock()
 void HalPanic(char file[], int line)
 {
 	printf("PANIC: %s:%d\n",file,line);
-	//exit(-1);//Don't exit for now.
+	exit(-1);//Don't exit for now.
 }
 
 void HalEnableWatchdog( int frequency )
