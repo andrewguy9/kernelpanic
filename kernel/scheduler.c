@@ -6,6 +6,8 @@
 #include"context.h"
 #include"panic.h"
 
+#include<stdio.h>
+
 /*
  * Scheduler Unit:
  * The Scheduler unit has three tasks:
@@ -173,6 +175,8 @@ void SchedulerEndCritical()
 		//Switch threads!
 		InterruptDisable();
 		ASSERT( InterruptIsAtomic() );
+		//printf("SchedulerEndCritical()\n");
+		//fflush(stdout);
 		ContextSwitch();
 		InterruptEnable();
 		ASSERT( !InterruptIsAtomic() );
@@ -214,6 +218,8 @@ void  SchedulerForceSwitch()
 	//Actually context switch.
 	InterruptDisable();
 	ASSERT( InterruptIsAtomic() );
+	//printf("SchedulerForceSwitch()\n");
+	//fflush(stdout);
 	ContextSwitch();
 	InterruptEnable();
 	ASSERT( !InterruptIsAtomic() );

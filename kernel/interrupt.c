@@ -44,7 +44,11 @@ void InterruptStartup()
  */
 void InterruptDisable()
 {
-	HalDisableInterrupts();
+	if( InterruptLevel == 0 ) 
+	{
+		HalDisableInterrupts();
+	}
+
 	InterruptLevel++;
 }
 

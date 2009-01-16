@@ -318,6 +318,7 @@ void HalSleepProcessor( )
 
 #ifdef DARWIN
 #define ESP_OFFSET 9
+#define EBP_OFFSET 8
 #endif
 
 char HAL_WATCHDOG_MASK;
@@ -327,9 +328,14 @@ unsigned int HalWatchdogCount;
 
 struct itimerval TimerInterval;
 
+//Used for reference.
 sigset_t EmptySet;
 sigset_t TimerSet;
+
+//Storage for the signal mask.
 sigset_t CurrentSet;
+
+//Timer Action Storage.
 struct sigaction TimerAction;
 
 //Prototype for later use.
@@ -358,8 +364,9 @@ void HalStartup()
 
 	//The current set should be equal to the timer set.
 	CurrentSet = TimerSet;
-	status = sigprocmask( SIG_BLOCK, &CurrentSet, NULL );
+	status = sigprocmask( SIG_SETMASK, &CurrentSet, NULL );//TODO
 	ASSERT( status == 0 );
+
 	ASSERT( HalIsAtomic() );
 
 	//Set up the watchdog.
@@ -386,27 +393,36 @@ void HalInitClock()
 	ASSERT(status == 0 );
 }
 
-void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
+extern volatile COUNT ContextNumSwitches;
+
+void HalCreateStackFrame( 
+		struct MACHINE_CONTEXT * Context, 
+		void * stack, 
+		STACK_INIT_ROUTINE foo, 
+		COUNT stackSize)
 {
 
 	int status;
 	unsigned char * top;
 	unsigned int *esp;
+	unsigned int *ebp;
 	unsigned char * cstack = stack;
 
-	sigset_t oldSet;
+	//sigset_t oldSet;
 
-	status = sigprocmask( SIG_BLOCK, &TimerSet, &oldSet );
-	ASSERT( status == 0 );
-	status = sigsetjmp( Context->Registers, 1 );
+	ASSERT( HalIsAtomic() );
+
+	//status = sigprocmask( SIG_BLOCK, &TimerSet, &oldSet );//TODO
+	//ASSERT( status == 0 );
+	status = _setjmp( Context->Registers );
 
 	if( status == 0 )
 	{
 		//Because status was 0 we know that this is the creation of
 		//the stack frame. We can use the locals to construct the frame.
 	
-		status = sigprocmask( SIG_SETMASK, &oldSet, NULL );
-		ASSERT( status == 0 );
+		//status = sigprocmask( SIG_SETMASK, &oldSet, NULL );//TODO
+		//ASSERT( status == 0 );
 	
 		//We need to store foo into the machine context so we know who to call
 		//when the new frame is activated.
@@ -424,6 +440,9 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 		//We need to write new stack pointer into the register buffer.
 		esp = (unsigned int*) ( ((unsigned char *) &Context->Registers)+( ESP_OFFSET*sizeof(int)) );
 		*esp = (int) top;
+		//We need to write new base pointer into the register buffer.
+		ebp = (unsigned int*) ( ((unsigned char *) &Context->Registers)+( EBP_OFFSET*sizeof(int)) );
+		*ebp = (int) top;
 
 #ifdef DEBUG
 		//Set up the stack boundry.
@@ -438,6 +457,12 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 		//If we get here, then someone has jumped into a newly created thread.
 		//Test to make sure we are atomic
 		ASSERT( HalIsAtomic() );
+
+		//printf("Entered new thread\n");
+		//fflush(stdout);
+
+		ContextNumSwitches--;
+		ASSERT( ContextNumSwitches == 0 );
 
 		//On linux systems we call foo directly because those 
 		//fuckers hide their program registers somwhere.
@@ -456,7 +481,7 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_
 extern int IdleThread;
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
-	int status = sigsetjmp( Context->Registers, 1 );
+	int status = _setjmp( Context->Registers );
 	ASSERT( status == 0 );//We should never wake here.
 
 #ifdef DEBUG
@@ -476,24 +501,42 @@ void HalContextSwitch( )
 	NextStack = NULL;
 
 	//We need to get the current signal mask state.
-	status = sigprocmask( 0, NULL, &CurrentSet );
-	ASSERT( status == 0 );
+	//status = sigprocmask( 0, NULL, &CurrentSet );//TODO
+	//ASSERT( status == 0 );
 
 	//Save the stack state into old context.
-	status = sigsetjmp( oldContext->Registers, 1 );
+	status = _setjmp( oldContext->Registers );
+
 	if( status == 0 )
 	{
 		//This was the saving call to setjmp.
-		siglongjmp( newContext->Registers, 1 );
+		//Check stack bounds:
+		/*
+		printf("\tregs %8p: stack %8p to %8p: ", oldContext, oldContext->High, oldContext->Low);
+		for( status = 0; status < _JBLEN; status++ )
+		{
+			printf("%8x, ", oldContext->Registers[status] );
+		}
+		printf("\n");
+
+		printf("\tregs %8p: stack %8p to %8p: ", newContext, newContext->High, newContext->Low);
+		for( status = 0; status < _JBLEN; status++ )
+		{
+			printf("%8x, ", newContext->Registers[status] );
+		}
+		printf("\n");
+		fflush(stdout);
+	   */
+		_longjmp( newContext->Registers, 1 );
 	}
 	else
 	{
 		//This was the restore call started by longjmp call.
 		//We have just switched into a different thread.
 		//Now lets apply the old signal mask from the origional thread.
-		status = sigprocmask( SIG_SETMASK, &CurrentSet, NULL );
-		ASSERT( status == 0 );
-		
+		//status = sigprocmask( SIG_SETMASK, &CurrentSet, NULL );//TODO
+		//ASSERT( status == 0 );
+		ASSERT( HalIsAtomic() );
 	}
 }
 
@@ -507,7 +550,7 @@ BOOL HalIsAtomic()
 	sigset_t curSet;
 	int status;
 
-	status = sigprocmask( 0, NULL, &curSet );
+	status = sigprocmask( 0, NULL, &curSet );//TODO
 	ASSERT( status == 0 );
 
 	status = sigismember( &curSet, AlarmSignal );
@@ -528,8 +571,11 @@ void HalDisableInterrupts()
 {
 	int status;
 
-	status = sigprocmask( SIG_BLOCK, &TimerSet, NULL ); 
+	status = sigprocmask( SIG_SETMASK, &TimerSet, NULL ); //TODO 
 	ASSERT( status == 0 );
+
+	//printf("\tATOMIC\n");
+	//fflush(stdout);
 
 	//We just disabled,
 	//update current set.
@@ -545,7 +591,10 @@ void HalEnableInterrupts()
 	//We are about to enable, update current set.
 	CurrentSet = EmptySet;
 
-	status = sigprocmask( SIG_UNBLOCK, &TimerSet, NULL );
+	//printf("\tEND ATOMIC\n");
+	//fflush(stdout);
+
+	status = sigprocmask( SIG_SETMASK, &EmptySet, NULL );//TODO
 	ASSERT( status == 0 );
 
 	ASSERT( ! HalIsAtomic() );
@@ -570,8 +619,9 @@ void HalLinuxTimer( int SignalNumber )
 
 	//The current mask changed when this was called. 
 	//save the change over the mask.
-	status = sigprocmask( 0, NULL, &CurrentSet );
-	ASSERT( status == 0 );
+	//status = sigprocmask( 0, NULL, &CurrentSet );//TODO
+	//ASSERT( status == 0 );
+	CurrentSet = TimerSet;
 
 	//TODO IF POSSIBLE, MOVE WATCHDOG INTO OWN TIMER.
 	//Run the watchdog check
