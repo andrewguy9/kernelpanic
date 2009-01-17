@@ -313,7 +313,8 @@ void HalSleepProcessor( )
 #endif
 
 #ifdef BSD
-#define ESP_OFFSET 3
+#define ESP_OFFSET 2
+#define EBP_OFFSET 3
 #endif
 
 #ifdef DARWIN
