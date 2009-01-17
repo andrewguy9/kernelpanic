@@ -108,7 +108,7 @@ struct MACHINE_CONTEXT
 {
 	INDEX Flag;//Thread number which gets used for the watchdog and debug leds.
 	STACK_INIT_ROUTINE Foo;//Pointer to the first function the thread calls.
-	sigjmp_buf Registers;//Buffer to hold register state in context switches.
+	jmp_buf Registers;//Buffer to hold register state in context switches.
 	
 #ifdef DEBUG
 	//Counters to keep track of thread usage.
