@@ -342,7 +342,7 @@ sigset_t CurrentSet;
 struct sigaction TimerAction;
 
 //Prototype for later use.
-void HalLinuxTimer( int SignalNumber );
+void HalUnixTimer( int SignalNumber );
 
 void HalStartup()
 {
@@ -360,7 +360,7 @@ void HalStartup()
 	ASSERT( sigismember( &TimerSet, AlarmSignal ) == 1 );
 
 	//Create the timer action.
-	TimerAction.sa_handler = HalLinuxTimer;
+	TimerAction.sa_handler = HalUnixTimer;
 	status = sigemptyset( &TimerAction.sa_mask);
 	ASSERT( status ==  0 );
 	TimerAction.sa_flags = 0;
@@ -562,15 +562,12 @@ void HalEnableInterrupts()
 //prototype for handler.
 void TimerInterrupt();
 
-volatile int count = 0;
-void HalLinuxTimer( int SignalNumber )
 /*
  * Acts like the hardware clock.
  * Calls TimerInterrupt if he can.
  */
+void HalUnixTimer( int SignalNumber )
 {
-	int status;
-
 	//The kernel should add this signal to the blocked list inorder to avoid 
 	//nesting calls the the handler.
 	//verify this.
@@ -678,7 +675,7 @@ sigset_t CurrentSet;
 struct sigaction TimerAction;
 
 //Prototype for later use.
-void HalLinuxTimer( int SignalNumber );
+void HalUnixTimer( int SignalNumber );
 
 void HalStartup()
 {
@@ -696,7 +693,7 @@ void HalStartup()
 	ASSERT( sigismember( &TimerSet, AlarmSignal ) == 1 );
 
 	//Create the timer action.
-	TimerAction.sa_handler = HalLinuxTimer;
+	TimerAction.sa_handler = HalUnixTimer;
 	status = sigemptyset( &TimerAction.sa_mask);
 	ASSERT( status ==  0 );
 	TimerAction.sa_flags = 0;
@@ -840,10 +837,8 @@ void TimerInterrupt();
  * Acts like the hardware clock.
  * Calls TimerInterrupt if he can.
  */
-void HalLinuxTimer( int SignalNumber )
+void HalUnixTimer( int SignalNumber )
 {
-	int status;
-
 	//The kernel should add this signal to the blocked list inorder to avoid 
 	//nesting calls the the handler.
 	//verify this.
@@ -868,8 +863,6 @@ void HalLinuxTimer( int SignalNumber )
 
 	//Call the kernel's timer handler.
 	TimerInterrupt();
-
-	//There is an implied enable interrupts call when the timer returns.
 }
 
 void HalResetClock()
