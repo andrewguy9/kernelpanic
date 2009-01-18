@@ -364,7 +364,7 @@ void HalStartup()
 
 	//The current set should be equal to the timer set.
 	CurrentSet = TimerSet;
-	status = sigprocmask( SIG_SETMASK, &CurrentSet, NULL );//TODO
+	status = sigprocmask( SIG_SETMASK, &CurrentSet, NULL );
 	ASSERT( status == 0 );
 
 	ASSERT( HalIsAtomic() );
@@ -412,17 +412,12 @@ void HalCreateStackFrame(
 
 	ASSERT( HalIsAtomic() );
 
-	//status = sigprocmask( SIG_BLOCK, &TimerSet, &oldSet );//TODO
-	//ASSERT( status == 0 );
 	status = _setjmp( Context->Registers );
 
 	if( status == 0 )
 	{
 		//Because status was 0 we know that this is the creation of
 		//the stack frame. We can use the locals to construct the frame.
-	
-		//status = sigprocmask( SIG_SETMASK, &oldSet, NULL );//TODO
-		//ASSERT( status == 0 );
 	
 		//We need to store foo into the machine context so we know who to call
 		//when the new frame is activated.
@@ -457,9 +452,6 @@ void HalCreateStackFrame(
 		//If we get here, then someone has jumped into a newly created thread.
 		//Test to make sure we are atomic
 		ASSERT( HalIsAtomic() );
-
-		//printf("Entered new thread\n");
-		//fflush(stdout);
 
 		ContextNumSwitches--;
 		ASSERT( ContextNumSwitches == 0 );
@@ -500,26 +492,17 @@ void HalContextSwitch( )
 	ActiveStack = NextStack;
 	NextStack = NULL;
 
-	//We need to get the current signal mask state.
-	//status = sigprocmask( 0, NULL, &CurrentSet );//TODO
-	//ASSERT( status == 0 );
-
 	//Save the stack state into old context.
 	status = _setjmp( oldContext->Registers );
-
 	if( status == 0 )
 	{
 		//This was the saving call to setjmp.
-		//Check stack bounds:
 		_longjmp( newContext->Registers, 1 );
 	}
 	else
 	{
 		//This was the restore call started by longjmp call.
 		//We have just switched into a different thread.
-		//Now lets apply the old signal mask from the origional thread.
-		//status = sigprocmask( SIG_SETMASK, &CurrentSet, NULL );//TODO
-		//ASSERT( status == 0 );
 		ASSERT( HalIsAtomic() );
 	}
 }
@@ -534,7 +517,7 @@ BOOL HalIsAtomic()
 	sigset_t curSet;
 	int status;
 
-	status = sigprocmask( 0, NULL, &curSet );//TODO
+	status = sigprocmask( 0, NULL, &curSet );
 	ASSERT( status == 0 );
 
 	status = sigismember( &curSet, AlarmSignal );
@@ -555,7 +538,7 @@ void HalDisableInterrupts()
 {
 	int status;
 
-	status = sigprocmask( SIG_SETMASK, &TimerSet, NULL ); //TODO 
+	status = sigprocmask( SIG_SETMASK, &TimerSet, NULL ); 
 	ASSERT( status == 0 );
 
 	//We just disabled,
@@ -572,7 +555,7 @@ void HalEnableInterrupts()
 	//We are about to enable, update current set.
 	CurrentSet = EmptySet;
 
-	status = sigprocmask( SIG_SETMASK, &EmptySet, NULL );//TODO
+	status = sigprocmask( SIG_SETMASK, &EmptySet, NULL );
 	ASSERT( status == 0 );
 
 	ASSERT( ! HalIsAtomic() );
@@ -597,8 +580,6 @@ void HalLinuxTimer( int SignalNumber )
 
 	//The current mask changed when this was called. 
 	//save the change over the mask.
-	//status = sigprocmask( 0, NULL, &CurrentSet );//TODO
-	//ASSERT( status == 0 );
 	CurrentSet = TimerSet;
 
 	//TODO IF POSSIBLE, MOVE WATCHDOG INTO OWN TIMER.
@@ -617,9 +598,7 @@ void HalLinuxTimer( int SignalNumber )
 	//Call the kernel's timer handler.
 	TimerInterrupt();
 
-	//There is an implied enable interrupts call when the timer
-	//returns.
-	//HalEnableInterrupts();//TODO THERE IS AN IMPLIED RE-ENABLE (I THINK).
+	//There is an implied enable interrupts call when the timer returns.
 }
 
 void HalResetClock()
