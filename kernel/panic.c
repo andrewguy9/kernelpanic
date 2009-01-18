@@ -18,7 +18,7 @@
  */
 void Panic( char file[], int line )
 {
-	volatile char failed = 0;
+	volatile char failed = 1;
 	InterruptDisable();
 	HalPanic(file,line);
 	while(failed);

@@ -21,7 +21,7 @@ int TotalStall;
 //
 
 #ifdef PC_BUILD 
-#define STACK_SIZE (0x5000*20)
+#define STACK_SIZE (0x5000*2)
 #endif
 
 #ifdef AVR_BUILD
