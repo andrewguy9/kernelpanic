@@ -511,22 +511,6 @@ void HalContextSwitch( )
 	{
 		//This was the saving call to setjmp.
 		//Check stack bounds:
-		/*
-		printf("\tregs %8p: stack %8p to %8p: ", oldContext, oldContext->High, oldContext->Low);
-		for( status = 0; status < _JBLEN; status++ )
-		{
-			printf("%8x, ", oldContext->Registers[status] );
-		}
-		printf("\n");
-
-		printf("\tregs %8p: stack %8p to %8p: ", newContext, newContext->High, newContext->Low);
-		for( status = 0; status < _JBLEN; status++ )
-		{
-			printf("%8x, ", newContext->Registers[status] );
-		}
-		printf("\n");
-		fflush(stdout);
-	   */
 		_longjmp( newContext->Registers, 1 );
 	}
 	else
@@ -574,9 +558,6 @@ void HalDisableInterrupts()
 	status = sigprocmask( SIG_SETMASK, &TimerSet, NULL ); //TODO 
 	ASSERT( status == 0 );
 
-	//printf("\tATOMIC\n");
-	//fflush(stdout);
-
 	//We just disabled,
 	//update current set.
 	CurrentSet = TimerSet;
@@ -590,9 +571,6 @@ void HalEnableInterrupts()
 
 	//We are about to enable, update current set.
 	CurrentSet = EmptySet;
-
-	//printf("\tEND ATOMIC\n");
-	//fflush(stdout);
 
 	status = sigprocmask( SIG_SETMASK, &EmptySet, NULL );//TODO
 	ASSERT( status == 0 );
@@ -653,7 +631,7 @@ void HalResetClock()
 void HalPanic(char file[], int line)
 {
 	printf("PANIC: %s:%d\n",file,line);
-	exit(-1);//Don't exit for now.
+	exit(-1);
 }
 
 void HalEnableWatchdog( int frequency )

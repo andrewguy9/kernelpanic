@@ -3,8 +3,6 @@
 #include"mutex.h"
 #include"interrupt.h"
 
-#include<stdio.h>
-
 /*
  * The isr unit provides utilities for interrupts to call.
  *
@@ -147,8 +145,6 @@ void IsrEnd()
 
 			ASSERT( InterruptIsAtomic() );
 
-			//printf("ISR\n");
-			//fflush(stdout);
 			ContextSwitch();
 
 			//

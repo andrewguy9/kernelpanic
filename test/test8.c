@@ -3,8 +3,6 @@
 #include"../kernel/panic.h"
 #include"../kernel/interrupt.h"
 
-#include<stdio.h>
-
 /*
  * Demonstrates how to start and stop a thread.
  */
@@ -75,22 +73,8 @@ void RestartThreadMain( void * arg )
 	{
 		SchedulerStartCritical();
 
-		/*
-		InterruptDisable();
-		printf("top\n");
-		fflush(stdout);
-		InterruptEnable();
-		*/
-
 		if( SchedulerIsThreadDead( &DeathThread ) )
 		{
-			/*
-			InterruptDisable();
-			printf("create\n");
-			fflush(stdout);
-			InterruptEnable();
-			*/
-
 			SchedulerCreateThread(
 					&DeathThread,
 					1,
@@ -104,35 +88,14 @@ void RestartThreadMain( void * arg )
 			DeathCount--;
 		}
 
-		/*
-		InterruptDisable();
-		printf("stall\n");
-		fflush(stdout);
-		InterruptEnable();
-		*/
-
 		if( SchedulerIsThreadBlocked( &StallThread ) )
 		{
-			/*
-			InterruptDisable();
-			printf("resume\n");
-			fflush(stdout);
-			InterruptEnable();
-			*/
-			
 			SchedulerResumeThread( &StallThread );
 
 			StallCount--;
 		}
 
 		SchedulerEndCritical();
-
-		/*
-		InterruptDisable();
-		printf("bot\n");
-		fflush(stdout);
-		InterruptEnable();
-		*/
 	}
 }
 
@@ -152,7 +115,6 @@ int main()
 	TotalStall = 0;
 
 	//Initialize Threads
-	//printf("Death thread %p\n", &DeathThread.MachineContext );
 	SchedulerCreateThread(
 			&DeathThread,
 			1,
@@ -163,7 +125,6 @@ int main()
 		   	4,
 			TRUE);
 
-	//printf("Stall Thread %p\n", &StallThread.MachineContext );
 	SchedulerCreateThread(
 			&StallThread,
 			1,
@@ -174,7 +135,6 @@ int main()
 			5,
 			TRUE);
 
-	//printf("Restart Thread %p\n", &RestartThread.MachineContext );
 	SchedulerCreateThread(
 			&RestartThread,
 			1,

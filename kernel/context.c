@@ -3,8 +3,6 @@
 #include"interrupt.h"
 #include"watchdog.h"
 
-#include<stdio.h>
-
 /*
  * Context Unit:
  * The context unit manages "what context is on the stack".
@@ -150,9 +148,6 @@ void ContextSwitch()
 	ASSERT( InterruptIsAtomic() );
 	ASSERT( MutexIsLocked( &ContextMutex ) );
 
-	//printf("Enter Context Switch\n" );
-	//fflush(stdout);
-
 	ContextNumSwitches+=1;
 	ASSERT( ContextNumSwitches == 1 );
 	
@@ -169,8 +164,6 @@ void ContextSwitch()
 	{
 		//we are critical but no thread was picked, so we dont 
 		//have to do a context switch.
-		//printf("No thread\n");
-		//fflush(stdout);
 		MutexUnlock( &ContextMutex );
 	}
 	else if( NextStack != ActiveStack )
@@ -180,8 +173,6 @@ void ContextSwitch()
 		NextStack->TimesSwitched++;
 		NextStack->TimesRun++;
 #endif
-		//printf("from %p to %p\n", ActiveStack, NextStack );
-		//fflush(stdout);
 		//now that the system looks like the switch has
 		//happened, go ahead and do the switch.
 		MutexUnlock( &ContextMutex );
@@ -195,15 +186,9 @@ void ContextSwitch()
 #ifdef DEBUG
 		NextStack->TimesRun++;
 #endif
-		//printf("Save thread %p\n", ActiveStack );
-		//fflush(stdout);
 		NextStack = NULL;
 		MutexUnlock( &ContextMutex );
 	}
-
-	
-	//printf("exit Context Switch\n" );
-	//fflush(stdout);
 	
 	ContextNumSwitches--;
 	ASSERT( ContextNumSwitches == 0 );
