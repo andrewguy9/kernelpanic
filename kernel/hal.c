@@ -393,7 +393,9 @@ void HalInitClock()
 	ASSERT(status == 0 );
 }
 
+#ifdef DEBUG
 extern volatile COUNT ContextNumSwitches;
+#endif
 
 void HalCreateStackFrame( 
 		struct MACHINE_CONTEXT * Context, 
@@ -453,8 +455,10 @@ void HalCreateStackFrame(
 		//Test to make sure we are atomic
 		ASSERT( HalIsAtomic() );
 
+#ifdef DEBUG
 		ContextNumSwitches--;
 		ASSERT( ContextNumSwitches == 0 );
+#endif
 
 		//On linux systems we call foo directly because those 
 		//fuckers hide their program registers somwhere.
