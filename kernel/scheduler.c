@@ -172,7 +172,6 @@ void SchedulerEndCritical()
 
 		//Switch threads!
 		InterruptDisable();
-		ASSERT( InterruptIsAtomic() );
 		ContextSwitch();
 		InterruptEnable();
 		ASSERT( !InterruptIsAtomic() );
@@ -213,7 +212,6 @@ void  SchedulerForceSwitch()
 
 	//Actually context switch.
 	InterruptDisable();
-	ASSERT( InterruptIsAtomic() );
 	ContextSwitch();
 	InterruptEnable();
 	ASSERT( !InterruptIsAtomic() );
