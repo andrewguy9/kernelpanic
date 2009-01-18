@@ -393,10 +393,6 @@ void HalInitClock()
 	ASSERT(status == 0 );
 }
 
-#ifdef DEBUG
-extern volatile COUNT ContextNumSwitches;
-#endif
-
 void HalCreateStackFrame( 
 		struct MACHINE_CONTEXT * Context, 
 		void * stack, 
@@ -454,11 +450,6 @@ void HalCreateStackFrame(
 		//If we get here, then someone has jumped into a newly created thread.
 		//Test to make sure we are atomic
 		ASSERT( HalIsAtomic() );
-
-#ifdef DEBUG
-		ContextNumSwitches--;
-		ASSERT( ContextNumSwitches == 0 );
-#endif
 
 		//On linux systems we call foo directly because those 
 		//fuckers hide their program registers somwhere.
