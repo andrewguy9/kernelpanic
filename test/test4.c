@@ -34,8 +34,8 @@ char WorkerStack[STACK_SIZE];
 struct POST_HANDLER_OBJECT Timer;
 
 //Define Global Flags
-BOOL TimerFlag;//Is TRUE when we have the timer registered. (approx)
-BOOL ThreadFlag;//Is TRUE when sleeping, FALSE when awake (approx)
+volatile BOOL TimerFlag;//Is TRUE when we have the timer registered. (approx)
+volatile BOOL ThreadFlag;//Is TRUE when sleeping, FALSE when awake (approx)
 COUNT TimerCycles;//Times we have run the test.
 
 //TimerFunction
