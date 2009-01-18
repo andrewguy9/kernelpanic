@@ -28,7 +28,9 @@ struct MUTEX ContextMutex;
 struct MACHINE_CONTEXT * ActiveStack;
 struct MACHINE_CONTEXT * NextStack;
 
-volatile COUNT ContextNumSwitches = 0;
+#ifdef DEBUG
+volatile COUNT ContextNumSwitches;
+#endif
 
 /*
  * Sets up a machine context for a future thread.
@@ -118,7 +120,9 @@ void ContextStartup( )
 	NextStack = NULL;
 	ActiveStack = NULL;
 
-	ContextNumSwitches;
+#ifdef DEBUG
+	ContextNumSwitches = 0;
+#endif
 }
 
 void ContextSetNextContext( struct MACHINE_CONTEXT * stack )
@@ -148,8 +152,7 @@ void ContextSwitch()
 	ASSERT( InterruptIsAtomic() );
 	ASSERT( MutexIsLocked( &ContextMutex ) );
 
-	ContextNumSwitches+=1;
-	ASSERT( ContextNumSwitches == 1 );
+	ASSERT( ++ContextNumSwitches == 1 );
 	
 	//We need to update the watchdog for the next thread.
 	if( NextStack != NULL )
@@ -190,8 +193,7 @@ void ContextSwitch()
 		MutexUnlock( &ContextMutex );
 	}
 	
-	ContextNumSwitches--;
-	ASSERT( ContextNumSwitches == 0 );
+	ASSERT( ContextNumSwitches-- == 1 );
 
 	//We should be atomic, non-critical with no next stack.
 	ASSERT( InterruptIsAtomic() );
