@@ -641,23 +641,23 @@ void HalSleepProcessor()
 #define AlarmSignal SIGALRM
 
 #define SAVE_STATE( context ) \
-	printf("getcontext(" #context ")\n"); \
+	/* printf("getcontext(" #context ")\n"); */ \
 	(void)getcontext( &(context)->uc)
 
 #define RESTORE_STATE( context ) \
-	printf("setcontext(" #context ")\n"); \
+	/* printf("setcontext(" #context ")\n"); */ \
 	(void)setcontext(&(context)->uc)
 
 #define SWITCH_CONTEXT( old, new ) \
-	printf("swapcontext(" #old "," #new ")\n"); \
+	/* printf("swapcontext(" #old "," #new ")\n"); */ \
 	(void)swapcontext(&((old)->uc), &((new)->uc))
 
 #define SET_SIGNAL(signum, handler) \
-	printf("signal(" #signum "," #handler ")\n"); \
+	/* printf("signal(" #signum "," #handler ")\n"); */ \
 	signal(signum, handler )
 
 #define SIG_PROC_MASK( new, old ) \
-	printf("sigprocmask(" #new "," #old ")\n");  \
+	/* printf("sigprocmask(" #new "," #old ")\n"); */ \
 	sigprocmask( SIG_SETMASK, new, old )
 
 char HAL_WATCHDOG_MASK;
@@ -758,7 +758,7 @@ void HalCreateStackFrame(
 
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
-	printf("hal creating idle loop frame\n");
+	/* printf("hal creating idle loop frame\n"); */
 	SAVE_STATE(Context);
 
 #ifdef DEBUG
