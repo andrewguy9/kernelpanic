@@ -46,7 +46,7 @@ void WatchdogEnable( int frequency )
  */
 void WatchdogNotify( INDEX index )
 {
-	char flag;
+	char flag = 0;
 
 	//We ignore index 0.
 	if( index == 0 )
