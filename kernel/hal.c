@@ -630,7 +630,7 @@ void HalSleepProcessor()
 
 #endif 
 
-#ifdef LINUX | BSD
+#if LINUX || BSD
 
 #include<sys/time.h>
 #include<string.h>

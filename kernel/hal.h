@@ -91,7 +91,7 @@ void HAL_NAKED_FUNCTION HalContextSwitch();
 //
 #ifdef PC_BUILD
 
-#ifdef LINUX | BSD
+#if LINUX || BSD
 
 #include<ucontext.h>
 #include<stdio.h>
