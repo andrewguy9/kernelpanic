@@ -2,6 +2,7 @@
 
 #include<setjmp.h>
 #include<stdlib.h>
+#include<signal.h>
 
 /*
  * On System V we can use sigaltstack and setjmp, longjmp to boostrap new user
