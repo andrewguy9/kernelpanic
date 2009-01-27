@@ -738,7 +738,7 @@ void HalCreateStackFrame(
 		STACK_INIT_ROUTINE foo, 
 		COUNT stackSize)
 {
-
+	SAVE_STATE(Context);
 
 	/* adjust to new context */
 	Context->uc.uc_link = NULL;
