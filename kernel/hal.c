@@ -471,8 +471,12 @@ void HalCreateStackFrame(
 extern int IdleThread;
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
+#ifdef DEBUG
 	int status = _setjmp( Context->Registers );
 	ASSERT( status == 0 );//We should never wake here.
+#else
+	_setjmp( Context->Registers );
+#endif
 
 #ifdef DEBUG
 	//The stack bounderies are infinite for the initial stack.
