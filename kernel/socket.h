@@ -15,7 +15,7 @@ struct SOCKET
 
 void SocketInit( struct PIPE * readPipe, struct PIPE * writePipe, struct SOCKET * socket );
 COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET * socket );
-COUNT SocketReadStruct( char * buff, COUNT size, struct SOCKET * socket );
+void SocketReadStruct( char * buff, COUNT size, struct SOCKET * socket );
 COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET * socket );
 void SocketWriteStruct( char * buff, COUNT size, struct SOCKET * socket );
 #endif

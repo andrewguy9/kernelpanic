@@ -23,14 +23,15 @@ COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET * socket )
 	return read;
 }
 
-COUNT SocketReadStruct( char * buff, COUNT size, struct SOCKET * socket )
+void SocketReadStruct( char * buff, COUNT size, struct SOCKET * socket )
 {
 	COUNT read = 0;
 	SemaphoreDown( & socket->ReadLock , NULL );
 	while( read < size )
 		read += PipeRead( buff+read, size-read, socket->ReadPipe );
 	SemaphoreUp( & socket->ReadLock );
-	return read;
+
+	ASSERT( read == size );
 }
 
 COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET * socket )

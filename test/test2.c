@@ -54,16 +54,12 @@ COUNT TotalWrite;
 //Functions for test.
 void ProducerMain()
 {
-	COUNT write;
 	while(1)
 	{
-		write = SocketWriteChars( Message, MESSAGE_LENGTH, &Socket );
-
-		if( write != MESSAGE_LENGTH )
-			KernelPanic( );
+		SocketWriteStruct( Message, MESSAGE_LENGTH, &Socket );
 
 		SchedulerStartCritical();
-		TotalWrite += write;
+		TotalWrite += MESSAGE_LENGTH;
 		SchedulerEndCritical();
 	}
 }
@@ -72,20 +68,19 @@ void ConsumerMain()
 {
 	char buff[MESSAGE_LENGTH];
 
-	COUNT read;
 	COUNT index;
 	while(1)
 	{
-		read = SocketReadStruct( buff, MESSAGE_LENGTH, &Socket );
-		if( read != MESSAGE_LENGTH )
-			KernelPanic( );
-		for( index = 0; index < read; index++ )
+		SocketReadStruct( buff, MESSAGE_LENGTH, &Socket );
+		
+		for( index = 0; index < MESSAGE_LENGTH; index++ )
 		{
 			if( Message[index] != buff[index] )
 				KernelPanic( );
 		}
+
 		SchedulerStartCritical();
-		TotalRead+=read;
+		TotalRead+=MESSAGE_LENGTH;
 		SchedulerEndCritical();
 	}
 }
