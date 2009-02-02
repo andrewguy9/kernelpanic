@@ -7,7 +7,7 @@
 
 struct SEMAPHORE
 {
-	COUNT Count;
+	volatile COUNT Count;
 	struct LINKED_LIST WaitingThreads;
 };
 

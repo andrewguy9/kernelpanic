@@ -57,5 +57,8 @@ void SemaphoreUp( struct SEMAPHORE * lock )
 	{
 		lock->Count++;
 	}
+
+	ASSERT( lock->Count < 2 );
+
 	LockingEnd( );
 }
