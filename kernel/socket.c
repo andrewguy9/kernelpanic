@@ -35,7 +35,7 @@ COUNT SocketReadStruct( char * buff, COUNT size, struct SOCKET * socket )
 
 COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET * socket )
 {
-	COUNT write;
+	COUNT write = 0;
 	SemaphoreDown( & socket->WriteLock, NULL );
 	write = PipeWrite( buff+write, size-write, socket->WritePipe );
 	SemaphoreUp( & socket->WriteLock );
