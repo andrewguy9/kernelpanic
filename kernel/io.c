@@ -192,7 +192,7 @@ void IoInit()
 
 void IoWrite( char * buff, COUNT size )
 {
-	SocketWrite( buff, size, &IoSocket );
+	SocketWriteStruct( buff, size, &IoSocket );
 }
 
 COUNT IoRead( char * buff, COUNT size )

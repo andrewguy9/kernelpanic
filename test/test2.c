@@ -57,7 +57,7 @@ void ProducerMain()
 	COUNT write;
 	while(1)
 	{
-		write = SocketWrite( Message, MESSAGE_LENGTH, &Socket );
+		write = SocketWriteChars( Message, MESSAGE_LENGTH, &Socket );
 
 		if( write != MESSAGE_LENGTH )
 			KernelPanic( );

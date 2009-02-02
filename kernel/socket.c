@@ -33,12 +33,23 @@ COUNT SocketReadStruct( char * buff, COUNT size, struct SOCKET * socket )
 	return read;
 }
 
-COUNT SocketWrite( char * buff, COUNT size, struct SOCKET * socket )
+COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET * socket )
+{
+	COUNT write;
+	SemaphoreDown( & socket->WriteLock, NULL );
+	write = PipeWrite( buff+write, size-write, socket->WritePipe );
+	SemaphoreUp( & socket->WriteLock );
+
+	return write;
+}
+
+void SocketWriteStruct( char * buff, COUNT size, struct SOCKET * socket )
 {
 	COUNT write=0;
 	SemaphoreDown( & socket->WriteLock, NULL );
 	while( write < size )
 		write += PipeWrite( buff+write, size-write, socket->WritePipe );
 	SemaphoreUp( & socket->WriteLock );
-	return write;
+
+	ASSERT( write == size );
 }
