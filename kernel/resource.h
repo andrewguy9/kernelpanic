@@ -6,9 +6,9 @@
 
 struct RESOURCE
 {
-	enum RESOURCE_STATE State;
+	volatile enum RESOURCE_STATE State;
 	struct LINKED_LIST WaitingThreads;
-	COUNT NumShared;	
+	volatile COUNT NumShared;	
 };
 
 void ResourceInit( struct RESOURCE * lock );

@@ -7,8 +7,8 @@
 
 struct GATHER
 {
-	COUNT Needed;
-	COUNT Present;
+	volatile COUNT Needed;
+	volatile COUNT Present;
 	struct LINKED_LIST List;	
 };
 
