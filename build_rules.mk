@@ -25,7 +25,7 @@ endif
 
 ifeq ($(shell uname), FreeBSD)
 PC_CFLAGS  = "-g -Wall"
-AVR_CFLAGS = "-Wall -mmcu=atmega128 -O2"
+AVR_CFLAGS = "-Wall -mmcu=atmega128 -02"
 OS  = "BSD"
 endif
 
