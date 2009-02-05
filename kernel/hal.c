@@ -297,32 +297,18 @@ void HalSleepProcessor( )
 
 #ifdef PC_BUILD
 
-#ifdef DARWIN 
+//
+//Common code between all flavors of unix
+//
 
 #include<sys/time.h>
 #include<string.h>
 #include<signal.h>
+#include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>
-#include<stdio.h>
-#include<ucontext.h>
 
 #define AlarmSignal SIGALRM
-#define InterruptFlagSignal SIGUSR1
-
-#ifdef LINUX
-#define ESP_OFFSET 3
-#endif
-
-#ifdef BSD
-#define ESP_OFFSET 2
-#define EBP_OFFSET 3
-#endif
-
-#ifdef DARWIN
-#define ESP_OFFSET 9
-#define EBP_OFFSET 8
-#endif
 
 char HAL_WATCHDOG_MASK;
 BOOL HalWatchdogOn;
@@ -395,6 +381,133 @@ void HalInitClock()
 	status = setitimer( ITIMER_REAL, &TimerInterval, NULL );
 	ASSERT(status == 0 );
 }
+
+void HalSerialStartup()
+{
+	//TODO
+}
+
+BOOL HalIsAtomic()
+{
+	sigset_t curSet;
+	int status;
+
+	status = sigprocmask( 0, NULL, &curSet );
+	ASSERT( status == 0 );
+
+	status = sigismember( &curSet, AlarmSignal );
+	ASSERT( status != -1 );
+	if( status == 1 )
+	{
+		//Alarm was a member of the "blocked" mask, so we are atomic.
+		return TRUE;
+	}
+	else 
+	{
+		//Alarm was not a member of the "blocked" mask, so we are not atomic.
+		return FALSE; 
+	}
+}
+
+void HalDisableInterrupts()
+{
+	int status;
+
+	status = sigprocmask( SIG_SETMASK, &TimerSet, NULL ); 
+	ASSERT( status == 0 );
+
+	//We just disabled,
+	//update current set.
+	CurrentSet = TimerSet;
+
+	ASSERT( HalIsAtomic() );
+}
+
+void HalEnableInterrupts()
+{
+	int status;
+
+	//We are about to enable, update current set.
+	CurrentSet = EmptySet;
+
+	status = sigprocmask( SIG_SETMASK, &EmptySet, NULL );
+	ASSERT( status == 0 );
+
+	ASSERT( ! HalIsAtomic() );
+}
+
+void HalPanic(char file[], int line)
+{
+	printf("PANIC: %s:%d\n",file,line);
+	exit(-1);
+}
+
+void HalSleepProcessor()
+{
+	ASSERT( !HalIsAtomic() );
+	pause();
+}
+
+void HalPetWatchdog( )
+{
+	HalWatchdogCount = 0;	
+}
+
+void HalEnableWatchdog( int frequency )
+{
+	HalWatchdogOn = TRUE;
+	HalWatchDogFrequency = frequency;
+}
+
+void HalResetClock()
+{
+	//TODO NO NOTHING FOR NOW SINCE ALARM IS OUR GLOBAL FLAG.
+	//and the alarm is already periodic. (unlike the avr).
+}
+
+//prototype for handler.
+void TimerInterrupt();
+
+/*
+ * Acts like the hardware clock.
+ * Calls TimerInterrupt if he can.
+ */
+void HalUnixTimer( int SignalNumber )
+{
+	//The kernel should add this signal to the blocked list inorder to avoid 
+	//nesting calls the the handler.
+	//verify this.
+	ASSERT( HalIsAtomic() );
+
+	//The current mask changed when this was called. 
+	//save the change over the mask.
+	CurrentSet = TimerSet;
+
+	//TODO IF POSSIBLE, MOVE WATCHDOG INTO OWN TIMER.
+	//Run the watchdog check
+	if( HalWatchdogOn )
+	{
+		HalWatchdogCount ++;
+
+		if( HalWatchdogCount >= HalWatchDogFrequency )
+		{
+			//The time for a match has expried. Panic!!!
+			HalPanic("Watchdog Timeout", 0 );
+		}
+	}
+
+	//Call the kernel's timer handler.
+	TimerInterrupt();
+}
+
+//
+//Darwin only code
+//
+
+#ifdef DARWIN 
+
+#define ESP_OFFSET 9
+#define EBP_OFFSET 8
 
 void HalCreateStackFrame( 
 		struct MACHINE_CONTEXT * Context, 
@@ -468,7 +581,6 @@ void HalCreateStackFrame(
 	}
 }
 
-extern int IdleThread;
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
 #ifdef DEBUG
@@ -509,137 +621,15 @@ void HalContextSwitch( )
 	}
 }
 
-void HalSerialStartup()
-{
-	//TODO
-}
+#endif  //end DARWIN
 
-BOOL HalIsAtomic()
-{
-	sigset_t curSet;
-	int status;
-
-	status = sigprocmask( 0, NULL, &curSet );
-	ASSERT( status == 0 );
-
-	status = sigismember( &curSet, AlarmSignal );
-	ASSERT( status != -1 );
-	if( status == 1 )
-	{
-		//Alarm was a member of the "blocked" mask, so we are atomic.
-		return TRUE;
-	}
-	else 
-	{
-		//Alarm was not a member of the "blocked" mask, so we are not atomic.
-		return FALSE; 
-	}
-}
-
-void HalDisableInterrupts()
-{
-	int status;
-
-	status = sigprocmask( SIG_SETMASK, &TimerSet, NULL ); 
-	ASSERT( status == 0 );
-
-	//We just disabled,
-	//update current set.
-	CurrentSet = TimerSet;
-
-	ASSERT( HalIsAtomic() );
-}
-
-void HalEnableInterrupts()
-{
-	int status;
-
-	//We are about to enable, update current set.
-	CurrentSet = EmptySet;
-
-	status = sigprocmask( SIG_SETMASK, &EmptySet, NULL );
-	ASSERT( status == 0 );
-
-	ASSERT( ! HalIsAtomic() );
-}
-
-//prototype for handler.
-void TimerInterrupt();
-
-/*
- * Acts like the hardware clock.
- * Calls TimerInterrupt if he can.
- */
-void HalUnixTimer( int SignalNumber )
-{
-	//The kernel should add this signal to the blocked list inorder to avoid 
-	//nesting calls the the handler.
-	//verify this.
-	ASSERT( HalIsAtomic() );
-
-	//The current mask changed when this was called. 
-	//save the change over the mask.
-	CurrentSet = TimerSet;
-
-	//TODO IF POSSIBLE, MOVE WATCHDOG INTO OWN TIMER.
-	//Run the watchdog check
-	if( HalWatchdogOn )
-	{
-		HalWatchdogCount ++;
-
-		if( HalWatchdogCount >= HalWatchDogFrequency )
-		{
-			//The time for a match has expried. Panic!!!
-			HalPanic("Watchdog Timeout", 0 );
-		}
-	}
-
-	//Call the kernel's timer handler.
-	TimerInterrupt();
-
-	//There is an implied enable interrupts call when the timer returns.
-}
-
-void HalResetClock()
-{
-	//TODO NO NOTHING FOR NOW SINCE ALARM IS OUR GLOBAL FLAG.
-	//and the alarm is already periodic. (unlike the avr).
-}
-
-void HalPanic(char file[], int line)
-{
-	printf("PANIC: %s:%d\n",file,line);
-	exit(-1);
-}
-
-void HalEnableWatchdog( int frequency )
-{
-	HalWatchdogOn = TRUE;
-	HalWatchDogFrequency = frequency;
-}
-
-void HalPetWatchdog( )
-{
-	HalWatchdogCount = 0;	
-}
-
-void HalSleepProcessor()
-{
-	ASSERT( !HalIsAtomic() );
-	pause();
-}
-
-#endif 
+//
+//Linux and BSD Code
+//
 
 #if LINUX || BSD
 
-#include<sys/time.h>
-#include<string.h>
-#include<signal.h>
-#include<unistd.h>
-#include<stdio.h>
-
-#define AlarmSignal SIGALRM
+#include<ucontext.h>
 
 #define SAVE_STATE( context ) \
 	/* printf("getcontext(" #context ")\n"); */ \
@@ -660,78 +650,6 @@ void HalSleepProcessor()
 #define SIG_PROC_MASK( new, old ) \
 	/* printf("sigprocmask(" #new "," #old ")\n"); */ \
 	sigprocmask( SIG_SETMASK, new, old )
-
-char HAL_WATCHDOG_MASK;
-BOOL HalWatchdogOn;
-unsigned int HalWatchDogFrequency;
-unsigned int HalWatchdogCount;
-
-struct itimerval TimerInterval;
-
-//Used for reference.
-sigset_t EmptySet;
-sigset_t TimerSet;
-
-//Storage for the signal mask.
-sigset_t CurrentSet;
-
-//Timer Action Storage.
-struct sigaction TimerAction;
-
-//Prototype for later use.
-void HalUnixTimer( int SignalNumber );
-
-void HalStartup()
-{
-	int status;
-
-	//Create the empty set.
-	status = sigemptyset( &EmptySet );
-	ASSERT( status == 0 );
-
-	//Create the timer set.
-	status = sigemptyset( &TimerSet );
-	ASSERT( status == 0 );
-	status = sigaddset( &TimerSet, AlarmSignal );
-	ASSERT( status == 0 );
-	ASSERT( sigismember( &TimerSet, AlarmSignal ) == 1 );
-
-	//Create the timer action.
-	TimerAction.sa_handler = HalUnixTimer;
-	status = sigemptyset( &TimerAction.sa_mask);
-	ASSERT( status ==  0 );
-	TimerAction.sa_flags = 0;
-
-	//The current set should be equal to the timer set.
-	CurrentSet = TimerSet;
-	status = sigprocmask( SIG_SETMASK, &CurrentSet, NULL );
-	ASSERT( status == 0 );
-
-	ASSERT( HalIsAtomic() );
-
-	//Set up the watchdog.
-	HalWatchdogOn = FALSE;
-	HAL_WATCHDOG_MASK = 0;
-	HalWatchDogFrequency = 0;
-	HalWatchdogCount = 0;
-}
-
-void HalInitClock()
-{
-	int status;
-
-	//Turn on the timer signal handler.
-	status = sigaction( AlarmSignal, &TimerAction, NULL );
-	ASSERT( status == 0 );	
-
-	//Set the timer interval.
-	TimerInterval.it_interval.tv_sec = 0;
-	TimerInterval.it_interval.tv_usec = 1000;
-	TimerInterval.it_value.tv_sec = 0;
-	TimerInterval.it_value.tv_usec = 1000;
-	status = setitimer( ITIMER_REAL, &TimerInterval, NULL );
-	ASSERT(status == 0 );
-}
 
 void HalCreateStackFrame( 
 		struct MACHINE_CONTEXT * Context, 
@@ -780,125 +698,8 @@ void HalContextSwitch( )
 	SWITCH_CONTEXT(oldContext, newContext);
 }
 
-void HalSerialStartup()
-{
-	//TODO
-}
+#endif //end of LINUX || BSD
 
-BOOL HalIsAtomic()
-{
-	sigset_t curSet;
-	int status;
-
-	status = sigprocmask( 0, NULL, &curSet );
-	ASSERT( status == 0 );
-
-	status = sigismember( &curSet, AlarmSignal );
-	ASSERT( status != -1 );
-	if( status == 1 )
-	{
-		//Alarm was a member of the "blocked" mask, so we are atomic.
-		return TRUE;
-	}
-	else 
-	{
-		//Alarm was not a member of the "blocked" mask, so we are not atomic.
-		return FALSE; 
-	}
-}
-
-void HalDisableInterrupts()
-{
-	int status;
-
-	status = sigprocmask( SIG_SETMASK, &TimerSet, NULL ); 
-	ASSERT( status == 0 );
-
-	//We just disabled,
-	//update current set.
-	CurrentSet = TimerSet;
-
-	ASSERT( HalIsAtomic() );
-}
-
-void HalEnableInterrupts()
-{
-	int status;
-
-	//We are about to enable, update current set.
-	CurrentSet = EmptySet;
-
-	status = sigprocmask( SIG_SETMASK, &EmptySet, NULL );
-	ASSERT( status == 0 );
-
-	ASSERT( ! HalIsAtomic() );
-}
-
-//prototype for handler.
-void TimerInterrupt();
-
-/*
- * Acts like the hardware clock.
- * Calls TimerInterrupt if he can.
- */
-void HalUnixTimer( int SignalNumber )
-{
-	//The kernel should add this signal to the blocked list inorder to avoid 
-	//nesting calls the the handler.
-	//verify this.
-	ASSERT( HalIsAtomic() );
-
-	//The current mask changed when this was called. 
-	//save the change over the mask.
-	CurrentSet = TimerSet;
-
-	//TODO IF POSSIBLE, MOVE WATCHDOG INTO OWN TIMER.
-	//Run the watchdog check
-	if( HalWatchdogOn )
-	{
-		HalWatchdogCount ++;
-
-		if( HalWatchdogCount >= HalWatchDogFrequency )
-		{
-			//The time for a match has expried. Panic!!!
-			HalPanic("Watchdog Timeout", 0 );
-		}
-	}
-
-	//Call the kernel's timer handler.
-	TimerInterrupt();
-}
-
-void HalResetClock()
-{
-	//TODO NO NOTHING FOR NOW SINCE ALARM IS OUR GLOBAL FLAG.
-	//and the alarm is already periodic. (unlike the avr).
-}
-
-void HalPanic(char file[], int line)
-{
-	printf("PANIC: %s:%d\n",file,line);
-	exit(-1);
-}
-
-void HalEnableWatchdog( int frequency )
-{
-	HalWatchdogOn = TRUE;
-	HalWatchDogFrequency = frequency;
-}
-
-void HalPetWatchdog( )
-{
-	HalWatchdogCount = 0;	
-}
-
-void HalSleepProcessor()
-{
-	ASSERT( !HalIsAtomic() );
-	pause();
-}
-
-#endif
 #endif //end of pc build
 //-----------------------------------------------------------------------------
 
