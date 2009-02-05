@@ -88,10 +88,12 @@ void ContextUnlock( )
 	MutexUnlock( &ContextMutex );
 }
 
+#ifdef DEBUG
 BOOL ContextIsCritical( )
 {
 	return MutexIsLocked( &ContextMutex );
 }
+#endif //DEBUG
 
 /*
  * Call this to determine if a context switch has already been scheduled.

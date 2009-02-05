@@ -84,10 +84,12 @@ void InterruptDecrement()
 
 	InterruptLevel--;
 }
+
 //
 //Functions for Sanity Checking
 //
 
+#ifdef DEBUG
 /*
  * Should be called only by assertions as this
  * is not gauranteed to produce accurate results.
@@ -127,4 +129,5 @@ BOOL InterruptIsEdge()
 	else 
 		return FALSE;
 }
+#endif //DEBUG
 

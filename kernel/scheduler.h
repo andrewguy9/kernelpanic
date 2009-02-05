@@ -9,7 +9,9 @@ void SchedulerStartCritical( );
 
 void SchedulerEndCritical( );
 
+#ifdef DEBUG
 BOOL SchedulerIsCritical();
+#endif
 
 void SchedulerForceSwitch( );
 

@@ -59,7 +59,10 @@ struct MACHINE_CONTEXT
 };
 
 //Macros to change machine interrupt state.
+#ifdef DEBUG
 #define HalIsAtomic() ( !(SREG & 1<<SREG_I) )
+#endif
+
 #define HalDisableInterrupts() asm(" cli")
 #define HalEnableInterrupts()  asm(" sei")
 
@@ -155,8 +158,9 @@ struct MACHINE_CONTEXT
 
 #endif
 
-
+#ifdef DEBUG
 BOOL HalIsAtomic();
+#endif
 void HalDisableInterrupts();
 void HalEnableInterrupts();
 void HalContextSwitch();

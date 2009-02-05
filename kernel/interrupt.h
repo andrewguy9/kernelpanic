@@ -25,8 +25,9 @@ void InterruptDecrement();
 //Functions for Sanity Checking
 //
 
+#ifdef DEBUG
 BOOL InterruptIsAtomic();
-
 BOOL InterruptIsEdge();
+#endif//DEBUG
 
 #endif

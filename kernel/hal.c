@@ -387,6 +387,7 @@ void HalSerialStartup()
 	//TODO
 }
 
+#ifdef DEBUG
 BOOL HalIsAtomic()
 {
 	sigset_t curSet;
@@ -408,6 +409,7 @@ BOOL HalIsAtomic()
 		return FALSE; 
 	}
 }
+#endif //DEBUG
 
 void HalDisableInterrupts()
 {

@@ -182,6 +182,7 @@ void SchedulerEndCritical()
 	}
 }
 
+#ifdef DEBUG
 /*
  * Returns 'TRUE' if the scheduler is turned off (is critical section).
  * returns 'FALSE' if the scheduler is turned on (not critical section).
@@ -191,6 +192,7 @@ BOOL SchedulerIsCritical()
 {
 	return ContextIsCritical( );
 }
+#endif //DEBUG
 
 /*
  * Ends a critical section and forces an immediate context switch

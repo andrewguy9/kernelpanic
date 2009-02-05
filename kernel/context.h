@@ -10,7 +10,9 @@ BOOL ContextLock( );
 
 void ContextUnlock( );
 
+#ifdef DEBUG
 BOOL ContextIsCritical( );
+#endif
 
 BOOL ContextCanSwitch( );
 
