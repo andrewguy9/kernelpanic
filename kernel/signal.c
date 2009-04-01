@@ -1,5 +1,6 @@
 #include"signal.h"
 #include"../utils/linkedlist.h"
+#include"../utils/utils.h"
 
 /*
  * Signal Unit Description
@@ -16,7 +17,7 @@
  */
 
 
-void SignalInit( struct SIGNAL * signal, BOOLEAN state )
+void SignalInit( struct SIGNAL * signal, BOOL state )
 {
 	LinkedListInit( & signal->WaitingThreads );
 	signal->State = state;
@@ -34,7 +35,7 @@ void SignalSet( struct SIGNAL * signal )
 		//We have no real work to do.
 		//
 
-		ASSERT( LinkedListIsEmpty( signal->WaitingThreads ) );
+		ASSERT( LinkedListIsEmpty( & signal->WaitingThreads ) );
 	}
 	else 
 	{
@@ -62,12 +63,12 @@ void SignalUnset( struct SIGNAL * signal )
 {
 	LockingStart();
 
-	Signal->State = FALSE;
+	signal->State = FALSE;
 
 	LockingEnd();
 }
 
-void SignalWaitOnSignal( struct * signal, struct LOCKING_CONTEXT context )
+void SignalWaitForSignal( struct SIGNAL * signal, struct LOCKING_CONTEXT * context ) 
 {
 	LockingStart();
 
