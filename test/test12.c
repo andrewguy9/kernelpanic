@@ -42,50 +42,57 @@ char ManagerStack[STACK_SIZE];
 char WaiterBlockingStack[STACK_SIZE];
 char WaiterNonBlockingStack[STACK_SIZE];
 
+BOOL Flair;
+BOOL Respond1;
+BOOL Respond2;
+
 //
 //Mains
 //
 
-COUNT TimesSet = 0;
 void ManagerMain()
 {
 	while(1)
 	{
 		printf("going to signal\n");
+		Flair = TRUE;
 		SignalSet( &Signal );
 		printf("signaled\n");
-		TimesSet++;
-		//TODO WAIT
 		
-		SchedulerStartCritical();
-		SchedulerForceSwitch();
+		while( !(Respond1 && Respond2) )
+		{
+			SchedulerStartCritical();
+			SchedulerForceSwitch();
+		}
 
 		printf("going to unsignal\n");
 		SignalUnset( &Signal );
 		printf("unset\n");
-		//TODO WAIT
+
+		Flair = FALSE;
 
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 	}
 }
 
-COUNT TimesBlockingSignaled = 0;
 void WaiterBlockingMain()
 {
 	while(1)
 	{
+		Respond1 = FALSE;
+
 		printf("going to block\n");
 		SignalWaitForSignal( & Signal, NULL );
 		printf("woke up\n");
-		TimesBlockingSignaled++;
-		//TODO COUNT
-		SchedulerStartCritical();
-		SchedulerForceSwitch();
+
+		ASSERT( Flair );
+		
+		Respond1 = TRUE;
+
 	}
 }
 
-COUNT TimesNonBlockingSignaled = 0;
 void WaiterNonBlockingMain()
 {
 	struct LOCKING_CONTEXT context;
@@ -93,12 +100,15 @@ void WaiterNonBlockingMain()
 	LockingInit( & context, LockingBlockNonBlocking, LockingWakeNonBlocking );
 	while(1)
 	{
+		Respond2 = FALSE;
 		printf("going to spin\n");
 		SignalWaitForSignal( &Signal, &context );
 		while( !LockingIsAcquired( &context ) );
-		TimesNonBlockingSignaled++;
+		ASSERT( Flair );
+
+		Respond2 = TRUE;
 		printf("spin ended\n");
-		//TODO COUNT
+		
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 	}
@@ -109,6 +119,10 @@ int main()
 	KernelInit();
 
 	SignalInit( &Signal, FALSE );
+
+	Flair = FALSE;
+	Respond1 = FALSE;
+	Respond2 = FALSE;
 
 	SchedulerCreateThread(
 			&ManagerThread,
