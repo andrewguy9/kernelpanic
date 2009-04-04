@@ -3,7 +3,7 @@
 #include"../kernel/signal.h"
 #include"../kernel/panic.h"
 
-#include<stdio.h>
+//#include<stdio.h>
 
 /*
  * Tests the signal unit. 
@@ -54,10 +54,10 @@ void ManagerMain()
 {
 	while(1)
 	{
-		printf("going to signal\n");
+		//printf("going to signal\n");
 		Flair = TRUE;
 		SignalSet( &Signal );
-		printf("signaled\n");
+		//printf("signaled\n");
 		
 		while( !(Respond1 && Respond2) )
 		{
@@ -65,9 +65,9 @@ void ManagerMain()
 			SchedulerForceSwitch();
 		}
 
-		printf("going to unsignal\n");
+		//printf("going to unsignal\n");
 		SignalUnset( &Signal );
-		printf("unset\n");
+		//printf("unset\n");
 
 		Flair = FALSE;
 
@@ -82,9 +82,9 @@ void WaiterBlockingMain()
 	{
 		Respond1 = FALSE;
 
-		printf("going to block\n");
+		//printf("going to block\n");
 		SignalWaitForSignal( & Signal, NULL );
-		printf("woke up\n");
+		//printf("woke up\n");
 
 		ASSERT( Flair );
 		
@@ -101,13 +101,13 @@ void WaiterNonBlockingMain()
 	while(1)
 	{
 		Respond2 = FALSE;
-		printf("going to spin\n");
+		//printf("going to spin\n");
 		SignalWaitForSignal( &Signal, &context );
 		while( !LockingIsAcquired( &context ) );
 		ASSERT( Flair );
 
 		Respond2 = TRUE;
-		printf("spin ended\n");
+		//printf("spin ended\n");
 		
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
