@@ -42,9 +42,9 @@ char ManagerStack[STACK_SIZE];
 char WaiterBlockingStack[STACK_SIZE];
 char WaiterNonBlockingStack[STACK_SIZE];
 
-BOOL Flair;
-BOOL Respond1;
-BOOL Respond2;
+volatile BOOL Flair;
+volatile BOOL Respond1;
+volatile BOOL Respond2;
 
 //
 //Mains
