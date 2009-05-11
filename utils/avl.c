@@ -167,7 +167,7 @@ void AvlDelete( struct WEIGHTED_LINK * node, struct AVL_TREE * Tree )
 	{
 		//Replace node with right.
 		
-		ASSERT( left && !right );
+		ASSERT( right && !left );
 		right->Parent == parent;
 		if( parent )
 		{
