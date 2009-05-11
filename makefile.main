@@ -10,7 +10,7 @@ include test/rules.mk
 
 #########################
 
-tests: utils/$(TARGET)_linktest.out utils/$(TARGET)_ringtest.out utils/$(TARGET)_flagtest.out umouse/$(TARGET)_maptest.out utils/$(TARGET)_bhamtest.out umouse/$(TARGET)_motortest.out umouse/$(TARGET)_floodfilltest.out umouse/$(TARGET)_movetest.out
+tests: utils/$(TARGET)_linktest.out utils/$(TARGET)_treetest.out utils/$(TARGET)_ringtest.out utils/$(TARGET)_flagtest.out umouse/$(TARGET)_maptest.out utils/$(TARGET)_bhamtest.out umouse/$(TARGET)_motortest.out umouse/$(TARGET)_floodfilltest.out umouse/$(TARGET)_movetest.out
 
 umouse: $(TARGET)_test0.elf $(TARGET)_test1.elf $(TARGET)_test2.elf $(TARGET)_test3.elf $(TARGET)_test4.elf $(TARGET)_test5.elf $(TARGET)_test6.elf $(TARGET)_test7.elf $(TARGET)_test8.elf $(TARGET)_test9.elf $(TARGET)_test10.elf $(TARGET)_test11.elf $(TARGET)_test12.elf $(TARGET)_umouse.elf 
 
@@ -18,6 +18,8 @@ umouse: $(TARGET)_test0.elf $(TARGET)_test1.elf $(TARGET)_test2.elf $(TARGET)_te
 #utils on board tests
 
 utils/$(TARGET)_linktest.out: utils/$(TARGET)_linktest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_heap.o
+
+utils/$(TARGET)_treetest.out: utils/$(TARGET)_treetest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_avl.o
 
 utils/$(TARGET)_ringtest.out: utils/$(TARGET)_ringtest.o utils/$(TARGET)_ringbuffer.o
 
