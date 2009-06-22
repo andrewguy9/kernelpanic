@@ -30,7 +30,7 @@ struct MUTEX PostHandlerMutex;
 //
 //Internal Helper Routines.
 //
-//MOVE TO ISR
+
 void IsrRunPostHandlers()
 {
 	struct HANDLER_OBJECT * handler;

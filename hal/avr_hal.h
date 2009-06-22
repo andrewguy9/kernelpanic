@@ -16,7 +16,7 @@
  * which point to the Top and Bottom of the stack.
  */
 
-#define HAL_NAKED_FUNCTION __attribute__((naked,__INTR_ATTRS))
+#define HAL_NAKED_FUNCTION __attribute__((naked))
 struct MACHINE_CONTEXT
 {
 	INDEX Flag;//Thread number which gets used for the watchdog and debug leds.
@@ -54,7 +54,7 @@ struct MACHINE_CONTEXT
 
 #define HalResetClock() (TCNT0 = 0xff-1*16)
 
-void __attribute__((signal,__INTR_ATTRS)) TIMER0_OVF_vect(void);
+void __attribute__((signal)) TIMER0_OVF_vect(void);
 #define TimerInterrupt TIMER0_OVF_vect
 
 
