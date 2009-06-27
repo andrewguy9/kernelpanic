@@ -44,6 +44,7 @@ char *ThreadOutputScratch;
 //This needs to succeed or we miss the character.
 ISR(USART0_RX_vect)
 {
+#if 0
 	char temp;
 	temp = UDR; 
 
@@ -57,17 +58,20 @@ ISR(USART0_RX_vect)
 		KernelPanic( );
 	}
 	IsrEnd();
+#endif
 }
 
 //WRITE INTERRUPT
 ISR(USART0_TX_vect)
 {
+#if 0 
 	IsrStart();
 	if( AsrOutputIndex < AsrOutputCount )
 	{
 		UDR = AsrOutputScratch[AsrOutputIndex++];
 	}
 	IsrEnd();
+#endif
 }
 #endif
 
