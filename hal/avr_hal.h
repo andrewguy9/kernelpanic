@@ -16,7 +16,6 @@
  * which point to the Top and Bottom of the stack.
  */
 
-#define HAL_NAKED_FUNCTION __attribute__((naked))
 struct MACHINE_CONTEXT
 {
 	INDEX Flag;//Thread number which gets used for the watchdog and debug leds.
@@ -41,9 +40,9 @@ struct MACHINE_CONTEXT
 #define HalEnableInterrupts()  asm(" sei")
 
 //Avr defines to help with debug leds.
-//Each platform must define HAL_WATCHDOG_MASK variable, but not DDR
-#define HAL_WATCHDOG_MASK		PORTC
-#define HAL_WATCHDOG_MASK_DDR	DDRC
+//Each platform must define HalWatchdogMask variable, but not DDR
+#define HalWatchdogMask		PORTC
+#define HalWatchdogMask_DDR	DDRC
 
 //usart registers
 #define UCSRA   UCSR0A
@@ -58,5 +57,5 @@ void __attribute__((signal)) TIMER0_OVF_vect(void);
 #define TimerInterrupt TIMER0_OVF_vect
 
 
-void HAL_NAKED_FUNCTION HalContextSwitch();
+void __attribute__((naked)) HalContextSwitch();
 

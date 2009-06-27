@@ -84,7 +84,7 @@ void HalDisableInterrupts();
 void HalEnableInterrupts();
 void HalContextSwitch();
 
-extern char HAL_WATCHDOG_MASK;
+extern char HalWatchdogMask;
 
 void HalResetClock();
 

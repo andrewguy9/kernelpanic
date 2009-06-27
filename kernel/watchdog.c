@@ -62,16 +62,16 @@ void WatchdogNotify( INDEX index )
 	FlagOn(&flag, index);
 	
 	InterruptDisable();
-	HAL_WATCHDOG_MASK |= flag;//apply flag.
+	HalWatchdogMask |= flag;//apply flag.
 	//check to see if all of the players have shown up.
-	if( (HAL_WATCHDOG_MASK ^ WatchdogDesiredMask) == 0 )
+	if( (HalWatchdogMask ^ WatchdogDesiredMask) == 0 )
 	{
 		//We have flipped all the flags required.
 		//So lets pet the watchdog.
 		HalPetWatchdog();
 		//Now lets clear the mask because we need to
 		//restart our checking.
-		HAL_WATCHDOG_MASK=0;
+		HalWatchdogMask=0;
 	}
 	InterruptEnable();
 }

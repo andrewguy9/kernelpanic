@@ -110,7 +110,7 @@
 void HalStartup()
 {
 	//Setup debug led port IO Direction
-	HAL_WATCHDOG_MASK_DDR = 0xff;
+	HalWatchdogMask_DDR = 0xff;
 	//Setup Switch IO Direction
     DEBUG_SW_DDR = 0x00;
 	//set Switch IO values

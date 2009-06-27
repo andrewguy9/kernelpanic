@@ -15,7 +15,7 @@
 
 #define AlarmSignal SIGALRM
 
-char HAL_WATCHDOG_MASK;
+char HalWatchdogMask;
 BOOL HalWatchdogOn;
 unsigned int HalWatchDogFrequency;
 unsigned int HalWatchdogCount;
@@ -65,7 +65,7 @@ void HalStartup()
 
 	//Set up the watchdog.
 	HalWatchdogOn = FALSE;
-	HAL_WATCHDOG_MASK = 0;
+	HalWatchdogMask = 0;
 	HalWatchDogFrequency = 0;
 	HalWatchdogCount = 0;
 }
