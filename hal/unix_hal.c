@@ -338,33 +338,13 @@ void HalContextSwitch( )
 
 #include<ucontext.h>
 
-#define SAVE_STATE( context ) \
-	/* printf("getcontext(" #context ")\n"); */ \
-	(void)getcontext( &(context)->uc)
-
-#define RESTORE_STATE( context ) \
-	/* printf("setcontext(" #context ")\n"); */ \
-	(void)setcontext(&(context)->uc)
-
-#define SWITCH_CONTEXT( old, new ) \
-	/* printf("swapcontext(" #old "," #new ")\n"); */ \
-	(void)swapcontext(&((old)->uc), &((new)->uc))
-
-#define SET_SIGNAL(signum, handler) \
-	/* printf("signal(" #signum "," #handler ")\n"); */ \
-	signal(signum, handler )
-
-#define SIG_PROC_MASK( new, old ) \
-	/* printf("sigprocmask(" #new "," #old ")\n"); */ \
-	sigprocmask( SIG_SETMASK, new, old )
-
 void HalCreateStackFrame( 
 		struct MACHINE_CONTEXT * Context, 
 		void * stack, 
 		STACK_INIT_ROUTINE foo, 
 		COUNT stackSize)
 {
-	SAVE_STATE(Context);
+	(void)getcontext( &Context->uc );
 
 	/* adjust to new context */
 	Context->uc.uc_link = NULL;
@@ -385,7 +365,7 @@ void HalCreateStackFrame(
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
 	/* printf("hal creating idle loop frame\n"); */
-	SAVE_STATE(Context);
+	(void)getcontext( &Context->uc);
 
 #ifdef DEBUG
 	//The stack bounderies are infinite for the initial stack.
@@ -402,7 +382,7 @@ void HalContextSwitch( )
 	ActiveStack = NextStack;
 	NextStack = NULL;
 
-	SWITCH_CONTEXT(oldContext, newContext);
+	(void)swapcontext(&oldContext->uc, &newContext->uc);
 }
 
 #endif //end of LINUX || BSD
