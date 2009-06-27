@@ -13,7 +13,9 @@
 #include<unistd.h>
 #include<stdlib.h>
 
-#define AlarmSignal SIGALRM
+//
+//Common Unix Globals.
+//
 
 char HalWatchdogMask;
 BOOL HalWatchdogOn;
@@ -27,7 +29,7 @@ sigset_t EmptySet;
 sigset_t TimerSet;
 
 //Storage for the signal mask.
-sigset_t CurrentSet;
+sigset_t CurrentSet;//TODO We should consider moving to not having a current set.
 
 //Timer Action Storage.
 struct sigaction TimerAction;
@@ -46,9 +48,9 @@ void HalStartup()
 	//Create the timer set.
 	status = sigemptyset( &TimerSet );
 	ASSERT( status == 0 );
-	status = sigaddset( &TimerSet, AlarmSignal );
+	status = sigaddset( &TimerSet, SIGALRM );
 	ASSERT( status == 0 );
-	ASSERT( sigismember( &TimerSet, AlarmSignal ) == 1 );
+	ASSERT( sigismember( &TimerSet, SIGALRM ) == 1 );
 
 	//Create the timer action.
 	TimerAction.sa_handler = HalUnixTimer;
@@ -75,7 +77,7 @@ void HalInitClock()
 	int status;
 
 	//Turn on the timer signal handler.
-	status = sigaction( AlarmSignal, &TimerAction, NULL );
+	status = sigaction( SIGALRM, &TimerAction, NULL );
 	ASSERT( status == 0 );	
 
 	//Set the timer interval.
@@ -101,7 +103,7 @@ BOOL HalIsAtomic()
 	status = sigprocmask( 0, NULL, &curSet );
 	ASSERT( status == 0 );
 
-	status = sigismember( &curSet, AlarmSignal );
+	status = sigismember( &curSet, SIGALRM );
 	ASSERT( status != -1 );
 	if( status == 1 )
 	{
