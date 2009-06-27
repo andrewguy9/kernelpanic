@@ -107,6 +107,14 @@
 #define DEBUG_SW_PORT      PORTA
 #define DEBUG_SW_DDR       DDRA
 
+//Defines for USART
+#define UCSRA   UCSR0A
+#define UCSRB   UCSR0B
+#define UCSRC   UCSR0C
+#define UDR     UDR0
+#define UBRR    UBRR0L
+
+
 void HalStartup()
 {
 	//Setup debug led port IO Direction

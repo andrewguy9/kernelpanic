@@ -40,16 +40,9 @@ struct MACHINE_CONTEXT
 #define HalEnableInterrupts()  asm(" sei")
 
 //Avr defines to help with debug leds.
-//Each platform must define HalWatchdogMask variable, but not DDR
+//Each platform must define HalWatchdogMask variable, but DDR is avr specific
 #define HalWatchdogMask		PORTC
 #define HalWatchdogMask_DDR	DDRC
-
-//usart registers
-#define UCSRA   UCSR0A
-#define UCSRB   UCSR0B
-#define UCSRC   UCSR0C
-#define UDR     UDR0
-#define UBRR    UBRR0L
 
 #define HalResetClock() (TCNT0 = 0xff-1*16)
 
