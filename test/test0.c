@@ -8,8 +8,16 @@
 //Time should be greather than both.
 //
 
-struct POST_HANDLER_OBJECT FrequentTimer;
 COUNT FrequentCount;
+COUNT SeldomCount;
+int Deviation;
+
+void ValidateState()
+{
+	ASSERT( Deviation <= 3 && Deviation >= -3 );
+}
+
+struct POST_HANDLER_OBJECT FrequentTimer;
 void FrequentHandler( void * arg )
 {
 	struct POST_HANDLER_OBJECT * timer = arg;
@@ -19,6 +27,9 @@ void FrequentHandler( void * arg )
 	ASSERT( timer == &FrequentTimer );
 
 	(*count)++;
+	Deviation++;
+
+	ValidateState();
 
 	TimerRegister( 
 			timer,
@@ -28,15 +39,24 @@ void FrequentHandler( void * arg )
 }
 
 struct POST_HANDLER_OBJECT SeldomTimer;
-COUNT SeldomCount;
 void SeldomHandler( void * arg )
 {
-	SeldomCount++;
+	struct POST_HANDLER_OBJECT * timer = arg;
+
+	int * count = timer->Context;
+
+	ASSERT( timer == &SeldomTimer );
+
+	(*count)++;
+	Deviation-=2;
+
+	ValidateState();
+
 	TimerRegister(
 			&SeldomTimer,
-			3,
+			4,
 			SeldomHandler,
-		   NULL	);
+			count );
 }
 
 int main()
@@ -44,6 +64,7 @@ int main()
 	//Initialize the kernel structures.
 	KernelInit();
 
+	Deviation = 0;
 	//Initialize timers.
 	FrequentCount = 0;
 	TimerInit(&FrequentTimer);
