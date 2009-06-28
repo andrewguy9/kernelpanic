@@ -10,7 +10,7 @@ include test/rules.mk
 
 #########################
 
-tests: utils/$(TARGET)_linktest.out utils/$(TARGET)_ringtest.out utils/$(TARGET)_flagtest.out umouse/$(TARGET)_maptest.out utils/$(TARGET)_bhamtest.out umouse/$(TARGET)_motortest.out umouse/$(TARGET)_floodfilltest.out umouse/$(TARGET)_movetest.out
+tests: utils/$(TARGET)_linktest.out utils/$(TARGET)_ringtest.out utils/$(TARGET)_flagtest.out umouse/$(TARGET)_maptest.out utils/$(TARGET)_bhamtest.out utils/$(TARGET)_metricstest.out umouse/$(TARGET)_motortest.out umouse/$(TARGET)_floodfilltest.out umouse/$(TARGET)_movetest.out
 
 umouse: $(TARGET)_test0.elf $(TARGET)_test1.elf $(TARGET)_test2.elf $(TARGET)_test3.elf $(TARGET)_test4.elf $(TARGET)_test5.elf $(TARGET)_test6.elf $(TARGET)_test7.elf $(TARGET)_test8.elf $(TARGET)_test9.elf $(TARGET)_test10.elf $(TARGET)_test11.elf $(TARGET)_test12.elf $(TARGET)_umouse.elf 
 
@@ -24,6 +24,8 @@ utils/$(TARGET)_ringtest.out: utils/$(TARGET)_ringtest.o utils/$(TARGET)_ringbuf
 utils/$(TARGET)_flagtest.out: utils/$(TARGET)_flagtest.o utils/$(TARGET)_flags.o
 
 utils/$(TARGET)_bhamtest.out: utils/$(TARGET)_bhamtest.o utils/$(TARGET)_bham.o
+
+utils/$(TARGET)_metricstest.out: utils/$(TARGET)_metricstest.o utils/$(TARGET)_metrics.o utils/$(TARGET)_bham.o
 
 umouse/$(TARGET)_maptest.out: umouse/$(TARGET)_maptest.o umouse/$(TARGET)_map.o
 
