@@ -5,7 +5,8 @@
 
 /*
  * Tests the semaphore unit, both blocking and non blocking unit.
- * Over time Produced = (Blocking+NonBlocking)+-1
+ * Over time Produced = (Blocking+NonBlocking)+-1.
+ * Will panic on failure.
  */
 
 //
@@ -39,32 +40,51 @@ char ConsumerNonBlockingStack[STACK_SIZE];
 char ConsumerBlockingStack[STACK_SIZE];
 
 //
-//Mains
+//State
 //
 
 COUNT Produced;
+COUNT Blocking;
+COUNT NonBlocking;
+
+//
+//Validation
+//
+
+void ValidateState()
+{
+	int diff = Produced - (Blocking+NonBlocking);
+
+	if( diff > 2 || diff < -2 ) 
+		KernelPanic( );
+}
+
+//
+//Mains
+//
+
 void ProducerMain()
 {
 	while(1)
 	{
 		SemaphoreUp( &Lock );
 		Produced++;
+		ValidateState();
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 	}
 }
 
-COUNT Blocking;
 void ConsumerBlockingMain()
 {
 	while(1)
 	{
 		SemaphoreDown( &Lock, NULL );
 		Blocking++;
+		ValidateState();
 	}
 }
 
-COUNT NonBlocking;
 void ConsumerNonBlockingMain()
 {
 	struct LOCKING_CONTEXT context;
@@ -74,6 +94,7 @@ void ConsumerNonBlockingMain()
 		SemaphoreDown( &Lock, &context );
 		while( !LockingIsAcquired( &context ) );
 		NonBlocking++;
+		ValidateState();
 	}
 }
 
