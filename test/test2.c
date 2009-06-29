@@ -5,7 +5,7 @@
 
 /*
  * Tests the socket unit, and by extension the resource and ringbuffer units.
- * Overtime TotalRead = TotalWrite +- RingSize.
+ * Will panic if reader encouners invalid read.
  */
 
 //
@@ -16,7 +16,7 @@
 char Message[MESSAGE_LENGTH] = "Thread text message";
 
 //Allocation for buffers.
-#define RING_SIZE 64
+#define RING_SIZE 512
 char RingBuff[RING_SIZE];
 
 struct PIPE Pipe;
@@ -47,20 +47,12 @@ struct THREAD Consumer1;
 struct THREAD Consumer2;
 struct THREAD Consumer3;
 
-//Tracking variables
-COUNT TotalRead;
-COUNT TotalWrite;
-
 //Functions for test.
 void ProducerMain()
 {
 	while(1)
 	{
 		SocketWriteStruct( Message, MESSAGE_LENGTH, &Socket );
-
-		SchedulerStartCritical();
-		TotalWrite += MESSAGE_LENGTH;
-		SchedulerEndCritical();
 	}
 }
 
@@ -71,6 +63,11 @@ void ConsumerMain()
 	COUNT index;
 	while(1)
 	{
+		for( index = 0; index < MESSAGE_LENGTH; index++ )
+		{
+			buff[index] = 0;
+		}
+
 		SocketReadStruct( buff, MESSAGE_LENGTH, &Socket );
 		
 		for( index = 0; index < MESSAGE_LENGTH; index++ )
@@ -78,10 +75,6 @@ void ConsumerMain()
 			if( Message[index] != buff[index] )
 				KernelPanic( );
 		}
-
-		SchedulerStartCritical();
-		TotalRead+=MESSAGE_LENGTH;
-		SchedulerEndCritical();
 	}
 }
 
@@ -89,10 +82,6 @@ void ConsumerMain()
 int main()
 {
 	KernelInit();
-
-	//Initialize counters
-	TotalRead = 0;
-	TotalWrite = 0;
 
 	//Initialize Pipes.
 	PipeInit( RingBuff, RING_SIZE, &Pipe );
