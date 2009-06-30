@@ -3,7 +3,12 @@
 //-----------------------------------------------------------------------------
 
 #if LINUX || BSD || DARWIN
+
+//_XOPEN_SOURCE only needed for BSD derived kernels.
+#if BSD || DARWIN
 #define _XOPEN_SOURCE
+#endif
+
 #include<ucontext.h>
 #include<stdio.h>
 #include<stdlib.h>
