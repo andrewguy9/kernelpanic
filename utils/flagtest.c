@@ -16,7 +16,7 @@ int main()
 	printf("Enter a number of flags\n");
 	scanf("%d", &numFlags);
 
-	printf("Need %ld bytes\n", FlagSize( numFlags ) * sizeof( FLAG_WORD ) );
+	printf("Need %d bytes\n", FlagSize( numFlags ) * sizeof( FLAG_WORD ) );
 
 	flags = malloc( FlagSize( numFlags ) * sizeof( FLAG_WORD ) );
 	
