@@ -3,6 +3,7 @@
 #include"../kernel/worker.h"
 #include"../kernel/interrupt.h"
 #include"../kernel/semaphore.h"
+#include"../kernel/panic.h"
 
 //Context for work item.
 
@@ -21,6 +22,17 @@ struct WORKER_CONTEXT
 
 COUNT Produced;
 COUNT Consumed;
+int Balance;
+
+//
+//Validate State
+//
+
+void ValidateState()
+{
+	if( Balance > 1 || Balance < -1 )
+		KernelPanic( );
+}
 
 char WorkerStack[STACK_SIZE];
 char MainStack[STACK_SIZE];
@@ -50,6 +62,8 @@ enum WORKER_RETURN WorkerConsumerTask( struct WORKER_ITEM * item )
 		// we got the lock. Lets do the work.
 		workContext->Count++;
 		Consumed++;
+		Balance--;
+		ValidateState();
 		//we have done the work, now lets finish the work item.
 		return WORKER_FINISHED;
 	}
@@ -64,6 +78,8 @@ enum WORKER_RETURN WorkerProducerTask( struct WORKER_ITEM * item )
 {
 	SemaphoreUp( &Semaphore );
 	Produced++;
+	Balance++;
+	ValidateState();
 	return WORKER_FINISHED;
 }
 

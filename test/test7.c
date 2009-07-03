@@ -4,6 +4,10 @@
 #include"../kernel/panic.h"
 #include"../utils/utils.h"
 
+#include<stdio.h>
+
+#define NUM_THREADS 7
+
 struct GATHER Gather;
 
 #ifdef PC_BUILD 
@@ -23,6 +27,8 @@ struct THREAD WaitThread2;
 struct THREAD SpinThread1;
 struct THREAD SpinThread2;
 
+struct THREAD ValidateThread;
+
 char BlockThread1Stack[STACK_SIZE];
 char BlockThread2Stack[STACK_SIZE];
 
@@ -32,25 +38,58 @@ char WaitThread2Stack[STACK_SIZE];
 char SpinThread1Stack[STACK_SIZE];
 char SpinThread2Stack[STACK_SIZE];
 
+char ValidateThreadStack[STACK_SIZE];
+
+BOOL TransitionArray1[NUM_THREADS];
+BOOL TransitionArray2[NUM_THREADS];
+
 //
-//Counter
+//Validation
 //
 
-COUNT Count;
+BOOL * DoTransition(INDEX index, BOOL * transitionArray)
+{
+	transitionArray[index] = FALSE;
+
+	if( transitionArray == TransitionArray1 )
+	{
+		return TransitionArray2;
+	}
+	else
+	{
+		return TransitionArray1;
+	}
+}
+
+void ValidateState(BOOL * transitionArray)
+{
+	BOOL * checkArray = transitionArray;
+	INDEX index;
+
+	//check 
+	for(index = 0; index < NUM_THREADS; index++)
+	{
+		if(checkArray[index])
+			KernelPanic();
+	}
+
+	for(index=0; index < NUM_THREADS; index++)
+		checkArray[index] = TRUE;
+}
 
 //
 //Blocking main
 //
 
-void BlockingMain()
+void BlockingMain(void * arg)
 {
+	INDEX index = (INDEX) arg;
+	BOOL * array = TransitionArray1;
+
 	while(TRUE)
 	{
+		array = DoTransition( index, array );
 		GatherSync( & Gather, NULL );
-
-		SchedulerStartCritical();
-		Count++;
-		SchedulerEndCritical();
 	}
 }
 
@@ -58,12 +97,18 @@ void BlockingMain()
 //Waiting Main
 //
 
-void WaitMain()
+void WaitMain(void * arg)
 {
+	INDEX index = (INDEX) arg;
+	BOOL * array = TransitionArray1;
 	struct LOCKING_CONTEXT context;
+
 	LockingInit( & context, LockingBlockNonBlocking, LockingWakeNonBlocking );
+
 	while(TRUE)
 	{
+		array = DoTransition( index, array );
+
 		GatherSync( & Gather, &context );
 
 		while( ! LockingIsAcquired( &context ) )
@@ -71,9 +116,6 @@ void WaitMain()
 			SchedulerStartCritical();
 			SchedulerForceSwitch();
 		}
-		SchedulerStartCritical();
-		Count++;
-		SchedulerEndCritical();
 	}
 }
 
@@ -81,29 +123,59 @@ void WaitMain()
 //Spinning Main
 //
 
-void SpinMain()
+void SpinMain(void * arg)
 {
+	INDEX index = (INDEX) arg;
+	BOOL * array = TransitionArray1;
 	struct LOCKING_CONTEXT context;
+
 	LockingInit( & context, LockingBlockNonBlocking, LockingWakeNonBlocking );
+
 	while(TRUE)
 	{
+		array = DoTransition( index, array );
+
 		GatherSync( & Gather, &context );
 
 		while( !LockingIsAcquired( & context ) );
 
-		SchedulerStartCritical();
-		Count++;
-		SchedulerEndCritical();
+	}
+}
+
+//
+//Validate Main
+//
+
+void ValidateMain(void * arg)
+{
+	INDEX index = (INDEX) arg;
+	BOOL * array = TransitionArray1;
+	BOOL * check = NULL;
+
+	while(TRUE)
+	{
+		check = array;
+		array = DoTransition( index, array );
+
+		GatherSync( & Gather, NULL );
+		
+		ValidateState( check );
 	}
 }
 
 int main()
 {
+	INDEX index;
+
+	for(index=0; index < NUM_THREADS; index++)
+	{
+		TransitionArray1[index] = TRUE;
+		TransitionArray2[index] = FALSE;
+	}
+
 	KernelInit();
 
-	Count = 0;
-
-	GatherInit( &Gather, 6 );
+	GatherInit( &Gather, NUM_THREADS );
 
 	SchedulerCreateThread(
 			&BlockThread1,
@@ -111,7 +183,7 @@ int main()
 		    BlockThread1Stack,
 		    STACK_SIZE, 
 			BlockingMain,
-			NULL,
+			(void *) 0,
 		    0,
 		    TRUE);
 	SchedulerCreateThread(
@@ -120,7 +192,7 @@ int main()
 		    BlockThread2Stack,
 		    STACK_SIZE, 
 			BlockingMain,
-			NULL,
+			(void *) 1,
 		    1,
 		    TRUE);
 	SchedulerCreateThread(
@@ -129,7 +201,7 @@ int main()
 		    WaitThread1Stack,
 		    STACK_SIZE, 
 			WaitMain,
-			NULL,
+			(void *) 2,
 		    2,
 		    TRUE);
 	SchedulerCreateThread(
@@ -138,7 +210,7 @@ int main()
 		    WaitThread2Stack,
 		    STACK_SIZE, 
 			WaitMain,
-			NULL,
+			(void *) 3,
 		    3,
 		    TRUE);
 	SchedulerCreateThread(
@@ -147,7 +219,7 @@ int main()
 		    SpinThread1Stack,
 		    STACK_SIZE, 
 			SpinMain,
-			NULL,
+			(void *) 4,
 		    2,
 		    TRUE);
 	SchedulerCreateThread(
@@ -156,9 +228,19 @@ int main()
 		    SpinThread2Stack,
 		    STACK_SIZE, 
 			SpinMain,
-			NULL,
+			(void *) 5,
 		    3,
 		    TRUE);
+	SchedulerCreateThread(
+			&ValidateThread,
+			1, 
+			ValidateThreadStack,
+			STACK_SIZE,
+			ValidateMain,
+			(void *) 6,
+			4,
+			TRUE);
+
 	KernelStart();
 	return 0;
 	
