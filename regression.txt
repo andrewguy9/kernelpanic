@@ -1,6 +1,6 @@
-pc_dbg_kern__test1.out
 pc_dbg_kern__test0.out
 pc_dbg_kern__test1.out
+pc_dbg_kern__test10.out
 pc_dbg_kern__test11.out
 pc_dbg_kern__test12.out
 pc_dbg_kern__test2.out
