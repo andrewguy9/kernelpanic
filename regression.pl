@@ -30,7 +30,7 @@ while( $test = <REGRESSION_TESTS> ) {
 }
 
 print "all processes running\n";
-sleep(10);
+sleep(18000); #run regression pass for 5 hours.
 
 foreach $test (@pids) {
 
