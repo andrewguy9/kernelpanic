@@ -19,11 +19,12 @@
 #define THREAD3QUANTUM 6
 
 #define FREQ (THREAD1QUANTUM+THREAD2QUANTUM+THREAD3QUANTUM+1)
+
 //
 //Main routine for threads.
 //
 
-void Test1ThreadMain( void * arg )
+void TestThreadMain( void * arg )
 {
 	COUNT * var = (COUNT *) arg;
 	volatile unsigned char a = 0;
@@ -79,7 +80,7 @@ int main()
 			THREAD1QUANTUM,
 			TestThreadStackIncrement,
 			STACK_SIZE,
-			Test1ThreadMain,
+			TestThreadMain,
 			&Value1,
 		   	THREAD1FLAG,
 			TRUE);
@@ -89,7 +90,7 @@ int main()
 			THREAD2QUANTUM,
 			TestThreadStackDivide,
 			STACK_SIZE,
-			Test1ThreadMain,
+			TestThreadMain,
 			&Value2,
 			THREAD2FLAG,
 			TRUE);
@@ -99,7 +100,7 @@ int main()
 			THREAD3FLAG,
 			TestThreadStackExp,
 			STACK_SIZE,
-			Test1ThreadMain,
+			TestThreadMain,
 			&Value3,
 			THREAD3QUANTUM,
 			TRUE);
