@@ -92,6 +92,7 @@ void WorkerThreadMain()
 	struct WORKER_ITEM * item;
 	enum WORKER_RETURN result;
 	
+	//Loop consuming work items. 
 	while(TRUE)
 	{
 		//Fetch a handler
@@ -99,13 +100,13 @@ void WorkerThreadMain()
 
 		if( item == NULL )
 		{
-			//there is no item, lets switch threads
+			//there is no item, lets switch threads rather than spinning.
 			SchedulerStartCritical();
 			SchedulerForceSwitch();
 		}
 		else
 		{
-			ASSERT(! item->Finished);
+			ASSERT(! item->Finished );
 			//there is a item, so execute it.
 			result = item->Foo(item);
 
@@ -129,7 +130,7 @@ void WorkerThreadMain()
 				break;
 			}
 		}
-	}
+	}// end while(TRUE).
 }
 
 void WorkerCreateWorker(
