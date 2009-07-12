@@ -12,6 +12,8 @@ utils/$(TARGET)_bham.o: utils/bham.c utils/bham.h
 
 utils/$(TARGET)_avl.o: utils/avl.c utils/avl.h
 
+utils/$(TARGET)_metrics.o: utils/metrics.c utils/metrics.h
+
 ###################
 #tests
 utils/$(TARGET)_linktest.o: utils/linktest.c 
@@ -24,3 +26,4 @@ utils/$(TARGET)_flagtest.o: utils/flagtest.c
 
 utils/$(TARGET)_bhamtest.o: utils/bhamtest.c
 
+utils/$(TARGET)_metricstest.o: utils/metricstest.c

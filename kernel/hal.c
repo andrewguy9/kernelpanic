@@ -441,7 +441,7 @@ void HalEnableInterrupts()
 void HalPanic(char file[], int line)
 {
 	printf("PANIC: %s:%d\n",file,line);
-	exit(-1);
+	abort();
 }
 
 void HalSleepProcessor()

@@ -1,5 +1,6 @@
 #include"../kernel/startup.h"
 #include"../kernel/timer.h"
+//#include"../kernel/interrupt.h"
 
 //
 //Tests of the Timer subsystem.
@@ -8,8 +9,18 @@
 //Time should be greather than both.
 //
 
-struct POST_HANDLER_OBJECT FrequentTimer;
 COUNT FrequentCount;
+COUNT SeldomCount;
+volatile int Deviation;
+
+void ValidateState()
+{
+	//InterruptDisable();
+	if( Deviation > 3 || Deviation < -3 );
+	//InterruptEnable();
+}
+
+struct POST_HANDLER_OBJECT FrequentTimer;
 void FrequentHandler( void * arg )
 {
 	struct POST_HANDLER_OBJECT * timer = arg;
@@ -18,7 +29,12 @@ void FrequentHandler( void * arg )
 
 	ASSERT( timer == &FrequentTimer );
 
+	//InterruptDisable();
 	(*count)++;
+	Deviation++;
+	//InterruptEnable();
+
+	ValidateState();
 
 	TimerRegister( 
 			timer,
@@ -28,15 +44,26 @@ void FrequentHandler( void * arg )
 }
 
 struct POST_HANDLER_OBJECT SeldomTimer;
-COUNT SeldomCount;
 void SeldomHandler( void * arg )
 {
-	SeldomCount++;
+	struct POST_HANDLER_OBJECT * timer = arg;
+
+	int * count = timer->Context;
+
+	ASSERT( timer == &SeldomTimer );
+
+	//InterruptDisable();
+	(*count)++;
+	Deviation-=2;
+	//InterruptEnable();
+
+	ValidateState();
+
 	TimerRegister(
 			&SeldomTimer,
-			3,
+			4,
 			SeldomHandler,
-		   NULL	);
+			count );
 }
 
 int main()
@@ -44,6 +71,9 @@ int main()
 	//Initialize the kernel structures.
 	KernelInit();
 
+	//InterruptDisable();
+	Deviation = 0;
+	//InterruptEnable();
 	//Initialize timers.
 	FrequentCount = 0;
 	TimerInit(&FrequentTimer);
@@ -58,7 +88,7 @@ int main()
 	TimerInit(&SeldomTimer);
 	TimerRegister( 
 			&SeldomTimer,
-			3,
+			4,
 			SeldomHandler,
 			&SeldomCount );
 

@@ -19,9 +19,10 @@ char MessageBuffer3[BUFFER_LENGTH];
 #define RANDOM_VALUES_SIZE 15
 char RandomNumbers [RANDOM_VALUES_SIZE] = 
 {
-	0xf, 0x1, 0x2, 0x3, 
-	0x0, 0x5, 0x6, 0x7,
-	0x8, 0x9, 0xa, 0x0,
+	0xf, 0x1, 0x2, 
+	0x3, 0x0, 0x5, 
+	0x6, 0x7, 0x8,
+   	0x9, 0xa, 0x0,
 	0xc, 0xd, 0xe
 };
 
@@ -138,11 +139,13 @@ void ConsumerMain( void * arg )
 		{
 			if( assending )
 			{
-				ASSERT( myBuffer[bufferIndex] < myBuffer[bufferIndex+1] );
+				if( myBuffer[bufferIndex] >= myBuffer[bufferIndex+1] )
+					KernelPanic();
 			}
 			else
 			{
-				ASSERT( myBuffer[bufferIndex] > myBuffer[bufferIndex+1] );
+				if( myBuffer[bufferIndex] <= myBuffer[bufferIndex+1] )
+					KernelPanic();
 			}
 		}
 

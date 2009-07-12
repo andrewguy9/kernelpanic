@@ -1,8 +1,0 @@
-file in umouse
-
-funcs:
-static ring buffer - keep small and floodfile ad hoc
-motor_startup() - init globals, setup timer interrupt, bham_init
-tick() - 4 bham units, 2 for each wheel, 
-motor_isr() - setup next int, call interrupt_start(), reset timer, handler_is_running(), interrupt_register_post_handler() in handler.h, interrupt_end()
-
