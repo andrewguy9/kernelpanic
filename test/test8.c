@@ -8,15 +8,6 @@
  */
 
 //
-//Vars 
-//
-
-int DeathCount;
-int TotalDeath;
-int StallCount;
-int TotalStall;
-
-//
 //Thread structures
 //
 
@@ -37,6 +28,14 @@ char StallThreadStack[STACK_SIZE];
 struct THREAD RestartThread;
 char RestartThreadStack[STACK_SIZE];
 
+//
+//Validation
+//
+
+volatile int DeathCount;
+volatile int TotalDeath;
+volatile int StallCount;
+volatile int TotalStall;
 
 //
 //Main routine for threads.
@@ -44,7 +43,10 @@ char RestartThreadStack[STACK_SIZE];
 
 void DeathThreadMain( void * arg )
 {
-	ASSERT(DeathCount == 0 );
+	if( DeathCount != 0 )
+	{
+		KernelPanic();
+	}
 
 	DeathCount++;
 	TotalDeath++;
@@ -54,7 +56,10 @@ void StallThreadMain( void * arg )
 {
 	while(TRUE)
 	{
-		ASSERT(StallCount == 0 );
+		if(StallCount != 0 )
+		{
+			KernelPanic();
+		}
 
 		StallCount++;
 		TotalStall++;

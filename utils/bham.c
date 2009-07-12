@@ -7,7 +7,7 @@
  * Since pixels are integer and lines need to be smooth, 
  * it calculates the slope of the line in terms of integers,
  * dx and dy. The nice thing about BHam is that it does all
- * of this without using a single divide?
+ * of this without using a single divide!
  *
  * This is useful for things other than graphics! 
  * For instance, when using stepper motors you want to keep
