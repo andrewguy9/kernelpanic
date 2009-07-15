@@ -48,6 +48,7 @@ void MutexUnlock( struct MUTEX * lock )
 	InterruptEnable();
 }
 
+#ifdef DEBUG
 /*
  * Returns the state of the lock:
  * FALSE - Not Locked
@@ -61,6 +62,7 @@ BOOL MutexIsLocked( struct MUTEX * lock )
 	InterruptEnable();
 	return value;
 }
+#endif
 
 /*
  * Initializes a mutex to unlocked.

@@ -10,7 +10,10 @@ struct MUTEX
 
 BOOL MutexLock( struct MUTEX * lock );
 void MutexUnlock( struct MUTEX * lock );
-BOOL MutexIsLocked( struct MUTEX * lock );
 void MutexInit( struct MUTEX * lock, BOOL initialState );
+
+#ifdef DEBUG
+BOOL MutexIsLocked( struct MUTEX * lock );
+#endif
 
 #endif
