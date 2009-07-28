@@ -45,7 +45,9 @@
  *  transition back to HANDLER_READY.
  */
 
+#ifdef DEBUG
 enum HANDLER_STATE { HANDLER_READY=1, HANDLER_QUEUED, HANDLER_RUNNING };
+#endif
 
 typedef void (HANDLER_FUNCTION)( void * Argument );
 
@@ -54,12 +56,25 @@ struct HANDLER_OBJECT
 	union LINK Link;
 	HANDLER_FUNCTION * Function;
 	void * Context;
+
+#ifdef DEBUG
 	enum HANDLER_STATE State;
+#endif
 };
+
+#ifdef DEBUG
 
 void HandlerInit( struct HANDLER_OBJECT * handler );
 void HandlerRegister( struct HANDLER_OBJECT * handler );
 void HandlerRun(struct HANDLER_OBJECT * handler );
 void HandlerFinish( struct HANDLER_OBJECT * handler );
+
+#else
+
+#define HandlerInit(handler) 
+#define HandlerRegister(handler) 
+#define HandlerRun(handler) 
+#define HandlerFinish(handler)
+#endif
 
 #endif
