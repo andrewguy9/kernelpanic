@@ -97,6 +97,7 @@ AVR_FRE_STRING = -e TARGET="$(AVR_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CFLAGS=
 	rm -f $(DIR)/*.hex
 	rm -f $(DIR)/*.elf
 	rm -f $(DIR)/*.aws
+	rm -f $(DIR)/*.core
 ###########################
 # tags 
 ctags: 
