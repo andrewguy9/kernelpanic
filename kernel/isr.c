@@ -33,7 +33,6 @@ struct MUTEX PostHandlerMutex;
 
 void IsrRunPostHandlers()
 {
-	struct HANDLER_OBJECT * handler;
 	struct POST_HANDLER_OBJECT * postHandler;
 	HANDLER_FUNCTION * func;
 
@@ -45,17 +44,13 @@ void IsrRunPostHandlers()
 	{
 
 		//Get a pointer to the Post Handler.
-		handler = BASE_OBJECT( 
+		postHandler = BASE_OBJECT( 
 				LinkedListPop(&PostInterruptHandlerList), 
-				struct HANDLER_OBJECT, 
+				struct POST_HANDLER_OBJECT, 
 				Link);
-		postHandler = BASE_OBJECT(
-				handler,
-				struct POST_HANDLER_OBJECT,
-				HandlerObj);
-
+		
 		//Pull data out of structure 
-		func = postHandler->HandlerObj.Function;
+		func = postHandler->Function;
 
 		//mark stucture as unqueued
 		ASSERT(postHandler->Queued );
@@ -210,14 +205,14 @@ void IsrRegisterPostHandler(
 	//We cannot add an object that is in use.
 	ASSERT( ! postObject->Queued );
 
-	postObject->HandlerObj.Function = foo;
+	postObject->Function = foo;
 	postObject->Context = context;
 
 	//mark handler as queued so we dont try to mess with it.
 	postObject->Queued = TRUE;
 
 	//Queue handler to be run
-	LinkedListEnqueue( &postObject->HandlerObj.Link.LinkedListLink, 
+	LinkedListEnqueue( &postObject->Link.LinkedListLink, 
 			& PostInterruptHandlerList );
 }
 

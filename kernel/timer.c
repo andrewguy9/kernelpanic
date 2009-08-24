@@ -61,21 +61,16 @@ void QueueTimers( )
 			HeapHeadWeight( Timers ) <= Time )
 	{
 
-		struct HANDLER_OBJECT * handler = BASE_OBJECT( 
+		struct POST_HANDLER_OBJECT * timer = BASE_OBJECT( 
 				HeapPop(  Timers ),
-				struct HANDLER_OBJECT,
-				Link );
-
-		struct POST_HANDLER_OBJECT * timer = BASE_OBJECT(
-				handler,
 				struct POST_HANDLER_OBJECT,
-				HandlerObj);
+				Link );
 
 		timer->Queued = FALSE;
 
 		IsrRegisterPostHandler(
 				timer,
-				handler->Function,
+				timer->Function,
 				timer->Context);
 	}
 }
@@ -115,19 +110,19 @@ void TimerRegister(
 
 	//Construct timer
 	newTimer->Queued = TRUE;
-	newTimer->HandlerObj.Link.WeightedLink.Weight = Time + wait;
-	newTimer->HandlerObj.Function = handler;
+	newTimer->Link.WeightedLink.Weight = Time + wait;
+	newTimer->Function = handler;
 	newTimer->Context = context;
 
 	//Add to heap
-	if( newTimer->HandlerObj.Link.WeightedLink.Weight >= Time )
+	if( newTimer->Link.WeightedLink.Weight >= Time )
 	{
-		HeapAdd( &newTimer->HandlerObj.Link.WeightedLink, Timers );
+		HeapAdd( &newTimer->Link.WeightedLink, Timers );
 	}
 	else
 	{
 		//Overflow ocurred
-		HeapAdd( &newTimer->HandlerObj.Link.WeightedLink, TimersOverflow);
+		HeapAdd( &newTimer->Link.WeightedLink, TimersOverflow);
 	}
 	InterruptEnable();
 }

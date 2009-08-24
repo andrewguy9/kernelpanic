@@ -19,10 +19,12 @@
 
 typedef void (HANDLER_FUNCTION)( void * Argument );
 
-struct HANDLER_OBJECT
+struct POST_HANDLER_OBJECT
 {
 	union LINK Link;
 	HANDLER_FUNCTION * Function;
+	void * Context;
+	BOOL Queued;
 };
 
 #endif
