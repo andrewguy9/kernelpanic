@@ -31,7 +31,7 @@ char SleeperStack[STACK_SIZE];
 char WorkerStack[STACK_SIZE];
 
 //Define Timer
-struct POST_HANDLER_OBJECT Timer;
+struct HANDLER_OBJECT Timer;
 
 //Define Global Flags
 volatile BOOL TimerFlag;//Is TRUE when we have the timer registered. (approx)

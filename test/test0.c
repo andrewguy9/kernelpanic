@@ -20,10 +20,10 @@ void ValidateState()
 	//InterruptEnable();
 }
 
-struct POST_HANDLER_OBJECT FrequentTimer;
+struct HANDLER_OBJECT FrequentTimer;
 void FrequentHandler( void * arg )
 {
-	struct POST_HANDLER_OBJECT * timer = arg;
+	struct HANDLER_OBJECT * timer = arg;
 
 	int * count = timer->Context;
 
@@ -43,10 +43,10 @@ void FrequentHandler( void * arg )
 		    count );
 }
 
-struct POST_HANDLER_OBJECT SeldomTimer;
+struct HANDLER_OBJECT SeldomTimer;
 void SeldomHandler( void * arg )
 {
-	struct POST_HANDLER_OBJECT * timer = arg;
+	struct HANDLER_OBJECT * timer = arg;
 
 	int * count = timer->Context;
 

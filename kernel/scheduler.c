@@ -47,7 +47,7 @@ struct LINKED_LIST * RunQueue;
 struct LINKED_LIST * DoneQueue;
 
 //Variables that need to be edited atomically.
-struct POST_HANDLER_OBJECT SchedulerTimer;
+struct HANDLER_OBJECT SchedulerTimer;
 TIME QuantumEndTime;
 
 //Thread for idle loop ( the start up thread too )

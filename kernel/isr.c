@@ -33,7 +33,7 @@ struct MUTEX PostHandlerMutex;
 
 void IsrRunPostHandlers()
 {
-	struct POST_HANDLER_OBJECT * postHandler;
+	struct HANDLER_OBJECT * postHandler;
 	HANDLER_FUNCTION * func;
 
 	ASSERT( InterruptIsAtomic() );
@@ -46,7 +46,7 @@ void IsrRunPostHandlers()
 		//Get a pointer to the Post Handler.
 		postHandler = BASE_OBJECT( 
 				LinkedListPop(&PostInterruptHandlerList), 
-				struct POST_HANDLER_OBJECT, 
+				struct HANDLER_OBJECT, 
 				Link);
 		
 		//Pull data out of structure 
@@ -179,7 +179,7 @@ void IsrEnd()
 //Routines for ISR's
 //
 
-void IsrInitPostHandler( struct POST_HANDLER_OBJECT * postObject )
+void IsrInitPostHandler( struct HANDLER_OBJECT * postObject )
 {
 	HandlerInit( postObject );
 }
@@ -199,7 +199,7 @@ void IsrInitPostHandler( struct POST_HANDLER_OBJECT * postObject )
  * Re-registering bar will cause the list of objects to be corrupted.
  */
 void IsrRegisterPostHandler( 
-		struct POST_HANDLER_OBJECT * postObject,
+		struct HANDLER_OBJECT * postObject,
 		HANDLER_FUNCTION foo,
 		void * context)
 {

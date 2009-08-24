@@ -19,10 +19,10 @@ void TimerStartup( );
 
 TIME TimerGetTime();
 
-void TimerInit( struct POST_HANDLER_OBJECT *newTimer );
+void TimerInit( struct HANDLER_OBJECT *newTimer );
 
 void TimerRegister( 
-		struct POST_HANDLER_OBJECT * newTimer,
+		struct HANDLER_OBJECT * newTimer,
 		TIME wait,
 		HANDLER_FUNCTION * handler,
 		void * argument );

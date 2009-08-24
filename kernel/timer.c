@@ -61,9 +61,9 @@ void QueueTimers( )
 			HeapHeadWeight( Timers ) <= Time )
 	{
 
-		struct POST_HANDLER_OBJECT * timer = BASE_OBJECT( 
+		struct HANDLER_OBJECT * timer = BASE_OBJECT( 
 				HeapPop(  Timers ),
-				struct POST_HANDLER_OBJECT,
+				struct HANDLER_OBJECT,
 				Link );
 
 		//Mark timer as running since its dequeued.
@@ -91,14 +91,14 @@ void TimerStartup( )
 /*
  * Zeroes out fields in a timer. 
  */
-void TimerInit( struct POST_HANDLER_OBJECT *newTimer )
+void TimerInit( struct HANDLER_OBJECT *newTimer )
 {
 	newTimer->Context = NULL;
 	HandlerInit( newTimer );
 }
 
 void TimerRegister( 
-		struct POST_HANDLER_OBJECT * newTimer,
+		struct HANDLER_OBJECT * newTimer,
 		TIME wait,
 		HANDLER_FUNCTION * handler,
 		void * context )

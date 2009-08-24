@@ -38,7 +38,7 @@ enum WORKER_RETURN SleepWorkItemHandler( struct WORKER_ITEM * item )
  */
 void SleepTimerHandler( void * arg )
 {
-	struct POST_HANDLER_OBJECT * timer = arg;
+	struct HANDLER_OBJECT * timer = arg;
 	struct SLEEP_TIMER_CONTEXT * sleepContext = timer->Context;
 
 	WorkerInitItem(
@@ -54,13 +54,13 @@ void SleepTimerHandler( void * arg )
  * durring a thread critical section. So the timer will register
  * a work item to wake the thread.
  *
- * In order to do this Sleep must use a POST_HANDLER_OBJECT for
+ * In order to do this Sleep must use a HANDLER_OBJECT for
  * the timer and a WORKER_ITEM for the work item. We are going
  * to allocate these on the stack.
  */
 void Sleep( COUNT time )
 {
-	struct POST_HANDLER_OBJECT timer;
+	struct HANDLER_OBJECT timer;
 	struct SLEEP_TIMER_CONTEXT context;
 
 	//The handler will have to know which thread to wake.

@@ -49,7 +49,7 @@ enum HANDLER_STATE { HANDLER_READY=1, HANDLER_QUEUED, HANDLER_RUNNING };
 
 typedef void (HANDLER_FUNCTION)( void * Argument );
 
-struct POST_HANDLER_OBJECT
+struct HANDLER_OBJECT
 {
 	union LINK Link;
 	HANDLER_FUNCTION * Function;
@@ -57,9 +57,9 @@ struct POST_HANDLER_OBJECT
 	enum HANDLER_STATE State;
 };
 
-void HandlerInit( struct POST_HANDLER_OBJECT * handler );
-void HandlerRegister( struct POST_HANDLER_OBJECT * handler );
-void HandlerRun(struct POST_HANDLER_OBJECT * handler );
-void HandlerFinish( struct POST_HANDLER_OBJECT * handler );
+void HandlerInit( struct HANDLER_OBJECT * handler );
+void HandlerRegister( struct HANDLER_OBJECT * handler );
+void HandlerRun(struct HANDLER_OBJECT * handler );
+void HandlerFinish( struct HANDLER_OBJECT * handler );
 
 #endif
