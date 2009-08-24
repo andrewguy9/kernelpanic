@@ -39,3 +39,5 @@ kernel/$(TARGET)_isr.o: kernel/isr.c kernel/isr.h
 kernel/$(TARGET)_watchdog.o: kernel/watchdog.c kernel/watchdog.h
 
 kernel/$(TARGET)_signal.o: kernel/signal.c kernel/signal.h
+
+kernel/$(TARGET)_handler.o: kernel/handler.c kernel/handler.h

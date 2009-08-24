@@ -17,6 +17,36 @@
  * the handler re-issue itself if it encounters an issue.
  */
 
+/*
+ * Init  
+ * |
+ * HANDLER_READY<-----------
+ * |                       |
+ * Register                |
+ * |                       |
+ * HANDLER_QUEUED<-------  |
+ * |                    |  |
+ * Run                  |  |
+ * |                    |  |
+ * HANDLER_RUNNING      |  |
+ * |           |        |  |
+ * Finished    Register--  |
+ * |                       |
+ * -------------------------
+ *
+ *  HANDLER_READY is the initial state of a handler object.
+ *  HANDLER_QUEUED is the state of a handler which is queued and waiting for execution.
+ *  HANDLER_RUNNING is the state of a handler which has been dequeued and is running.
+ *  
+ *  When a handler is running and re-enqueues into a handler list he can
+ *  transition from HANDLER_RUNNING directly to HANDLER_QUEUED.
+ *
+ *  Whebn a handler finishes running and does not reschedule itself it will 
+ *  transition back to HANDLER_READY.
+ */
+
+enum HANDLER_STATE { HANDLER_READY, HANDLER_QUEUED, HANDLER_RUNNING };
+
 typedef void (HANDLER_FUNCTION)( void * Argument );
 
 struct POST_HANDLER_OBJECT
@@ -24,7 +54,12 @@ struct POST_HANDLER_OBJECT
 	union LINK Link;
 	HANDLER_FUNCTION * Function;
 	void * Context;
-	BOOL Queued;
+	enum HANDLER_STATE State;
 };
+
+void HandlerInit( struct POST_HANDLER_OBJECT * handler );
+void HandlerRegister( struct POST_HANDLER_OBJECT * handler );
+void HandlerRun(struct POST_HANDLER_OBJECT * handler );
+void HandlerFinish( struct POST_HANDLER_OBJECT * handler );
 
 #endif

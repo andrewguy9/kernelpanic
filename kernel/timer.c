@@ -66,7 +66,8 @@ void QueueTimers( )
 				struct POST_HANDLER_OBJECT,
 				Link );
 
-		timer->Queued = FALSE;
+		//Mark timer as running since its dequeued.
+		HandlerRun( timer );
 
 		IsrRegisterPostHandler(
 				timer,
@@ -93,7 +94,7 @@ void TimerStartup( )
 void TimerInit( struct POST_HANDLER_OBJECT *newTimer )
 {
 	newTimer->Context = NULL;
-	newTimer->Queued = FALSE;
+	HandlerInit( newTimer );
 }
 
 void TimerRegister( 
@@ -105,11 +106,8 @@ void TimerRegister(
 
 	InterruptDisable();
 
-	//timers cannot be double registered
-	ASSERT( ! newTimer->Queued );
-
 	//Construct timer
-	newTimer->Queued = TRUE;
+	HandlerRegister( newTimer );
 	newTimer->Link.WeightedLink.Weight = Time + wait;
 	newTimer->Function = handler;
 	newTimer->Context = context;

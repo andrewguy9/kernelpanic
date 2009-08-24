@@ -18,6 +18,8 @@ void IsrEnd();
 //Functions for post handlers
 //
 
+void IsrInitPostHandler( struct POST_HANDLER_OBJECT * postObject );
+
 void IsrRegisterPostHandler( 
 		struct POST_HANDLER_OBJECT * postObject,
 		HANDLER_FUNCTION foo,

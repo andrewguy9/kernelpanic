@@ -52,10 +52,8 @@ void IsrRunPostHandlers()
 		//Pull data out of structure 
 		func = postHandler->Function;
 
-		//mark stucture as unqueued
-		ASSERT(postHandler->Queued );
-
-		postHandler->Queued = FALSE;
+		//mark structure as running.
+		HandlerRun( postHandler );
 
 		//Change State to "not atomic"
 		InterruptEnable();
@@ -181,6 +179,11 @@ void IsrEnd()
 //Routines for ISR's
 //
 
+void IsrInitPostHandler( struct POST_HANDLER_OBJECT * postObject )
+{
+	HandlerInit( postObject );
+}
+
 /*
  * Registers a handler object which will force funtion handler to be 
  * called before control is returned to a thread from an interrupt.
@@ -202,14 +205,12 @@ void IsrRegisterPostHandler(
 {
 	//Access to the Post handler list must be atomic.
 	ASSERT( InterruptIsAtomic() );
-	//We cannot add an object that is in use.
-	ASSERT( ! postObject->Queued );
 
 	postObject->Function = foo;
 	postObject->Context = context;
 
 	//mark handler as queued so we dont try to mess with it.
-	postObject->Queued = TRUE;
+	HandlerRegister( postObject );
 
 	//Queue handler to be run
 	LinkedListEnqueue( &postObject->Link.LinkedListLink, 
