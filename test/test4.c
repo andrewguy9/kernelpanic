@@ -95,6 +95,9 @@ int main()
 {
 	KernelInit();
 	TimerCycles = 0;
+
+	TimerInit( &Timer );
+
 	SchedulerCreateThread(
 			&SleeperThread,
 			1,
