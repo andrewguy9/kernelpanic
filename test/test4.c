@@ -39,7 +39,7 @@ volatile BOOL ThreadFlag;//Is TRUE when sleeping, FALSE when awake (approx)
 COUNT TimerCycles;//Times we have run the test.
 
 //TimerFunction
-void TimerHandler( void * Argument )
+void TimerHandler( struct HANDLER_OBJECT * handler )
 {
 	//Clear Flag
 	TimerFlag = FALSE;

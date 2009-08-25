@@ -49,7 +49,9 @@
 enum HANDLER_STATE { HANDLER_READY=1, HANDLER_QUEUED, HANDLER_RUNNING };
 #endif
 
-typedef void (HANDLER_FUNCTION)( void * Argument );
+struct HANDLER_OBJECT;
+
+typedef void (HANDLER_FUNCTION)( struct HANDLER_OBJECT * HandlerObj );
 
 struct HANDLER_OBJECT
 {

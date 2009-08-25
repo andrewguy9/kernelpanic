@@ -21,10 +21,8 @@ void ValidateState()
 }
 
 struct HANDLER_OBJECT FrequentTimer;
-void FrequentHandler( void * arg )
+void FrequentHandler( struct HANDLER_OBJECT * timer )
 {
-	struct HANDLER_OBJECT * timer = arg;
-
 	int * count = timer->Context;
 
 	ASSERT( timer == &FrequentTimer );
@@ -44,10 +42,8 @@ void FrequentHandler( void * arg )
 }
 
 struct HANDLER_OBJECT SeldomTimer;
-void SeldomHandler( void * arg )
+void SeldomHandler( struct HANDLER_OBJECT * timer )
 {
-	struct HANDLER_OBJECT * timer = arg;
-
 	int * count = timer->Context;
 
 	ASSERT( timer == &SeldomTimer );
