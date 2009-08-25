@@ -1,6 +1,9 @@
 #!/usr/bin/perl
 
-@pids = ();
+use File::Copy;
+
+%pids = {};
+$children = 0;
 
 #install signal handlers 
 
@@ -14,28 +17,34 @@ while( $test = <REGRESSION_TESTS> ) {
 
 	#start the current test.
 	chomp( $test );
-	print "Starting $test\n";
+	#print "Starting $test\n";
 	$pid = fork();
 
 	if(not defined $pid) {
 		print "failed to fork\n";
 	} elsif ($pid == 0) {
-		print "i'm a child, running $test\n";
+		#print "i'm a child, running $test\n";
 		exec "./$test";
 		die "failed to start $test\n";
 	} else {
-		print "i'm the parent, adding $pid to list\n";
-		push(@pids, $pid);
+		#print "i'm the parent, adding $pid to list\n";
+		$pids{ $pid } = $test;
+		$children = $children + 1;
 	}
 }
 
 print "all processes running\n";
-sleep(18000); #run regression pass for 5 hours.
 
-foreach $test (@pids) {
-
-	print "killing $test\n";
-	kill 9, $test;
+while( $children > 0 ) {
+	$dead = wait;
+	if ($dead == -1) {
+		die "wait returned -1"
+	} else {
+		print "pid $dead  died, which is test $pids{$dead} is dead\n";
+		$children = $children -1;
+		print "moving /cores/core.$dead to ./$pids{$dead}.core\n";
+		move("/cores/core.$dead", "./$pids{$dead}.core");
+	}
 }
 
 print "all done\n";
