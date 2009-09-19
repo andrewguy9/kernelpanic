@@ -32,7 +32,7 @@ SchedulerCreateThread(
 		struct THREAD * thread,
 		unsigned char priority,
 		char * stack,
-		unsigned int stackSize,
+		COUNT stackSize,
 		THREAD_MAIN main,
 		void * Argument,
 		INDEX debugFlag,

@@ -2,8 +2,8 @@
 //****************************LINUX AND BSD DEFINES****************************
 //-----------------------------------------------------------------------------
 
-#if LINUX || BSD
-
+#if LINUX || BSD || DARWIN
+#define _XOPEN_SOURCE
 #include<ucontext.h>
 #include<stdio.h>
 #include<stdlib.h>
@@ -40,7 +40,7 @@ struct MACHINE_CONTEXT
 //********************************DARWIN ONLY**********************************
 //-----------------------------------------------------------------------------
 
-#ifdef DARWIN
+#ifdef BOGUS
 
 #include<setjmp.h>
 #include<stdlib.h>

@@ -15,8 +15,8 @@
 //
 //TYPEDEFS
 //
-typedef unsigned int COUNT;
-typedef unsigned int INDEX;
+typedef unsigned long int COUNT;
+typedef unsigned long int INDEX;
 typedef unsigned char BOOL;
 
 
@@ -27,10 +27,10 @@ typedef unsigned char BOOL;
 #define MIN( A, B ) ((A)<(B) ? (A) : (B) )
 #define ASSENDING( A, B, C ) ((A) <= (B) && (B) <= (C))
 //Returns the byte offset of FIELD in TYPE
-#define OFFSET_OF( TYPE, FIELD ) ((int)(&(((TYPE *)0)->FIELD)))
+#define OFFSET_OF( TYPE, FIELD ) ((long int)(&(((TYPE *)0)->FIELD)))
 //Returns a pointer to the base structure 
 //given a pointer to a field.
-#define BASE_OBJECT( PTR, BASE, FIELD ) ((BASE*)((int)(PTR) - OFFSET_OF(BASE,FIELD)))
+#define BASE_OBJECT( PTR, BASE, FIELD ) ((BASE*)((long int)(PTR) - OFFSET_OF(BASE,FIELD)))
 
 //
 //  Assert and Assume
