@@ -213,7 +213,7 @@ void HalUnixTimer( int SignalNumber )
 //Darwin only code
 //
 
-#ifdef DARWIN 
+#ifdef BUGUS
 
 #define ESP_OFFSET 9
 #define EBP_OFFSET 8
@@ -336,7 +336,7 @@ void HalContextSwitch( )
 //Linux and BSD Code
 //
 
-#if LINUX || BSD
+#if LINUX || BSD || DARWIN
 
 #include<ucontext.h>
 
