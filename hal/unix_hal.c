@@ -1,11 +1,3 @@
-//
-//PC CODE
-//
-
-//
-//Common code between all flavors of unix
-//
-
 #include<sys/time.h>
 #include<string.h>
 #include<signal.h>
@@ -14,7 +6,7 @@
 #include<stdlib.h>
 
 //
-//Common Unix Globals.
+//Unix Globals.
 //
 
 char HalWatchdogMask;
@@ -179,7 +171,7 @@ void TimerInterrupt();
 
 /*
  * Acts like the hardware clock.
- * Calls TimerInterrupt if he can.
+ * Calls TimerInterrupt and updates watchdog.
  */
 void HalUnixTimer( int SignalNumber )
 {
@@ -213,7 +205,7 @@ void HalUnixTimer( int SignalNumber )
 //Darwin only code
 //
 
-#ifdef BUGUS
+#ifndef _PANIC_USE_U_CONTEXT_
 
 #define ESP_OFFSET 9
 #define EBP_OFFSET 8
@@ -330,15 +322,7 @@ void HalContextSwitch( )
 	}
 }
 
-#endif  //end DARWIN
-
-//
-//Linux and BSD Code
-//
-
-#if LINUX || BSD || DARWIN
-
-#include<ucontext.h>
+#else
 
 void HalCreateStackFrame( 
 		struct MACHINE_CONTEXT * Context, 
@@ -387,5 +371,5 @@ void HalContextSwitch( )
 	(void)swapcontext(&oldContext->uc, &newContext->uc);
 }
 
-#endif //end of LINUX || BSD
+#endif 
 

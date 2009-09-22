@@ -1,13 +1,17 @@
-//-----------------------------------------------------------------------------
-//****************************LINUX AND BSD DEFINES****************************
-//-----------------------------------------------------------------------------
-
-#if LINUX || BSD || DARWIN
-
 //_XOPEN_SOURCE only needed for BSD derived kernels.
 #if BSD || DARWIN
 #define _XOPEN_SOURCE
 #endif
+
+/*
+ * We use ucontext library to perform user mode context switches.
+ * However, some flavors of unix do not support use of the ucontext library.
+ * If your flavor of unix does not support ucontext, then change the next 
+ * line to #if 0. 
+ */
+#if 1 //Primary implementation of context switch.
+
+#define _PANIC_USE_U_CONTEXT_ 
 
 #include<ucontext.h>
 #include<stdio.h>
@@ -39,13 +43,12 @@ struct MACHINE_CONTEXT
 #endif // DEBUG
 };
 
-#endif // LINUX || BSD
-
-//-----------------------------------------------------------------------------
-//********************************DARWIN ONLY**********************************
-//-----------------------------------------------------------------------------
-
-#ifdef BOGUS
+/*
+ * The code encircled by this else is an alternate implementation of the
+ * user mode context switch mechanism. It should be used on platforms which 
+ * do not support ucontext.
+ */
+#else //Alternate implementation of context switch.
 
 #include<setjmp.h>
 #include<stdlib.h>
@@ -73,12 +76,7 @@ struct MACHINE_CONTEXT
 #endif
 };
 
-#endif // DARWIN
-
-//-----------------------------------------------------------------------------
-//*********************************COMMON UNIX*********************************
-//-----------------------------------------------------------------------------
-
+#endif //End for alternate context switch implementation.
 
 #ifdef DEBUG
 BOOL HalIsAtomic();
