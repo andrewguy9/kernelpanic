@@ -298,6 +298,7 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 #endif
 }
 
+//TODO: Add stack range check.
 void HalContextSwitch( )
 {
 	int status;
@@ -360,6 +361,7 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 #endif
 }
 
+//#TODO: Add stack range check.
 void HalContextSwitch( )
 {
 	struct MACHINE_CONTEXT * oldContext = ActiveStack;
