@@ -28,7 +28,7 @@ void PrintMap( struct MAP * map )
 				else
 					printf(" ");
 				//flood value
-				printf("%1x,%1x",x,y);
+				printf("%1lx,%1lx",x,y);
 			}
 			//wall
 			if( MapGetWall( x, y, WEST, map ) )
@@ -58,12 +58,12 @@ void PrintBytes( struct MAP * map )
 
 	printf("Vertical Walls:  ");
 	for( index = 0; index < MapDimensionSizeNeeded( map->Height, map->Width ); index++ )
-		printf("%x", map->VWalls[index]);
+		printf("%lx", (INDEX) map->VWalls[index]);
 	printf("\n");
 
 	printf("Horizontal Walls:");
 	for( index = 0; index < MapDimensionSizeNeeded( map->Height, map->Width ); index++ )
-		printf("%x", map->HWalls[index]);
+		printf("%lx", (INDEX) map->HWalls[index]);
 	printf("\n");
 }
 
@@ -74,7 +74,7 @@ void PrintWalls( struct MAP * map )
 	{
 		for( y=0; y < 16; y++ )
 		{
-			printf("%x,%x : ",x,y);
+			printf("%lx,%lx : ",x,y);
 			if( MapGetWall(x,y,NORTH, map ) )
 				printf("N");
 			else
@@ -116,7 +116,7 @@ int main()
 	while( TRUE )
 	{
 		printf("please enter x then y then direction (1n 2s 3e 4w)\n");
-		scanf("%d %d %d", &x, &y, &dir_int);
+		scanf("%ld %ld %ld", &x, &y, &dir_int);
 
 		switch(dir_int)
 		{

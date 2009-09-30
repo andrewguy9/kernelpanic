@@ -30,7 +30,7 @@ void InitBuffers()
 	TEST_SIZE = rand()%128;
 	RING_SIZE = rand()%32;
 
-	printf("Test on buffer size %d, ring size %d\n", 
+	printf("Test on buffer size %ld, ring size %ld\n", 
 			TEST_SIZE, 
 			RING_SIZE );
 
@@ -130,7 +130,7 @@ int Test()
 		{
 			delta = RingBufferWrite( In+write, MIN(writePart,TEST_SIZE-write), &Ring );
 			write += delta;
-			printf("write(%2d) returned %2d total %2d\t", 
+			printf("write(%2ld) returned %2ld total %2ld\t", 
 					writePart, 
 					delta, 
 					write);
@@ -141,7 +141,7 @@ int Test()
 		{
 			delta = RingBufferRead( Out+read, MIN(readPart, TEST_SIZE-read), &Ring );
 			read += delta;
-			printf("read (%2d) returned %2d total %2d\t", 
+			printf("read (%2ld) returned %2ld total %2ld\t", 
 					readPart,
 					delta, 
 					read);
@@ -158,7 +158,7 @@ int Test()
 	{
 		if( In[index] != Out[index] )
 		{
-			printf("Failed index %d : in=%d out=%d\n", 
+			printf("Failed index %ld : in=%c out=%c\n", 
 					index, 
 					In[index], 
 					Out[index]);

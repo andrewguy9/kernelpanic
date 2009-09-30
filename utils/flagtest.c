@@ -14,7 +14,7 @@ int main()
 	FLAG_WORD * flags;
 
 	printf("Enter a number of flags\n");
-	scanf("%d", &numFlags);
+	scanf("%ld", &numFlags);
 
 	printf("Need %ld bytes\n", FlagSize( numFlags ) * sizeof( FLAG_WORD ) );
 
@@ -24,17 +24,17 @@ int main()
 	{
 		FlagsPrint( flags, numFlags );
 		printf("1 Set, 2 Clear, 3 Find First Flag, 4 Quit\n");
-		scanf("%d", & input );
+		scanf("%ld", & input );
 		switch( input )
 		{
 			case 1:
 				printf("what index?");
-				scanf("%d",&inputNum);
+				scanf("%ld",&inputNum);
 				FlagOn( flags, inputNum );
 				break;
 			case 2:
 				printf("what index?");
-				scanf("%d",&inputNum);
+				scanf("%ld",&inputNum);
 				FlagOff( flags, inputNum );
 				break;
 			case 3:

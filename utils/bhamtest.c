@@ -39,7 +39,7 @@ int main()
 {
 	COUNT x,y,ticks;
 	printf( "Enter x y ticks\n" );
-	scanf( "%d %d %d", &x,&y,&ticks );
+	scanf( "%ld %ld %ld", &x,&y,&ticks );
 	BHamInit( x,y,&Bham );
 
 	PrintGraph( &Bham, ticks );

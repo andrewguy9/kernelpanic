@@ -13,7 +13,7 @@ void CheckState( struct METER * meter)
 	{
 		printf("THRESHOLD EXCEEDED :");
 	}
-	printf("Current Errors %d, Error Max %d\n", meter->CurrentEvents, meter->Sensitivity);
+	printf("Current Errors %ld, Error Max %ld\n", meter->CurrentEvents, meter->Sensitivity);
 }
 
 int main()
@@ -24,7 +24,7 @@ int main()
 	COUNT trails;
 	COUNT sensitivity;
 
-	int choice;
+	INDEX choice;
 
 	int randSeed;
 	COUNT randEvents;
@@ -39,13 +39,13 @@ int main()
 	srand(randSeed);
 
 	printf("How many events\n");
-	scanf("%d", &events);
+	scanf("%ld", &events);
 
 	printf("How many trials\n");
-	scanf("%d", &trails);
+	scanf("%ld", &trails);
 
 	printf("What sensitivity\n");
-	scanf("%d", &sensitivity);
+	scanf("%ld", &sensitivity);
 
 	MeterPercentage( events, trails, sensitivity, &meter);
 
@@ -53,7 +53,7 @@ int main()
 	while(1) 
 	{
 		printf("1: Event, 2: Failure, 3 rand attempt, 4: Exit\n");
-		scanf("%d", &choice);
+		scanf("%ld", &choice);
 
 		switch(choice)
 		{
@@ -68,11 +68,11 @@ int main()
 			case 3:
 				printf("Fraction of events: a/b\n");
 				printf("a:");
-				scanf("%d", &randEvents);
+				scanf("%ld", &randEvents);
 				printf("b:");
-				scanf("%d", &randTrials);
+				scanf("%ld", &randTrials);
 				printf("num attempts:");
-				scanf("%d", &repeat);
+				scanf("%ld", &repeat);
 
 				trailEvents = 0;
 				invalid = 0;
@@ -93,7 +93,7 @@ int main()
 					if(!MeterCheck(&meter))
 						invalid++;
 				}
-				printf("%d/%d were events, %d invalid states\n", trailEvents, repeat, invalid);
+				printf("%ld/%ld were events, %ld invalid states\n", trailEvents, repeat, invalid);
 				break;
 			case 4:
 				printf("goodbye\n");

@@ -201,7 +201,7 @@ void PrintMove( enum SUB_MOVE move )
 
 void PrintState(INDEX x, INDEX y, enum DIRECTION dir, BOOL moving )
 {
-	printf("(%d.%d,%d.%d) ",x/2,x%2,y/2,y%2);
+	printf("(%ld.%ld,%ld.%ld) ",x/2,x%2,y/2,y%2);
 	switch(dir)
 	{
 		case NORTH:
@@ -268,7 +268,7 @@ void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, BOOL moving, INDEX destX, 
 
 	if( mapChanged )
 	{
-		printf( "found new walls at (%d.%d,%d.%d)\n", scanX/2,scanX%2, scanY/2,scanY%2 );
+		printf( "found new walls at (%ld.%ld,%ld.%ld)\n", scanX/2,scanX%2, scanY/2,scanY%2 );
 		FloodFillClear( &FloodMap );
 		FloodFillSetDestination( destX, destY, &FloodMap );
 		FloodFillCalculate( &MouseMap, &FloodMap );
@@ -280,7 +280,7 @@ done:
 	PrintMapFlood( &MouseMap, &FloodMap, x/2, y/2, dir );
 }
 
-void RunMoves(INDEX * startX, INDEX *startY, INDEX *startDir, INDEX destX, INDEX destY )
+void RunMoves(INDEX * startX, INDEX *startY, enum DIRECTION *startDir, INDEX destX, INDEX destY )
 {
 	//Mouse state variables.
 	INDEX x= *startX, y= *startY;
@@ -328,7 +328,7 @@ void RunMoves(INDEX * startX, INDEX *startY, INDEX *startDir, INDEX destX, INDEX
 
 	}while( FloodFillGet( x/2, y/2, &FloodMap) != 0 );
 
-	printf("Ended up at (%d.%d,%d.%d)\n",x/2,x%2,y/2,y%2);
+	printf("Ended up at (%ld.%ld,%ld.%ld)\n",x/2,x%2,y/2,y%2);
 	printf("world map\n");
 	PrintMapFlood( &WorldMap, &FloodMap, x/2, y/2, dir );
 	printf("mouse map\n");
