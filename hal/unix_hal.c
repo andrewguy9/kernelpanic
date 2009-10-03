@@ -207,8 +207,8 @@ void HalUnixTimer( int SignalNumber )
 
 #ifndef _PANIC_USE_U_CONTEXT_
 
-#define ESP_OFFSET 9
-#define EBP_OFFSET 8
+#define ESP_OFFSET 1
+#define EBP_OFFSET 2
 
 void HalCreateStackFrame( 
 		struct MACHINE_CONTEXT * Context, 
@@ -219,8 +219,8 @@ void HalCreateStackFrame(
 
 	int status;
 	unsigned char * top;
-	unsigned int *esp;
-	unsigned int *ebp;
+	INDEX *esp;
+	INDEX *ebp;
 	unsigned char * cstack = stack;
 
 	//sigset_t oldSet;
@@ -242,17 +242,17 @@ void HalCreateStackFrame(
 		//For some kernels we need the stack to be 16 byte alligned.
 		top = &cstack[stackSize];
 		top = top - sizeof( sigjmp_buf );
-		top = (unsigned char *)(((unsigned int) top) & 0xFFFFFFF0);
-		ASSERT( ((unsigned int) top) % 16 == 0 );
-		ASSERT( (unsigned int) top > (unsigned int) stack );
+		top = (unsigned char *)((INDEX) top & (((INDEX)(0-1))-0xf));
+		ASSERT( ((INDEX) top) % 16 == 0 );
+		ASSERT( (INDEX) top > (INDEX) stack );
 
 
 		//We need to write new stack pointer into the register buffer.
-		esp = (unsigned int*) ( ((unsigned char *) &Context->Registers)+( ESP_OFFSET*sizeof(int)) );
-		*esp = (int) top;
+		esp = (INDEX *) ( ((unsigned char *) &Context->Registers)+( ESP_OFFSET*sizeof(INDEX)) );
+		*esp = (INDEX) top;
 		//We need to write new base pointer into the register buffer.
-		ebp = (unsigned int*) ( ((unsigned char *) &Context->Registers)+( EBP_OFFSET*sizeof(int)) );
-		*ebp = (int) top;
+		ebp = (INDEX *) ( ((unsigned char *) &Context->Registers)+( EBP_OFFSET*sizeof(INDEX)) );
+		*ebp = (INDEX) top;
 
 #ifdef DEBUG
 		//Set up the stack boundry.

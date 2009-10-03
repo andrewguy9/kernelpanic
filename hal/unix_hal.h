@@ -9,7 +9,7 @@
  * If your flavor of unix does not support ucontext, then change the next 
  * line to #if 0. 
  */
-#if 1 //Primary implementation of context switch.
+#if 0 //Primary implementation of context switch.
 
 #define _PANIC_USE_U_CONTEXT_ 
 
