@@ -20,9 +20,6 @@ struct itimerval TimerInterval;
 sigset_t EmptySet;
 sigset_t TimerSet;
 
-//Storage for the signal mask.
-sigset_t CurrentSet;//TODO We should consider moving to not having a current set.
-
 //Timer Action Storage.
 struct sigaction TimerAction;
 
@@ -51,8 +48,7 @@ void HalStartup()
 	TimerAction.sa_flags = 0;
 
 	//The current set should be equal to the timer set.
-	CurrentSet = TimerSet;
-	status = sigprocmask( SIG_SETMASK, &CurrentSet, NULL );
+	status = sigprocmask( SIG_SETMASK, &TimerSet, NULL );
 	ASSERT( status == 0 );
 
 	ASSERT( HalIsAtomic() );
@@ -117,19 +113,12 @@ void HalDisableInterrupts()
 	status = sigprocmask( SIG_SETMASK, &TimerSet, NULL ); 
 	ASSERT( status == 0 );
 
-	//We just disabled,
-	//update current set.
-	CurrentSet = TimerSet;
-
 	ASSERT( HalIsAtomic() );
 }
 
 void HalEnableInterrupts()
 {
 	int status;
-
-	//We are about to enable, update current set.
-	CurrentSet = EmptySet;
 
 	status = sigprocmask( SIG_SETMASK, &EmptySet, NULL );
 	ASSERT( status == 0 );
@@ -179,10 +168,6 @@ void HalUnixTimer( int SignalNumber )
 	//nesting calls the the handler.
 	//verify this.
 	ASSERT( HalIsAtomic() );
-
-	//The current mask changed when this was called. 
-	//save the change over the mask.
-	CurrentSet = TimerSet;
 
 	//TODO IF POSSIBLE, MOVE WATCHDOG INTO OWN TIMER.
 	//Run the watchdog check
