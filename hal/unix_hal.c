@@ -19,12 +19,15 @@ struct itimerval TimerInterval;
 //Used for reference.
 sigset_t EmptySet;
 sigset_t TimerSet;
+sigset_t TrampolineSet;
 
 //Timer Action Storage.
 struct sigaction TimerAction;
+struct sigaction SwitchStackAction;
 
 //Prototype for later use.
 void HalUnixTimer( int SignalNumber );
+void HalStackTrampoline( int SignalNumber );
 
 void HalStartup()
 {
@@ -33,19 +36,35 @@ void HalStartup()
 	//Create the empty set.
 	status = sigemptyset( &EmptySet );
 	ASSERT( status == 0 );
+	status = sigaddset( &EmptySet, SIGUSR1 );
+	ASSERT( status == 0 );
 
 	//Create the timer set.
 	status = sigemptyset( &TimerSet );
 	ASSERT( status == 0 );
 	status = sigaddset( &TimerSet, SIGALRM );
 	ASSERT( status == 0 );
-	ASSERT( sigismember( &TimerSet, SIGALRM ) == 1 );
+	status = sigaddset( &TimerSet, SIGUSR1 );
+	ASSERT( status == 0 );
+
+	//Create the trampoline set
+	status = sigemptyset( &TrampolineSet );
+	ASSERT( status == 0 );
+	status = sigaddset( &TrampolineSet, SIGUSR1 );
+	ASSERT( status == 0 );
 
 	//Create the timer action.
 	TimerAction.sa_handler = HalUnixTimer;
 	status = sigemptyset( &TimerAction.sa_mask);
 	ASSERT( status ==  0 );
 	TimerAction.sa_flags = 0;
+
+	//Create the SwitchStackAction 
+	SwitchStackAction.sa_handler = HalStackTrampoline;
+	status = sigemptyset( &SwitchStackAction.sa_mask );
+	ASSERT( status == 0 );
+	SwitchStackAction.sa_flags = SA_ONSTACK;
+	status = sigaction(SIGUSR1, &SwitchStackAction, NULL );
 
 	//The current set should be equal to the timer set.
 	status = sigprocmask( SIG_SETMASK, &TimerSet, NULL );
@@ -192,8 +211,8 @@ void HalUnixTimer( int SignalNumber )
 
 #ifndef _PANIC_USE_U_CONTEXT_
 
-#define ESP_OFFSET 1
-#define EBP_OFFSET 2
+struct MACHINE_CONTEXT * halTempContext;
+volatile BOOL halTempContextProcessed;
 
 void HalCreateStackFrame( 
 		struct MACHINE_CONTEXT * Context, 
@@ -203,48 +222,56 @@ void HalCreateStackFrame(
 {
 
 	int status;
-	unsigned char * top;
-	INDEX *esp;
-	INDEX *ebp;
-	unsigned char * cstack = stack;
-
-	//sigset_t oldSet;
+	char * cstack = stack;
+	stack_t newStack;
 
 	ASSERT( HalIsAtomic() );
 
-	status = _setjmp( Context->Registers );
+#ifdef DEBUG
+		//Set up the stack boundry.
+		Context->High = (char *) (cstack + stackSize);
+		Context->Low = cstack;
+#endif
+
+		Context->Foo = foo;
+
+		halTempContext = Context;
+		halTempContextProcessed = FALSE;
+
+		newStack.ss_sp = cstack;
+		newStack.ss_size = stackSize;
+		newStack.ss_flags = 0;
+		status = sigaltstack( &newStack, NULL ); 
+		ASSERT( status == 0 );
+
+
+		status = sigprocmask( SIG_UNBLOCK, &TrampolineSet, NULL );
+		ASSERT( status == 0 );
+
+		kill( getpid(), SIGUSR1 );
+
+		while( ! halTempContextProcessed );
+
+		status = sigprocmask(SIG_BLOCK, &TrampolineSet, NULL );
+		ASSERT( status == 0 );
+}
+
+/*
+ * sigaltstack will cause this fuction to be called on an alternate stack.
+ * This allows us to bootstrap new threads.
+ */
+void HalStackTrampoline( int SignalNumber ) 
+{
+	int status;
+	status = _setjmp( halTempContext->Registers );
 
 	if( status == 0 )
 	{
 		//Because status was 0 we know that this is the creation of
 		//the stack frame. We can use the locals to construct the frame.
-	
-		//We need to store foo into the machine context so we know who to call
-		//when the new frame is activated.
-		Context->Foo = foo;
 
-		//Calculate the top of the stack
-		//For some kernels we need the stack to be 16 byte alligned.
-		top = &cstack[stackSize];
-		top = top - sizeof( sigjmp_buf );
-		top = (unsigned char *)((INDEX) top & (((INDEX)(0-1))-0xf));
-		ASSERT( ((INDEX) top) % 16 == 0 );
-		ASSERT( (INDEX) top > (INDEX) stack );
-
-
-		//We need to write new stack pointer into the register buffer.
-		esp = (INDEX *) ( ((unsigned char *) &Context->Registers)+( ESP_OFFSET*sizeof(INDEX)) );
-		*esp = (INDEX) top;
-		//We need to write new base pointer into the register buffer.
-		ebp = (INDEX *) ( ((unsigned char *) &Context->Registers)+( EBP_OFFSET*sizeof(INDEX)) );
-		*ebp = (INDEX) top;
-
-#ifdef DEBUG
-		//Set up the stack boundry.
-		Context->High = (char *) top;
-		Context->Low = stack;
-#endif
-
+		halTempContextProcessed = TRUE;
+		halTempContext = NULL;
 		return;
 	}
 	else
@@ -252,9 +279,6 @@ void HalCreateStackFrame(
 		//If we get here, then someone has jumped into a newly created thread.
 		//Test to make sure we are atomic
 		ASSERT( HalIsAtomic() );
-
-		//On linux systems we call foo directly because those 
-		//fuckers hide their program registers somwhere.
 
 		//Our local variables are missing, but we know ActiveThread
 		//is the current thread which we can to run. We can get main from there.
