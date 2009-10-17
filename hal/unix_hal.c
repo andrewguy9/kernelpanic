@@ -205,12 +205,6 @@ void HalUnixTimer( int SignalNumber )
 	TimerInterrupt();
 }
 
-//
-//Darwin only code
-//
-
-#ifndef _PANIC_USE_U_CONTEXT_
-
 struct MACHINE_CONTEXT * halTempContext;
 volatile BOOL halTempContextProcessed;
 
@@ -331,56 +325,4 @@ void HalContextSwitch( )
 		ASSERT( HalIsAtomic() );
 	}
 }
-
-#else
-
-void HalCreateStackFrame( 
-		struct MACHINE_CONTEXT * Context, 
-		void * stack, 
-		STACK_INIT_ROUTINE foo, 
-		COUNT stackSize)
-{
-	(void)getcontext( &Context->uc );
-
-	/* adjust to new context */
-	Context->uc.uc_link = NULL;
-	Context->uc.uc_stack.ss_sp = stack;
-	Context->uc.uc_stack.ss_size = stackSize;
-	Context->uc.uc_stack.ss_flags = 0;
-
-	/*make new context */
-	makecontext( &(Context->uc), foo, 0 );
-
-#ifdef DEBUG
-	//Set up the stack boundry.
-	Context->High = stack + stackSize;
-	Context->Low = stack;
-#endif
-}
-
-void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
-{
-	/* printf("hal creating idle loop frame\n"); */
-	(void)getcontext( &Context->uc);
-
-#ifdef DEBUG
-	//The stack bounderies are infinite for the initial stack.
-	Context->High = (char *) -1;
-	Context->Low = (char *) 0;
-#endif
-}
-
-//#TODO: Add stack range check.
-void HalContextSwitch( )
-{
-	struct MACHINE_CONTEXT * oldContext = ActiveStack;
-	struct MACHINE_CONTEXT * newContext = NextStack;
-
-	ActiveStack = NextStack;
-	NextStack = NULL;
-
-	(void)swapcontext(&oldContext->uc, &newContext->uc);
-}
-
-#endif 
 

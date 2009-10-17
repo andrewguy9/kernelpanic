@@ -1,64 +1,26 @@
-//_XOPEN_SOURCE only needed for BSD derived kernels.
-#if BSD || DARWIN
-#define _XOPEN_SOURCE
-#endif
-
 #define HAL_MIN_STACK_SIZE MINSIGSTKSZ
-/*
- * We use ucontext library to perform user mode context switches.
- * However, some flavors of unix do not support use of the ucontext library.
- * If your flavor of unix does not support ucontext, then change the next 
- * line to #if 0. 
- */
-#if 0 //Primary implementation of context switch.
-
-#define _PANIC_USE_U_CONTEXT_ 
-
-#include<ucontext.h>
-#include<stdio.h>
-#include<stdlib.h>
-
-/*
- * On System V machines we maintain our machine context using a
- * ucontext_t structure. This sturucture stores the pointer to the
- * context that is resumed, the signals that are blocked by the
- * context, the stack information, and the register states.
- *
- * We can use system V system calls to switch to and from our
- * ucontext_t.
- */
-
-struct MACHINE_CONTEXT
-{
-	INDEX Flag;//Thread number which gets used for the watchdog and debug leds.
-	STACK_INIT_ROUTINE Foo;//Pointer to the first function the thread calls.
-	ucontext_t uc;
-
-#ifdef DEBUG
-	//Counters to keep track of thread usage.
-	COUNT TimesRun;
-	COUNT TimesSwitched;
-	//Pointers to the top and bottom of the stack. Used to detect stack overflow.
-	char * High;
-	char * Low;
-#endif // DEBUG
-};
-
-/*
- * The code encircled by this else is an alternate implementation of the
- * user mode context switch mechanism. It should be used on platforms which 
- * do not support ucontext.
- */
-#else //Alternate implementation of context switch.
 
 #include<setjmp.h>
 #include<stdlib.h>
 
 /*
- * On Darwin machines we maintain our machine context using a
- * jmp_buf array. This sturucture stores raw register state.
+ * On System V we can use sigaltstack and setjmp, longjmp to boostrap new user
+ * threads without the need for machine specific code.
  *
- * We can use setjmp and longjmp to save and restore the register state.
+ * For context switches we use setjmp to save the current register values 
+ * and longjmp to jump to a saved register context.
+ *
+ * To bootstrap a thread, we call sigaltstack to set the signal stack for 
+ * SIGUSR1 to the desired new thread stack. Then we fire off a SIGUSR1 
+ * signal. This will cause the kernel to switch the stack pointer to the 
+ * alternate stack. When we wake in the HalStackTrampoline function we 
+ * know that we are trying to bootstrap a new thread.
+ *
+ * HalStackTrampoline saves his context by calling setjmp and returns.
+ * Later when the new thread is picked as the next thread a call to longjmp
+ * will cause the new thread to wake from setjmp. We check the return code,
+ * realize we have just been scheduled and call the kernel's thraed bootstrap 
+ * function.
  */
 
 struct MACHINE_CONTEXT
@@ -76,8 +38,6 @@ struct MACHINE_CONTEXT
 	char * Low;
 #endif
 };
-
-#endif //End for alternate context switch implementation.
 
 #ifdef DEBUG
 BOOL HalIsAtomic();
