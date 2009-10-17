@@ -6,6 +6,7 @@
 #include <avr/interrupt.h>
 #include <avr/sfr_defs.h>
 
+#define HAL_MIN_STACK_SIZE 300
 /*
  * On avr machines, we manipulate stack pointer directly to
  * implement context switches. So the machine context for an

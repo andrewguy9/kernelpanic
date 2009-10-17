@@ -48,13 +48,7 @@ COUNT Value3 = 0;
 //Thread structures
 //
 
-#ifdef PC_BUILD 
-#define STACK_SIZE 0x5000
-#endif
-
-#ifdef AVR_BUILD
-#define STACK_SIZE 0x500
-#endif
+#define STACK_SIZE HAL_MIN_STACK_SIZE
 
 struct THREAD TestThreadIncrement;
 char TestThreadStackIncrement[STACK_SIZE];

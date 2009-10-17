@@ -19,13 +19,7 @@ COUNT Sequence[SEQUENCE_LENGTH] = {2,4,8,16,32,64,128,256};
 struct THREAD SleeperThread;
 struct THREAD WorkerThread;
 
-#ifdef PC_BUILD 
-#define STACK_SIZE 0x5000
-#endif
-
-#ifdef AVR_BUILD
-#define STACK_SIZE 0x500
-#endif
+#define STACK_SIZE HAL_MIN_STACK_SIZE
 
 char SleeperStack[STACK_SIZE];
 char WorkerStack[STACK_SIZE];

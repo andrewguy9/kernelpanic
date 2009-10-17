@@ -3,6 +3,7 @@
 #define _XOPEN_SOURCE
 #endif
 
+#define HAL_MIN_STACK_SIZE MINSIGSTKSZ
 /*
  * We use ucontext library to perform user mode context switches.
  * However, some flavors of unix do not support use of the ucontext library.
