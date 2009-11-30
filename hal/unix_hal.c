@@ -242,7 +242,7 @@ void HalCreateStackFrame(
 		status = sigprocmask( SIG_UNBLOCK, &TrampolineSet, NULL );
 		ASSERT( status == 0 );
 
-		kill( getpid(), SIGUSR1 );
+		raise( SIGUSR1 );
 
 		while( ! halTempContextProcessed );
 
