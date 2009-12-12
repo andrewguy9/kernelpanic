@@ -41,10 +41,7 @@ COUNT Schedule();
 void SchedulePostHandler( struct HANDLER_OBJECT * handler );
 
 //Scheduler variables: Protected by SchedulerLock
-struct LINKED_LIST Queue1;
-struct LINKED_LIST Queue2;
-struct LINKED_LIST * RunQueue;
-struct LINKED_LIST * DoneQueue;
+struct LINKED_LIST RunQueue;
 
 //Variables that need to be edited atomically.
 struct HANDLER_OBJECT SchedulerTimer;
@@ -230,7 +227,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 
 	thread->State = THREAD_STATE_RUNNING;
 
-	LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
+	LinkedListEnqueue( &thread->Link.LinkedListLink, &RunQueue );
 }
 
 BOOL SchedulerIsThreadDead( struct THREAD * thread )
@@ -285,24 +282,13 @@ COUNT Schedule()
 			activeThread->State == THREAD_STATE_RUNNING)
 	{
 		LinkedListEnqueue( &activeThread->Link.LinkedListLink,
-				DoneQueue);
-	}
-
-	if( LinkedListIsEmpty( RunQueue ) )
-	{
-		//There are no threads in run queue.
-		//This is a sign we have run through
-		//all threads, so well pull from done
-		//queue now
-		struct LINKED_LIST * temp = RunQueue;
-		RunQueue = DoneQueue;
-		DoneQueue = temp;
+				&RunQueue);
 	}
 
 	//Pick the next thread
-	if( ! LinkedListIsEmpty( RunQueue ) )
+	if( ! LinkedListIsEmpty( &RunQueue ) )
 	{//there are threads waiting, run one
-		nextThread = BASE_OBJECT( LinkedListPop( RunQueue ),
+		nextThread = BASE_OBJECT( LinkedListPop( &RunQueue ),
 				struct THREAD,
 				Link);
 	}
@@ -369,10 +355,7 @@ void SchedulePostHandler( struct HANDLER_OBJECT * handler )
 void SchedulerStartup()
 {
 	//Initialize queues
-	LinkedListInit( & Queue1 );
-	LinkedListInit( & Queue2 );
-	RunQueue = & Queue1;
-	DoneQueue = & Queue2;
+	LinkedListInit( &RunQueue );
 	//Initialize the timer
 	TimerInit( & SchedulerTimer );
 	TimerRegister( & SchedulerTimer,
@@ -462,11 +445,11 @@ void SchedulerCreateThread(
 	//initialize stack
 	ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup, debugFlag );
 
-	//Add thread to done queue.
+	//Add thread to queue.
 	if( start )
 	{
 		thread->State = THREAD_STATE_RUNNING;
-		LinkedListEnqueue( &thread->Link.LinkedListLink, DoneQueue );
+		LinkedListEnqueue( &thread->Link.LinkedListLink, &RunQueue );
 	}
 	else
 	{
