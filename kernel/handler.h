@@ -41,7 +41,7 @@
  *  When a handler is running and re-enqueues into a handler list he can
  *  transition from HANDLER_RUNNING directly to HANDLER_QUEUED.
  *
- *  Whebn a handler finishes running and does not reschedule itself it will 
+ *  When a handler finishes running and does not reschedule itself it will 
  *  transition back to HANDLER_READY.
  */
 

@@ -166,6 +166,9 @@ void HalEnableWatchdog( int frequency )
 {
 	HalWatchdogOn = TRUE;
 	HalWatchDogFrequency = frequency;
+	// Reset the count. Beware repeated calls to HalEnableWatchdog as it will 
+	// interrupt accuracy of the watchdog.
+	HalWatchdogCount = 0;
 }
 
 void HalResetClock()
@@ -188,21 +191,21 @@ void HalUnixTimer( int SignalNumber )
 	//verify this.
 	ASSERT( HalIsAtomic() );
 
+	//Call the kernel's timer handler.
+	TimerInterrupt();
+
 	//TODO IF POSSIBLE, MOVE WATCHDOG INTO OWN TIMER.
 	//Run the watchdog check
 	if( HalWatchdogOn )
 	{
 		HalWatchdogCount ++;
 
-		if( HalWatchdogCount >= HalWatchDogFrequency )
+		if( HalWatchdogCount > HalWatchDogFrequency )
 		{
 			//The time for a match has expried. Panic!!!
 			HalPanic("Watchdog Timeout", 0 );
 		}
 	}
-
-	//Call the kernel's timer handler.
-	TimerInterrupt();
 }
 
 struct MACHINE_CONTEXT * halTempContext;
