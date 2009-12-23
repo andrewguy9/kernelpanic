@@ -36,7 +36,7 @@ enum WORKER_RETURN SleepWorkItemHandler( struct WORKER_ITEM * item )
  *
  * We will schedule a work item to wake the thread.
  */
-void SleepTimerHandler( struct HANDLER_OBJECT * timer )
+BOOL SleepTimerHandler( struct HANDLER_OBJECT * timer )
 {
 	struct SLEEP_TIMER_CONTEXT * sleepContext = timer->Context;
 
@@ -44,6 +44,8 @@ void SleepTimerHandler( struct HANDLER_OBJECT * timer )
 			SleepWorkItemHandler,
 			sleepContext->Thread,
 			& sleepContext->WorkItem);
+
+	return TRUE;
 }
 
 /*

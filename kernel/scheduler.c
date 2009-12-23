@@ -38,7 +38,7 @@
  */
 
 COUNT Schedule();
-void SchedulePostHandler( struct HANDLER_OBJECT * handler );
+BOOL SchedulePostHandler( struct HANDLER_OBJECT * handler );
 
 //Scheduler variables: Protected by SchedulerLock
 struct LINKED_LIST RunQueue;
@@ -309,7 +309,7 @@ COUNT Schedule()
  * mark the quantum as expired so that when the
  * critical section does end we can force a switch.
  */
-void SchedulePostHandler( struct HANDLER_OBJECT * handler )
+BOOL SchedulePostHandler( struct HANDLER_OBJECT * handler )
 {
 	TIME currentTime;
 	COUNT priority;
@@ -350,6 +350,7 @@ void SchedulePostHandler( struct HANDLER_OBJECT * handler )
 			1,
 			SchedulePostHandler,
 			NULL);
+	return FALSE;
 }
 
 void SchedulerStartup()

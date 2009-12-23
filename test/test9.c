@@ -14,11 +14,11 @@
 #define THREAD2FLAG 2
 #define THREAD3FLAG 3
 
-#define THREAD1QUANTUM 2
-#define THREAD2QUANTUM 4
-#define THREAD3QUANTUM 6
+#define THREAD1QUANTUM 1
+#define THREAD2QUANTUM 2
+#define THREAD3QUANTUM 3
 
-#define FREQ (THREAD1QUANTUM+THREAD2QUANTUM+THREAD3QUANTUM+1)
+#define FREQ 2*(THREAD1QUANTUM+THREAD2QUANTUM+THREAD3QUANTUM)
 
 //
 //Main routine for threads.
@@ -91,12 +91,12 @@ int main()
 
 	SchedulerCreateThread(
 			&TestThreadExp,
-			THREAD3FLAG,
+			THREAD3QUANTUM,
 			TestThreadStackExp,
 			STACK_SIZE,
 			TestThreadMain,
 			&Value3,
-			THREAD3QUANTUM,
+			THREAD3FLAG,
 			TRUE);
 
 	//Enable the watchdog

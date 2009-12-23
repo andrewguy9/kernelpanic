@@ -35,6 +35,7 @@ void IsrRunPostHandlers()
 {
 	struct HANDLER_OBJECT * postHandler;
 	HANDLER_FUNCTION * func;
+	BOOL isComplete;
 
 	ASSERT( InterruptIsAtomic() );
 
@@ -61,11 +62,15 @@ void IsrRunPostHandlers()
 		//Run the handler
 		//We pass a pointer to the handler itself so 
 		//the handler can reschedule itself.
-		func(postHandler);
+		isComplete = func(postHandler);
+
+		if(isComplete) 
+		{
+			HandlerFinish( postHandler );
+		}
 
 		//make atomic again.
 		InterruptDisable();
-
 	}
 }
 

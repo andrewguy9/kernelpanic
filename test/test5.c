@@ -42,18 +42,6 @@ COUNT Blocking;
 COUNT NonBlocking;
 
 //
-//Validation
-//
-
-void ValidateState()
-{
-	int diff = Produced - (Blocking+NonBlocking);
-
-	if( diff > 2 || diff < -2 ) 
-		KernelPanic( );
-}
-
-//
 //Mains
 //
 
@@ -63,7 +51,6 @@ void ProducerMain()
 	{
 		SemaphoreUp( &Lock );
 		Produced++;
-		ValidateState();
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 	}
@@ -75,7 +62,6 @@ void ConsumerBlockingMain()
 	{
 		SemaphoreDown( &Lock, NULL );
 		Blocking++;
-		ValidateState();
 	}
 }
 
@@ -88,7 +74,6 @@ void ConsumerNonBlockingMain()
 		SemaphoreDown( &Lock, &context );
 		while( !LockingIsAcquired( &context ) );
 		NonBlocking++;
-		ValidateState();
 	}
 }
 

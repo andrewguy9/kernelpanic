@@ -1,6 +1,5 @@
 #include"handler.h"
 
-#ifdef DEBUG
 void HandlerInit( struct HANDLER_OBJECT * handler )
 {
 	handler->State = HANDLER_READY;
@@ -23,4 +22,8 @@ void HandlerFinish( struct HANDLER_OBJECT * handler )
 	ASSERT( handler->State == HANDLER_RUNNING );
 	handler->State = HANDLER_READY;
 }
-#endif
+
+BOOL HandlerIsFinished( struct HANDLER_OBJECT * handler )
+{
+	return handler->State == HANDLER_READY;
+}

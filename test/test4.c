@@ -27,19 +27,21 @@ char WorkerStack[STACK_SIZE];
 //Define Timer
 struct HANDLER_OBJECT Timer;
 
-//Define Global Flags
-volatile BOOL TimerFlag;//Is TRUE when we have the timer registered. (approx)
-volatile BOOL ThreadFlag;//Is TRUE when sleeping, FALSE when awake (approx)
 COUNT TimerCycles;//Times we have run the test.
 
-//TimerFunction
-void TimerHandler( struct HANDLER_OBJECT * handler )
+//Timer Function
+BOOL TimerHandler( struct HANDLER_OBJECT * handler )
 {
-	//Clear Flag
-	TimerFlag = FALSE;
-	//Check to see if thread is sleeping
-	if( ! ThreadFlag )
-		KernelPanic( );
+	//Opportunistically lock the thread structures.
+	//If we can't get it we should not validate.
+	if( ContextLock() ) {
+		if( !SchedulerIsThreadBlocked( &SleeperThread ) ) {
+			KernelPanic( );
+		}
+		ContextUnlock();
+	}
+
+	return TRUE;
 }
 
 //Thread Main
@@ -51,9 +53,6 @@ void SleeperMain()
 		for( cur = 0; cur < SEQUENCE_LENGTH; cur++)
 		{
 			//Register Timer: The timer should run before we wake.
-			InterruptDisable();
-			TimerFlag = TRUE;
-			InterruptEnable();
 			TimerRegister(
 					& Timer,
 					Sequence[cur] - 1,
@@ -61,19 +60,11 @@ void SleeperMain()
 					NULL);
 
 			//Go to sleep:
-			InterruptDisable();
-			ThreadFlag = TRUE;
-			InterruptEnable();
 			Sleep( Sequence[cur] );
-
-			//Now that we are awake, Clear the thread flag.
-			InterruptDisable();
-			ThreadFlag = FALSE;
-			InterruptEnable();
 
 			//Check to see if the timer fired before we woke.
 			InterruptDisable();
-			if( TimerFlag )
+			if( !HandlerIsFinished( &Timer ) )
 			{
 				KernelPanic( );
 			}
