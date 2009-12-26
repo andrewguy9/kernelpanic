@@ -137,7 +137,7 @@ void WorkerCreateWorker(
 		struct THREAD * thread,
 		char * stack,
 		unsigned int stackSize,
-		char flag)
+		INDEX flag)
 {
 	SchedulerCreateThread( 
 			thread,

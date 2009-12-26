@@ -24,7 +24,7 @@ void WorkerCreateWorker(
 		struct THREAD * thread,
 		char * stack,
 		unsigned int stackSize,
-		char flag);
+		INDEX flag);
 
 void WorkerInitItem( WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  );
 
