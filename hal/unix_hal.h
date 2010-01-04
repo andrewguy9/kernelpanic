@@ -46,6 +46,13 @@ BOOL HalIsAtomic();
 
 void HalDisableInterrupts();
 void HalEnableInterrupts();
+
+void HalDisableSoftInterrupts();
+void HalEnableSoftInterrupts();
+
+void HalDisableCritinterrupts();
+void HalEnableCritInterrupts();
+
 void HalContextSwitch();
 
 extern char HalWatchdogMask;
