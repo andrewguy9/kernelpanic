@@ -222,7 +222,9 @@ void HalContextSwitch( )
 
 void HalPanic(char file[], int line)
 {
-	return;
+	BOOL failed = TRUE;
+
+	while( failed );
 }
 
 void HalEnableWatchdog( int frequency )
