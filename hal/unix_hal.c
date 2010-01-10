@@ -177,6 +177,53 @@ BOOL HalIsAtomic()
 		return FALSE; 
 	}
 }
+
+BOOL HalIsSoftAtomic()
+{
+	sigset_t curSet;
+	int status;
+
+	status = sigprocmask( 0, NULL, &curSet );
+	ASSERT( status == 0 );
+
+	status = sigismember( &curSet, HAL_SIGNAL_SOFT );
+	ASSERT( status != -1 );
+	if( status == 1 )
+	{
+		//Alarm was a member of the "blocked" mask, so we are atomic.
+		return TRUE;
+	}
+	else
+	{
+		//Alarm was not a member of the "blocked" mask, so we are not atomic.
+		ASSERT( status == 0 );
+		return FALSE; 
+	}
+}
+
+BOOL HalIsCritAtomic()
+{
+	sigset_t curSet;
+	int status;
+
+	status = sigprocmask( 0, NULL, &curSet );
+	ASSERT( status == 0 );
+
+	status = sigismember( &curSet, HAL_SIGNAL_CRIT );
+	ASSERT( status != -1 );
+	if( status == 1 )
+	{
+		//Alarm was a member of the "blocked" mask, so we are atomic.
+		return TRUE;
+	}
+	else
+	{
+		//Alarm was not a member of the "blocked" mask, so we are not atomic.
+		ASSERT( status == 0 );
+		return FALSE; 
+	}
+}
+
 #endif //DEBUG
 
 void HalDisableInterrupts()
@@ -205,6 +252,8 @@ void HalDisableSoftInterrupts()
 
 	status = sigprocmask( SIG_BLOCK, &SoftSet, NULL ); 
 	ASSERT( status == 0 );
+
+	ASSERT( HalIsSoftAtomic() );
 }
 
 void HalEnableSoftInterrupts()
@@ -213,6 +262,8 @@ void HalEnableSoftInterrupts()
 
 	status = sigprocmask( SIG_UNBLOCK, &SoftSet, NULL );
 	ASSERT( status == 0 );
+
+	ASSERT(  ! HalIsSoftAtomic() );
 }
 
 void HalDisableCritInterrupts()

@@ -20,6 +20,10 @@ kernel/$(TARGET)_sleep.o: kernel/sleep.c kernel/sleep.h
 
 kernel/$(TARGET)_interrupt.o: kernel/interrupt.c kernel/interrupt.h
 
+kernel/$(TARGET)_softinterrupt.o: kernel/softinterrupt.c kernel/softinterrupt.h
+
+kernel/$(TARGET)_critinterrupt.o: kernel/critinterrupt.c kernel/critinterrupt.h
+
 kernel/$(TARGET)_socket.o: kernel/socket.c kernel/socket.h
 
 kernel/$(TARGET)_io.o: kernel/io.c kernel/io.h

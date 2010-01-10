@@ -42,6 +42,8 @@ struct MACHINE_CONTEXT
 
 #ifdef DEBUG
 BOOL HalIsAtomic();
+BOOL HalIsSoftAtomic();
+BOOL HalIsCritAtomic();
 #endif
 
 void HalDisableInterrupts();
