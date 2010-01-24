@@ -38,8 +38,6 @@ kernel/$(TARGET)_gather.o: kernel/gather.c kernel/gather.h
 
 kernel/$(TARGET)_context.o: kernel/context.c kernel/context.h
 
-kernel/$(TARGET)_isr.o: kernel/isr.c kernel/isr.h
-
 kernel/$(TARGET)_watchdog.o: kernel/watchdog.c kernel/watchdog.h
 
 kernel/$(TARGET)_signal.o: kernel/signal.c kernel/signal.h

@@ -21,6 +21,8 @@ void InterruptIncrement();
 
 void InterruptDecrement();
 
+void InterruptDefer();
+
 //
 //Functions for Sanity Checking
 //

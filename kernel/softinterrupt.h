@@ -2,6 +2,7 @@
 #define SOFT_INTERRUPT_H
 
 #include"../utils/utils.h"
+#include"handler.h"
 
 //
 //Unit Management
@@ -21,6 +22,8 @@ void SoftInterruptIncrement();
 
 void SoftInterruptDecrement();
 
+void SoftInterruptDefer();
+
 //
 //Functions for Sanity Checking
 //
@@ -29,5 +32,15 @@ void SoftInterruptDecrement();
 BOOL SoftInterruptIsAtomic();
 BOOL SoftInterruptIsEdge();
 #endif//DEBUG
+
+//
+//Functions for handlers.
+//
+
+void SoftInterrupt();
+void SoftInterruptRegisterHandler(
+		struct HANDLER_OBJECT * handler,
+		HANDLER_FUNCTION foo,
+		void * context );
 
 #endif

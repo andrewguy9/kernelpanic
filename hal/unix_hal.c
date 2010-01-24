@@ -25,12 +25,25 @@ unsigned int HalWatchdogCount;
 
 struct itimerval TimerInterval;
 
-//Used for reference.
-sigset_t EmptySet;
-sigset_t TimerSet;
-sigset_t SoftSet;
-sigset_t CritSet;
-sigset_t TrampolineSet;
+/*
+                |SIGALRM|SIGUSR1|SIGUSR2|SIGINFO|
+-------------------------------------------------
+InterruptMask    |*******|*******|*******|*******|
+SoftInterruptMask|       |*******|*******|*******|
+CritInterruptMask|       |       |*******|*******|
+NoInterruptMask  |       |       |       |*******|
+TrampolineMask   |       |       |       |*******|
+-------------------------------------------------
+*/
+
+//Masks are used to disable various interrupt types.
+//If a signal is in the mask it cannot be delivered
+//once that mask is applied.
+sigset_t InterruptMask;
+sigset_t SoftInterruptMask;
+sigset_t CritInterruptMask;
+sigset_t NoInterruptMask;
+sigset_t TrampolineMask;
 
 //Timer Action Storage.
 struct sigaction TimerAction;
@@ -48,79 +61,92 @@ void HalStartup()
 {
 	int status;
 
-	//Create the empty set.
-	status = sigemptyset( &EmptySet );
+	/*
+	 * Create the masks:
+	 * The InterruptMasks are signal masks which prevent
+	 * different kinds of signals from being delivered at different times.
+	 */
+
+	//Create the InterruptMask.
+	status = sigemptyset( &InterruptMask );
 	ASSERT( status == 0 );
-	status = sigaddset( &EmptySet, HAL_SIGNAL_TRAMPOLINE );
+	status = sigaddset( &InterruptMask, HAL_SIGNAL_TIMER );
+	ASSERT( status == 0 );
+	status = sigaddset( &InterruptMask, HAL_SIGNAL_SOFT );
+	ASSERT( status == 0 );
+	status = sigaddset( &InterruptMask, HAL_SIGNAL_CRIT );
+	ASSERT( status == 0 );
+	status = sigaddset( &InterruptMask, HAL_SIGNAL_TRAMPOLINE );
 	ASSERT( status == 0 );
 
-	//Create the timer set.
-	status = sigemptyset( &TimerSet );
+	//Create the SoftInterruptMask.
+	status = sigemptyset( &SoftInterruptMask );
 	ASSERT( status == 0 );
-	status = sigaddset( &TimerSet, HAL_SIGNAL_TIMER );
+	status = sigaddset( &SoftInterruptMask, HAL_SIGNAL_SOFT );
 	ASSERT( status == 0 );
-	status = sigaddset( &TimerSet, HAL_SIGNAL_SOFT );
+	status = sigaddset( &SoftInterruptMask, HAL_SIGNAL_CRIT );
 	ASSERT( status == 0 );
-	status = sigaddset( &TimerSet, HAL_SIGNAL_CRIT );
-	ASSERT( status == 0 );
-	status = sigaddset( &TimerSet, HAL_SIGNAL_TRAMPOLINE );
+	status = sigaddset( &SoftInterruptMask, HAL_SIGNAL_TRAMPOLINE );
 	ASSERT( status == 0 );
 
-	//Create the SoftSet
-	status = sigemptyset( &SoftSet );
+	//Create the enable CritInterruptMask
+	status = sigemptyset( &CritInterruptMask );
 	ASSERT( status == 0 );
-	status = sigaddset( &SoftSet, HAL_SIGNAL_SOFT );
+	status = sigaddset( &CritInterruptMask, HAL_SIGNAL_CRIT );
 	ASSERT( status == 0 );
-	status = sigaddset( &SoftSet, HAL_SIGNAL_CRIT );
-	ASSERT( status == 0 );
-	status = sigaddset( &SoftSet, HAL_SIGNAL_TRAMPOLINE );
+	status = sigaddset( &CritInterruptMask, HAL_SIGNAL_TRAMPOLINE );
 	ASSERT( status == 0 );
 
-	//Create the CritSet
-	status = sigemptyset( &CritSet );
+	//Create the NoInterruptMask.
+	status = sigemptyset( &NoInterruptMask );
 	ASSERT( status == 0 );
-	status = sigaddset( &CritSet, HAL_SIGNAL_CRIT );
-	ASSERT( status == 0 );
-	status = sigaddset( &CritSet, HAL_SIGNAL_TRAMPOLINE );
+	status = sigaddset( &NoInterruptMask, HAL_SIGNAL_TRAMPOLINE );
 	ASSERT( status == 0 );
 
-	//Create the trampoline set
-	status = sigemptyset( &TrampolineSet );
+	//Create the TrapolineMask.
+	//TODO: WE NEED TO OVERHAUL THE TRAMPOLINE MASK.
+	status = sigemptyset( &TrampolineMask );
 	ASSERT( status == 0 );
-	status = sigaddset( &TrampolineSet, HAL_SIGNAL_TRAMPOLINE );
+	status = sigaddset( &TrampolineMask, HAL_SIGNAL_TRAMPOLINE );
 	ASSERT( status == 0 );
+
+	/*
+	 * Create the actions:
+	 * The Actions are calls to register for various signals
+	 */
 
 	//Create the timer action.
 	TimerAction.sa_handler = HalUnixTimer;
-	TimerAction.sa_mask = TimerSet;
-	status = sigemptyset( &TimerAction.sa_mask);
-	ASSERT( status ==  0 );
+	TimerAction.sa_mask = InterruptMask;
 	TimerAction.sa_flags = 0;
+	status = sigaction( HAL_SIGNAL_TIMER, &TimerAction, NULL );
+	ASSERT( status == 0 );	
+
 
 	//Create the soft action.
 	SoftAction.sa_handler = SoftHandler;
-	SoftAction.sa_mask = SoftSet;
-	status = sigemptyset( &SoftAction.sa_mask);
-	ASSERT( status ==  0 );
+	SoftAction.sa_mask = SoftInterruptMask;
 	SoftAction.sa_flags = 0;
+	status = sigaction( HAL_SIGNAL_SOFT, &SoftAction, NULL );
+	ASSERT( status == 0 );	
 
 	//Create the crit action.
 	CritAction.sa_handler = CritHandler;
-	CritAction.sa_mask = CritSet;
-	status = sigemptyset( &CritAction.sa_mask);
-	ASSERT( status ==  0 );
+	CritAction.sa_mask = CritInterruptMask;
 	CritAction.sa_flags = 0;
+	status = sigaction( HAL_SIGNAL_CRIT, &CritAction, NULL );
+	ASSERT( status == 0 );	
 
 	//Create the SwitchStackAction 
+	//NOTE: We use the interrupt mask here, because we want to block all operations.
 	SwitchStackAction.sa_handler = HalStackTrampoline;
-	SwitchStackAction.sa_mask = TrampolineSet;
-	status = sigemptyset( &SwitchStackAction.sa_mask );
-	ASSERT( status == 0 );
+	SwitchStackAction.sa_mask = InterruptMask;
 	SwitchStackAction.sa_flags = SA_ONSTACK;
 	status = sigaction(HAL_SIGNAL_TRAMPOLINE, &SwitchStackAction, NULL );
 
-	//The current set should be equal to the timer set.
-	status = sigprocmask( SIG_SETMASK, &TimerSet, NULL );
+	//We start the hardware up in the InterruptSet
+	//This means that no interrupts will be delivered during kernel initialization.
+	status = sigprocmask( SIG_SETMASK, &InterruptMask, NULL );
 	ASSERT( status == 0 );
 
 	ASSERT( HalIsAtomic() );
@@ -135,10 +161,6 @@ void HalStartup()
 void HalInitClock()
 {
 	int status;
-
-	//Turn on the timer signal handler.
-	status = sigaction( HAL_SIGNAL_TIMER, &TimerAction, NULL );
-	ASSERT( status == 0 );	
 
 	//Set the timer interval.
 	TimerInterval.it_interval.tv_sec = 0;
@@ -159,6 +181,9 @@ BOOL HalIsAtomic()
 {
 	sigset_t curSet;
 	int status;
+	BOOL isSoftAtomic;
+
+	isSoftAtomic = HalIsSoftAtomic();
 
 	status = sigprocmask( 0, NULL, &curSet );
 	ASSERT( status == 0 );
@@ -168,6 +193,7 @@ BOOL HalIsAtomic()
 	if( status == 1 )
 	{
 		//Alarm was a member of the "blocked" mask, so we are atomic.
+		ASSERT( HalIsSoftAtomic() );
 		return TRUE;
 	}
 	else
@@ -191,6 +217,8 @@ BOOL HalIsSoftAtomic()
 	if( status == 1 )
 	{
 		//Alarm was a member of the "blocked" mask, so we are atomic.
+		ASSERT( HalIsCritAtomic() );
+
 		return TRUE;
 	}
 	else
@@ -230,55 +258,35 @@ void HalDisableInterrupts()
 {
 	int status;
 
-	status = sigprocmask( SIG_BLOCK, &TimerSet, NULL ); 
+	status = sigprocmask( SIG_SETMASK, &InterruptMask, NULL ); 
 	ASSERT( status == 0 );
 
 	ASSERT( HalIsAtomic() );
-}
-
-void HalEnableInterrupts()
-{
-	int status;
-
-	status = sigprocmask( SIG_UNBLOCK, &TimerSet, NULL );
-	ASSERT( status == 0 );
-
-	ASSERT( ! HalIsAtomic() );
 }
 
 void HalDisableSoftInterrupts()
 {
 	int status;
 
-	status = sigprocmask( SIG_BLOCK, &SoftSet, NULL ); 
+	status = sigprocmask( SIG_SETMASK, &SoftInterruptMask, NULL ); 
 	ASSERT( status == 0 );
 
 	ASSERT( HalIsSoftAtomic() );
-}
-
-void HalEnableSoftInterrupts()
-{
-	int status;
-
-	status = sigprocmask( SIG_UNBLOCK, &SoftSet, NULL );
-	ASSERT( status == 0 );
-
-	ASSERT(  ! HalIsSoftAtomic() );
 }
 
 void HalDisableCritInterrupts()
 {
 	int status;
 
-	status = sigprocmask( SIG_BLOCK, &CritSet, NULL ); 
+	status = sigprocmask( SIG_SETMASK, &CritInterruptMask, NULL ); 
 	ASSERT( status == 0 );
 }
 
-void HalEnableCritInterrupts()
+void HalEnableInterrupts()
 {
 	int status;
 
-	status = sigprocmask( SIG_UNBLOCK, &CritSet, NULL );
+	status = sigprocmask( SIG_SETMASK, &NoInterruptMask, NULL );
 	ASSERT( status == 0 );
 }
 
@@ -345,13 +353,13 @@ void HalUnixTimer( int SignalNumber )
 	}
 }
 
-/*
- * Handler for the Soft ISRs. 
- * This is just a stub.
- */
+
+//prototype for handler.
+void SoftInterrupt();
+
 void SoftHandler( int SignalNumber )
 {
-	abort(); 
+	SoftInterrupt();
 }
 
 /*
@@ -397,14 +405,15 @@ void HalCreateStackFrame(
 		ASSERT( status == 0 );
 
 
-		status = sigprocmask( SIG_UNBLOCK, &TrampolineSet, NULL );
+		//TODO CHANGE THIS MASKING OPERATION.
+		status = sigprocmask( SIG_UNBLOCK, &TrampolineMask, NULL );
 		ASSERT( status == 0 );
 
 		raise( HAL_SIGNAL_TRAMPOLINE );
 
 		while( ! halTempContextProcessed );
 
-		status = sigprocmask(SIG_BLOCK, &TrampolineSet, NULL );
+		status = sigprocmask(SIG_BLOCK, &TrampolineMask, NULL );
 		ASSERT( status == 0 );
 }
 
@@ -484,3 +493,7 @@ void HalContextSwitch( )
 	}
 }
 
+void HalRaiseSoftInterrupt()
+{
+	raise( HAL_SIGNAL_SOFT );
+}

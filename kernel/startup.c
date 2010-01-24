@@ -1,7 +1,6 @@
 #include"hal.h"
 #include"interrupt.h"
 #include"context.h"
-#include"isr.h"
 #include"timer.h"
 #include"scheduler.h"
 #include"panic.h"
@@ -26,8 +25,6 @@ void KernelInit()
 
 	ContextStartup( );
 
-	IsrStartup();
-
 	TimerStartup();
 
 	SchedulerStartup();
@@ -40,7 +37,9 @@ void KernelInit()
 void KernelStart()
 {
 	ContextUnlock();
+	ASSERT( HalIsAtomic() );
 	InterruptEnable();
+	ASSERT( ! HalIsAtomic() );
 
 	while(1)
 	{

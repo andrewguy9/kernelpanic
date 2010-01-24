@@ -1,5 +1,7 @@
 #include"interrupt.h"
 #include"hal.h"
+#include"softinterrupt.h"
+#include"critinterrupt.h"
 
 /*
  * Interrupt Unit Description
@@ -40,21 +42,20 @@ void InterruptStartup()
 
 /*
  * Used by threads or PostInterruptHandlers to turn 
- * off interrupts. Can be called recursively.
+ * off Interrupts. Can be called recursively.
  */
 void InterruptDisable()
 {
-	if( InterruptLevel == 0 ) 
+	if( InterruptLevel++ == 0 ) 
 	{
-		HalDisableInterrupts();
+		InterruptDefer();
 	}
 
-	InterruptLevel++;
 }
 
 /*
- * Calleed by threads or PostInterruptHandlers to turn
- * interrupts back on. Can be called recirsivly. 
+ * Called by threads or PostInterruptHandlers to turn
+ * Interrupts back on. Can be called recirsivly. 
  */
 void InterruptEnable()
 {
@@ -65,7 +66,11 @@ void InterruptEnable()
 
 	if( InterruptLevel == 0 )
 	{
-		HalEnableInterrupts();
+		//Because we are on the falling edge of a counted 
+		//InterruptDisable call we will need to change the
+		//interrupt mask. We should call InterruptDefer 
+		//so that the correct mask can be selected.
+		InterruptDefer();
 	}
 }
 
@@ -82,6 +87,7 @@ void InterruptDecrement()
 	ASSERT( HalIsAtomic() );
 	ASSERT( InterruptLevel == 1 );
 
+	//We trust that the stack under us will restore the proper interrupt levels.
 	InterruptLevel--;
 }
 
@@ -130,4 +136,24 @@ BOOL InterruptIsEdge()
 		return FALSE;
 }
 #endif //DEBUG
+
+/*
+ * Called by the Interrupt, SoftInterrupt and CritInterrupt 
+ * units when re-enabling interrupts. This allows for selection
+ * of the highest priority mask.
+ */
+void InterruptDefer()
+{
+	if( InterruptLevel > 0 )
+	{
+		//Interrupts are disabled, so we should set the 
+		//interrupt disabled mask.
+		HalDisableInterrupts();
+	}
+	else
+	{
+		//interrupts are allowed, we should defer to crit interrupts.
+		SoftInterruptDefer();
+	}
+}
 

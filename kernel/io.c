@@ -4,7 +4,6 @@
 #include"hal.h"
 #include"interrupt.h"
 #include"panic.h"
-#include"isr.h"
 
 /*
  * IO UNIT DESCRIPTION 
@@ -48,7 +47,7 @@ ISR(USART0_RX_vect)
 	char temp;
 	temp = UDR; 
 
-	IsrStart();
+	InterruptIncrement();
 	if( AsrInputCount < SCRATCH_SIZE )
 	{
 		AsrInputScratch[AsrInputCount++] = temp;
@@ -57,7 +56,7 @@ ISR(USART0_RX_vect)
 	{
 		KernelPanic( );
 	}
-	IsrEnd();
+	InterruptDecrement();
 #endif
 }
 
@@ -65,12 +64,12 @@ ISR(USART0_RX_vect)
 ISR(USART0_TX_vect)
 {
 #if 0 
-	IsrStart();
+	InterruptIncrement();
 	if( AsrOutputIndex < AsrOutputCount )
 	{
 		UDR = AsrOutputScratch[AsrOutputIndex++];
 	}
-	IsrEnd();
+	InterruptDecrement();
 #endif
 }
 #endif

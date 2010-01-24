@@ -1,4 +1,7 @@
 #include"softinterrupt.h"
+#include"interrupt.h"
+#include"critinterrupt.h"
+#include"../utils/linkedlist.h"
 #include"hal.h"
 
 /*
@@ -21,6 +24,7 @@
 //
 
 volatile COUNT SoftInterruptLevel;//The number of calls to SoftInterruptDisable
+struct LINKED_LIST SoftInterruptHandlerList;
 
 //
 //Unit Management
@@ -32,6 +36,7 @@ void SoftInterruptStartup()
 	ASSERT( HalIsSoftAtomic() );
 
 	SoftInterruptLevel = 1;//Will be reset to 0 when startup completes
+	LinkedListInit( &SoftInterruptHandlerList );
 }
 
 //
@@ -44,16 +49,14 @@ void SoftInterruptStartup()
  */
 void SoftInterruptDisable()
 {
-	if( SoftInterruptLevel == 0 ) 
+	if( SoftInterruptLevel++ == 0 ) 
 	{
-		HalDisableSoftInterrupts();
+		InterruptDefer();
 	}
-
-	SoftInterruptLevel++;
 }
 
 /*
- * Calleed by threads or PostInterruptHandlers to turn
+ * Called by threads or PostInterruptHandlers to turn
  * SoftInterrupts back on. Can be called recirsivly. 
  */
 void SoftInterruptEnable()
@@ -65,13 +68,20 @@ void SoftInterruptEnable()
 
 	if( SoftInterruptLevel == 0 )
 	{
-		HalEnableSoftInterrupts();
+		//Because we are on the falling edge of a counted 
+		//SoftInterruptDisable call we will need to change the
+		//interrupt mask. We should call InterruptDefer 
+		//so that the correct mask can be selected.
+		//NOTE: Even though this is the soft unit we still must 
+		//call InterruptDefer (Because we still may need a full
+		//interrupt mask).
+		InterruptDefer();
 	}
 }
 
 void SoftInterruptIncrement()
 {
-	ASSERT( HalIsAtomic() );
+	ASSERT( HalIsSoftAtomic() );
 	ASSERT( SoftInterruptLevel == 0 );
 
 	SoftInterruptLevel++;
@@ -79,7 +89,7 @@ void SoftInterruptIncrement()
 
 void SoftInterruptDecrement()
 {
-	ASSERT( HalIsAtomic() );
+	ASSERT( HalIsSoftAtomic() );
 	ASSERT( SoftInterruptLevel == 1 );
 
 	SoftInterruptLevel--;
@@ -130,4 +140,79 @@ BOOL SoftInterruptIsEdge()
 		return FALSE;
 }
 #endif //DEBUG
+
+
+void SoftInterrupt()
+{
+	struct HANDLER_OBJECT * handler;
+	BOOL isComplete;
+	HANDLER_FUNCTION * func;
+
+	SoftInterruptIncrement();
+
+	InterruptDisable();
+	while( ! LinkedListIsEmpty( & SoftInterruptHandlerList ) )
+	{
+		handler = BASE_OBJECT(
+				LinkedListPop( & SoftInterruptHandlerList ),
+				struct HANDLER_OBJECT,
+				Link );
+		
+		InterruptEnable();
+
+		HandlerRun( handler );
+		func = handler->Function;
+		isComplete = func( handler );
+
+		if(isComplete) 
+		{
+			HandlerFinish( handler );
+		}
+
+		InterruptDisable();
+	}
+	InterruptEnable();
+
+	SoftInterruptDecrement();
+}
+
+void SoftInterruptRegisterHandler(
+		struct HANDLER_OBJECT * handler,
+		HANDLER_FUNCTION foo,
+		void * context )
+{
+
+	handler->Function = foo;
+	handler->Context = context;
+
+	HandlerRegister( handler );
+
+	InterruptDisable();
+	LinkedListEnqueue( &handler->Link.LinkedListLink,
+			& SoftInterruptHandlerList );
+	InterruptEnable();
+
+	HalRaiseSoftInterrupt();
+}
+
+/*
+ * Called by the Interrupt unit when he determines that he 
+ * does not know what interrupt mask to apply. 
+ * If SoftInterrupts are disabled we will apply that mask,
+ * otherwise we defer to the Crit unit.
+ */
+void SoftInterruptDefer()
+{
+	if( SoftInterruptLevel > 0 )
+	{
+		//Soft Interrupts are disabled, so we should set the 
+		//soft disabled mask.
+		HalDisableSoftInterrupts();
+	}
+	else
+	{
+		//Soft interrupts are allowed, we should defer to crit interrupts.
+		CritInterruptDefer();
+	}
+}
 

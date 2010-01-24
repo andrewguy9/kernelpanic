@@ -2,8 +2,8 @@
 #include"../utils/utils.h"
 #include"../utils/heap.h"
 #include"thread.h"
-#include"isr.h"
 #include"interrupt.h"
+#include"softinterrupt.h"
 #include"hal.h"
 
 /*
@@ -69,7 +69,7 @@ void QueueTimers( )
 		//Mark timer as running since its dequeued.
 		HandlerRun( timer );
 
-		IsrRegisterPostHandler(
+		SoftInterruptRegisterHandler(
 				timer,
 				timer->Function,
 				timer->Context);
@@ -137,7 +137,7 @@ TIME TimerGetTime()
 void TimerInterrupt(void) 
 {
 	//update interrupt level to represent that we are in inerrupt
-	IsrStart();
+	InterruptIncrement();
 
 	//reset the clock
 	HalResetClock();
@@ -146,6 +146,6 @@ void TimerInterrupt(void)
 	QueueTimers( );
 
 	//Restore the interrupt level, 
-	IsrEnd();
+	InterruptDecrement();
 }
 

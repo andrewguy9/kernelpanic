@@ -47,13 +47,9 @@ BOOL HalIsCritAtomic();
 #endif
 
 void HalDisableInterrupts();
-void HalEnableInterrupts();
-
 void HalDisableSoftInterrupts();
-void HalEnableSoftInterrupts();
-
-void HalDisableCritinterrupts();
-void HalEnableCritInterrupts();
+void HalDisableCritInterrupts();
+void HalEnableInterrupts();
 
 void HalContextSwitch();
 
@@ -61,3 +57,4 @@ extern char HalWatchdogMask;
 
 void HalResetClock();
 
+void HalRaiseSoftInterrupt();
