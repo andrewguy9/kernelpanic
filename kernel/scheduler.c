@@ -233,6 +233,7 @@ void SchedulerSwitch()
 	
 	//Release the lock so that the scheduler can run again.
 	MutexUnlock( &SchedulerMutex );
+	
 }
 
 
@@ -394,17 +395,26 @@ void SchedulerThreadStartup( void )
 	
 	//Thread startup should occur in atomic section.
 	//We are waking up from the trampoline, so we should not
-	//be in a critical section.
+	//be in a critical section, however, we know that the
+	//scheduler was running when we were selected.
+	//We need to make sure that we re-enable the scheduler.
 	ASSERT( InterruptIsAtomic() );
-	ASSERT( !HalIsCritAtomic() );
 
-	//Start the thread.
+	ASSERT( MutexIsLocked( &SchedulerMutex ) );
+	MutexUnlock( &SchedulerMutex );
 	
+	//Get the thread.
 	thread = SchedulerGetActiveThread();
 	
 	//We need to end atomic section before starting thread's main.
 	InterruptEnable();
 	ASSERT( !InterruptIsAtomic() );
+
+	//Lets force a CritInterrupt drain so that we don't miss if there 
+	//were elements in the queue when we bailed out.
+	ASSERT( CritInterruptIsAtomic() );
+	CritInterruptEnable();
+	ASSERT( !CritInterruptIsAtomic() );
 
 	//run the thread.
 	thread->Main( thread->Argument );
