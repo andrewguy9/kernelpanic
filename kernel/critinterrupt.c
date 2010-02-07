@@ -22,6 +22,7 @@
 //
 
 volatile COUNT CritInterruptLevel;//The number of calls to CritInterruptDisable
+struct LINKED_LIST CritInterruptHandlerList;
 
 //
 //Unit Management
@@ -33,6 +34,7 @@ void CritInterruptStartup()
 	ASSERT( HalIsCritAtomic() );
 
 	CritInterruptLevel = 1;//Will be reset to 0 when startup completes
+	LinkedListInit( & CritInterruptHandlerList );
 }
 
 //
@@ -57,7 +59,7 @@ void CritInterruptDisable()
  */
 void CritInterruptEnable()
 {
-	ASSERT( HalIsAtomic() );
+	ASSERT( HalIsCritAtomic() );
 	ASSERT( CritInterruptLevel > 0 );
 
 	CritInterruptLevel--;
@@ -114,12 +116,12 @@ BOOL CritInterruptIsAtomic()
 	if( CritInterruptLevel == 0 )
 	{
 
-		ASSERT( ! HalIsAtomic() );
+		ASSERT( ! HalIsCritAtomic() );
 		return FALSE;
 	}
 	else 
 	{
-		ASSERT( HalIsAtomic() );
+		ASSERT( HalIsCritAtomic() );
 		return TRUE;
 	}
 }
@@ -130,12 +132,66 @@ BOOL CritInterruptIsAtomic()
  */
 BOOL CritInterruptIsEdge()
 {
-	if( HalIsAtomic() && CritInterruptLevel == 0 )
+	if( HalIsCritAtomic() && CritInterruptLevel == 0 )
 		return TRUE;
 	else 
 		return FALSE;
 }
 #endif //DEBUG
+
+
+void CritInterrupt() 
+{
+	struct HANDLER_OBJECT * handler;
+	BOOL isComplete;
+	HANDLER_FUNCTION * func;
+
+	CritInterruptIncrement();
+
+	InterruptDisable();
+	while( ! LinkedListIsEmpty( & CritInterruptHandlerList ) )
+	{
+		handler = BASE_OBJECT(
+				LinkedListPop( & CritInterruptHandlerList ),
+				struct HANDLER_OBJECT,
+				Link );
+
+		InterruptEnable();
+
+		HandlerRun( handler );
+		func = handler->Function;
+		isComplete = func( handler );
+
+		if(isComplete) 
+		{
+			HandlerFinish( handler );
+		}
+
+		InterruptDisable();
+	}
+	InterruptEnable();
+
+	CritInterruptDecrement();
+}
+
+void CritInterruptRegisterHandler(
+		struct HANDLER_OBJECT * handler,
+		HANDLER_FUNCTION foo,
+		void * context )
+{
+
+	handler->Function = foo;
+	handler->Context = context;
+
+	HandlerRegister( handler );
+
+	InterruptDisable();
+	LinkedListEnqueue( &handler->Link.LinkedListLink,
+			& CritInterruptHandlerList );
+	InterruptEnable();
+
+	HalRaiseCritInterrupt();
+}
 
 /*
  * Called by the SoftInterrupt unit when he determines that he

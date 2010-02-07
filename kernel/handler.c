@@ -2,6 +2,8 @@
 
 void HandlerInit( struct HANDLER_OBJECT * handler )
 {
+	handler->Context = NULL;
+	handler->Function = NULL;
 	handler->State = HANDLER_READY;
 }
 

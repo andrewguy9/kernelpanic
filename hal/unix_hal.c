@@ -181,10 +181,7 @@ BOOL HalIsAtomic()
 {
 	sigset_t curSet;
 	int status;
-	BOOL isSoftAtomic;
-
-	isSoftAtomic = HalIsSoftAtomic();
-
+	
 	status = sigprocmask( 0, NULL, &curSet );
 	ASSERT( status == 0 );
 
@@ -356,6 +353,7 @@ void HalUnixTimer( int SignalNumber )
 
 //prototype for handler.
 void SoftInterrupt();
+void CritInterrupt();
 
 void SoftHandler( int SignalNumber )
 {
@@ -368,7 +366,7 @@ void SoftHandler( int SignalNumber )
  */
 void CritHandler( int SignalNumber )
 {
-	abort(); 
+	CritInterrupt(); 
 }
 
 struct MACHINE_CONTEXT * halTempContext;
@@ -496,4 +494,9 @@ void HalContextSwitch( )
 void HalRaiseSoftInterrupt()
 {
 	raise( HAL_SIGNAL_SOFT );
+}
+
+void HalRaiseCritInterrupt()
+{
+	raise( HAL_SIGNAL_CRIT );
 }

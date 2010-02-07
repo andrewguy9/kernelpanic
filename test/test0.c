@@ -52,7 +52,7 @@ int main()
 
 	//Initialize timers.
 	FrequentCount = 0;
-	TimerInit(&FrequentTimer);
+	HandlerInit(&FrequentTimer);
 	TimerRegister( 
 			&FrequentTimer,
 			2,
@@ -61,7 +61,7 @@ int main()
 
 
 	SeldomCount = 0;
-	TimerInit(&SeldomTimer);
+	HandlerInit(&SeldomTimer);
 	TimerRegister( 
 			&SeldomTimer,
 			4,

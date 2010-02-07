@@ -19,8 +19,6 @@ void TimerStartup( );
 
 TIME TimerGetTime();
 
-void TimerInit( struct HANDLER_OBJECT *newTimer );
-
 void TimerRegister( 
 		struct HANDLER_OBJECT * newTimer,
 		TIME wait,

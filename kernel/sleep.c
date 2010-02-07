@@ -73,7 +73,7 @@ void Sleep( COUNT time )
 	SchedulerStartCritical();
 
 	//Zero out timer.
-	TimerInit( &timer );
+	HandlerInit( &timer );
 
 	//Register the timer.
 	TimerRegister( &timer, time, SleepTimerHandler, &context );

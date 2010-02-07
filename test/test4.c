@@ -6,6 +6,7 @@
 #include"../kernel/interrupt.h"
 #include"../kernel/panic.h"
 #include"../kernel/worker.h"
+#include"../kernel/critinterrupt.h"
 
 /*
  * Tests the sleep unit, should panic on failure.
@@ -34,12 +35,12 @@ BOOL TimerHandler( struct HANDLER_OBJECT * handler )
 {
 	//Opportunistically lock the thread structures.
 	//If we can't get it we should not validate.
-	if( ContextLock() ) {
+	CritInterruptDisable();
 		if( !SchedulerIsThreadBlocked( &SleeperThread ) ) {
 			KernelPanic( );
+
 		}
-		ContextUnlock();
-	}
+	CritInterruptEnable();
 
 	return TRUE;
 }
@@ -81,7 +82,7 @@ int main()
 	KernelInit();
 	TimerCycles = 0;
 
-	TimerInit( &Timer );
+	HandlerInit( &Timer );
 
 	SchedulerCreateThread(
 			&SleeperThread,

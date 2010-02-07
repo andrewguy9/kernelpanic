@@ -13,17 +13,9 @@
  * The context unit manages the context switch lock in similarly
  * to how the interrupt unit manages the interrupt flag. 
  *
- * The rule is that locking the ContextMutex with ContextLock() 
- * "locks the stack".
+ * The rule is that you lock the stack by entering a critical
+ * section by calling CritInterruptStart() 
  */
-
-/*
- * This lock protects the current
- * Stack. This allows for
- * people to set the next stack
- * and switch into it atomically.
- */
-struct MUTEX ContextMutex;
 
 struct MACHINE_CONTEXT * ActiveStack;
 struct MACHINE_CONTEXT * NextStack;
@@ -70,58 +62,14 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
 	}
 }
 
-/*
- * Lock the current stack frame so that 
- * no you can mess with the stack.
- */
-BOOL ContextLock( )
-{
-	return MutexLock( &ContextMutex );
-}
-
-/*
- * Unlock the stack frame.
- * Does no switching.
- */
-void ContextUnlock( )
-{
-	MutexUnlock( &ContextMutex );
-}
-
-#ifdef DEBUG
-BOOL ContextIsCritical( )
-{
-	return MutexIsLocked( &ContextMutex );
-}
-#endif //DEBUG
-
-/*
- * Call this to determine if a context switch has already been scheduled.
- */
-BOOL ContextCanSwitch()
-{
-	ASSERT( ContextIsCritical() );
-
-	if( NextStack == NULL )
-	{
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
-}
-
 void ContextStartup( )
 {
-	MutexInit( &ContextMutex, TRUE );
 	NextStack = NULL;
 	ActiveStack = NULL;
 }
 
 void ContextSetNextContext( struct MACHINE_CONTEXT * stack )
 {
-	ASSERT( ContextIsCritical() );
 	ASSERT( NextStack == NULL );
 
 	NextStack = stack;
@@ -144,7 +92,6 @@ void ContextSetActiveContext( struct MACHINE_CONTEXT * stack )
 void ContextSwitch()
 {
 	ASSERT( InterruptIsAtomic() );
-	ASSERT( MutexIsLocked( &ContextMutex ) );
 
 	//We need to update the watchdog for the next thread.
 	if( NextStack != NULL )
@@ -159,7 +106,6 @@ void ContextSwitch()
 	{
 		//we are critical but no thread was picked, so we dont 
 		//have to do a context switch.
-		MutexUnlock( &ContextMutex );
 	}
 	else if( NextStack != ActiveStack )
 	{
@@ -170,8 +116,6 @@ void ContextSwitch()
 #endif
 		//now that the system looks like the switch has
 		//happened, go ahead and do the switch.
-		MutexUnlock( &ContextMutex );
-
 		HalContextSwitch( );
 	}
 	else
@@ -182,12 +126,10 @@ void ContextSwitch()
 		NextStack->TimesRun++;
 #endif
 		NextStack = NULL;
-		MutexUnlock( &ContextMutex );
 	}
 	
 	//We should be atomic, non-critical with no next stack.
 	ASSERT( InterruptIsAtomic() );
-	ASSERT( !MutexIsLocked( &ContextMutex ) );
 	ASSERT( NextStack == NULL );
 }
 

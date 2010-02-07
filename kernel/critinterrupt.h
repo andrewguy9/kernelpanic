@@ -2,6 +2,8 @@
 #define CRIT_INTERRUPT_H
 
 #include"../utils/utils.h"
+#include"handler.h"
+#include"../utils/linkedlist.h"
 
 //
 //Unit Management
@@ -31,5 +33,15 @@ void CritInterruptDefer();
 BOOL CritInterruptIsAtomic();
 BOOL CritInterruptIsEdge();
 #endif//DEBUG
+
+//
+//Functions for handlers
+//
+
+void CritInterrupt();
+void CritInterruptRegisterHandler(
+		struct HANDLER_OBJECT * handler,
+		HANDLER_FUNCTION foo,
+		void * context );
 
 #endif

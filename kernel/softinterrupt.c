@@ -61,7 +61,7 @@ void SoftInterruptDisable()
  */
 void SoftInterruptEnable()
 {
-	ASSERT( HalIsAtomic() );
+	ASSERT( HalIsSoftAtomic() );
 	ASSERT( SoftInterruptLevel > 0 );
 
 	SoftInterruptLevel--;
@@ -118,12 +118,12 @@ BOOL SoftInterruptIsAtomic()
 	if( SoftInterruptLevel == 0 )
 	{
 
-		ASSERT( ! HalIsAtomic() );
+		ASSERT( ! HalIsSoftAtomic() );
 		return FALSE;
 	}
 	else 
 	{
-		ASSERT( HalIsAtomic() );
+		ASSERT( HalIsSoftAtomic() );
 		return TRUE;
 	}
 }
@@ -134,7 +134,7 @@ BOOL SoftInterruptIsAtomic()
  */
 BOOL SoftInterruptIsEdge()
 {
-	if( HalIsAtomic() && SoftInterruptLevel == 0 )
+	if( HalIsSoftAtomic() && SoftInterruptLevel == 0 )
 		return TRUE;
 	else 
 		return FALSE;

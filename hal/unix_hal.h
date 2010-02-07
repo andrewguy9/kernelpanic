@@ -58,3 +58,4 @@ extern char HalWatchdogMask;
 void HalResetClock();
 
 void HalRaiseSoftInterrupt();
+void HalRaiseCritInterrupt();

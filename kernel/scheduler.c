@@ -3,8 +3,10 @@
 #include"../utils/linkedlist.h"
 #include"timer.h"
 #include"interrupt.h"
+#include"critinterrupt.h"
 #include"context.h"
 #include"panic.h"
+#include"mutex.h"
 
 /*
  * Scheduler Unit:
@@ -37,15 +39,18 @@
  * Only one unit can block a thread at a time.
  */
 
-COUNT Schedule();
-BOOL SchedulePostHandler( struct HANDLER_OBJECT * handler );
+void Schedule();
+BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler );
+BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler );
 
-//Scheduler variables: Protected by SchedulerLock
 struct LINKED_LIST RunQueue;
 
 //Variables that need to be edited atomically.
 struct HANDLER_OBJECT SchedulerTimer;
-TIME QuantumEndTime;
+TIME QuantumStartTime;
+
+struct MUTEX SchedulerMutex;
+struct HANDLER_OBJECT SchedulerCritObject;
 
 //Thread for idle loop ( the start up thread too )
 struct THREAD IdleThread;
@@ -127,14 +132,7 @@ void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
  */
 void SchedulerStartCritical( )
 {
-#ifdef DEBUG
-	BOOL aquired = ContextLock( );
-
-	//Start Critical should always stop the scheduler
-	ASSERT( aquired );
-#else
-	ContextLock();
-#endif
+	CritInterruptDisable();
 }
 
 /*
@@ -142,41 +140,7 @@ void SchedulerStartCritical( )
  */
 void SchedulerEndCritical()
 {
-	TIME currentTime;
-	struct THREAD * activeThread;
-	COUNT priority;	
-	BOOL needSwitch = FALSE;
-
-	ASSERT( ContextIsCritical( ) );
-
-	//Check if quantum has expired while in crit section
-	currentTime = TimerGetTime();
-	if( currentTime > QuantumEndTime )
-		needSwitch = TRUE;
-
-	//See if thread blocked itself.
-	activeThread = SchedulerGetActiveThread();
-	if(activeThread->State == THREAD_STATE_BLOCKED )
-		needSwitch = TRUE;
-
-	if( needSwitch )
-	{
-		//Pick next thread
-		priority = Schedule();
-
-		//set new end time.
-		QuantumEndTime = currentTime+priority;
-
-		//Switch threads!
-		InterruptDisable();
-		ContextSwitch();
-		InterruptEnable();
-		ASSERT( !InterruptIsAtomic() );
-	}
-	else
-	{//Quantum has not expired, so we'll just end the critical section. 
-		ContextUnlock( );
-	}
+	CritInterruptEnable();
 }
 
 #ifdef DEBUG
@@ -187,7 +151,7 @@ void SchedulerEndCritical()
  */
 BOOL SchedulerIsCritical()
 {
-	return ContextIsCritical( );
+	return CritInterruptIsAtomic();
 }
 #endif //DEBUG
 
@@ -196,24 +160,9 @@ BOOL SchedulerIsCritical()
  */
 void  SchedulerForceSwitch()
 {
-	TIME currentTime;
-	COUNT priority;
-
-	ASSERT( ContextIsCritical( ) );
-	ASSERT( ContextCanSwitch() );
-
-	currentTime = TimerGetTime();
-
-	priority = Schedule(); 
-
-	//Set end of quantum.
-	QuantumEndTime = currentTime + priority;
-
-	//Actually context switch.
-	InterruptDisable();
-	ContextSwitch();
-	InterruptEnable();
-	ASSERT( !InterruptIsAtomic() );
+	ASSERT( CritInterruptIsAtomic() );
+	
+	//TODO
 }
 
 /*
@@ -221,7 +170,7 @@ void  SchedulerForceSwitch()
  */
 void SchedulerResumeThread( struct THREAD * thread )
 {
-	ASSERT( ContextIsCritical( ) );
+	ASSERT( HalIsCritAtomic( ) );
 	ASSERT( thread->State == THREAD_STATE_BLOCKED );
 	ASSERT( thread != SchedulerGetActiveThread() );
 
@@ -232,14 +181,14 @@ void SchedulerResumeThread( struct THREAD * thread )
 
 BOOL SchedulerIsThreadDead( struct THREAD * thread )
 {
-	ASSERT( ContextIsCritical( ) );
+	ASSERT( HalIsCritAtomic( ) );
 	
 	return thread->State == THREAD_STATE_DONE;
 }
 
 BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
 {
-	ASSERT( ContextIsCritical( ) );
+	ASSERT( HalIsCritAtomic( ) );
 	
 	return thread->State == THREAD_STATE_BLOCKED;
 }
@@ -256,7 +205,7 @@ BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
 void SchedulerBlockThread( )
 {
 	struct THREAD * activeThread;
-	ASSERT( ContextIsCritical() );
+	ASSERT( HalIsCritAtomic() );
 
 	activeThread = SchedulerGetActiveThread();
 
@@ -264,16 +213,40 @@ void SchedulerBlockThread( )
 }
 
 /*
+ * Does the actual call into the context unit to perform a switch.
+ * Will also verify that the correct resources are held
+ */
+void SchedulerSwitch() 
+{
+	
+	ASSERT( CritInterruptIsAtomic() );
+	ASSERT( ! InterruptIsAtomic() );
+
+	InterruptDisable();
+	
+	ContextSwitch();
+
+	InterruptEnable();
+
+	ASSERT( ! InterruptIsAtomic() );
+	ASSERT( CritInterruptIsAtomic() );
+	
+	//Release the lock so that the scheduler can run again.
+	MutexUnlock( &SchedulerMutex );
+}
+
+
+/*
  * Pick the next thread to run.
  * Changes links to store threads in lists.
  * Returns the priority of the next thread.
  */
-COUNT Schedule()
+void Schedule()
 {
 	struct THREAD * activeThread;
 	struct THREAD * nextThread;
 
-	ASSERT( ContextIsCritical() );
+	ASSERT( HalIsCritAtomic() );
 
 	activeThread = SchedulerGetActiveThread( );
 
@@ -298,9 +271,6 @@ COUNT Schedule()
 	}
 
 	ContextSetNextContext( & nextThread->MachineContext );
-
-	return nextThread->Priority;
-
 }//end Schedule
 
 /*
@@ -309,48 +279,69 @@ COUNT Schedule()
  * mark the quantum as expired so that when the
  * critical section does end we can force a switch.
  */
-BOOL SchedulePostHandler( struct HANDLER_OBJECT * handler )
+BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
 {
-	TIME currentTime;
-	COUNT priority;
 
-	//We are going to try to switch to a new thread.
-	//Inorder to to this we must acquire a critical section.
-	if( ContextLock( ) )
-	{
-		//We were able to enter a critical secion!
-		//Now we can schedule a different thread to run.
+	TIME currentTime = TimerGetTime();
+	struct THREAD * activeThread;
+	
+	//Prevnet the scheduler from running while we check the active thread.
+	//TODO I dont know if this will work, the active thread maybe in transition
+	//when this timer fires. what does it mean to have the critInterruptDisabled 
+	//in a timer when a timer runs at soft interupt time. 
+	CritInterruptDisable(); 
 
-		//check and see if quanum has expired.
-		currentTime = TimerGetTime();
+	activeThread = SchedulerGetActiveThread();
 
-		if( currentTime >= QuantumEndTime )//TODO THE OVERFLOW CASE IS A BUG
+
+	if( currentTime - QuantumStartTime > activeThread->Priority ) {
+
+		//TODO: This should be a temporary fix for the double register scheduler bug.
+		if( MutexLock( &SchedulerMutex ) )
 		{
-			//If this fails, then the scheduler ran twice without a 
-			//context switch occuring. Because the context switch
-			//has been scheduled, we should return without switching again.
-			if( ContextCanSwitch() )
-			{
-
-				//quantum is over, so pick another thread.
-				priority = Schedule();
-
-				//Calculate the time to end our quantum.
-				QuantumEndTime = currentTime+priority;
-			}
+			//The quantum has expired, so we should register an eviction if possible.
+			CritInterruptRegisterHandler(
+					& SchedulerCritObject,
+					SchedulerCritHandler,
+					NULL );
 		}
-
-		//End our critical section, so that ContextSwitch 
-		//can acquire it.
-		ContextUnlock();
 	}
+
+	CritInterruptEnable();
 
 	//Register timer fire again.
 	TimerRegister( &SchedulerTimer,
 			1,
-			SchedulePostHandler,
+			SchedulerTimerHandler,
 			NULL);
+
 	return FALSE;
+}
+
+/*
+ * This function is the handler for the SchedulerCritObject. 
+ * It gets registered when someone wants to switch threads.
+ * It can be scheduled be queued by the scheduler timer firing 
+ * or a thread yielding.
+ */
+BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
+{
+	//Select the next thread to run.
+	//Re-queue the curring thread if he is giving up 
+	//conrol volontarily. 
+	Schedule();
+
+	//Reset the quantim start time so that 
+	//the timer will know when to wake the scheduler.
+	InterruptDisable();
+	QuantumStartTime = TimerGetTime();
+	InterruptEnable();
+
+	//Switch away from the current thread to another.
+	//This will release any held resources.
+	SchedulerSwitch();
+
+	return TRUE;
 }
 
 void SchedulerStartup()
@@ -358,13 +349,17 @@ void SchedulerStartup()
 	//Initialize queues
 	LinkedListInit( &RunQueue );
 	//Initialize the timer
-	TimerInit( & SchedulerTimer );
+	HandlerInit( & SchedulerTimer );
 	TimerRegister( & SchedulerTimer,
 		   	0, 
-			SchedulePostHandler,
+			SchedulerTimerHandler,
 			NULL	);
-
-	QuantumEndTime = 0;
+	
+	//Initialize the crit handler
+	MutexInit( &SchedulerMutex, FALSE );
+	HandlerInit( &SchedulerCritObject );
+	
+	QuantumStartTime = 0;
 	//Create a thread for idle loop.
 	SchedulerCreateThread( &IdleThread, //Thread 
 			1, //Priority
@@ -387,7 +382,7 @@ struct LOCKING_CONTEXT * SchedulerGetLockingContext()
 {
 	struct THREAD * activeThread;
 
-	ASSERT( ContextIsCritical() );
+	ASSERT( HalIsCritAtomic() );
 
 	activeThread = SchedulerGetActiveThread();
 	return &activeThread->LockingContext;
@@ -398,9 +393,10 @@ void SchedulerThreadStartup( void )
 	struct THREAD * thread;
 	
 	//Thread startup should occur in atomic section.
-	//We should not be in a critical section
+	//We are waking up from the trampoline, so we should not
+	//be in a critical section.
 	ASSERT( InterruptIsAtomic() );
-	ASSERT( !ContextIsCritical() );
+	ASSERT( !HalIsCritAtomic() );
 
 	//Start the thread.
 	
@@ -435,7 +431,7 @@ void SchedulerCreateThread(
 {
 	//Make sure data is valid
 	ASSERT( debugFlag < 8 );
-	ASSERT( ContextIsCritical() );
+	ASSERT( HalIsCritAtomic() );
 
 	//Populate thread struct
 	thread->Priority = priority;

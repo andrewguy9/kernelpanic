@@ -88,15 +88,6 @@ void TimerStartup( )
 	HalInitClock();
 }
 
-/*
- * Zeroes out fields in a timer. 
- */
-void TimerInit( struct HANDLER_OBJECT *newTimer )
-{
-	newTimer->Context = NULL;
-	HandlerInit( newTimer );
-}
-
 void TimerRegister( 
 		struct HANDLER_OBJECT * newTimer,
 		TIME wait,
