@@ -8,6 +8,8 @@
 #include"panic.h"
 #include"mutex.h"
 
+#include<stdio.h>
+
 /*
  * Scheduler Unit:
  * The Scheduler unit has three tasks:
@@ -74,7 +76,7 @@ void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 	
 #ifdef DEBUG
 	struct THREAD * activeThread = SchedulerGetActiveThread();
-	
+
 	//The context is embeded in a thread, extract it.
 	struct THREAD * thread = BASE_OBJECT( context,
 				struct THREAD,
@@ -177,6 +179,7 @@ void SchedulerResumeThread( struct THREAD * thread )
 	thread->State = THREAD_STATE_RUNNING;
 
 	LinkedListEnqueue( &thread->Link.LinkedListLink, &RunQueue );
+	printf( "Resuming thread %ld\n", thread->MachineContext.Flag );
 }
 
 BOOL SchedulerIsThreadDead( struct THREAD * thread )
@@ -210,6 +213,9 @@ void SchedulerBlockThread( )
 	activeThread = SchedulerGetActiveThread();
 
 	activeThread->State = THREAD_STATE_BLOCKED;
+	
+	printf( "Blocking thread %ld\n", activeThread->MachineContext.Flag );
+	
 }
 
 /*
@@ -224,6 +230,7 @@ void SchedulerSwitch()
 
 	InterruptDisable();
 	
+	printf( "----------------------------\n" );
 	ContextSwitch();
 
 	InterruptEnable();
@@ -272,6 +279,8 @@ void Schedule()
 	}
 
 	ContextSetNextContext( & nextThread->MachineContext );
+
+	printf("Switching from thread %ld to thread %ld\n", activeThread->MachineContext.Flag, nextThread->MachineContext.Flag );
 }//end Schedule
 
 /*
