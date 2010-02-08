@@ -91,7 +91,7 @@ int main()
 			STACK_SIZE,
 			ProducerMain,
 			NULL,
-			0,
+			1,
 			TRUE);
 	SchedulerCreateThread(
 			&Producer2,
@@ -100,7 +100,7 @@ int main()
 			STACK_SIZE,
 			ProducerMain,
 			NULL,
-			1,
+			2,
 			TRUE);
 	SchedulerCreateThread(
 			&Consumer1,
@@ -109,7 +109,7 @@ int main()
 			STACK_SIZE,
 			ConsumerMain,
 			NULL,
-			2,
+			3,
 			TRUE);
 	SchedulerCreateThread(
 			&Consumer2,
@@ -118,7 +118,7 @@ int main()
 			STACK_SIZE,
 			ConsumerMain,
 			NULL,
-			4,
+			5,
 			TRUE);
 
 	SchedulerCreateThread(
@@ -128,7 +128,7 @@ int main()
 			STACK_SIZE,
 			ConsumerMain,
 			NULL,
-			5,
+			6,
 			TRUE);
 	//Kick off the kernel.
 	KernelStart();
