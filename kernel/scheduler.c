@@ -44,6 +44,7 @@
 void Schedule();
 BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler );
 BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler );
+void SchedulerNeedsSwitch();
 
 struct LINKED_LIST RunQueue;
 
@@ -164,7 +165,9 @@ void  SchedulerForceSwitch()
 {
 	ASSERT( CritInterruptIsAtomic() );
 	
-	//TODO
+	SchedulerNeedsSwitch();
+	SchedulerEndCritical();
+	ASSERT( !CritInterruptIsAtomic() );
 }
 
 /*
@@ -214,6 +217,8 @@ void SchedulerBlockThread( )
 
 	activeThread->State = THREAD_STATE_BLOCKED;
 	
+	SchedulerNeedsSwitch();
+
 	printf( "Blocking thread %ld\n", activeThread->MachineContext.Flag );
 	
 }
@@ -284,6 +289,23 @@ void Schedule()
 }//end Schedule
 
 /*
+ * Raises a context switch if needed
+ */
+void SchedulerNeedsSwitch()
+{
+	ASSERT( HalIsCritAtomic() );
+
+	if( MutexLock( &SchedulerMutex ) )
+	{
+		//The quantum has expired, so we should register an eviction if possible.
+		CritInterruptRegisterHandler(
+				& SchedulerCritObject,
+				SchedulerCritHandler,
+				NULL );
+	}
+}
+
+/*
  * Called by the Timer as a PostInterruptHandler.
  * Will try to schedule. If we cant, then we 
  * mark the quantum as expired so that when the
@@ -305,16 +327,7 @@ BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
 
 
 	if( currentTime - QuantumStartTime > activeThread->Priority ) {
-
-		//TODO: This should be a temporary fix for the double register scheduler bug.
-		if( MutexLock( &SchedulerMutex ) )
-		{
-			//The quantum has expired, so we should register an eviction if possible.
-			CritInterruptRegisterHandler(
-					& SchedulerCritObject,
-					SchedulerCritHandler,
-					NULL );
-		}
+		SchedulerNeedsSwitch();
 	}
 
 	CritInterruptEnable();

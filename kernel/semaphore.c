@@ -31,14 +31,14 @@ void SemaphoreDown( struct SEMAPHORE * lock, struct LOCKING_CONTEXT * context )
 	printf("down\n");
 	if( lock->Count == 0 )
 	{//block the thread
-		printf( "\tblocking on lock %x, context %x\n", lock, context );
+		printf( "\tblocking on lock %p, context %p\n", lock, context );
 		union LINK * link = LockingBlock( NULL, context );
 		LinkedListEnqueue( &link->LinkedListLink,
 			   	&lock->WaitingThreads);
 	}
 	else
 	{
-		printf( "\tacquired lock %x\n", lock );
+		printf( "\tacquired lock %p\n", lock );
 		lock->Count--;
 		LockingAcquire( context );	
 	}
@@ -52,7 +52,7 @@ void SemaphoreUp( struct SEMAPHORE * lock )
 	printf("up\n");
 	if( ! LinkedListIsEmpty( & lock->WaitingThreads ) )
 	{
-		printf( "\tacquired lock %x\n", lock );
+		printf( "\tacquired lock %p\n", lock );
 		context = BASE_OBJECT(
 				LinkedListPop( &lock->WaitingThreads ),
 				struct LOCKING_CONTEXT,
