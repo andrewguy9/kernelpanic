@@ -364,7 +364,8 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 	//This will release any held resources.
 	SchedulerSwitch();
 
-	return TRUE;
+	//TODO: I think returning false here will help.
+	return FALSE;
 }
 
 void SchedulerStartup()
