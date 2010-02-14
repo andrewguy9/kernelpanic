@@ -1,6 +1,7 @@
 #ifndef SOFT_INTERRUPT_H
 #define SOFT_INTERRUPT_H
 
+#include"interrupt.h"
 #include"../utils/utils.h"
 #include"handler.h"
 
@@ -22,7 +23,7 @@ void SoftInterruptIncrement();
 
 void SoftInterruptDecrement();
 
-void SoftInterruptDefer();
+void SoftInterruptDefer( enum INTERRUPT_LEVEL level, BOOL enable );
 
 //
 //Functions for Sanity Checking

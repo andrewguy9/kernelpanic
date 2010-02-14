@@ -47,10 +47,12 @@ void CritInterruptStartup()
  */
 void CritInterruptDisable()
 {
-	if( CritInterruptLevel++ == 0 ) 
+	if( CritInterruptLevel == 0 ) 
 	{
-		InterruptDefer();
+		InterruptDefer( INTERRUPT_LEVEL_CRIT, FALSE);
 	}
+
+	CritInterruptLevel++;
 }
 
 /*
@@ -73,7 +75,7 @@ void CritInterruptEnable()
 		//NOTE: Even though this is the crit unit we still must 
 		//call InterruptDefer (Because we still may need a full
 		//interrupt mask).
-		InterruptDefer();
+		InterruptDefer( INTERRUPT_LEVEL_CRIT, TRUE );
 	}
 }
 
@@ -199,9 +201,9 @@ void CritInterruptRegisterHandler(
  * If CritInterrupts are disabled we will apply that mask,
  * otherwise we will enable all interrupts.
  */
-void CritInterruptDefer()
+void CritInterruptDefer( enum INTERRUPT_LEVEL level, BOOL enable )
 {
-	if( CritInterruptLevel > 0 )
+	if( CritInterruptLevel > 0 || (level == INTERRUPT_LEVEL_CRIT && ! enable ) )
 	{
 		//Crit Interrupts are disabled, so we should set the 
 		//crit disabled mask.

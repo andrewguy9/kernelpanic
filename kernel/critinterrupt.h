@@ -4,6 +4,7 @@
 #include"../utils/utils.h"
 #include"handler.h"
 #include"../utils/linkedlist.h"
+#include"interrupt.h"
 
 //
 //Unit Management
@@ -23,7 +24,7 @@ void CritInterruptIncrement();
 
 void CritInterruptDecrement();
 
-void CritInterruptDefer();
+void CritInterruptDefer( enum INTERRUPT_LEVEL level, BOOL enable );
 
 //
 //Functions for Sanity Checking
