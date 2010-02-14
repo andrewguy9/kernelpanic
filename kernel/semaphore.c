@@ -1,8 +1,6 @@
 #include"semaphore.h"
 #include"../utils/linkedlist.h"
 
-#include<stdio.h>
-
 /*
  * Semaphore Unit Description
  * Implements a semaphore as a thread only syncronization mechanism. 
@@ -28,17 +26,14 @@ void SemaphoreInit( struct SEMAPHORE * lock, COUNT count )
 void SemaphoreDown( struct SEMAPHORE * lock, struct LOCKING_CONTEXT * context )
 {//LOCK
 	LockingStart();
-	printf("down\n");
 	if( lock->Count == 0 )
 	{//block the thread
-		printf( "\tblocking on lock %p, context %p\n", lock, context );
 		union LINK * link = LockingBlock( NULL, context );
 		LinkedListEnqueue( &link->LinkedListLink,
 			   	&lock->WaitingThreads);
 	}
 	else
 	{
-		printf( "\tacquired lock %p\n", lock );
 		lock->Count--;
 		LockingAcquire( context );	
 	}
@@ -49,10 +44,8 @@ void SemaphoreUp( struct SEMAPHORE * lock )
 {//UNLOCK
 	struct LOCKING_CONTEXT * context;
 	LockingStart();
-	printf("up\n");
 	if( ! LinkedListIsEmpty( & lock->WaitingThreads ) )
 	{
-		printf( "\tacquired lock %p\n", lock );
 		context = BASE_OBJECT(
 				LinkedListPop( &lock->WaitingThreads ),
 				struct LOCKING_CONTEXT,
