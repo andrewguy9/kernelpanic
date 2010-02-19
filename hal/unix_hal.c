@@ -26,8 +26,8 @@ unsigned int HalWatchdogCount;
 struct itimerval TimerInterval;
 
 /*
-                |SIGALRM|SIGUSR1|SIGUSR2|SIGINFO|
--------------------------------------------------
+                 |SIGALRM|SIGUSR1|SIGUSR2|SIGINFO|
+--------------------------------------------------
 InterruptMask    |*******|*******|*******|*******|
 SoftInterruptMask|       |*******|*******|*******|
 CritInterruptMask|       |       |*******|*******|
