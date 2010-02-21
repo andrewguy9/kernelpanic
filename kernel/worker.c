@@ -30,7 +30,7 @@ struct WORKER_ITEM * WorkerGetItem()
 		return BASE_OBJECT( link, struct WORKER_ITEM, Link );
 }
 
-void AddItem( struct WORKER_ITEM * worker )
+void WorkerAddItem( struct WORKER_ITEM * worker )
 {
 	InterruptDisable();
 	LinkedListEnqueue( &worker->Link.LinkedListLink, &WorkerItemQueue );
@@ -67,7 +67,7 @@ void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
 		case LOCKING_STATE_BLOCKING:
 			//We acquired the lock after blocking.
 			//mark as acquired and add to work queue.
-			AddItem(worker);
+			WorkerAddItem(worker);
 			context->State = LOCKING_STATE_ACQUIRED;
 			break;
 
