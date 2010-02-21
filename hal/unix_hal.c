@@ -9,10 +9,26 @@
 //Define signal to kernel interrupt mappings.
 //
 
+#ifdef DARWIN
 #define HAL_SIGNAL_TRAMPOLINE SIGINFO
 #define HAL_SIGNAL_TIMER SIGALRM
 #define HAL_SIGNAL_SOFT SIGUSR1
 #define HAL_SIGNAL_CRIT SIGUSR2
+#endif
+
+#ifdef LINUX
+#define HAL_SIGNAL_TRAMPOLINE SIGCHLD
+#define HAL_SIGNAL_TIMER SIGALRM
+#define HAL_SIGNAL_SOFT SIGUSR1
+#define HAL_SIGNAL_CRIT SIGUSR2
+#endif
+
+#ifdef BSD
+#define HAL_SIGNAL_TRAMPOLINE SIGINFO
+#define HAL_SIGNAL_TIMER SIGALRM
+#define HAL_SIGNAL_SOFT SIGUSR1
+#define HAL_SIGNAL_CRIT SIGUSR2
+#endif
 
 //
 //Unix Globals.
