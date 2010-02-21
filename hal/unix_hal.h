@@ -1,4 +1,15 @@
+#ifdef DARWIN
 #define HAL_MIN_STACK_SIZE MINSIGSTKSZ
+#endif
+
+#ifdef LINUX
+#define HAL_MIN_STACK_SIZE 32768
+#endif
+
+#ifdef BSD
+#define HAL_MIN_STACK_SIZE 32768
+#endif
+
 
 #include<setjmp.h>
 #include<stdlib.h>
