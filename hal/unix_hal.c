@@ -68,9 +68,9 @@ struct sigaction CritAction;
 struct sigaction SwitchStackAction;
 
 //Prototype for later use.
-void HalUnixTimer( int SignalNumber );
-void SoftHandler( int SignalNumber );
-void CritHandler( int SignalNumber );
+void HalTimerHandler( int SignalNumber );
+void HalSoftHandler( int SignalNumber );
+void HalCritHandler( int SignalNumber );
 void HalStackTrampoline( int SignalNumber );
 
 void HalStartup()
@@ -132,7 +132,7 @@ void HalStartup()
 	 */
 
 	//Create the timer action.
-	TimerAction.sa_handler = HalUnixTimer;
+	TimerAction.sa_handler = HalTimerHandler;
 	TimerAction.sa_mask = InterruptMask;
 	TimerAction.sa_flags = 0;
 	status = sigaction( HAL_SIGNAL_TIMER, &TimerAction, NULL );
@@ -140,14 +140,14 @@ void HalStartup()
 
 
 	//Create the soft action.
-	SoftAction.sa_handler = SoftHandler;
+	SoftAction.sa_handler = HalSoftHandler;
 	SoftAction.sa_mask = SoftInterruptMask;
 	SoftAction.sa_flags = 0;
 	status = sigaction( HAL_SIGNAL_SOFT, &SoftAction, NULL );
 	ASSERT( status == 0 );	
 
 	//Create the crit action.
-	CritAction.sa_handler = CritHandler;
+	CritAction.sa_handler = HalCritHandler;
 	CritAction.sa_mask = CritInterruptMask;
 	CritAction.sa_flags = 0;
 	status = sigaction( HAL_SIGNAL_CRIT, &CritAction, NULL );
@@ -342,7 +342,7 @@ void TimerInterrupt();
  * Acts like the hardware clock.
  * Calls TimerInterrupt and updates watchdog.
  */
-void HalUnixTimer( int SignalNumber )
+void HalTimerHandler( int SignalNumber )
 {
 	//The kernel should add this signal to the blocked list inorder to avoid 
 	//nesting calls the the handler.
@@ -371,7 +371,7 @@ void HalUnixTimer( int SignalNumber )
 void SoftInterrupt();
 void CritInterrupt();
 
-void SoftHandler( int SignalNumber )
+void HalSoftHandler( int SignalNumber )
 {
 	SoftInterrupt();
 }
@@ -380,7 +380,7 @@ void SoftHandler( int SignalNumber )
  * Handler for the Crit ISRs. 
  * This is just a stub.
  */
-void CritHandler( int SignalNumber )
+void HalCritHandler( int SignalNumber )
 {
 	CritInterrupt(); 
 }
