@@ -1,51 +1,38 @@
 #include"sleep.h"
 #include"scheduler.h"
 #include"timer.h"
-#include"worker.h"
+#include"critinterrupt.h"
 
 /*
- * Sleep Unit Description
- * Allows threads to request a time out from execution. 
+ * This function is called by the SleepTimerHandler when
+ * its time to wake a thread. This function runs in 
+ * a critical section so it can wake a thread.
  */
-
-struct SLEEP_TIMER_CONTEXT
+BOOL SleepCritHandler( struct HANDLER_OBJECT * handler ) 
 {
-	struct WORKER_ITEM WorkItem;
-	struct THREAD * Thread;
-};
+	struct THREAD * thread = handler->Context;
 
-/*
- * This function is a work item handler which 
- * wakes the thread specified in context.
- */
-enum WORKER_RETURN SleepWorkItemHandler( struct WORKER_ITEM * item )
-{
-	struct THREAD * thread = item->Context;
-
-	SchedulerStartCritical();
+	ASSERT( SchedulerIsCritical() );
 	SchedulerResumeThread( thread );
-	SchedulerEndCritical();
-	
-	return WORKER_FINISHED;
+
+	return TRUE;
 }
 
 /*
- * This is function is called when a thread has 
+ * This function is called when a thread has 
  * called Sleep(), and the time he specified 
  * has passed. 
  *
- * We will schedule a work item to wake the thread.
+ * We will schedule a critical handler which can wake threads.
  */
 BOOL SleepTimerHandler( struct HANDLER_OBJECT * timer )
 {
-	struct SLEEP_TIMER_CONTEXT * sleepContext = timer->Context;
+	CritInterruptRegisterHandler(
+			timer, 
+			SleepCritHandler, 
+			timer->Context );
 
-	WorkerInitItem(
-			SleepWorkItemHandler,
-			sleepContext->Thread,
-			& sleepContext->WorkItem);
-
-	return TRUE;
+	return FALSE;
 }
 
 /*
@@ -53,19 +40,18 @@ BOOL SleepTimerHandler( struct HANDLER_OBJECT * timer )
  * The timer will fire at wake time.
  * The timer cannot reactivate the thread because it may fire 
  * durring a thread critical section. So the timer will register
- * a work item to wake the thread.
+ * a critical section handler.
  *
  * In order to do this Sleep must use a HANDLER_OBJECT for
- * the timer and a WORKER_ITEM for the work item. We are going
- * to allocate these on the stack.
+ * the timer and crit handler. I will allocate this on the stack.
  */
 void Sleep( COUNT time )
 {
 	struct HANDLER_OBJECT timer;
-	struct SLEEP_TIMER_CONTEXT context;
+	struct THREAD * thread;
 
 	//The handler will have to know which thread to wake.
-	context.Thread = SchedulerGetActiveThread();
+	thread = SchedulerGetActiveThread();
 
 	//We have to enter a critical section because if the timer
 	//fires immediatly, we cannot let the worker try to wake the 
@@ -76,7 +62,7 @@ void Sleep( COUNT time )
 	HandlerInit( &timer );
 
 	//Register the timer.
-	TimerRegister( &timer, time, SleepTimerHandler, &context );
+	TimerRegister( &timer, time, SleepTimerHandler, thread );
 
 	//Sleep the current thread.
 	SchedulerBlockThread();

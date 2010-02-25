@@ -5,7 +5,6 @@
 #include"../kernel/startup.h"
 #include"../kernel/interrupt.h"
 #include"../kernel/panic.h"
-#include"../kernel/worker.h"
 #include"../kernel/critinterrupt.h"
 
 /*
@@ -18,31 +17,36 @@ COUNT Sequence[SEQUENCE_LENGTH] = {2,4,8,16,32,64,128,256};
 
 //Define Thread
 struct THREAD SleeperThread;
-struct THREAD WorkerThread;
 
 #define STACK_SIZE HAL_MIN_STACK_SIZE
 
 char SleeperStack[STACK_SIZE];
-char WorkerStack[STACK_SIZE];
 
 //Define Timer
 struct HANDLER_OBJECT Timer;
 
 COUNT TimerCycles;//Times we have run the test.
 
+//Crit Function
+BOOL CritHandler( struct HANDLER_OBJECT * handler )
+{
+	ASSERT( SchedulerIsCritical() );
+	if( !SchedulerIsThreadBlocked( &SleeperThread ) ) {
+		KernelPanic( );
+	}
+
+	return TRUE;
+}
+
 //Timer Function
 BOOL TimerHandler( struct HANDLER_OBJECT * handler )
 {
-	//Opportunistically lock the thread structures.
-	//If we can't get it we should not validate.
-	CritInterruptDisable();
-		if( !SchedulerIsThreadBlocked( &SleeperThread ) ) {
-			KernelPanic( );
+	CritInterruptRegisterHandler(
+			handler,
+			CritHandler,
+			NULL );
 
-		}
-	CritInterruptEnable();
-
-	return TRUE;
+	return FALSE;
 }
 
 //Thread Main
@@ -93,12 +97,6 @@ int main()
 			NULL,
 			2,
 			TRUE);
-
-	WorkerCreateWorker(
-			&WorkerThread,
-			WorkerStack,
-			STACK_SIZE,
-			3);
 
 	KernelStart();
 	return 0;
