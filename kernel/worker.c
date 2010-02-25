@@ -89,14 +89,8 @@ void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
 }
 
 //
-//Public Functions
+//Thread Main for worker threads
 //
-
-void WorkerStartup()
-{
-	LinkedListInit( & WorkerItemQueue );
-	SemaphoreInit( & WorkerLock, 0 );
-}
 
 void WorkerThreadMain()
 {
@@ -133,6 +127,16 @@ void WorkerThreadMain()
 				break;
 		}// end switch
 	}// end while(TRUE).
+}
+
+//
+//Public Functions
+//
+
+void WorkerStartup()
+{
+	LinkedListInit( & WorkerItemQueue );
+	SemaphoreInit( & WorkerLock, 0 );
 }
 
 void WorkerCreateWorker(
