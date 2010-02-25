@@ -57,7 +57,9 @@ enum WORKER_RETURN WorkerConsumerTask( struct WORKER_ITEM * item )
 
 enum WORKER_RETURN WorkerProducerTask( struct WORKER_ITEM * item )
 {
+	struct WORKER_CONTEXT * workContext = WorkerGetContext( item );
 	SemaphoreUp( &Semaphore );
+	workContext->Count++;
 	return WORKER_FINISHED;
 }
 

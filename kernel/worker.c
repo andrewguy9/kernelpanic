@@ -3,14 +3,18 @@
 #include"interrupt.h"
 #include"scheduler.h"
 #include"panic.h"
+#include"semaphore.h"
 
 /*
  * Worker Unit:
  * The worker unit allows for threads or ISRs to
  * queue work items. 
+ *
+ * TODO: Make work queue per work thread.
  */
 
 struct LINKED_LIST WorkerItemQueue;
+struct SEMAPHORE WorkerLock;
 
 //
 //Helper Functions
@@ -20,19 +24,25 @@ struct WORKER_ITEM * WorkerGetItem()
 {
 	struct LINKED_LIST_LINK * link;
 
+	SemaphoreDown( & WorkerLock, NULL );
+
 	InterruptDisable();
 	link = LinkedListPop( &WorkerItemQueue );
 	InterruptEnable();
 
-	if( link == NULL )
-		return NULL;
-	else
-		return BASE_OBJECT( link, struct WORKER_ITEM, Link );
+	ASSERT( link != NULL );
+	return BASE_OBJECT( link, struct WORKER_ITEM, Link );
 }
 
 void WorkerAddItem( struct WORKER_ITEM * worker )
 {
+
+	SemaphoreUp( & WorkerLock );
+
+	//We mark finished inside interrupt section so that WorkerItemIsFinished
+	//returns accurate results.
 	InterruptDisable();
+	worker->Finished = FALSE;
 	LinkedListEnqueue( &worker->Link.LinkedListLink, &WorkerItemQueue );
 	InterruptEnable();
 }
@@ -84,7 +94,8 @@ void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
 
 void WorkerStartup()
 {
-	LinkedListInit( & WorkerItemQueue );	
+	LinkedListInit( & WorkerItemQueue );
+	SemaphoreInit( & WorkerLock, 0 );
 }
 
 void WorkerThreadMain()
@@ -98,38 +109,29 @@ void WorkerThreadMain()
 		//Fetch a handler
 		item = WorkerGetItem();
 
-		if( item == NULL )
+		ASSERT(! item->Finished );
+		//there is a item, so execute it.
+		result = item->Foo(item);
+
+		//Determine what to do with work item.
+		switch( result )
 		{
-			//there is no item, lets switch threads rather than spinning.
-			SchedulerStartCritical();
-			SchedulerForceSwitch();
-		}
-		else
-		{
-			ASSERT(! item->Finished );
-			//there is a item, so execute it.
-			result = item->Foo(item);
+			case WORKER_FINISHED:
+				//the item is done, mark so caller knows.
+				item->Finished = TRUE;
+				break;
 
-			//Determine what to do with work item.
-			switch( result )
-			{
-				case WORKER_FINISHED:
-					//the item is done, mark so caller knows.
-					item->Finished = TRUE;
-					break;
+			case WORKER_BLOCKED:
+				//the work item is blocked on a lock, the lock will 
+				//re-queue the work item when the lock has been acquired.
+				break;
 
-				case WORKER_BLOCKED:
-					//the work item is blocked on a lock, the lock will 
-					//re-queue the work item when the lock has been acquired.
-					break;
-
-				case WORKER_PENDED:
+			case WORKER_PENDED:
 				//the item needs more processing. 
 				//add back into queue.
 				LinkedListEnqueue( &item->Link.LinkedListLink, &WorkerItemQueue );
 				break;
-			}
-		}
+		}// end switch
 	}// end while(TRUE).
 }
 
@@ -162,12 +164,7 @@ void WorkerInitItem( WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * i
 
 
 	//Now we are going to insert the work item into the list.
-	//We mark finished inside interrupt section so that WorkerItemIsFinished
-	//returns accurate results.
-	InterruptDisable();
-	item->Finished = FALSE;
-	LinkedListEnqueue( &item->Link.LinkedListLink, &WorkerItemQueue );
-	InterruptEnable();
+	WorkerAddItem( item );
 }
 
 /*
