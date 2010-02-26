@@ -1,5 +1,6 @@
 #include"metrics.h"
 
+//TODO REMOVE THIS UNIT
 void MeterPercentage( COUNT events, COUNT trials, COUNT sensitivity, struct METER * meter )
 {
 	ASSERT( meter != NULL );

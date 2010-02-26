@@ -353,6 +353,7 @@ void HalTimerHandler( int SignalNumber )
 	TimerInterrupt();
 
 	//TODO IF POSSIBLE, MOVE WATCHDOG INTO OWN TIMER.
+	//It looks like it is possible according to man setitimer
 	//Run the watchdog check
 	if( HalWatchdogOn )
 	{

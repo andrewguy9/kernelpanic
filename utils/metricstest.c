@@ -3,6 +3,7 @@
 
 #include"metrics.h"
 
+//TODO remove this unit.
 void CheckState( struct METER * meter)
 {
 	if(MeterCheck(meter))
