@@ -130,6 +130,7 @@ void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
  * threads level atomicy without having to turn interrupts off.
  *
  * SchedulerStartCritical CANNOT be called recursively. 
+ * TODO: We can we replaced with CritInterruptDisable
  */
 void SchedulerStartCritical( )
 {
@@ -138,6 +139,7 @@ void SchedulerStartCritical( )
 
 /*
  * Re-enables the scheduler. 
+ * TODO: We can replace this with calls to CritInterruptEnable
  */
 void SchedulerEndCritical()
 {
@@ -149,6 +151,7 @@ void SchedulerEndCritical()
  * Returns 'TRUE' if the scheduler is turned off (is critical section).
  * returns 'FALSE' if the scheduler is turned on (not critical section).
  * Should be used in ASSERTs only.
+ * TODO: We can move from this CritInterruptIsAtomic
  */
 BOOL SchedulerIsCritical()
 {
