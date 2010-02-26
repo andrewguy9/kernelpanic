@@ -21,7 +21,7 @@ struct WORKER_CONTEXT
 char WorkerStack[STACK_SIZE];
 char MainStack[STACK_SIZE];
 
-struct THREAD WorkerThread;
+struct WORKER_QUEUE WorkerQueue;
 struct THREAD MainThread;
 
 struct SEMAPHORE Semaphore;
@@ -71,18 +71,18 @@ struct WORKER_CONTEXT ConsumerContext;
 
 void ThreadMain()
 {
-	WorkerInitItem( WorkerProducerTask, &ProducerContext, &ProducerItem );
-	WorkerInitItem( WorkerConsumerTask, &ConsumerContext, &ConsumerItem );
+	WorkerInitItem( &WorkerQueue, WorkerProducerTask, &ProducerContext, &ProducerItem );
+	WorkerInitItem( &WorkerQueue, WorkerConsumerTask, &ConsumerContext, &ConsumerItem );
 	while(TRUE)
 	{
 		if( WorkerItemIsFinished(&ProducerItem) )
 		{
-			WorkerInitItem( WorkerProducerTask, &ProducerContext, &ProducerItem );
+			WorkerInitItem( &WorkerQueue, WorkerProducerTask, &ProducerContext, &ProducerItem );
 		}
 
 		if( WorkerItemIsFinished(&ConsumerItem) )
 		{
-			WorkerInitItem( WorkerConsumerTask, &ConsumerContext, &ConsumerItem );
+			WorkerInitItem( &WorkerQueue, WorkerConsumerTask, &ConsumerContext, &ConsumerItem );
 		}
 	}
 }
@@ -103,7 +103,7 @@ int main()
 			TRUE );
 
 	WorkerCreateWorker(
-			&WorkerThread,
+			&WorkerQueue,
 			WorkerStack,
 			STACK_SIZE,
 			1 );

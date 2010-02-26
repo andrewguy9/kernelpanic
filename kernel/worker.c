@@ -3,47 +3,44 @@
 #include"interrupt.h"
 #include"scheduler.h"
 #include"panic.h"
-#include"semaphore.h"
 
 /*
  * Worker Unit:
  * The worker unit allows for threads or ISRs to
  * queue work items. 
  *
- * TODO: Make work queue per work thread.
+ * TODO: See if we can move from enable/disable interrupt to crit.
  */
-
-struct LINKED_LIST WorkerItemQueue;
-struct SEMAPHORE WorkerLock;
 
 //
 //Helper Functions
 //
 
-struct WORKER_ITEM * WorkerGetItem()
+struct WORKER_ITEM * WorkerGetItem( struct WORKER_QUEUE * queue )
 {
 	struct LINKED_LIST_LINK * link;
 
-	SemaphoreDown( & WorkerLock, NULL );
+	SemaphoreDown( & queue->Lock, NULL );
 
 	InterruptDisable();
-	link = LinkedListPop( &WorkerItemQueue );
+	link = LinkedListPop( & queue->List );
 	InterruptEnable();
 
 	ASSERT( link != NULL );
 	return BASE_OBJECT( link, struct WORKER_ITEM, Link );
 }
 
-void WorkerAddItem( struct WORKER_ITEM * worker )
+void WorkerAddItem( struct WORKER_QUEUE * queue, struct WORKER_ITEM * item )
 {
 
-	SemaphoreUp( & WorkerLock );
+	SemaphoreUp( & queue->Lock );
 
 	//We mark finished inside interrupt section so that WorkerItemIsFinished
 	//returns accurate results.
 	InterruptDisable();
-	worker->Finished = FALSE;
-	LinkedListEnqueue( &worker->Link.LinkedListLink, &WorkerItemQueue );
+	item->Finished = FALSE;
+	item->Queue = queue;
+	LinkedListEnqueue( &item->Link.LinkedListLink, & queue->List );
 	InterruptEnable();
 }
 
@@ -61,10 +58,12 @@ void WorkerBlockOnLock( struct LOCKING_CONTEXT * context )
 void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
 {
 	struct WORKER_ITEM * worker;
+	struct WORKER_QUEUE * queue;
 
 	worker = BASE_OBJECT( context,
 				struct WORKER_ITEM,
 				LockingContext);
+	queue = worker->Queue;
 
 	switch( context->State )
 	{
@@ -77,7 +76,7 @@ void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
 		case LOCKING_STATE_BLOCKING:
 			//We acquired the lock after blocking.
 			//mark as acquired and add to work queue.
-			WorkerAddItem(worker);
+			WorkerAddItem( queue, worker );
 			context->State = LOCKING_STATE_ACQUIRED;
 			break;
 
@@ -92,16 +91,27 @@ void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
 //Thread Main for worker threads
 //
 
-void WorkerThreadMain()
+void WorkerThreadMain( void * arg )
 {
+	struct WORKER_QUEUE * queue;
+	struct THREAD * thread;
+	struct SEMAPHORE * lock;
+	struct LINKED_LIST * list;
+
 	struct WORKER_ITEM * item;
 	enum WORKER_RETURN result;
+
+	//Get the Work Thread Context
+	queue = arg;
+	thread = & queue->Thread;
+	lock = & queue->Lock;
+	list = & queue->List;
 	
 	//Loop consuming work items. 
 	while(TRUE)
 	{
 		//Fetch a handler
-		item = WorkerGetItem();
+		item = WorkerGetItem( queue );
 
 		ASSERT(! item->Finished );
 		//there is a item, so execute it.
@@ -123,7 +133,7 @@ void WorkerThreadMain()
 			case WORKER_PENDED:
 				//the item needs more processing. 
 				//add back into queue.
-				LinkedListEnqueue( &item->Link.LinkedListLink, &WorkerItemQueue );
+				LinkedListEnqueue( &item->Link.LinkedListLink, list );
 				break;
 		}// end switch
 	}// end while(TRUE).
@@ -133,30 +143,24 @@ void WorkerThreadMain()
 //Public Functions
 //
 
-void WorkerStartup()
-{
-	LinkedListInit( & WorkerItemQueue );
-	SemaphoreInit( & WorkerLock, 0 );
-}
-
 void WorkerCreateWorker(
-		struct THREAD * thread,
+		struct WORKER_QUEUE * queue,
 		char * stack,
 		unsigned int stackSize,
 		INDEX flag)
 {
 	SchedulerCreateThread( 
-			thread,
+			&queue->Thread,
 			10,
 			stack,
 			stackSize,
 			WorkerThreadMain,
-			NULL,
+			queue,
 			flag,
 			TRUE);
 }
 
-void WorkerInitItem( WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  )
+void WorkerInitItem( struct WORKER_QUEUE * queue, WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  )
 {
 	//Its assumed that the caller of WorkerInitItem is the sole owner of the item
 	//at the time it is called. This means we dont have to disable interrupts around
@@ -168,7 +172,7 @@ void WorkerInitItem( WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * i
 
 
 	//Now we are going to insert the work item into the list.
-	WorkerAddItem( item );
+	WorkerAddItem(queue, item );
 }
 
 /*
