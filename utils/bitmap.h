@@ -1,5 +1,5 @@
-#ifndef FLAGS_H
-#define FLAGS_H
+#ifndef BITMAP_H
+#define BITMAP_H
 
 #include"utils.h"
 
@@ -43,4 +43,5 @@ void FlagsPrint( FLAG_WORD flags[], COUNT numFlags );
 void FlagsClear(FLAG_WORD * flags, COUNT numFlags);
 
 INDEX FlagsGetFirstFlag(FLAG_WORD * flags, COUNT numFlags);
+
 #endif
