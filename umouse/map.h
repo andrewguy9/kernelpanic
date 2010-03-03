@@ -2,7 +2,7 @@
 #define MAP_H
 
 #include"../utils/utils.h"
-#include"../utils/flags.h"
+#include"../utils/bitmap.h"
 #include"compass.h"
 
 //

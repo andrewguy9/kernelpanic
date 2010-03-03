@@ -2,7 +2,7 @@
 #include"hal.h"
 #include"panic.h"
 #include"interrupt.h"
-#include"../utils/flags.h"
+#include"../utils/bitmap.h"
 
 /*
  * Watchdog System:

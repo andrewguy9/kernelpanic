@@ -1,7 +1,7 @@
 #ifndef POSITION_LOG_H
 #define POSITION_LOG_H
 
-#include"../utils/flags.h"
+#include"../utils/bitmap.h"
 #include"../utils/utils.h"
 
 #define SCAN_LOG_SIZE(width,height) (FlagSize((width)*(height)))

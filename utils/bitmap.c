@@ -1,4 +1,4 @@
-#include"flags.h"
+#include"bitmap.h"
 
 /*
  * Presents an abstraction for multi word flags.

@@ -1,6 +1,6 @@
 #include"floodfill.h"
 #include"map.h"
-#include"../utils/flags.h"
+#include"../utils/bitmap.h"
 #define WIDTH 8
 #define HEIGHT 8
 

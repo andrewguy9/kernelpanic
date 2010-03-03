@@ -6,7 +6,7 @@ utils/$(TARGET)_heap.o: utils/heap.c utils/heap.h
 
 utils/$(TARGET)_ringbuffer.o: utils/ringbuffer.c utils/ringbuffer.h
 
-utils/$(TARGET)_flags.o: utils/flags.c utils/flags.h
+utils/$(TARGET)_bitmap.o: utils/bitmap.c utils/bitmap.h
 
 utils/$(TARGET)_bham.o: utils/bham.c utils/bham.h
 
@@ -22,7 +22,7 @@ utils/$(TARGET)_treetest.o: utils/treetest.c
 
 utils/$(TARGET)_ringtest.o: utils/ringtest.c
 
-utils/$(TARGET)_flagtest.o: utils/flagtest.c
+utils/$(TARGET)_bitmaptest.o: utils/bitmaptest.c
 
 utils/$(TARGET)_bhamtest.o: utils/bhamtest.c
 

@@ -1,5 +1,5 @@
 #include"map.h"
-#include"../utils/flags.h"
+#include"../utils/bitmap.h"
 #include"../utils/utils.h"
 
 /*
