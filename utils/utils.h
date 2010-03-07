@@ -30,14 +30,15 @@ typedef unsigned char BOOL;
 //
 //MATH MACROS
 //
-#define MAX( A, B ) ((A)>(B) ? (A) : (B) )
-#define MIN( A, B ) ((A)<(B) ? (A) : (B) )
-#define ASSENDING( A, B, C ) ((A) <= (B) && (B) <= (C))
+#define MAX( a, b ) ((a)>(b) ? (a) : (b) )
+#define MIN( a, b ) ((a)<(b) ? (a) : (b) )
+#define CLAMP(value, max, min) (MIN(MAX(min, value), max))
+#define ASSENDING( a, b, c ) ((a) <= (b) && (b) <= (c))
 //Returns the byte offset of FIELD in TYPE
-#define OFFSET_OF( TYPE, FIELD ) ((INDEX)(&(((TYPE *)0)->FIELD)))
+#define OFFSET_OF( type, field ) ((INDEX)(&(((type *)0)->field)))
 //Returns a pointer to the base structure 
 //given a pointer to a field.
-#define BASE_OBJECT( PTR, BASE, FIELD ) ((BASE*)((INDEX)(PTR) - OFFSET_OF(BASE,FIELD)))
+#define BASE_OBJECT( ptr, base, field ) ((base*)((INDEX)(ptr) - OFFSET_OF(base,field)))
 
 //
 //  Assert and Assume
