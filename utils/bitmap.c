@@ -13,8 +13,6 @@
  * FlagOff - Turn off a flag
  *
  * FlagGet - returns a flags status.
- *
- * TODO RENAME THIS UNIT TO BITMAP
  */
 
 #ifdef PC_BUILD
