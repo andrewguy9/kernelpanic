@@ -7,7 +7,7 @@
 //  Private Macros for doing library math
 //
 typedef int FLAG_WORD;
-#define FlagWordSize  (sizeof(FLAG_WORD) * 8)
+#define FlagWordSize (sizeof(FLAG_WORD) * 8)
 
 #define FlagIndex( Index ) ((Index)/(FlagWordSize))
 #define FlagOffset( Index ) ((Index)%((FlagWordSize)))
@@ -43,5 +43,8 @@ void FlagsPrint( FLAG_WORD flags[], COUNT numFlags );
 void FlagsClear(FLAG_WORD * flags, COUNT numFlags);
 
 INDEX FlagsGetFirstFlag(FLAG_WORD * flags, COUNT numFlags);
+
+//TODO It would be nice to have a FlagsGetBlock 
+//function to work in allocators and bloom filters.
 
 #endif
