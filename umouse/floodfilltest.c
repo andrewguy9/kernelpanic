@@ -63,9 +63,9 @@ void MakeLines(COUNT hSkip, COUNT vSkip, struct MAP * map, enum DIRECTION dir )
 struct MAP Map;
 struct FLOOD_MAP FloodMap;
 
-char MapBuff[ MapSizeNeeded(WIDTH,HEIGHT)];
-char FloodMapBuff[FLOOD_MAP_SIZE(WIDTH,HEIGHT)];
-char FloodEventBuff[FLOOD_EVENT_SIZE(WIDTH,HEIGHT)];
+FLAG_WORD MapBuff[ MapSizeNeeded(WIDTH,HEIGHT)];
+FLAG_WORD FloodMapBuff[FLOOD_MAP_SIZE(WIDTH,HEIGHT)];
+FLAG_WORD FloodEventBuff[FLOOD_EVENT_SIZE(WIDTH,HEIGHT)];
 
 int main()
 {

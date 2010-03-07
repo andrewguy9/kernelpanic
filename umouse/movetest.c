@@ -158,11 +158,11 @@ struct MAP WorldMap;
 struct FLOOD_MAP FloodMap;
 struct SCAN_LOG ScanLog;
 
-char MouseMapBuff[ MapSizeNeeded(WIDTH,HEIGHT) ];
-char WorldMapBuff[ MapSizeNeeded(WIDTH,HEIGHT) ];
-char FloodMapBuff[ FLOOD_MAP_SIZE(WIDTH,HEIGHT) ];
-char FloodEventBuff[ FLOOD_EVENT_SIZE(WIDTH,HEIGHT) ];
-char ScanLogBuff[ SCAN_LOG_SIZE(WIDTH,HEIGHT) ];
+FLAG_WORD MouseMapBuff[ MapSizeNeeded(WIDTH,HEIGHT) ];
+FLAG_WORD WorldMapBuff[ MapSizeNeeded(WIDTH,HEIGHT) ];
+FLAG_WORD FloodMapBuff[ FLOOD_MAP_SIZE(WIDTH,HEIGHT) ];
+FLAG_WORD FloodEventBuff[ FLOOD_EVENT_SIZE(WIDTH,HEIGHT) ];
+FLAG_WORD ScanLogBuff[ SCAN_LOG_SIZE(WIDTH,HEIGHT) ];
 
 void PrintMove( enum SUB_MOVE move )
 {

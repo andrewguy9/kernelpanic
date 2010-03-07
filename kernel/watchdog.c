@@ -46,7 +46,7 @@ void WatchdogEnable( int frequency )
  */
 void WatchdogNotify( INDEX index )
 {
-	char flag = 0;
+	FLAG_WORD flag = 0;
 
 	//We ignore index 0.
 	if( index == 0 )
@@ -78,7 +78,7 @@ void WatchdogNotify( INDEX index )
 
 void WatchdogAddFlag( INDEX index )
 {
-	char flag = 0;
+	FLAG_WORD flag = 0;
 	ASSERT(index < 8 );
 
 	if( index == 0 )

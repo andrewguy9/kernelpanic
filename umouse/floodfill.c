@@ -83,8 +83,8 @@ unsigned char FloodFillGet( INDEX x, INDEX y, struct FLOOD_MAP * map)
 void FloodFillInit(
 		COUNT width, 
 		COUNT height,
-	   	char * mapBuff, 
-		char * eventBuff,
+	   	FLAG_WORD * mapBuff, 
+		FLAG_WORD * eventBuff,
 		struct FLOOD_MAP * floodMap)
 {
 	floodMap->Width = width;

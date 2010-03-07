@@ -16,22 +16,22 @@
 
 struct FLOOD_MAP 
 {
-	COUNT Width;
-	COUNT Height;
-	char * FloodMap;
-	char * EventMap;
+    COUNT Width;
+    COUNT Height;
+    FLAG_WORD * FloodMap;
+    FLAG_WORD * EventMap;
 };
 
 void FloodFillInit(
-		COUNT width, 
-		COUNT height,
-	   	char * mapBuff, 
-		char * eventBuff,
-		struct FLOOD_MAP * floodMap);
+        COUNT width, 
+        COUNT height,
+        FLAG_WORD * mapBuff, 
+        FLAG_WORD * eventBuff,
+        struct FLOOD_MAP * floodMap);
 
 void FloodFillCalculate(
-		struct MAP * map,
-		struct FLOOD_MAP * floodMap );
+        struct MAP * map,
+        struct FLOOD_MAP * floodMap );
 
 void FloodFillClear(struct FLOOD_MAP * floodMap);
 

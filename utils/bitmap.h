@@ -6,7 +6,7 @@
 //
 //  Private Macros for doing library math
 //
-typedef char FLAG_WORD;
+typedef int FLAG_WORD;
 #define FlagWordSize  (sizeof(FLAG_WORD) * 8)
 
 #define FlagIndex( Index ) ((Index)/(FlagWordSize))

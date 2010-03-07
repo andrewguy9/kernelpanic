@@ -69,7 +69,7 @@ void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, FLAG_WORD * walls, B
 //Public Functions
 //
 
-BOOL MapInit( struct MAP * map, char * wallBuff, COUNT buffLen, COUNT width, COUNT height )
+BOOL MapInit( struct MAP * map, FLAG_WORD * wallBuff, COUNT buffLen, COUNT width, COUNT height )
 {
 	INDEX cur;
 	if( buffLen >= MapSizeNeeded( width, height ) )
