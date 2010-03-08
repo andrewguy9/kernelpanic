@@ -53,7 +53,7 @@ DEBUG_DBG = DEBUG
 #############################################
 #Build
 #BUILD_MACRO
-BUILD_APP = TEST_BUILD
+BUILD_APP = APP_BUILD
 BUILD_KERNEL = KERNEL_BUILD
 MAKE_PROG = $_
 #############################################
