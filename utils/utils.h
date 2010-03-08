@@ -45,19 +45,19 @@ typedef unsigned char BOOL;
 
 #ifdef DEBUG
 
-#ifdef TEST_BUILD
+#ifdef APP_BUILD
 
-//This is a test build. Asserts result in printf/exit.
+//This is a app build. Asserts result in printf/exit.
 #include<stdio.h>
 #include<stdlib.h>
 #define ASSERT( condition ) \
 	if( !(condition) )      \
 		printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__)
 
-//This is a test build. Assumes result in a test and printf/exit.
+//This is a app build. Assumes result in a app and printf/exit.
 #define ASSUME( expression, result ) (ASSERT( (condition) == (result) ))
 
-#endif //TEST_BUILD
+#endif //APP_BUILD
 
 #ifdef KERNEL_BUILD
 
