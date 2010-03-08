@@ -21,11 +21,87 @@
  * of bounds.
  */
 
-//
-//Definition of dimmensions
-//
-
-#define MAP_HEIGHT 16
+/*
+ * Bit format of MAP (4X4 Example)
+ * 
+ *    +--+--+--+--+
+ * 03 |  |  |  |  |
+ *    +--+--+--+--+
+ * 02 |  |  |  |  |
+ *    +--+--+--+--+
+ * 01 |  |  |  |  |
+ *    +--+--+--+--+
+ * 00 |  |  |  |  |
+ *    +--+--+--+--+
+ *     00 01 02 03
+ *
+ * -- Horizontal Wall
+ *  | Vertical Wall
+ *  + Peg (Between Walls)
+ *
+ * The map is broken up into two lists of walls. The V or vertical walls and
+ * the H or Horizontal Walls. Walls along the outside of the map are implied.
+ *  
+ *    +--+--+--+--+
+ * 03 |  |  |  |  |
+ *    +--+--+--+--+
+ * 02 |  |  |  |  |
+ *    +--+--+--+--+
+ * 01 |  |  |  |  |
+ *    +--+--+--+--+
+ * 00 |  |  |  |  |
+ *    +--+--+--+--+
+ *     00 01 02 03
+ *
+ * Because the walls on the edge are implied we can pull them out of the list.
+ * This means that the list for each wall is smaller than the number of walls
+ * in the map.
+ *
+ * Size of H Walls = Width * (Height - 1)
+ * Size of V Walls = Height * (Width - 1)
+ *
+ * Because the direction the walls face determines weather Width or Height is shorter
+ * we define a Major and Minor Axis for each list.
+ *
+ * H Walls - Width = Major, Height = Minor
+ * V Walls - Height = Major, Width = Minor
+ *
+ * H Wall Index = X * (Width-1) + Y
+ * V Wall Index = X             + Y * (Height-1)
+ *
+ * Looking up a wall is a function of the cell and a direction.
+ * We convert this into an X Y Lookup on a particular wall list.
+ * North and South are Horizontal Walls.
+ * East and West are Vertical Walls.
+ * For Horizontal Walls North is Y+1.
+ * For Vertical Walls East is X+1.
+ *
+ * The list of walls is laid out in a bitmap. The order for H-Walls is below:
+ * Y - Axis
+ *    +**+**+**+**+
+ * 03 *  |  |  |  *
+ *    +02+05+08+0B+
+ * 02 *  |  |  |  *
+ *    +01+04+07+0A+
+ * 01 *  |  |  |  *
+ *    +00+03+06+09+
+ * 00 *  |  |  |  *
+ *    +**+**+**+**+
+ *     00 01 02 03 X - Axis
+ *
+ * The list of walls is laid out in a bitmap. The order for V-Walls is below:
+ * Y - Axis
+ *    +**+**+**+**+
+ * 03 *  9  A  B  *
+ *    +--+--+--+--+
+ * 02 *  6  7  8  *
+ *    +--+--+--+--+
+ * 01 *  3  4  5  *
+ *    +--+--+--+--+
+ * 00 *  0  1  2  *
+ *    +**+**+**+**+
+ *     00 01 02 03 X - Axis
+ */
 
 //
 //Private Mathmeatical macros
@@ -34,7 +110,8 @@
 #define MapGetIndex( major, majorSize, minor ) ( (minor)*((majorSize)-1)+(major-1) )
 #define MapAdjustX( x, dir ) ( (dir) == (EAST) ? (x)+1 : (x) )
 #define MapAdjustY( y, dir ) ( (dir) == (NORTH) ? (y)+1 : (y) )
-#define MapOutOfBounds( major, majorSize ) ( (major) == 0 || (major) == (majorSize) ? TRUE : FALSE )//TODO BROKEN
+#define MapOutOfBounds( major, majorSize ) \
+	( (major) == 0 || (major) == (majorSize) ? TRUE : FALSE )//TODO BROKEN
 
 //
 //Private functions
