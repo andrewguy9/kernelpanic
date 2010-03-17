@@ -24,7 +24,7 @@ typedef int FLAG_WORD;
 	( (NumElements)/(FlagWordSize) + ((NumElements)%(FlagWordSize) ? 1 : 0 ) )
 
 //Test if a flag is on
-#define FlagGet( Flags, Index ) ((Flags)[FlagIndex(Index)] & FlagGenerateMask( FlagOffset( Index ) ) )
+#define FlagGet( Flags, Index ) (((Flags)[FlagIndex(Index)] & FlagGenerateMask( FlagOffset( Index ))) != 0)
 
 //Turn a flag on
 #define FlagOn( Flags, Index ) ((Flags)[FlagIndex(Index)] |= FlagGenerateMask( FlagOffset( Index ) ) )  
