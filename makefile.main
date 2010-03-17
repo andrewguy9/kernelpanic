@@ -29,7 +29,7 @@ utils/$(TARGET)_bhamtest.out: utils/$(TARGET)_bhamtest.o utils/$(TARGET)_bham.o
 
 utils/$(TARGET)_metricstest.out: utils/$(TARGET)_metricstest.o utils/$(TARGET)_metrics.o utils/$(TARGET)_bham.o
 
-umouse/$(TARGET)_maptest.out: umouse/$(TARGET)_maptest.o umouse/$(TARGET)_map.o
+umouse/$(TARGET)_maptest.out: umouse/$(TARGET)_maptest.o umouse/$(TARGET)_map.o utils/$(TARGET)_bitmap.o
 
 umouse/$(TARGET)_motortest.out: umouse/$(TARGET)_motor.o umouse/$(TARGET)_motortest.o
 

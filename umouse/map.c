@@ -42,32 +42,18 @@
  * The map is broken up into two lists of walls. The V or vertical walls and
  * the H or Horizontal Walls. Walls along the outside of the map are implied.
  *  
- *    +--+--+--+--+
- * 03 |  |  |  |  |
- *    +--+--+--+--+
- * 02 |  |  |  |  |
- *    +--+--+--+--+
- * 01 |  |  |  |  |
- *    +--+--+--+--+
- * 00 |  |  |  |  |
- *    +--+--+--+--+
- *     00 01 02 03
- *
  * Because the walls on the edge are implied we can pull them out of the list.
  * This means that the list for each wall is smaller than the number of walls
  * in the map.
  *
- * Size of H Walls = Width * (Height - 1)
+ * Size of H Walls = Width  * (Height - 1)
  * Size of V Walls = Height * (Width - 1)
  *
  * Because the direction the walls face determines weather Width or Height is shorter
  * we define a Major and Minor Axis for each list.
  *
- * H Walls - Width = Major, Height = Minor
- * V Walls - Height = Major, Width = Minor
- *
- * H Wall Index = X * (Width-1) + Y
- * V Wall Index = X             + Y * (Height-1)
+ * H Walls - Width(X)  = Major, Height(Y) = Minor
+ * V Walls - Height(Y) = Major, Width(X)  = Minor
  *
  * Looking up a wall is a function of the cell and a direction.
  * We convert this into an X Y Lookup on a particular wall list.
@@ -77,7 +63,7 @@
  * For Vertical Walls East is X+1.
  *
  * The list of walls is laid out in a bitmap. The order for H-Walls is below:
- * Y - Axis
+ * Y - Axis (Minor)
  *    +**+**+**+**+
  * 03 *  |  |  |  *
  *    +02+05+08+0B+
@@ -87,10 +73,10 @@
  *    +00+03+06+09+
  * 00 *  |  |  |  *
  *    +**+**+**+**+
- *     00 01 02 03 X - Axis
+ *     00 01 02 03 X - Axis (Major)
  *
  * The list of walls is laid out in a bitmap. The order for V-Walls is below:
- * Y - Axis
+ * Y - Axis (Major)
  *    +**+**+**+**+
  * 03 *  9  A  B  *
  *    +--+--+--+--+
@@ -100,41 +86,63 @@
  *    +--+--+--+--+
  * 00 *  0  1  2  *
  *    +**+**+**+**+
- *     00 01 02 03 X - Axis
+ *     00 01 02 03 X - Axis (Minor)
+ *
+ * Walls inside the border are in bounds, walls outside are out of bounds.
+ * Out of bounds walls are implied to be TRUE.
+ * H Walls Out of Bounds Minor = (Y==0) || (Y>=Height)
+ * V Walls Out of Bounds Minor = (X==0) || (X>=Width )
+ * Generic Out of Bounds Minor = (minor==0) || (minor>=minor_size)
+ *
+ * H Walls Out of Bounds Major = (X>=Width )
+ * V Walls Out of Bounds Major = (Y>=Height)
+ * Generic Out of Bounds Major = (major>=major_size)
+ * 
+ * Each possible wall in bounds is assigned to a bit in the bitmap.
+ * H Wall Index =  X    * (Width-1) + (Y-1)
+ * V Wall Index = (X-1)             +  Y    * (Height-1)
+ * Generic Index = (major) * (MinorSize-1) +(minor-1)
  */
 
 //
 //Private Mathmeatical macros
 //
 
-#define MapGetIndex( major, majorSize, minor ) ( (minor)*((majorSize)-1)+(major-1) )
 #define MapAdjustX( x, dir ) ( (dir) == (EAST) ? (x)+1 : (x) )
 #define MapAdjustY( y, dir ) ( (dir) == (NORTH) ? (y)+1 : (y) )
-#define MapOutOfBounds( major, majorSize ) \
-	( (major) == 0 || (major) == (majorSize) ? TRUE : FALSE )//TODO BROKEN
+#define MapOutOfBoundsMinor( minor, minorSize ) \
+	( (minor) == 0 || (minor) >= (minorSize) ? TRUE : FALSE )
+#define MapOutOfBoundsMajor( major, majorSize) \
+	 ((major)>=(majorSize))
+#define MapGetIndex( major, minorSize, minor ) \
+	( (major)*((minorSize-1))+(minor)-1 )
 
 //
 //Private functions
 //
 
-BOOL MapGetFlag( INDEX major, INDEX majorSize, INDEX minor, FLAG_WORD * walls )
+BOOL MapGetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, FLAG_WORD * walls )
 {
-	if( MapOutOfBounds(major, majorSize ) )
+	INDEX index;
+	BOOL result;
+	if( MapOutOfBoundsMinor(minor, minorSize ) || MapOutOfBoundsMajor(major, majorSize ) )
 	{//checking in gauranteed space
-		return TRUE;
+		result = TRUE;
 	}
 	else
 	{//checking in mapped space
-		return FlagGet( walls, MapGetIndex( major, majorSize, minor ) );
+		index = MapGetIndex( major, minorSize, minor);
+		result = FlagGet( walls, index );
 	}
+	return result;
 }
 
-void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, FLAG_WORD * walls, BOOL state )
+void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, FLAG_WORD * walls, BOOL state )
 {
 	INDEX index;
-	if( ! MapOutOfBounds( major, majorSize ) )//TODO MAYBE WE SHOULD GAURD EARLIER
+	if( ! (MapOutOfBoundsMinor( minor, minorSize ) || MapOutOfBoundsMajor(major, majorSize ) ) )
 	{//Can only set in bounds
-		index = MapGetIndex( major, majorSize, minor );
+		index = MapGetIndex( major, minorSize, minor );
 		if( state )
 			FlagOn( walls, index );
 		else
@@ -169,12 +177,6 @@ BOOL MapInit( struct MAP * map, FLAG_WORD * wallBuff, COUNT buffLen, COUNT width
 
 BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map )
 {
-	if( x > map->Width || y > map->Height )
-	{
-		//we are out of bounds, assume there is a wall.
-		return TRUE;
-	}
-
 	x = MapAdjustX(x,dir);
 	y = MapAdjustY(y,dir);
 
@@ -182,11 +184,13 @@ BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map )
 	{
 		case NORTH:
 		case SOUTH:
-			return MapGetFlag( y, map->Height, x, map->HWalls );
+			//H Walls - Width(X)  = Major, Height(Y) = Minor
+			return MapGetFlag( x, map->Width, y, map->Height, map->HWalls );
 			break;
 		case EAST:
 		case WEST:
-			return MapGetFlag( x, map->Width, y, map->VWalls );
+			//V Walls - Height(Y) = Major, Width(X)  = Minor
+			return MapGetFlag( y, map->Height, x, map->Width, map->VWalls );
 			break;
 	}
 
@@ -198,9 +202,6 @@ BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map )
 void MapSetWall( INDEX x, INDEX y, enum DIRECTION dir, BOOL state, struct MAP * map )
 {
 
-	if( x >= map->Width || y >= map->Height )//TODO IN CONFLICT WITH OTHER CHECK, PICK ONE
-		return;//cannot write out of bounds
-
 	x = MapAdjustX(x,dir);
 	y = MapAdjustY(y,dir);
 
@@ -208,11 +209,13 @@ void MapSetWall( INDEX x, INDEX y, enum DIRECTION dir, BOOL state, struct MAP * 
 	{
 		case NORTH:
 		case SOUTH:
-		MapSetFlag( y, map->Height, x, map->HWalls, state );
-		break;
+			//H Walls - Width(X)  = Major, Height(Y) = Minor
+			MapSetFlag( x, map->Width, y, map->Height, map->HWalls, state );
+			break;
 		case EAST:
 		case WEST:
-		MapSetFlag( x, map->Width, y, map->VWalls, state );
+			//V Walls - Height(Y) = Major, Width(X)  = Minor
+			MapSetFlag( y, map->Height, x, map->Width, map->VWalls, state );
 		break;
 	}
 }

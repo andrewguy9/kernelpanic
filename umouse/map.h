@@ -8,14 +8,15 @@
 //
 //Default map height and width
 //
-#define MAP_WIDTH 16
-#define MAP_HEIGHT 16
+#define MAP_WIDTH 4
+#define MAP_HEIGHT 5
 
 //
 //Private math macros
 //
 
-#define MapDimensionSizeNeeded( major, minor ) ( FlagSize( (major) * ((minor)-1)) )
+#define MapBitsNeeded(major, minor) ((major)*((minor)-1))
+#define MapDimensionSizeNeeded( major, minor ) ( FlagSize(MapBitsNeeded(major,minor)) )
 
 //
 //Public Math Macros

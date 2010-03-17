@@ -23,7 +23,7 @@ int main()
 	do
 	{
 		FlagsPrint( flags, numFlags );
-		printf("1 Set, 2 Clear, 3 Find First Flag, 4 Quit\n");
+		printf("1 Set, 2 Clear, 3 Find First Flag, 4 Get Flag, 5 Quit\n");
 		scanf("%ld", & input );
 		switch( input )
 		{
@@ -42,11 +42,20 @@ int main()
 				printf("first flag was %d\n", (int) FlagsGetFirstFlag( flags, numFlags ));
 				break;
 			case 4:
+				printf("what index?");
+				scanf("%ld",&inputNum);
+				if( FlagGet( flags, inputNum ) ) {
+					printf("SET\n");
+				} else {
+					printf("CLEAR\n");
+				}
+				break;
+			case 5:
 				printf("have a good day\n");
 				break;
 			default:
 				continue;
 		}
-	}while( input != 4 );
+	}while( input != 5 );
 	return 0;
 }

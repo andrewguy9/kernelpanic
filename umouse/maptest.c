@@ -5,6 +5,10 @@
  * Tests the map unit. Prints the map to terminal for validation.
  */
 
+struct MAP MyMap;
+FLAG_WORD MyWallBuff[ MapSizeNeeded(MAP_WIDTH, MAP_HEIGHT) ];
+
+
 //
 //The map only does measurements based on the south west.
 //North and east are constructed from sw coordinates.
@@ -13,106 +17,81 @@ void PrintMap( struct MAP * map )
 {
 	INDEX x, y;
 
-	//construct a line
-	for( y = map->Height; y!=-1; y--)
-	{
-		//construct cells (EAST and WEST walls)
-		if( y != map->Height)//dont for top row
-		{
-			//scan left to right.
-			for(x=0; x<map->Width; x++)
-			{
-				//western wall
-				if( MapGetWall( x, y, WEST, map ) )
-					printf("|");
-				else
-					printf(" ");
-				//flood value
-				printf("%1lx,%1lx",x,y);
-			}
-			//wall
-			if( MapGetWall( x, y, WEST, map ) )
+	for(y = map->Height; y != -1; y--) {
+
+		//Construct west Wall and cell label
+		for(x = 0; x < map->Width; x++) {
+			if( MapGetWall(x, y, WEST, map) ) {
 				printf("|");
-			else
+			} else {
 				printf(" ");
-			//end the line
-			printf("\n");
+			}
+			printf("%1lx,%1lx", x, y);
 		}
-		//construct southern wall
-		for( x=0; x<map->Width; x++)
-		{
-			printf("+");//pin
-			if( MapGetWall(x, y, SOUTH, map ) )
-				printf("---");//wall
-			else
+		//Construct the final west wall
+		if( MapGetWall(map->Width, y, WEST, map) ) {
+			printf("|\n");
+		} else {
+			printf(" \n");
+		}
+
+		//Construct South Wall
+		for(x = 0; x < map->Width; x++) {
+			printf("+");
+			if( MapGetWall(x, y, SOUTH, map) ) {
+				printf("---");
+			} else {
 				printf("   ");
+			}
 		}
-		printf("+");//east pin
-		printf("\n");
+		//Construct the final peg in the row.
+		printf("+\n");
+
+
 	}
 }
 
-void PrintBytes( struct MAP * map )
+void PrintFlags( struct MAP * map )
 {
-	INDEX index;
-
 	printf("Vertical Walls:  ");
-	for( index = 0; index < MapDimensionSizeNeeded( map->Height, map->Width ); index++ )
-		printf("%lx", (INDEX) map->VWalls[index]);
-	printf("\n");
-
+	FlagsPrint(map->VWalls, MapBitsNeeded(map->Height, map->Height));
 	printf("Horizontal Walls:");
-	for( index = 0; index < MapDimensionSizeNeeded( map->Height, map->Width ); index++ )
-		printf("%lx", (INDEX) map->HWalls[index]);
-	printf("\n");
+	FlagsPrint(map->HWalls, MapBitsNeeded(map->Width, map->Height));
 }
 
-void PrintWalls( struct MAP * map )
+void PrintWalls( struct MAP * map, INDEX x, INDEX y )
 {
-	INDEX x,y;
-	for(x = 0; x < 16; x++ )
-	{
-		for( y=0; y < 16; y++ )
-		{
-			printf("%lx,%lx : ",x,y);
-			if( MapGetWall(x,y,NORTH, map ) )
-				printf("N");
-			else
-				printf(" ");
-			if( MapGetWall(x,y,SOUTH, map ) )
-				printf("S");
-			else
-				printf(" ");
-			if( MapGetWall(x,y,EAST, map ) )
-				printf("E");
-			else
-				printf(" ");
-			if( MapGetWall(x,y,WEST, map ) )
-				printf("W");
-			else
-				printf(" ");
-			printf("\n");
-		}
-	}
+	printf("%lx,%lx : ",x,y);
+	if( MapGetWall(x,y,NORTH, map ) )
+		printf("N");
+	else
+		printf(" ");
+	if( MapGetWall(x,y,SOUTH, map ) )
+		printf("S");
+	else
+		printf(" ");
+	if( MapGetWall(x,y,EAST, map ) )
+		printf("E");
+	else
+		printf(" ");
+	if( MapGetWall(x,y,WEST, map ) )
+		printf("W");
+	else
+		printf(" ");
+	printf("\n");
 }
 
 int main()
 {
-	COUNT width=8, height=8;
 	enum DIRECTION dir;
 	INDEX x,y,dir_int;
-	struct MAP map;
 
-	FLAG_WORD wallBuff[ MapSizeNeeded(width, height) ];
+	MapInit( &MyMap, MyWallBuff, MapSizeNeeded(MAP_WIDTH, MAP_HEIGHT), MAP_WIDTH, MAP_HEIGHT );
 
-	MapInit( &map, wallBuff, MapSizeNeeded(width, height), width, height );
+    PrintMap( & MyMap );
 
-	PrintMap( & map );
+	PrintFlags( & MyMap );
 
-	//PrintBytes( & map );
-
-	//PrintWalls( & map );
-	
 	while( TRUE )
 	{
 		printf("please enter x then y then direction (1n 2s 3e 4w)\n");
@@ -134,9 +113,11 @@ int main()
 				break;
 		}
 
-		MapSetWall( x, y, dir, TRUE, &map );
+		MapSetWall( x, y, dir, TRUE, &MyMap );
 
-		PrintMap( &map );
+		PrintMap( & MyMap );
+		PrintFlags( & MyMap );
+		PrintWalls( & MyMap, x, y );
 	}
 
 	return 0;
