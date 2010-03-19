@@ -16,7 +16,7 @@
 //
 
 #define MapBitsNeeded(major, minor) ((major)*((minor)-1))
-#define MapDimensionSizeNeeded( major, minor ) ( FlagSize(MapBitsNeeded(major,minor)) )
+#define MapDimensionSizeNeeded( major, minor ) ( BitmapSize(MapBitsNeeded(major,minor)) )
 
 //
 //Public Math Macros
@@ -32,13 +32,13 @@
 
 struct MAP
 {
-	FLAG_WORD * VWalls;
-	FLAG_WORD * HWalls;
+	BITMAP_WORD * VWalls;
+	BITMAP_WORD * HWalls;
 	COUNT Height;
 	COUNT Width;
 };
 
-BOOL MapInit( struct MAP * map, FLAG_WORD * wallBuff, COUNT buffLen, COUNT height, COUNT width );
+BOOL MapInit( struct MAP * map, BITMAP_WORD * wallBuff, COUNT buffLen, COUNT height, COUNT width );
 BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map );
 void MapSetWall( INDEX x, INDEX y, enum DIRECTION dir, BOOL state, struct MAP * map );
 

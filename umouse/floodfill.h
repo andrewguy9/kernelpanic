@@ -7,7 +7,7 @@
 #define FLOOD_MAP_ITEMS_NEEDED( WIDTH, HEIGHT ) ((WIDTH)*(HEIGHT))
 #define FLOOD_MAP_SIZE( WIDTH, HEIGHT ) (FLOOD_MAP_ITEMS_NEEDED((WIDTH), (HEIGHT)))
 
-#define FLOOD_EVENT_SIZE( WIDTH, HEIGHT ) (FlagSize(FLOOD_MAP_ITEMS_NEEDED((WIDTH),(HEIGHT))))
+#define FLOOD_EVENT_SIZE( WIDTH, HEIGHT ) (BitmapSize(FLOOD_MAP_ITEMS_NEEDED((WIDTH),(HEIGHT))))
 
 #define FloodFillGetIndex(x,y,map) (((y)*(map)->Width)+(x))
 
@@ -18,15 +18,15 @@ struct FLOOD_MAP
 {
     COUNT Width;
     COUNT Height;
-    FLAG_WORD * FloodMap;
-    FLAG_WORD * EventMap;
+    BITMAP_WORD * FloodMap;
+    BITMAP_WORD * EventMap;
 };
 
 void FloodFillInit(
         COUNT width, 
         COUNT height,
-        FLAG_WORD * mapBuff, 
-        FLAG_WORD * eventBuff,
+        BITMAP_WORD * mapBuff, 
+        BITMAP_WORD * eventBuff,
         struct FLOOD_MAP * floodMap);
 
 void FloodFillCalculate(

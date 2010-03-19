@@ -34,7 +34,7 @@
 //Unix Globals.
 //
 
-char HalWatchdogMask;
+BITMAP_WORD HalWatchdogMask;
 BOOL HalWatchdogOn;
 unsigned int HalWatchDogFrequency;
 unsigned int HalWatchdogCount;

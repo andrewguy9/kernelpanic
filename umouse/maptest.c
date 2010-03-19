@@ -6,7 +6,7 @@
  */
 
 struct MAP MyMap;
-FLAG_WORD MyWallBuff[ MapSizeNeeded(MAP_WIDTH, MAP_HEIGHT) ];
+BITMAP_WORD MyWallBuff[ MapSizeNeeded(MAP_WIDTH, MAP_HEIGHT) ];
 
 
 //
@@ -54,9 +54,9 @@ void PrintMap( struct MAP * map )
 void PrintFlags( struct MAP * map )
 {
 	printf("Vertical Walls:  ");
-	FlagsPrint(map->VWalls, MapBitsNeeded(map->Height, map->Height));
+	BitmapPrint(map->VWalls, MapBitsNeeded(map->Height, map->Height));
 	printf("Horizontal Walls:");
-	FlagsPrint(map->HWalls, MapBitsNeeded(map->Width, map->Height));
+	BitmapPrint(map->HWalls, MapBitsNeeded(map->Width, map->Height));
 }
 
 void PrintWalls( struct MAP * map, INDEX x, INDEX y )

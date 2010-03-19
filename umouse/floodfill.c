@@ -43,13 +43,13 @@ void FloodNewEvent( INDEX x, INDEX y, struct FLOOD_MAP * map )
 	if( x >= map->Width || y >= map->Height )
 		return;
 	index = FloodFillGetIndex(x,y,map);
-	FlagOn( map->EventMap, index );
+	BitmapOn( map->EventMap, index );
 }
 
 void FloodGetEvent( INDEX * x, INDEX * y, struct FLOOD_MAP * map )
 {
 	INDEX index;
-	index = FlagsGetFirstFlag( 
+	index = BitmapGetFirstFlag( 
 			map->EventMap, 
 			FLOOD_MAP_ITEMS_NEEDED( map->Width, map->Height ) );
 
@@ -64,7 +64,7 @@ void FloodGetEvent( INDEX * x, INDEX * y, struct FLOOD_MAP * map )
 		*x = FloodFillGetX(index,map);
 
 		//turn off flag for event
-		FlagOff(map->EventMap, index);
+		BitmapOff(map->EventMap, index);
 	}
 }
 
@@ -83,8 +83,8 @@ unsigned char FloodFillGet( INDEX x, INDEX y, struct FLOOD_MAP * map)
 void FloodFillInit(
 		COUNT width, 
 		COUNT height,
-	   	FLAG_WORD * mapBuff, 
-		FLAG_WORD * eventBuff,
+	   	BITMAP_WORD * mapBuff, 
+		BITMAP_WORD * eventBuff,
 		struct FLOOD_MAP * floodMap)
 {
 	floodMap->Width = width;
@@ -159,7 +159,7 @@ void FloodFillClear(struct FLOOD_MAP * floodMap)
 		}
 
 	//Clear the events flags.
-	FlagsClear( floodMap->EventMap, floodMap->Width*floodMap->Height );
+	BitmapClear( floodMap->EventMap, floodMap->Width*floodMap->Height );
 }
 
 void FloodFillSetDestination( INDEX x, INDEX y, struct FLOOD_MAP * map )

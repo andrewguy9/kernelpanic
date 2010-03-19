@@ -6,13 +6,13 @@
 //
 //  Private Macros for doing library math
 //
-typedef int FLAG_WORD;
-#define FlagWordSize (sizeof(FLAG_WORD) * 8)
+typedef int BITMAP_WORD;
+#define BitmapWordSize (sizeof(BITMAP_WORD) * 8)
 
-#define FlagIndex( Index ) ((Index)/(FlagWordSize))
-#define FlagOffset( Index ) ((Index)%((FlagWordSize)))
+#define BitmapIndex( Index ) ((Index)/(BitmapWordSize))
+#define BitmapOffset( Index ) ((Index)%((BitmapWordSize)))
 
-#define FlagGenerateMask( Offset ) ( 1 << (Offset) )
+#define BitmapGenerateMask( Offset ) ( 1 << (Offset) )
 
 
 //
@@ -20,31 +20,31 @@ typedef int FLAG_WORD;
 //
 
 //Get the size needed for a buffer.
-#define FlagSize( NumElements ) \
-	( (NumElements)/(FlagWordSize) + ((NumElements)%(FlagWordSize) ? 1 : 0 ) )
+#define BitmapSize( NumElements ) \
+	( (NumElements)/(BitmapWordSize) + ((NumElements)%(BitmapWordSize) ? 1 : 0 ) )
 
 //Test if a flag is on
-#define FlagGet( Flags, Index ) (((Flags)[FlagIndex(Index)] & FlagGenerateMask( FlagOffset( Index ))) != 0)
+#define BitmapGet( Map, Index ) (((Map)[BitmapIndex(Index)] & BitmapGenerateMask( BitmapOffset( Index ))) != 0)
 
 //Turn a flag on
-#define FlagOn( Flags, Index ) ((Flags)[FlagIndex(Index)] |= FlagGenerateMask( FlagOffset( Index ) ) )  
+#define BitmapOn( Map, Index ) ((Map)[BitmapIndex(Index)] |= BitmapGenerateMask( BitmapOffset( Index ) ) )  
 
 //Turn a flag off
-#define FlagOff( Flags, Index ) ((Flags)[FlagIndex(Index)] &= ~ FlagGenerateMask( FlagOffset( Index ) ) )
+#define BitmapOff( Map, Index ) ((Map)[BitmapIndex(Index)] &= ~ BitmapGenerateMask( BitmapOffset( Index ) ) )
 
 //Toggle a flag
-#define FlagToggle( Flags, Index ) ((Flags)[FlagIndex(Index)] ^= FlagGenerateMask( FlagOffset(Index) ) )
+#define BitmapToggle( Map, Index ) ((Map)[BitmapIndex(Index)] ^= BitmapGenerateMask( BitmapOffset(Index) ) )
 
 //Public functions to do flag work
 #ifdef PC_BUILD
-void FlagsPrint( FLAG_WORD flags[], COUNT numFlags );
+void BitmapPrint( BITMAP_WORD map[], COUNT numBits );
 #endif
 
-void FlagsClear(FLAG_WORD * flags, COUNT numFlags);
+void BitmapClear(BITMAP_WORD * map, COUNT numBits);
 
-INDEX FlagsGetFirstFlag(FLAG_WORD * flags, COUNT numFlags);
+INDEX BitmapGetFirstFlag(BITMAP_WORD * map, COUNT numBits);
 
-//TODO It would be nice to have a FlagsGetBlock 
+//TODO It would be nice to have a BitmapGetBlock 
 //function to work in allocators and bloom filters.
 
 #endif

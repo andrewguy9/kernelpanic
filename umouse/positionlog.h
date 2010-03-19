@@ -4,16 +4,16 @@
 #include"../utils/bitmap.h"
 #include"../utils/utils.h"
 
-#define SCAN_LOG_SIZE(width,height) (FlagSize((width)*(height)))
+#define SCAN_LOG_SIZE(width,height) (BitmapSize((width)*(height)))
 
 struct SCAN_LOG
 {
 	COUNT Width;
 	COUNT Height;
-	FLAG_WORD * Flags;	
+	BITMAP_WORD * Flags;	
 };
 
-void ScanLogInit( INDEX width, INDEX height, FLAG_WORD * buff, struct SCAN_LOG * log );
+void ScanLogInit( INDEX width, INDEX height, BITMAP_WORD * buff, struct SCAN_LOG * log );
 void ScanLogSet( INDEX x, INDEX y, BOOL flagState, struct SCAN_LOG * mapLog );
 BOOL ScanLogGet( INDEX x, INDEX y, struct SCAN_LOG * mapLog );
 

@@ -11,18 +11,18 @@ int main()
 	COUNT numFlags;
 	INDEX input;
 	COUNT inputNum;
-	FLAG_WORD * flags;
+	BITMAP_WORD * flags;
 
 	printf("Enter a number of flags\n");
 	scanf("%ld", &numFlags);
 
-	printf("Need %ld bytes\n", FlagSize( numFlags ) * sizeof( FLAG_WORD ) );
+	printf("Need %ld bytes\n", BitmapSize( numFlags ) * sizeof( BITMAP_WORD ) );
 
-	flags = malloc( FlagSize( numFlags ) * sizeof( FLAG_WORD ) );
+	flags = malloc( BitmapSize( numFlags ) * sizeof( BITMAP_WORD ) );
 	
 	do
 	{
-		FlagsPrint( flags, numFlags );
+		BitmapPrint( flags, numFlags );
 		printf("1 Set, 2 Clear, 3 Find First Flag, 4 Get Flag, 5 Quit\n");
 		scanf("%ld", & input );
 		switch( input )
@@ -30,21 +30,21 @@ int main()
 			case 1:
 				printf("what index?");
 				scanf("%ld",&inputNum);
-				FlagOn( flags, inputNum );
+				BitmapOn( flags, inputNum );
 				break;
 			case 2:
 				printf("what index?");
 				scanf("%ld",&inputNum);
-				FlagOff( flags, inputNum );
+				BitmapOff( flags, inputNum );
 				break;
 			case 3:
 				printf("looking for flag\n");
-				printf("first flag was %d\n", (int) FlagsGetFirstFlag( flags, numFlags ));
+				printf("first flag was %d\n", (int) BitmapGetFirstFlag( flags, numFlags ));
 				break;
 			case 4:
 				printf("what index?");
 				scanf("%ld",&inputNum);
-				if( FlagGet( flags, inputNum ) ) {
+				if( BitmapGet( flags, inputNum ) ) {
 					printf("SET\n");
 				} else {
 					printf("CLEAR\n");

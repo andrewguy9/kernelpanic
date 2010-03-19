@@ -121,7 +121,7 @@
 //Private functions
 //
 
-BOOL MapGetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, FLAG_WORD * walls )
+BOOL MapGetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, BITMAP_WORD * walls )
 {
 	INDEX index;
 	BOOL result;
@@ -132,21 +132,21 @@ BOOL MapGetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, FLA
 	else
 	{//checking in mapped space
 		index = MapGetIndex( major, minorSize, minor);
-		result = FlagGet( walls, index );
+		result = BitmapGet( walls, index );
 	}
 	return result;
 }
 
-void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, FLAG_WORD * walls, BOOL state )
+void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, BITMAP_WORD * walls, BOOL state )
 {
 	INDEX index;
 	if( ! (MapOutOfBoundsMinor( minor, minorSize ) || MapOutOfBoundsMajor(major, majorSize ) ) )
 	{//Can only set in bounds
 		index = MapGetIndex( major, minorSize, minor );
 		if( state )
-			FlagOn( walls, index );
+			BitmapOn( walls, index );
 		else
-			FlagOff( walls, index );
+			BitmapOff( walls, index );
 	}
 }
 
@@ -154,7 +154,7 @@ void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, FLA
 //Public Functions
 //
 
-BOOL MapInit( struct MAP * map, FLAG_WORD * wallBuff, COUNT buffLen, COUNT width, COUNT height )
+BOOL MapInit( struct MAP * map, BITMAP_WORD * wallBuff, COUNT buffLen, COUNT width, COUNT height )
 {
 	INDEX cur;
 	if( buffLen >= MapSizeNeeded( width, height ) )

@@ -1,3 +1,5 @@
+#include"../utils/bitmap.h"
+
 #ifdef DARWIN
 #define HAL_MIN_STACK_SIZE MINSIGSTKSZ
 #endif
@@ -64,7 +66,7 @@ void HalEnableInterrupts();
 
 void HalContextSwitch();
 
-extern char HalWatchdogMask;
+extern BITMAP_WORD HalWatchdogMask;
 
 void HalResetClock();
 

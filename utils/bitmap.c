@@ -1,33 +1,33 @@
 #include"bitmap.h"
 
 /*
- * Presents an abstraction for multi word flags.
+ * Presents an abstraction for multi word bitmaps.
  * 
- * FlagWordSize - specifies the size of the word in the unit.
+ * BitmapWordSize - specifies the size of the word in the unit.
  *
- * FlagSize - returns the number of flag words needed to 
- * 	have 1 bit per flag. Rounds appropriatly.
+ * BitmapSize - returns the number of BITMAP_WORDs needed for
+ * some number of bits. Rounds appropriatly.
  *
- * FlagOn - Turns a flag on.
+ * BitmapOn - Turns a bit on.
  *
- * FlagOff - Turn off a flag
+ * BitmapOff - Turn off a bit
  *
- * FlagGet - returns a flags status.
+ * BitmapGet - returns a bit's status.
  */
 
 #ifdef PC_BUILD
 #include<stdio.h>
 
 /*
- * Prints out a flag buffer's status to the terminal.
+ * Prints out a bitmap to the terminal.
  */
-void FlagsPrint( FLAG_WORD flags[], COUNT numFlags )
+void BitmapPrint( BITMAP_WORD map[], COUNT numBits )
 {
 	INDEX count;
 	printf("|");
-	for(count = 0; count < numFlags; count++)
+	for(count = 0; count < numBits; count++)
 	{
-		if( FlagGet( flags, count ) )
+		if( BitmapGet( map, count ) )
 		{
 			printf("+");
 		}
@@ -41,34 +41,34 @@ void FlagsPrint( FLAG_WORD flags[], COUNT numFlags )
 #endif
 
 /*
- * Clears all the flags in a flag buffer.
+ * Clears all the bits in a bitmap.
  */
-void FlagsClear(FLAG_WORD * flags, COUNT numFlags)
+void BitmapClear(BITMAP_WORD * map, COUNT numBits)
 {
-	INDEX end = FlagSize( numFlags );
+	INDEX end = BitmapSize( numBits );
 	INDEX cur;
 	for( cur=0; cur<end; cur++ )
-		flags[cur] = 0;
+		map[cur] = 0;
 }
 
 /*
- * Iterates through a buffer and returns the first true flag.
+ * Iterates through a buffer and returns the first true bit.
  */
-INDEX FlagsGetFirstFlag(FLAG_WORD * flags, COUNT numFlags)
+INDEX BitmapGetFirstFlag(BITMAP_WORD * map, COUNT numBits)
 {
-	INDEX end = FlagSize( numFlags );
+	INDEX end = BitmapSize( numBits );
 	INDEX index;
 	INDEX offset;
 	for( index = 0; index < end; index++ )
 	{
-		if( flags[index] != 0 )
+		if( map[index] != 0 )
 		{
 			//we are in the right byte
-			for( offset = 0; offset < FlagWordSize; offset++ )
+			for( offset = 0; offset < BitmapWordSize; offset++ )
 			{
-				if( FlagGet(flags, index*FlagWordSize+offset) )
+				if( BitmapGet(map, index*BitmapWordSize+offset) )
 				{
-					return index*FlagWordSize+offset;
+					return index*BitmapWordSize+offset;
 				}
 			}
 			return -2;

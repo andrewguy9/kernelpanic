@@ -2,7 +2,6 @@
 #include"hal.h"
 #include"panic.h"
 #include"interrupt.h"
-#include"../utils/bitmap.h"
 
 /*
  * Watchdog System:
@@ -25,6 +24,7 @@
  * to indicator lights on various platforms.
  */
 
+//TODO MOVE THIS UNIT TO USE FLAG UNIT!
 char WatchdogDesiredMask;
 
 /*
@@ -46,7 +46,7 @@ void WatchdogEnable( int frequency )
  */
 void WatchdogNotify( INDEX index )
 {
-	FLAG_WORD flag = 0;
+	BITMAP_WORD flag = 0;
 
 	//We ignore index 0.
 	if( index == 0 )
@@ -59,7 +59,7 @@ void WatchdogNotify( INDEX index )
 	}
 
 	//find the bit we want to flip.
-	FlagOn(&flag, index);
+	BitmapOn(& flag, index);
 	
 	InterruptDisable();
 	HalWatchdogMask |= flag;//apply flag.
@@ -78,7 +78,7 @@ void WatchdogNotify( INDEX index )
 
 void WatchdogAddFlag( INDEX index )
 {
-	FLAG_WORD flag = 0;
+	BITMAP_WORD flag = 0;
 	ASSERT(index < 8 );
 
 	if( index == 0 )
@@ -92,7 +92,7 @@ void WatchdogAddFlag( INDEX index )
 		index--;
 	}
 
-	FlagOn( &flag, index );
+	BitmapOn(& flag, index );
 	InterruptDisable();
 	WatchdogDesiredMask |= flag;
 	InterruptEnable();
