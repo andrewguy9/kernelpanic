@@ -24,7 +24,7 @@
  * to indicator lights on various platforms.
  */
 
-//TODO MOVE THIS UNIT TO USE FLAG UNIT!
+//TODO MOVE THIS UNIT TO USE BITFIELD UNIT!
 char WatchdogDesiredMask;
 
 /*

@@ -4,6 +4,7 @@
 #include"../kernel/watchdog.h"
 
 /*
+ * Tests the watchdog.
  * Starts three threads each with different quantums.
  * Each thread increments a variable, Value1 2 and 3.
  * Value1 = 2 * Value2 
