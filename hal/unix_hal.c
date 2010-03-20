@@ -120,7 +120,6 @@ void HalStartup()
 	ASSERT( status == 0 );
 
 	//Create the TrapolineMask.
-	//TODO: WE NEED TO OVERHAUL THE TRAMPOLINE MASK.
 	status = sigemptyset( &TrampolineMask );
 	ASSERT( status == 0 );
 	status = sigaddset( &TrampolineMask, HAL_SIGNAL_TRAMPOLINE );
@@ -420,7 +419,10 @@ void HalCreateStackFrame(
 		ASSERT( status == 0 );
 
 
-		//TODO CHANGE THIS MASKING OPERATION.
+		//At this point we know that we are atomic. 
+		//All signal types are blocked. 
+		//We will unblock the Trampoine signal, and make
+		//sure that it was delivered.
 		status = sigprocmask( SIG_UNBLOCK, &TrampolineMask, NULL );
 		ASSERT( status == 0 );
 
