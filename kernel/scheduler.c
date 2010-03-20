@@ -311,7 +311,7 @@ BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
 	TIME currentTime = TimerGetTime();
 	struct THREAD * activeThread;
 	
-	//Prevnet the scheduler from running while we check the active thread.
+	//Prevent the scheduler from running while we check the active thread.
 	//TODO I dont know if this will work, the active thread maybe in transition
 	//when this timer fires. what does it mean to have the critInterruptDisabled 
 	//in a timer when a timer runs at soft interupt time. 

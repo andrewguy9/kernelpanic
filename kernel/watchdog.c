@@ -62,6 +62,7 @@ void WatchdogNotify( INDEX index )
 	BitmapOn(& flag, index);
 	
 	InterruptDisable();
+	//TODO HAVING THE WATCH DOG MASK IN THE HAL BREAKS LAYERING
 	HalWatchdogMask |= flag;//apply flag.
 	//check to see if all of the players have shown up.
 	if( (HalWatchdogMask ^ WatchdogDesiredMask) == 0 )
@@ -71,7 +72,7 @@ void WatchdogNotify( INDEX index )
 		HalPetWatchdog();
 		//Now lets clear the mask because we need to
 		//restart our checking.
-		HalWatchdogMask=0;
+		HalWatchdogMask = 0;
 	}
 	InterruptEnable();
 }
