@@ -2,6 +2,7 @@
 #include"../kernel/scheduler.h"
 #include"../kernel/hal.h"
 #include"../kernel/watchdog.h"
+#include"../kernel/sleep.h"
 
 /*
  * Tests the watchdog.
@@ -15,9 +16,9 @@
 #define THREAD2FLAG 2
 #define THREAD3FLAG 3
 
-#define THREAD1QUANTUM 1
-#define THREAD2QUANTUM 2
-#define THREAD3QUANTUM 3
+#define THREAD1QUANTUM 10
+#define THREAD2QUANTUM 20
+#define THREAD3QUANTUM 30
 
 #define FREQ 2*(THREAD1QUANTUM+THREAD2QUANTUM+THREAD3QUANTUM)
 
@@ -28,12 +29,10 @@
 void TestThreadMain( void * arg )
 {
 	COUNT * var = (COUNT *) arg;
-	volatile unsigned char a = 0;
 	while( 1 )
 	{
 		(*var)++;
-		for(a=1;a>0;a++);
-
+		Sleep(1);
 	}
 }
 
