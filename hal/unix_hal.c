@@ -11,23 +11,26 @@
 
 #ifdef DARWIN
 #define HAL_SIGNAL_TRAMPOLINE SIGINFO
-#define HAL_SIGNAL_TIMER SIGALRM
-#define HAL_SIGNAL_SOFT SIGUSR1
-#define HAL_SIGNAL_CRIT SIGUSR2
+#define HAL_SIGNAL_WATCHDOG   SIGVTALRM
+#define HAL_SIGNAL_TIMER      SIGALRM
+#define HAL_SIGNAL_SOFT       SIGUSR1
+#define HAL_SIGNAL_CRIT       SIGUSR2
 #endif
 
 #ifdef LINUX
 #define HAL_SIGNAL_TRAMPOLINE SIGCHLD
-#define HAL_SIGNAL_TIMER SIGALRM
-#define HAL_SIGNAL_SOFT SIGUSR1
-#define HAL_SIGNAL_CRIT SIGUSR2
+#define HAL_SIGNAL_WATCHDOG   SIGVTALRM
+#define HAL_SIGNAL_TIMER      SIGALRM
+#define HAL_SIGNAL_SOFT       SIGUSR1
+#define HAL_SIGNAL_CRIT       SIGUSR2
 #endif
 
 #ifdef BSD
 #define HAL_SIGNAL_TRAMPOLINE SIGINFO
-#define HAL_SIGNAL_TIMER SIGALRM
-#define HAL_SIGNAL_SOFT SIGUSR1
-#define HAL_SIGNAL_CRIT SIGUSR2
+#define HAL_SIGNAL_WATCHDOG   SIGVTALRM
+#define HAL_SIGNAL_TIMER      SIGALRM
+#define HAL_SIGNAL_SOFT       SIGUSR1
+#define HAL_SIGNAL_CRIT       SIGUSR2
 #endif
 
 //
@@ -35,21 +38,22 @@
 //
 
 BITMAP_WORD HalWatchdogMask;
-BOOL HalWatchdogOn;
+//TODO HalWatchdogFrequency is actually a period.
 unsigned int HalWatchDogFrequency;
-unsigned int HalWatchdogCount;
 
+struct itimerval WatchdogInterval;
 struct itimerval TimerInterval;
 
+//TODO THIS CHART SHOULD USE THE PANIC SIGNAL NAMES.
 /*
-                 |SIGALRM|SIGUSR1|SIGUSR2|SIGINFO|
---------------------------------------------------
-InterruptMask    |*******|*******|*******|*******|
-SoftInterruptMask|       |*******|*******|*******|
-CritInterruptMask|       |       |*******|*******|
-NoInterruptMask  |       |       |       |*******|
-TrampolineMask   |       |       |       |*******|
--------------------------------------------------
+                 |SIGVTALRM|SIGALRM|SIGUSR1|SIGUSR2|SIGINFO|
+------------------------------------------------------------
+InterruptMask    |         |*******|*******|*******|*******|
+SoftInterruptMask|         |       |*******|*******|*******|
+CritInterruptMask|         |       |       |*******|*******|
+NoInterruptMask  |         |       |       |       |*******|
+TrampolineMask   |         |       |       |       |*******|
+------------------------------------------------------------
 */
 
 //Masks are used to disable various interrupt types.
@@ -62,12 +66,14 @@ sigset_t NoInterruptMask;
 sigset_t TrampolineMask;
 
 //Timer Action Storage.
+struct sigaction WatchdogAction;
 struct sigaction TimerAction;
 struct sigaction SoftAction;
 struct sigaction CritAction;
 struct sigaction SwitchStackAction;
 
 //Prototype for later use.
+void HalWatchdogHandler( int SignalNumber );
 void HalTimerHandler( int SignalNumber );
 void HalSoftHandler( int SignalNumber );
 void HalCritHandler( int SignalNumber );
@@ -130,13 +136,19 @@ void HalStartup()
 	 * The Actions are calls to register for various signals
 	 */
 
+	//Create the watchdog action
+	WatchdogAction.sa_handler = HalWatchdogHandler;
+	WatchdogAction.sa_mask = InterruptMask;
+	WatchdogAction.sa_flags = 0;
+	status = sigaction( HAL_SIGNAL_WATCHDOG, &WatchdogAction, NULL );
+	ASSERT( status == 0 );
+
 	//Create the timer action.
 	TimerAction.sa_handler = HalTimerHandler;
 	TimerAction.sa_mask = InterruptMask;
 	TimerAction.sa_flags = 0;
 	status = sigaction( HAL_SIGNAL_TIMER, &TimerAction, NULL );
 	ASSERT( status == 0 );	
-
 
 	//Create the soft action.
 	SoftAction.sa_handler = HalSoftHandler;
@@ -167,10 +179,8 @@ void HalStartup()
 	ASSERT( HalIsAtomic() );
 
 	//Set up the watchdog.
-	HalWatchdogOn = FALSE;
 	HalWatchdogMask = 0;
 	HalWatchDogFrequency = 0;
-	HalWatchdogCount = 0;
 }
 
 void HalInitClock()
@@ -316,16 +326,36 @@ void HalSleepProcessor()
 
 void HalPetWatchdog( )
 {
-	HalWatchdogCount = 0;	
+	int status;
+
+	//Note: calling HalPetWatchdog when the watchdog is disabled
+	//is safe because setting it_intertval to zero keeps the dog
+	//disabled.
+	WatchdogInterval.it_interval.tv_sec = 0;
+	WatchdogInterval.it_interval.tv_usec = HalWatchDogFrequency * 1000;
+	WatchdogInterval.it_value.tv_sec = 0;
+	WatchdogInterval.it_value.tv_usec = HalWatchDogFrequency * 1000;
+	status = setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL );
+	ASSERT(status == 0 );
 }
 
+//TODO: frequency is not a frequency, its a period.
 void HalEnableWatchdog( int frequency )
 {
-	HalWatchdogOn = TRUE;
+	int status;
+
 	HalWatchDogFrequency = frequency;
 	// Reset the count. Beware repeated calls to HalEnableWatchdog as it will 
 	// interrupt accuracy of the watchdog.
-	HalWatchdogCount = 0;
+	
+	//TODO ITIMER_VIRUTAL will not help us if we deadlock and no threads run/leak a raise.
+	//TODO CONSIDER USING ITIMER_PROF.
+	WatchdogInterval.it_interval.tv_sec = 0;
+	WatchdogInterval.it_interval.tv_usec = HalWatchDogFrequency * 1000;
+	WatchdogInterval.it_value.tv_sec = 0;
+	WatchdogInterval.it_value.tv_usec = HalWatchDogFrequency * 1000;
+	status = setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL );
+	ASSERT(status == 0 );
 }
 
 void HalResetClock()
@@ -336,6 +366,15 @@ void HalResetClock()
 
 //prototype for handler.
 void TimerInterrupt();
+
+/* Acts like the handler for a hardware
+ * watchdog interrupt.
+ * Panic's the kernel.
+ */
+void HalWatchdogHandler( int SignalNumber ) 
+{
+	HalPanic( "Wachdog Timeout", 0 );
+}
 
 /*
  * Acts like the hardware clock.
@@ -350,20 +389,6 @@ void HalTimerHandler( int SignalNumber )
 
 	//Call the kernel's timer handler.
 	TimerInterrupt();
-
-	//TODO IF POSSIBLE, MOVE WATCHDOG INTO OWN TIMER.
-	//It looks like it is possible according to man setitimer
-	//Run the watchdog check
-	if( HalWatchdogOn )
-	{
-		HalWatchdogCount ++;
-
-		if( HalWatchdogCount > HalWatchDogFrequency )
-		{
-			//The time for a match has expried. Panic!!!
-			HalPanic("Watchdog Timeout", 0 );
-		}
-	}
 }
 
 
