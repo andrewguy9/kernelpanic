@@ -1,5 +1,6 @@
 #include"../kernel/hal.h"
 #include"../kernel/thread.h"
+//TODO WHEN WE FIX THE TRAMPOLINE, REMOVE SCHED.H INCLUDE.
 #include"../kernel/scheduler.h"
 
 #include<sys/time.h>
@@ -463,6 +464,9 @@ void HalStackTrampoline( int SignalNumber )
 		//Test to make sure we are atomic
 		ASSERT( HalIsAtomic() );
 
+		//TODO SchedulerGetActiveThread?! This is the wrong layer!
+		//We need some other mechanism of telling the trampoline 
+		//which machine context to use.
 		thread = SchedulerGetActiveThread();
 
 		thread->MachineContext.Foo();

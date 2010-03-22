@@ -363,7 +363,10 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 	//This will release any held resources.
 	SchedulerSwitch();
 
-	//TODO: I think returning false here will help.
+	//TODO: Returning FALSE here causes the work item to get leaked,
+	//but prevents it from asserting when used. The only solution to 
+	//this is to have new threads complete work items. this is good 
+	//enough for now.
 	return FALSE;
 }
 
