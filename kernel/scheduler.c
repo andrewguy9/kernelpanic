@@ -293,7 +293,7 @@ void SchedulerNeedsSwitch()
 
 	if( MutexLock( &SchedulerMutex ) )
 	{
-		//The quantum has expired, so we should register an eviction if possible.
+		//We acquired the mutex, so we know that a switch has been requested.
 		CritInterruptRegisterHandler(
 				& SchedulerCritObject,
 				SchedulerCritHandler,
@@ -355,9 +355,7 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 
 	//Reset the quantim start time so that 
 	//the timer will know when to wake the scheduler.
-	InterruptDisable();
 	QuantumStartTime = TimerGetTime();
-	InterruptEnable();
 
 	//Switch away from the current thread to another.
 	//This will release any held resources.
