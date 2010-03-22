@@ -3,7 +3,7 @@
 
 #include"../utils/utils.h"
 #include"locking.h"
-#include"context.h"
+#include"hal.h"
 
 enum THREAD_STATE { THREAD_STATE_RUNNING, THREAD_STATE_BLOCKED, THREAD_STATE_DONE };
 

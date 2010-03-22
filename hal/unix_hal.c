@@ -1,3 +1,7 @@
+#include"../kernel/hal.h"
+#include"../kernel/thread.h"
+#include"../kernel/scheduler.h"
+
 #include<sys/time.h>
 #include<string.h>
 #include<signal.h>
@@ -440,6 +444,7 @@ void HalCreateStackFrame(
  */
 void HalStackTrampoline( int SignalNumber ) 
 {
+	struct THREAD * thread;
 	int status;
 	status = _setjmp( halTempContext->Registers );
 
@@ -458,13 +463,13 @@ void HalStackTrampoline( int SignalNumber )
 		//Test to make sure we are atomic
 		ASSERT( HalIsAtomic() );
 
-		//Our local variables are missing, but we know ActiveThread
-		//is the current thread which we can to run. We can get main from there.
-		ActiveStack->Foo();
+		thread = SchedulerGetActiveThread();
+
+		thread->MachineContext.Foo();
 		
 		//Returning from a function which was invoked by siglongjmp is not
 		//supported. Foo should never retrun.
-		HalPanic("Tried to return from ActiveStack->Foo()\n", 0 );
+		HalPanic("Tried to return from Thread\n", 0 );
 		return;
 	}
 }
@@ -486,21 +491,16 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 }
 
 //TODO: Add stack range check.
-void HalContextSwitch( )
+void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack)
 {
 	int status;
-	struct MACHINE_CONTEXT * oldContext = ActiveStack;
-	struct MACHINE_CONTEXT * newContext = NextStack;
-
-	ActiveStack = NextStack;
-	NextStack = NULL;
 
 	//Save the stack state into old context.
-	status = _setjmp( oldContext->Registers );
+	status = _setjmp( oldStack->Registers );
 	if( status == 0 )
 	{
 		//This was the saving call to setjmp.
-		_longjmp( newContext->Registers, 1 );
+		_longjmp( newStack->Registers, 1 );
 	}
 	else
 	{

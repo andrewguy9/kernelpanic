@@ -22,8 +22,6 @@ void KernelInit()
 
 	WatchdogStartup();
 
-	ContextStartup( );
-
 	TimerStartup();
 
 	SchedulerStartup();
