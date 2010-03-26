@@ -370,6 +370,9 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 
 void SchedulerStartup()
 {
+	//Setup the hal to use the scheduler.
+	HalContextStartup( SchedulerThreadStartup );
+	
 	//Initialize queues
 	LinkedListInit( &RunQueue );
 	//Initialize the timer

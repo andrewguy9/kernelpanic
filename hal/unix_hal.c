@@ -77,11 +77,9 @@ void HalSoftHandler( int SignalNumber );
 void HalCritHandler( int SignalNumber );
 void HalStackTrampoline( int SignalNumber );
 
-void HalStartup( STACK_INIT_ROUTINE stackInitRoutine )
+void HalStartup()
 {
 	int status;
-
-	StackInitRoutine = stackInitRoutine;
 
 	/*
 	 * Create the masks:
@@ -195,6 +193,11 @@ void HalInitClock()
 void HalSerialStartup()
 {
 	//TODO
+}
+
+void HalContextStartup( STACK_INIT_ROUTINE stackInitRoutine ) 
+{
+	StackInitRoutine = stackInitRoutine;
 }
 
 #ifdef DEBUG

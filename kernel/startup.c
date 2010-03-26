@@ -16,7 +16,7 @@
  */
 void KernelInit()
 {//entry point for kernel...
-	HalStartup( SchedulerThreadStartup );
+	HalStartup();
 
 	InterruptStartup();
 
