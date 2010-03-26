@@ -24,7 +24,7 @@ struct WORKER_ITEM
 	WORKER_FUNCTION Foo;
 	struct LOCKING_CONTEXT LockingContext;
 	void * Context;
-	BOOL Finished;
+	BOOL Finished;//TODO IT WOULD BE NICE TO MOVE TO A DIFFERENT FINISHED MECHANISM, SAY READY LIKE THE HANDLERS?
 };
 
 void WorkerCreateWorker(
