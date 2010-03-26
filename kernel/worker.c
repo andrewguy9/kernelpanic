@@ -20,6 +20,8 @@ struct WORKER_ITEM * WorkerGetItem( struct WORKER_QUEUE * queue )
 {
 	struct LINKED_LIST_LINK * link;
 
+	//TODO THIS SHOULD BE SAFE BECAUSE IT WILL BE CALLED
+	//IN A THREAD'S CONTEXT.
 	SemaphoreDown( & queue->Lock, NULL );
 
 	InterruptDisable();
@@ -33,6 +35,8 @@ struct WORKER_ITEM * WorkerGetItem( struct WORKER_QUEUE * queue )
 void WorkerAddItem( struct WORKER_QUEUE * queue, struct WORKER_ITEM * item )
 {
 
+	//TODO THIS MAY NOT BE SAFE BECAUSE IT WILL BE CALLED FROM 
+	//INSIDE CRITICAL SECTIONS.
 	SemaphoreUp( & queue->Lock );
 
 	//We mark finished inside interrupt section so that WorkerItemIsFinished
