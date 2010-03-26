@@ -4,6 +4,7 @@
 #include"../kernel/interrupt.h"
 #include"../kernel/semaphore.h"
 #include"../kernel/panic.h"
+#include"../kernel/timer.h"
 
 //Context for work item.
 
@@ -19,10 +20,8 @@ struct WORKER_CONTEXT
 //
 
 char WorkerStack[STACK_SIZE];
-char MainStack[STACK_SIZE];
 
 struct WORKER_QUEUE WorkerQueue;
-struct THREAD MainThread;
 
 struct SEMAPHORE Semaphore;
 
@@ -69,38 +68,35 @@ struct WORKER_ITEM ConsumerItem;
 struct WORKER_CONTEXT ProducerContext;
 struct WORKER_CONTEXT ConsumerContext;
 
-void ThreadMain()
+struct HANDLER_OBJECT WorkTimer;
+BOOL WorkTimerHandler( struct HANDLER_OBJECT * timer ) 
 {
-	WorkerInitItem( &WorkerQueue, WorkerProducerTask, &ProducerContext, &ProducerItem );
-	WorkerInitItem( &WorkerQueue, WorkerConsumerTask, &ConsumerContext, &ConsumerItem );
-	while(TRUE)
-	{
-		if( WorkerItemIsFinished(&ProducerItem) )
-		{
-			WorkerInitItem( &WorkerQueue, WorkerProducerTask, &ProducerContext, &ProducerItem );
-		}
+	//TODO WE NEED TO FIX WORKER UNIT TO ACT LIKE HANDLERS.
+	static BOOL FirstPass = TRUE;
 
-		if( WorkerItemIsFinished(&ConsumerItem) )
-		{
-			WorkerInitItem( &WorkerQueue, WorkerConsumerTask, &ConsumerContext, &ConsumerItem );
-		}
+	if( WorkerItemIsFinished(&ProducerItem) || FirstPass )
+	{
+		WorkerInitItem( &WorkerQueue, WorkerProducerTask, &ProducerContext, &ProducerItem );
 	}
+	
+	if( WorkerItemIsFinished(&ConsumerItem) || FirstPass )
+	{
+		WorkerInitItem( &WorkerQueue, WorkerConsumerTask, &ConsumerContext, &ConsumerItem );
+	}
+
+	TimerRegister(
+			timer,
+			1,
+			WorkTimerHandler,
+			NULL );
+
+	FirstPass = FALSE;
+	return FALSE;
 }
 
 int main()
 {
 	KernelInit();
-
-
-	SchedulerCreateThread( 
-			&MainThread, 
-			2, 
-			MainStack, 
-			STACK_SIZE, 
-			ThreadMain, 
-			NULL,
-			0, 
-			TRUE );
 
 	WorkerCreateWorker(
 			&WorkerQueue,
@@ -111,7 +107,15 @@ int main()
 	ProducerContext.Count = 0; 
 	ConsumerContext.Count = 0;
 
+	HandlerInit( &WorkTimer );
+	TimerRegister(
+			&WorkTimer,
+			1,
+			WorkTimerHandler,
+			NULL );
+
 	KernelStart();
+
 	return 0;
 }
 
