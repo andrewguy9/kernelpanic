@@ -1,3 +1,6 @@
+#include"../kernel/hal.h"
+#include"../kernel/thread.h"
+
 #include<sys/time.h>
 #include<string.h>
 #include<signal.h>
@@ -40,6 +43,8 @@
 BITMAP_WORD HalWatchdogMask;
 //TODO HalWatchdogFrequency is actually a period.
 unsigned int HalWatchDogFrequency;
+unsigned int HalWatchdogCount;
+STACK_INIT_ROUTINE StackInitRoutine;
 
 struct itimerval WatchdogInterval;
 struct itimerval TimerInterval;
@@ -199,6 +204,11 @@ void HalInitClock()
 void HalSerialStartup()
 {
 	//TODO
+}
+
+void HalContextStartup( STACK_INIT_ROUTINE stackInitRoutine ) 
+{
+	StackInitRoutine = stackInitRoutine;
 }
 
 #ifdef DEBUG
@@ -483,13 +493,11 @@ void HalStackTrampoline( int SignalNumber )
 		//Test to make sure we are atomic
 		ASSERT( HalIsAtomic() );
 
-		//Our local variables are missing, but we know ActiveThread
-		//is the current thread which we can to run. We can get main from there.
-		ActiveStack->Foo();
+		StackInitRoutine();
 		
 		//Returning from a function which was invoked by siglongjmp is not
 		//supported. Foo should never retrun.
-		HalPanic("Tried to return from ActiveStack->Foo()\n", 0 );
+		HalPanic("Tried to return from StackInitRoutine!\n", 0 );
 		return;
 	}
 }
@@ -511,21 +519,16 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 }
 
 //TODO: Add stack range check.
-void HalContextSwitch( )
+void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack)
 {
 	int status;
-	struct MACHINE_CONTEXT * oldContext = ActiveStack;
-	struct MACHINE_CONTEXT * newContext = NextStack;
-
-	ActiveStack = NextStack;
-	NextStack = NULL;
 
 	//Save the stack state into old context.
-	status = _setjmp( oldContext->Registers );
+	status = _setjmp( oldStack->Registers );
 	if( status == 0 )
 	{
 		//This was the saving call to setjmp.
-		_longjmp( newContext->Registers, 1 );
+		_longjmp( newStack->Registers, 1 );
 	}
 	else
 	{

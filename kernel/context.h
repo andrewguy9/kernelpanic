@@ -5,24 +5,6 @@
 #include"hal.h"
 
 void ContextInit( struct MACHINE_CONTEXT * context, char * pointer, COUNT Size, STACK_INIT_ROUTINE Foo, INDEX debugFlag );
+void ContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack);
 
-BOOL ContextLock( );
-
-void ContextUnlock( );
-
-#ifdef DEBUG
-BOOL ContextIsCritical( );
-#endif
-
-BOOL ContextCanSwitch( );
-
-void ContextStartup( );
-
-void ContextSetActiveContext( struct MACHINE_CONTEXT * stack );
-
-void ContextSetNextContext( struct MACHINE_CONTEXT * stack );
-
-void ContextSwitch();
-
-struct MACHINE_CONTEXT * ContextGetContext( );
 #endif

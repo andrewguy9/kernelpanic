@@ -20,9 +20,6 @@
  * so they dont have to gaurantee atomicy. 
  */
 
-extern struct MACHINE_CONTEXT * ActiveStack;
-extern struct MACHINE_CONTEXT * NextStack;
-
 #ifdef AVR_BUILD
 #include"../hal/avr_hal.c"
 #endif

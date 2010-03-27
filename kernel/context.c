@@ -1,10 +1,11 @@
 #include"context.h"
-#include"mutex.h"
 #include"interrupt.h"
 #include"watchdog.h"
 
 /*
  * Context Unit:
+ * TODO REWRITE THE CONTEXT UNIT TO BE A STACK MANAGEMENT UNIT.
+ * TODO WE SHOULD MOVE BACK TO ActiveThread and NextThread pointers.
  * The context unit manages "what context is on the stack".
  * In other words the context unit allows for critical sections
  * by preventing context switches. It is solely responsible for
@@ -16,9 +17,6 @@
  * The rule is that you lock the stack by entering a critical
  * section by calling CritInterruptStart() 
  */
-
-struct MACHINE_CONTEXT * ActiveStack;
-struct MACHINE_CONTEXT * NextStack;
 
 /*
  * Sets up a machine context for a future thread.
@@ -62,78 +60,30 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
 	}
 }
 
-void ContextStartup( )
-{
-	NextStack = NULL;
-	ActiveStack = NULL;
-}
-
-void ContextSetNextContext( struct MACHINE_CONTEXT * stack )
-{
-	ASSERT( NextStack == NULL );
-
-	NextStack = stack;
-}
-
-/*
- * Should only be called at startup when the thread 
- * is specified by the scheduler.
- */
-void ContextSetActiveContext( struct MACHINE_CONTEXT * stack )
-{
-	ASSERT( InterruptIsAtomic() );
-	ASSERT( ActiveStack == NULL );
-	ASSERT( NextStack == NULL );
-
-	ActiveStack = stack;
-
-}
-
-void ContextSwitch()
+void ContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack)
 {
 	ASSERT( InterruptIsAtomic() );
 
-	//We need to update the watchdog for the next thread.
-	if( NextStack != NULL )
-	{
-		WatchdogNotify( NextStack->Flag );
-	}
-
-
-	//We are in critical section,
-	//lets see if we have a thread picked to run.
-	if( NextStack == NULL )
-	{
-		//we are critical but no thread was picked, so we dont 
-		//have to do a context switch.
-	}
-	else if( NextStack != ActiveStack )
+	if( oldStack != newStack )
 	{
 		//The NextStack is set, so we need to context switch.
 #ifdef DEBUG
-		NextStack->TimesSwitched++;
-		NextStack->TimesRun++;
+		newStack->TimesSwitched++;
+		newStack->TimesRun++;
 #endif
 		//now that the system looks like the switch has
 		//happened, go ahead and do the switch.
-		HalContextSwitch( );
+		//TODO ADD PARAMS
+		HalContextSwitch(oldStack, newStack);
 	}
 	else
 	{
 		//we are critical but the thread was the same,
 		//so dont bother doing context switch. 
 #ifdef DEBUG
-		NextStack->TimesRun++;
+		newStack->TimesRun++;
 #endif
-		NextStack = NULL;
 	}
-	
-	//We should be atomic, non-critical with no next stack.
 	ASSERT( InterruptIsAtomic() );
-	ASSERT( NextStack == NULL );
 }
 
-struct MACHINE_CONTEXT * ContextGetContext( )
-{
-	return ActiveStack;
-}

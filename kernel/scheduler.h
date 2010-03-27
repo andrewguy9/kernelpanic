@@ -40,4 +40,6 @@ SchedulerCreateThread(
 
 struct LOCKING_CONTEXT * SchedulerGetLockingContext();
 
+void SchedulerThreadStartup( void );
+
 #endif

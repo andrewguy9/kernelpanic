@@ -64,7 +64,7 @@ void HalDisableSoftInterrupts();
 void HalDisableCritInterrupts();
 void HalEnableInterrupts();
 
-void HalContextSwitch();
+void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack);
 
 extern BITMAP_WORD HalWatchdogMask;
 
