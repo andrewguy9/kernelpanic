@@ -2,6 +2,7 @@
 #include"../utils/linkedlist.h"
 #include"interrupt.h"
 #include"softinterrupt.h"
+#include"critinterrupt.h"
 #include"scheduler.h"
 #include"panic.h"
 
@@ -9,8 +10,6 @@
  * Worker Unit:
  * The worker unit allows for threads or ISRs to
  * queue work items. 
- *
- * TODO: See if we can move from enable/disable interrupt to crit.
  */
 
 //
@@ -25,9 +24,9 @@ struct WORKER_ITEM * WorkerGetItem( struct WORKER_QUEUE * queue )
 	//context.
 	SemaphoreDown( & queue->Lock, NULL );
 
-	InterruptDisable();
+	CritInterruptDisable();
 	link = LinkedListPop( & queue->List );
-	InterruptEnable();
+	CritInterruptEnable();
 
 	ASSERT( link != NULL );
 	return BASE_OBJECT( link, struct WORKER_ITEM, Link );
@@ -48,9 +47,12 @@ void WorkerAddItem( struct WORKER_QUEUE * queue, struct WORKER_ITEM * item )
 
 	//We mark finished inside interrupt section so that WorkerItemIsFinished
 	//returns accurate results.
-	InterruptDisable();
-	item->Finished = FALSE;
 	item->Queue = queue;
+	
+	InterruptDisable();
+	//Finished needs to be updated with critical sections disabled.
+	item->Finished = FALSE;
+	//Adding to the queue needs to be done with Critinterrupts Disabled.
 	LinkedListEnqueue( &item->Link.LinkedListLink, & queue->List );
 	InterruptEnable();
 }
@@ -144,7 +146,9 @@ void WorkerThreadMain( void * arg )
 			case WORKER_PENDED:
 				//the item needs more processing. 
 				//add back into queue.
+				CritInterruptDisable();
 				LinkedListEnqueue( &item->Link.LinkedListLink, list );
+				CritInterruptEnable();
 				break;
 		}// end switch
 	}// end while(TRUE).
