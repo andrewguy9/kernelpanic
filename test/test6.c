@@ -19,6 +19,7 @@ struct WORKER_CONTEXT
 //Define structures
 
 char WorkerStack[STACK_SIZE];
+char WorkerStack[STACK_SIZE];
 
 struct WORKER_QUEUE WorkerQueue;
 
@@ -60,12 +61,12 @@ BOOL WorkCritHandler( struct HANDLER_OBJECT * timer )
 	{
 		WorkerInitItem( &WorkerQueue, WorkerProducerTask, &ProducerContext, &ProducerItem );
 	}
-	
-	if( WorkerItemIsFinished(&ConsumerItem) || FirstPass )
+
+	if( FirstPass )
 	{
 		WorkerInitItem( &WorkerQueue, WorkerConsumerTask, &ConsumerContext, &ConsumerItem );
 	}
-
+	
 	TimerRegister(
 			timer,
 			1,
@@ -78,31 +79,39 @@ BOOL WorkCritHandler( struct HANDLER_OBJECT * timer )
 
 enum WORKER_RETURN WorkerConsumerTask( struct WORKER_ITEM * item )
 {
+	enum WORKER_RETURN returnValue;
 	struct WORKER_CONTEXT * workContext = WorkerGetContext( item );
 	struct LOCKING_CONTEXT * lockContext = WorkerGetLockingContext( item );
 
-	if( LockingIsFree( lockContext ) )
+	do 
 	{
-		//The context is not in use, so we have not started
-		//trying to acquire the lock! So lets try now.
-		SemaphoreDown( &Semaphore, lockContext );
-	}
+		if( LockingIsFree( lockContext ) )
+		{
+			//The context is not in use, so we have not started
+			//trying to acquire the lock! So lets try now.
+			SemaphoreDown( &Semaphore, lockContext );
+		}
 
-	//at this point we know we have tried to acquire the lock.
-	//lets see if we actually did it.
+		//at this point we know we have tried to acquire the lock.
+		//lets see if we actually did it.
 	
-	if( LockingIsAcquired( lockContext ) )
-	{
-		// we got the lock. Lets do the work.
-		workContext->Count++;
-		//we have done the work, now lets finish the work item.
-		return WORKER_FINISHED;
-	}
-	else
-	{
-		//the lock is not acquired, so lets block the work item.
-		return WORKER_BLOCKED; 
-	}
+		if( LockingIsAcquired( lockContext ) )
+		{
+			// we got the lock. Lets do the work.
+			workContext->Count++;
+			//we have done the work, now lets finish the work item.
+			returnValue = WORKER_FINISHED;
+		}
+		else
+		{
+			//the lock is not acquired, so lets block the work item.
+			returnValue = WORKER_BLOCKED; 
+		}
+
+		//We repeat downing the semaphore so that we drain it.
+	}while(returnValue != WORKER_BLOCKED);
+
+	return returnValue;
 }
 
 enum WORKER_RETURN WorkerProducerTask( struct WORKER_ITEM * item )
