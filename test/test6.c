@@ -2,28 +2,79 @@
 #include"../kernel/scheduler.h"
 #include"../kernel/worker.h"
 #include"../kernel/interrupt.h"
+#include"../kernel/critinterrupt.h"
 #include"../kernel/semaphore.h"
 #include"../kernel/panic.h"
 #include"../kernel/timer.h"
+
+#define STACK_SIZE HAL_MIN_STACK_SIZE
 
 //Context for work item.
 
 struct WORKER_CONTEXT 
 {
-	COUNT * Count;
+	COUNT Count;
 };
 
-#define STACK_SIZE HAL_MIN_STACK_SIZE
-
-//
-//Validate State
-//
+//Define structures
 
 char WorkerStack[STACK_SIZE];
 
 struct WORKER_QUEUE WorkerQueue;
 
 struct SEMAPHORE Semaphore;
+
+struct WORKER_ITEM ProducerItem;
+struct WORKER_ITEM ConsumerItem;
+
+struct WORKER_CONTEXT ProducerContext;
+struct WORKER_CONTEXT ConsumerContext;
+
+struct HANDLER_OBJECT WorkTimer;
+
+//Prototypes
+
+BOOL WorkTimerHandler( struct HANDLER_OBJECT * timer );
+enum WORKER_RETURN WorkerConsumerTask( struct WORKER_ITEM * item );
+enum WORKER_RETURN WorkerProducerTask( struct WORKER_ITEM * item );
+BOOL WorkCritHandler( struct HANDLER_OBJECT * timer );
+
+//Handlers
+
+BOOL WorkTimerHandler( struct HANDLER_OBJECT * timer ) 
+{
+	CritInterruptRegisterHandler(
+			timer, 
+			WorkCritHandler,
+			NULL );
+
+	return FALSE;
+}
+
+BOOL WorkCritHandler( struct HANDLER_OBJECT * timer )
+{
+	//TODO WE NEED TO FIX WORKER UNIT TO ACT LIKE HANDLERS.
+	static BOOL FirstPass = TRUE;
+
+	if( WorkerItemIsFinished(&ProducerItem) || FirstPass )
+	{
+		WorkerInitItem( &WorkerQueue, WorkerProducerTask, &ProducerContext, &ProducerItem );
+	}
+	
+	if( WorkerItemIsFinished(&ConsumerItem) || FirstPass )
+	{
+		WorkerInitItem( &WorkerQueue, WorkerConsumerTask, &ConsumerContext, &ConsumerItem );
+	}
+
+	TimerRegister(
+			timer,
+			1,
+			WorkTimerHandler,
+			NULL );
+
+	FirstPass = FALSE;
+	return FALSE;
+}
 
 enum WORKER_RETURN WorkerConsumerTask( struct WORKER_ITEM * item )
 {
@@ -62,37 +113,7 @@ enum WORKER_RETURN WorkerProducerTask( struct WORKER_ITEM * item )
 	return WORKER_FINISHED;
 }
 
-struct WORKER_ITEM ProducerItem;
-struct WORKER_ITEM ConsumerItem;
-
-struct WORKER_CONTEXT ProducerContext;
-struct WORKER_CONTEXT ConsumerContext;
-
-struct HANDLER_OBJECT WorkTimer;
-BOOL WorkTimerHandler( struct HANDLER_OBJECT * timer ) 
-{
-	//TODO WE NEED TO FIX WORKER UNIT TO ACT LIKE HANDLERS.
-	static BOOL FirstPass = TRUE;
-
-	if( WorkerItemIsFinished(&ProducerItem) || FirstPass )
-	{
-		WorkerInitItem( &WorkerQueue, WorkerProducerTask, &ProducerContext, &ProducerItem );
-	}
-	
-	if( WorkerItemIsFinished(&ConsumerItem) || FirstPass )
-	{
-		WorkerInitItem( &WorkerQueue, WorkerConsumerTask, &ConsumerContext, &ConsumerItem );
-	}
-
-	TimerRegister(
-			timer,
-			1,
-			WorkTimerHandler,
-			NULL );
-
-	FirstPass = FALSE;
-	return FALSE;
-}
+//Main 
 
 int main()
 {
