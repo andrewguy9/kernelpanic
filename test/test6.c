@@ -122,6 +122,9 @@ enum WORKER_RETURN WorkerProducerTask( struct WORKER_ITEM * item )
 	return WORKER_FINISHED;
 }
 
+//TODO We should have a normal thread fire off work items as well to test 
+//the thread paths.
+
 //Main 
 
 int main()
