@@ -17,6 +17,11 @@ struct WORKER_QUEUE
 	struct SEMAPHORE Lock;
 };
 
+/*
+ * Note: All of the elements in WORKER_ITEMs are only consistant from the 
+ * perspective of the work queue its assigned to.
+ * The only exception to this is "Finished" which will always be updated atomically.
+ */
 struct WORKER_ITEM
 {
 	union LINK Link;

@@ -1,6 +1,7 @@
 #include"worker.h"
 #include"../utils/linkedlist.h"
 #include"interrupt.h"
+#include"softinterrupt.h"
 #include"scheduler.h"
 #include"panic.h"
 
@@ -32,11 +33,20 @@ struct WORKER_ITEM * WorkerGetItem( struct WORKER_QUEUE * queue )
 	return BASE_OBJECT( link, struct WORKER_ITEM, Link );
 }
 
+/*
+ * Adds a work item 'item' to the work queue 'queue'.
+ * It is not safe to add work items to the queue which have already been 
+ * registered. Calling WorkerItemIsFinished() can solve this engima.
+ */
 void WorkerAddItem( struct WORKER_QUEUE * queue, struct WORKER_ITEM * item )
 {
 
 	//TODO THIS MAY NOT BE SAFE BECAUSE IT WILL BE CALLED FROM 
 	//INSIDE CRITICAL SECTIONS.
+	
+	//Make sure we are at thread level.
+	ASSERT( !InterruptIsAtomic() && !SoftInterruptIsAtomic() );
+
 	SemaphoreUp( & queue->Lock );
 
 	//We mark finished inside interrupt section so that WorkerItemIsFinished
