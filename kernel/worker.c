@@ -21,8 +21,8 @@ struct WORKER_ITEM * WorkerGetItem( struct WORKER_QUEUE * queue )
 {
 	struct LINKED_LIST_LINK * link;
 
-	//TODO THIS SHOULD BE SAFE BECAUSE IT WILL BE CALLED
-	//IN A THREAD'S CONTEXT.
+	//Note: This is safe because WorkerGetItem is only called in a thread
+	//context.
 	SemaphoreDown( & queue->Lock, NULL );
 
 	InterruptDisable();
@@ -41,9 +41,6 @@ struct WORKER_ITEM * WorkerGetItem( struct WORKER_QUEUE * queue )
 void WorkerAddItem( struct WORKER_QUEUE * queue, struct WORKER_ITEM * item )
 {
 
-	//TODO THIS MAY NOT BE SAFE BECAUSE IT WILL BE CALLED FROM 
-	//INSIDE CRITICAL SECTIONS.
-	
 	//Make sure we are at thread level.
 	ASSERT( !InterruptIsAtomic() && !SoftInterruptIsAtomic() );
 
@@ -163,6 +160,10 @@ void WorkerCreateWorker(
 		unsigned int stackSize,
 		INDEX flag)
 {
+	LinkedListInit( &queue->List );
+
+	SemaphoreInit( &queue->Lock, 0 );
+
 	SchedulerCreateThread( 
 			&queue->Thread,
 			10,
