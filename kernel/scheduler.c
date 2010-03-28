@@ -3,6 +3,7 @@
 #include"../utils/linkedlist.h"
 #include"timer.h"
 #include"interrupt.h"
+#include"softinterrupt.h"
 #include"critinterrupt.h"
 #include"context.h"
 #include"panic.h"
@@ -135,7 +136,8 @@ void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
  */
 void SchedulerStartCritical( )
 {
-	ASSERT( !CritInterruptIsAtomic() );
+	//This is only safe if we are in a thread or crit operation.
+	ASSERT( !InterruptIsAtomic() && !SoftInterruptIsAtomic() );
 	CritInterruptDisable();
 }
 
@@ -181,7 +183,6 @@ void SchedulerResumeThread( struct THREAD * thread )
 {
 	ASSERT( HalIsCritAtomic( ) );
 	ASSERT( thread->State == THREAD_STATE_BLOCKED );
-	ASSERT( thread != SchedulerGetActiveThread() );
 
 	thread->State = THREAD_STATE_RUNNING;
 
