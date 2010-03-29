@@ -2,6 +2,7 @@
 #include"hal.h"
 #include"panic.h"
 #include"interrupt.h"
+#include"../utils/bitfield.h"
 
 /*
  * Watchdog System:
@@ -24,15 +25,14 @@
  * to indicator lights on various platforms.
  */
 
-//TODO MOVE THIS UNIT TO USE BITFIELD UNIT!
-char WatchdogDesiredMask;
+BITFIELD WatchdogDesiredMask;
 
 /*
  * Call this to setup the watchdog system
  */
 void WatchdogStartup( )
 {
-	WatchdogDesiredMask = 0;
+	WatchdogDesiredMask = FLAG_NONE;
 }
 
 void WatchdogEnable( int frequency )
@@ -46,7 +46,7 @@ void WatchdogEnable( int frequency )
  */
 void WatchdogNotify( INDEX index )
 {
-	BITMAP_WORD flag = 0;
+	BITMAP_WORD flag;
 
 	//We ignore index 0.
 	if( index == 0 )
@@ -58,29 +58,31 @@ void WatchdogNotify( INDEX index )
 		index--;
 	}
 
+	//Ensure that we are using a valid flag.
+	ASSERT( index <= FLAG_MAX_INDEX );
+
 	//find the bit we want to flip.
-	BitmapOn(& flag, index);
+	flag = FlagGetBit( index );
 	
 	InterruptDisable();
 	//TODO HAVING THE WATCH DOG MASK IN THE HAL BREAKS LAYERING
-	HalWatchdogMask |= flag;//apply flag.
+	FlagOn( HalWatchdogMask, flag );
 	//check to see if all of the players have shown up.
-	if( (HalWatchdogMask ^ WatchdogDesiredMask) == 0 )
+	if( FlagsEqual(HalWatchdogMask, WatchdogDesiredMask) )
 	{
 		//We have flipped all the flags required.
 		//So lets pet the watchdog.
 		HalPetWatchdog();
-		//Now lets clear the mask because we need to
+		//Nhow lets clear the mask because we need to
 		//restart our checking.
-		HalWatchdogMask = 0;
+		HalWatchdogMask = FLAG_NONE;
 	}
 	InterruptEnable();
 }
 
 void WatchdogAddFlag( INDEX index )
 {
-	BITMAP_WORD flag = 0;
-	ASSERT(index < 8 );
+	BITFIELD flag = FLAG_NONE;
 
 	if( index == 0 )
 	{
@@ -93,8 +95,11 @@ void WatchdogAddFlag( INDEX index )
 		index--;
 	}
 
-	BitmapOn(& flag, index );
+	ASSERT( index <= FLAG_MAX_INDEX );
+
+	flag = FlagGetBit( index );
+
 	InterruptDisable();
-	WatchdogDesiredMask |= flag;
+	FlagOn( WatchdogDesiredMask, flag );
 	InterruptEnable();
 }

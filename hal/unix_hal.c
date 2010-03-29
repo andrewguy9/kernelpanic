@@ -40,7 +40,7 @@
 //Unix Globals.
 //
 
-BITMAP_WORD HalWatchdogMask;
+BITFIELD HalWatchdogMask;
 //TODO HalWatchdogFrequency is actually a period.
 unsigned int HalWatchDogFrequency;
 unsigned int HalWatchdogCount;
@@ -184,7 +184,7 @@ void HalStartup()
 	ASSERT( HalIsAtomic() );
 
 	//Set up the watchdog.
-	HalWatchdogMask = 0;
+	HalWatchdogMask = FLAG_NONE;
 	HalWatchDogFrequency = 0;
 }
 
