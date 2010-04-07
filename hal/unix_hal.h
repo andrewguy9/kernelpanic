@@ -69,7 +69,7 @@ void HalEnableInterrupts();
 
 void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack);
 
-extern BITMAP_WORD HalWatchdogMask;
+extern volatile BITMAP_WORD HalWatchdogMask;
 
 void HalResetClock();
 

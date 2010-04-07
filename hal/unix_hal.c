@@ -40,7 +40,7 @@
 //Unix Globals.
 //
 
-BITFIELD HalWatchdogMask;
+volatile BITFIELD HalWatchdogMask;
 //TODO HalWatchdogFrequency is actually a period.
 unsigned int HalWatchDogFrequency;
 unsigned int HalWatchdogCount;
