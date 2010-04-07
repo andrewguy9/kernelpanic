@@ -5,8 +5,6 @@
 #include"../utils/utils.h"
 #include"handler.h"
 
-typedef unsigned long int TIME;
-
 //
 //Unit Management
 //
