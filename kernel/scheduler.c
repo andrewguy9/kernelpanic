@@ -8,6 +8,7 @@
 #include"context.h"
 #include"panic.h"
 #include"mutex.h"
+#include"watchdog.h"
 
 /*
  * Scheduler Unit:
@@ -233,6 +234,10 @@ void SchedulerSwitch()
 	ASSERT( CritInterruptIsAtomic() );
 	ASSERT( ! InterruptIsAtomic() );
 
+	//Update watchdog for both counters, since they have/are running.
+	WatchdogNotify( ActiveThread->MachineContext.Flag );
+	WatchdogNotify( NextThread->MachineContext.Flag );
+
 	//Save off copy of the current state.
 	oldThread = ActiveThread;
 	newThread = NextThread;
@@ -312,15 +317,6 @@ BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
 {
 	TIME currentTime = TimerGetTime();
 
-	/*
-	//TODO perform watchdog update in scheduler.
-	//We need to update the watchdog for the next thread.
-	if( NextStack != NULL )
-	{
-		WatchdogNotify( NextStack->Flag );
-	}
-	*/
-
 	//Prevent the scheduler from running while we check the active thread.
 	//TODO TIMER HANDLER SHOUDL ALWAYS ASK FOR A CRIT HANDLER. THEN THE CRIT HANDLER 
 	//CAN CHECK TO SEE IF THE QUANTUM EXPIRED.
@@ -328,6 +324,12 @@ BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
 
 	if( currentTime - QuantumStartTime > ActiveThread->Priority ) {
 		SchedulerNeedsSwitch();
+	} 
+	else 
+	{
+		//We need to update the watchdog for the next thread.
+		//printf("Watchdog notify on %ld\n", ActiveThread->MachineContext.Flag);
+		WatchdogNotify( ActiveThread->MachineContext.Flag );
 	}
 
 	CritInterruptEnable();
