@@ -27,12 +27,19 @@
 
 BITFIELD WatchdogDesiredMask;
 
+#ifdef DEBUG 
+volatile TIME WatchdogLastUpdatedTime;
+volatile TIME WatchdogLastClearedTime;
+#endif
+
 /*
  * Call this to setup the watchdog system
  */
 void WatchdogStartup( )
 {
 	WatchdogDesiredMask = FLAG_NONE;
+	WatchdogLastUpdatedTime = 0;
+	WatchdogLastClearedTime = 0;
 }
 
 void WatchdogEnable( int frequency )
@@ -47,6 +54,9 @@ void WatchdogEnable( int frequency )
 void WatchdogNotify( INDEX index )
 {
 	BITMAP_WORD flag;
+#ifdef DEBUG
+	TIME time;
+#endif
 
 	//We ignore index 0.
 	if( index == 0 )
@@ -65,6 +75,14 @@ void WatchdogNotify( INDEX index )
 	flag = FlagGetBit( index );
 	
 	InterruptDisable();
+
+	//Assert that this flag is present in the desired mask.
+	ASSERT(FlagGet(flag, WatchdogDesiredMask));
+
+#ifdef DEBUG
+	time = TimerGetTime();
+	WatchdogLastUpdatedTime = time;
+#endif
 	//TODO HAVING THE WATCH DOG MASK IN THE HAL BREAKS LAYERING
 	FlagOn( HalWatchdogMask, flag );
 	//check to see if all of the players have shown up.
@@ -76,6 +94,10 @@ void WatchdogNotify( INDEX index )
 		//Nhow lets clear the mask because we need to
 		//restart our checking.
 		HalWatchdogMask = FLAG_NONE;
+
+#ifdef DEBUG
+		WatchdogLastClearedTime = time;
+#endif
 	}
 	InterruptEnable();
 }
