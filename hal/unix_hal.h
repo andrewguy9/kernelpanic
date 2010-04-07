@@ -44,9 +44,12 @@ struct MACHINE_CONTEXT
 	jmp_buf Registers;//Buffer to hold register state in context switches.
 	
 #ifdef DEBUG
+	//TODO IT SEEMS ODD TO KEEP THESE COUNTERS IN THE MACHINE CONTEXT.
 	//Counters to keep track of thread usage.
-	COUNT TimesRun;
-	COUNT TimesSwitched;
+	volatile COUNT TimesRun;
+	volatile COUNT TimesSwitched;
+	volatile TIME LastRanTime;
+	volatile TIME LastSelectedTime;
 	//Pointers to the top and bottom of the stack. Used to detect stack overflow.
 	char * High;
 	char * Low;
