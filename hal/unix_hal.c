@@ -383,7 +383,7 @@ void TimerInterrupt();
  */
 void HalWatchdogHandler( int SignalNumber ) 
 {
-	HalPanic( "Wachdog Timeout", 0 );
+	HalPanic( "Wachdog Timeout", HalWatchdogMask );
 }
 
 /*
