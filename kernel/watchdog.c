@@ -38,8 +38,10 @@ volatile TIME WatchdogLastClearedTime;
 void WatchdogStartup( )
 {
 	WatchdogDesiredMask = FLAG_NONE;
+#ifdef DEBUG 
 	WatchdogLastUpdatedTime = 0;
 	WatchdogLastClearedTime = 0;
+#endif
 }
 
 void WatchdogEnable( int frequency )
