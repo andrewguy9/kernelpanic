@@ -13,7 +13,7 @@
 
 //Define Sleep Patern
 #define SEQUENCE_LENGTH 8
-COUNT Sequence[SEQUENCE_LENGTH] = {2,4,8,16,32,64,128,256};
+COUNT Sequence[SEQUENCE_LENGTH] = {4,8,16,32,64,128,256,512};
 
 //Define Thread
 struct THREAD SleeperThread;
