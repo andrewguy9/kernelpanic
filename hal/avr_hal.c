@@ -227,32 +227,32 @@ void HalPanic(char file[], int line)
 	while( failed );
 }
 
-void HalEnableWatchdog( int frequency )
+void HalEnableWatchdog( int timeout )
 {
-	if( frequency <= 15 )
+	if( timeout <= 15 )
 	{
 		wdt_enable( WDTO_15MS );
 	} 
-	else if( frequency <= 30 )
+	else if( timeout <= 30 )
 	{
 		wdt_enable( WDTO_30MS );
 	}
-	else if( frequency <= 60 )
+	else if( timeout <= 60 )
 	{
 		wdt_enable( WDTO_60MS );
-	}else if( frequency <= 120 )
+	}else if( timeout <= 120 )
 	{
 		wdt_enable( WDTO_120MS );
 	}
-	else if( frequency <= 250 )
+	else if( timeout <= 250 )
 	{
 		wdt_enable( WDTO_250MS );
 	}
-	else if( frequency <= 500 )
+	else if( timeout <= 500 )
 	{
 		wdt_enable( WDTO_500MS );
 	}
-	else if( frequency <= 1000 )
+	else if( timeout <= 1000 )
 	{
 		wdt_enable( WDTO_1S );
 	}

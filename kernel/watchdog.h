@@ -4,7 +4,7 @@
 #include"timer.h"
 
 void WatchdogStartup();
-void WatchdogEnable( int frequency );
+void WatchdogEnable( int timeout );
 void WatchdogNotify( INDEX index );
 void WatchdogAddFlag( INDEX index );
 

@@ -26,7 +26,7 @@ struct MACHINE_CONTEXT;
 
 void HalInitClock();
 void HalStartup();
-void HalEnableWatchdog( int frequency );
+void HalEnableWatchdog( int timeout );
 void HalPetWatchdog( );
 void HalStartInterrupt();
 void HalEndInterrupt();

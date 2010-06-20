@@ -41,8 +41,7 @@
 //
 
 volatile BITFIELD HalWatchdogMask;
-//TODO HalWatchdogFrequency is actually a period.
-unsigned int HalWatchDogFrequency;
+unsigned int HalWatchDogTimeout;
 unsigned int HalWatchdogCount;
 STACK_INIT_ROUTINE StackInitRoutine;
 
@@ -185,7 +184,7 @@ void HalStartup()
 
 	//Set up the watchdog.
 	HalWatchdogMask = FLAG_NONE;
-	HalWatchDogFrequency = 0;
+	HalWatchDogTimeout = 0;
 }
 
 void HalInitClock()
@@ -342,28 +341,27 @@ void HalPetWatchdog( )
 	//is safe because setting it_intertval to zero keeps the dog
 	//disabled.
 	WatchdogInterval.it_interval.tv_sec = 0;
-	WatchdogInterval.it_interval.tv_usec = HalWatchDogFrequency * 1000;
+	WatchdogInterval.it_interval.tv_usec = HalWatchDogTimeout * 1000;
 	WatchdogInterval.it_value.tv_sec = 0;
-	WatchdogInterval.it_value.tv_usec = HalWatchDogFrequency * 1000;
+	WatchdogInterval.it_value.tv_usec = HalWatchDogTimeout * 1000;
 	status = setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL );
 	ASSERT(status == 0 );
 }
 
-//TODO: frequency is not a frequency, its a period.
-void HalEnableWatchdog( int frequency )
+void HalEnableWatchdog( int timeout )
 {
 	int status;
 
-	HalWatchDogFrequency = frequency;
+	HalWatchDogTimeout = timeout;
 	// Reset the count. Beware repeated calls to HalEnableWatchdog as it will 
 	// interrupt accuracy of the watchdog.
 	
 	//TODO ITIMER_VIRUTAL will not help us if we deadlock and no threads run/leak a raise.
 	//TODO CONSIDER USING ITIMER_PROF.
 	WatchdogInterval.it_interval.tv_sec = 0;
-	WatchdogInterval.it_interval.tv_usec = HalWatchDogFrequency * 1000;
+	WatchdogInterval.it_interval.tv_usec = HalWatchDogTimeout * 1000;
 	WatchdogInterval.it_value.tv_sec = 0;
-	WatchdogInterval.it_value.tv_usec = HalWatchDogFrequency * 1000;
+	WatchdogInterval.it_value.tv_usec = HalWatchDogTimeout * 1000;
 	status = setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL );
 	ASSERT(status == 0 );
 }

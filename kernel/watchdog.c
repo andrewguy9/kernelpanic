@@ -44,9 +44,9 @@ void WatchdogStartup( )
 #endif
 }
 
-void WatchdogEnable( int frequency )
+void WatchdogEnable( int timeout )
 {
-	HalEnableWatchdog( frequency );
+	HalEnableWatchdog( timeout );
 }
 
 /*
