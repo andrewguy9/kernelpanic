@@ -48,16 +48,15 @@ STACK_INIT_ROUTINE StackInitRoutine;
 struct itimerval WatchdogInterval;
 struct itimerval TimerInterval;
 
-//TODO THIS CHART SHOULD USE THE PANIC SIGNAL NAMES.
 /*
-                 |SIGVTALRM|SIGALRM|SIGUSR1|SIGUSR2|SIGINFO|
-------------------------------------------------------------
-InterruptMask    |         |*******|*******|*******|*******|
-SoftInterruptMask|         |       |*******|*******|*******|
-CritInterruptMask|         |       |       |*******|*******|
-NoInterruptMask  |         |       |       |       |*******|
-TrampolineMask   |         |       |       |       |*******|
-------------------------------------------------------------
+                 |HAL_SIGNAL_WATCHDOG|HAL_SIGNAL_TIMER|HAL_SIGNAL_SOFT|HAL_SIGNAL_CRIT|HAL_SIGNAL_TRAMPOLINE|
+-----------------|-------------------|----------------|---------------|---------------|---------------------|
+InterruptMask    |                   |****************|***************|***************|*********************|
+SoftInterruptMask|                   |                |***************|***************|*********************|
+CritInterruptMask|                   |                |               |***************|*********************|
+NoInterruptMask  |                   |                |               |               |*********************|
+TrampolineMask   |                   |                |               |               |*********************|
+-------------------------------------------------------------------------------------------------------------
 */
 
 //Masks are used to disable various interrupt types.
