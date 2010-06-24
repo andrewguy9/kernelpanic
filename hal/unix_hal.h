@@ -44,8 +44,6 @@ struct MACHINE_CONTEXT
 	jmp_buf Registers;//Buffer to hold register state in context switches.
 	
 #ifdef DEBUG
-	//TODO IT SEEMS ODD TO KEEP THESE COUNTERS IN THE MACHINE CONTEXT.
-	//Counters to keep track of thread usage.
 	volatile COUNT TimesRun;
 	volatile COUNT TimesSwitched;
 	volatile TIME LastRanTime;

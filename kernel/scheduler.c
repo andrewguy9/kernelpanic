@@ -15,8 +15,10 @@
  * The Scheduler unit has three tasks:
  * 1) Provide a thread scheduler which
  * picks when threads run.
+ *
  * 2) Provide a mechanism for a thread
  * to stop itself, and for others to wake it.
+ *
  * 3) Provide mechanism for thread level atomic 
  * or "critical sections".
  *
@@ -46,17 +48,25 @@ BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler );
 BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler );
 void SchedulerNeedsSwitch();
 
+//Pointers to the currnet and next thread.
 struct THREAD * ActiveThread;
 struct THREAD * NextThread;
 
+//List of threads which are eligable to run.
 struct LINKED_LIST RunQueue;
 
-//Variables that need to be edited atomically.
+//HANDLER used as a timer for the thread eviction process.
 struct HANDLER_OBJECT SchedulerTimer;
+
+//The Time at which ActiveThread was selected to run.
 TIME QuantumStartTime;
 
-struct MUTEX SchedulerMutex;
+//HANDLER used to perform thread scheduling. 
+//SchedulerMutex is used to restrict access to SchedulerCritObject,
+//because it can be queued by a thread calling yield or the 
+//periodic thread eviction process.
 struct HANDLER_OBJECT SchedulerCritObject;
+struct MUTEX SchedulerMutex;
 
 //Thread for idle loop ( the start up thread too )
 struct THREAD IdleThread;
@@ -263,7 +273,8 @@ void SchedulerSwitch()
 /*
  * Pick the next thread to run.
  * Changes links to store threads in lists.
- * Returns the priority of the next thread.
+ * This function is NOT side effect free! If it is called, 
+ * you MUST perform a context switch.
  */
 void Schedule()
 {

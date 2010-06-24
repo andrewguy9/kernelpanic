@@ -5,18 +5,7 @@
 
 /*
  * Context Unit:
- * TODO REWRITE THE CONTEXT UNIT TO BE A STACK MANAGEMENT UNIT.
- * TODO WE SHOULD MOVE BACK TO ActiveThread and NextThread pointers.
- * The context unit manages "what context is on the stack".
- * In other words the context unit allows for critical sections
- * by preventing context switches. It is solely responsible for
- * calling the HAL's context switch code.
- *
- * The context unit manages the context switch lock in similarly
- * to how the interrupt unit manages the interrupt flag. 
- *
- * The rule is that you lock the stack by entering a critical
- * section by calling CritInterruptStart() 
+ * The context unit helps deal with thread context (i.e. stacks).
  */
 
 /*
@@ -82,7 +71,6 @@ void ContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * n
 #endif
 		//now that the system looks like the switch has
 		//happened, go ahead and do the switch.
-		//TODO ADD PARAMS
 		HalContextSwitch(oldStack, newStack);
 	}
 	else
