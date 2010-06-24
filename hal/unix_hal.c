@@ -201,7 +201,7 @@ void HalInitClock()
 
 void HalSerialStartup()
 {
-	//TODO
+	//TODO Fill in with rest of Serial IO Unit.
 }
 
 void HalContextStartup( STACK_INIT_ROUTINE stackInitRoutine ) 
@@ -355,8 +355,9 @@ void HalEnableWatchdog( int timeout )
 	// Reset the count. Beware repeated calls to HalEnableWatchdog as it will 
 	// interrupt accuracy of the watchdog.
 	
-	//TODO ITIMER_VIRUTAL will not help us if we deadlock and no threads run/leak a raise.
-	//TODO CONSIDER USING ITIMER_PROF.
+	//NOTE: ITIMER_VIRUTAL will decrement when the process is running.
+	//This means that on unix the watchdog will not catch cases where 
+	//the process is idle or sparse. 
 	WatchdogInterval.it_interval.tv_sec = 0;
 	WatchdogInterval.it_interval.tv_usec = HalWatchDogTimeout * 1000;
 	WatchdogInterval.it_value.tv_sec = 0;
@@ -367,8 +368,8 @@ void HalEnableWatchdog( int timeout )
 
 void HalResetClock()
 {
-	//TODO NO NOTHING FOR NOW SINCE ALARM IS OUR GLOBAL FLAG.
-	//and the alarm is already periodic. (unlike the avr).
+	//Note: On Unix we dont do anything here because 
+	//the timer is already periodic, unlike the avr.
 }
 
 //prototype for handler.
