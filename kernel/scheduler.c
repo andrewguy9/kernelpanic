@@ -16,31 +16,31 @@
  * 1) Provide a thread scheduler which
  * picks when threads run.
  *
- * 2) Provide a mechanism for a thread
- * to stop itself, and for others to wake it.
+ * 2) Provide thread APIs.
  *
  * 3) Provide mechanism for thread level atomic 
  * or "critical sections".
  *
  * Scheduling next thread:
- * The actual Scheduling occurs in the Schedule
- * function. We must make sure that the Schedule 
- * function does pick a new thread while the 
- * system is in a thread critical section. 
- * We enforce this rule using a mutex. 
- * Threads entering a critical section
- * acquire the mutex, and then release it
- * at the end of their critical section. 
+ * Selection of the next thread to run is performed by the Schedule() 
+ * function. Calling SchedulerSwitch() causes the kernel to flip to the 
+ * next thread's stack of execution. Selection of the next thread can
+ * be triggered by either a thread yilding control or having his quantum
+ * expire. The SchedulerCritObject is a crit handler used to perform
+ * stack switches. The SchedulerMutex is used serialize attempts at 
+ * switching threads.
  *
- * Blocking Contexts:
- *TODO UPDATE COMMENT TO REFLECT NEW BLOCKING RULES
- * There are many resons to block a thread. Some
- * of them will need to save infomation about 
- * the thread's state so we will know when to wake it.
- * This information is stored in the thread's blocking context.
+ * Thread APIs:
+ * Allow threads to be spawned, block themselves, etc.
  *
- * Blocking contexts can only be used when a thread is blocked.
- * Only one unit can block a thread at a time.
+ * CriticalSections:
+ * Once upon a time, critical sections were maintained with a mutex.
+ * This meant that the Scheduler Critical Section APIs were not 
+ * reentrant compatable. However, today we use the Interrupt unit's counted
+ * IRQ interface (Critical Section managed by the CritInterrupt IRQ).
+ * We keep the Scheduler Critical interfaces because they have asserts
+ * to protect against previously disallowed reentrancy. Someday we should
+ * remove them when we become convinced that it is safe.
  */
 
 void Schedule();
@@ -59,7 +59,9 @@ struct LINKED_LIST RunQueue;
 struct HANDLER_OBJECT SchedulerTimer;
 
 //The Time at which ActiveThread was selected to run.
-TIME QuantumStartTime;
+//QuantimStartTime should be protected at the SoftInterrupt IRQ
+//so that the timer can evaluate it.
+volatile TIME QuantumStartTime;
 
 //HANDLER used to perform thread scheduling. 
 //SchedulerMutex is used to restrict access to SchedulerCritObject,
@@ -329,10 +331,7 @@ BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
 	TIME currentTime = TimerGetTime();
 
 	//Prevent the scheduler from running while we check the active thread.
-	//TODO TIMER HANDLER SHOUDL ALWAYS ASK FOR A CRIT HANDLER. THEN THE CRIT HANDLER 
-	//CAN CHECK TO SEE IF THE QUANTUM EXPIRED.
-	CritInterruptDisable(); 
-
+	//Note that we can touch QuantumStartTime because we are a SoftISR.
 	if( currentTime - QuantumStartTime > ActiveThread->Priority ) {
 		SchedulerNeedsSwitch();
 	} 
@@ -343,14 +342,13 @@ BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
 		WatchdogNotify( ActiveThread->MachineContext.Flag );
 	}
 
-	CritInterruptEnable();
-
 	//Register timer fire again.
 	TimerRegister( &SchedulerTimer,
 			1,
 			SchedulerTimerHandler,
-			NULL);
+			NULL );
 
+	//We return false here because we have re-registered the timer.
 	return FALSE;
 }
 
@@ -367,9 +365,13 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 	//conrol volontarily. 
 	Schedule();
 
-	//Reset the quantim start time so that 
+	//Reset the quantum start time so that 
 	//the timer will know when to wake the scheduler.
+	//Note that we must disable SoftISRs while updating QuantumStartTime
+	//so that it is consistant from the perspective of the timer.
+	SoftInterruptDisable(); 
 	QuantumStartTime = TimerGetTime();
+	SoftInterruptEnable(); 
 
 	//Switch away from the current thread to another.
 	//This will release any held resources.
