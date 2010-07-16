@@ -26,10 +26,11 @@
  */
 
 BITFIELD WatchdogDesiredMask;
+BITFIELD WatchdogCurMask;
 
 #ifdef DEBUG 
-volatile TIME WatchdogLastUpdatedTime;
-volatile TIME WatchdogLastClearedTime;
+TIME WatchdogLastUpdatedTime;
+TIME WatchdogLastClearedTime;
 #endif
 
 /*
@@ -38,6 +39,8 @@ volatile TIME WatchdogLastClearedTime;
 void WatchdogStartup( )
 {
 	WatchdogDesiredMask = FLAG_NONE;
+	WatchdogCurMask = FLAG_NONE;
+
 #ifdef DEBUG 
 	WatchdogLastUpdatedTime = 0;
 	WatchdogLastClearedTime = 0;
@@ -85,17 +88,16 @@ void WatchdogNotify( INDEX index )
 	time = TimerGetTime();
 	WatchdogLastUpdatedTime = time;
 #endif
-	//TODO HAVING THE WATCH DOG MASK IN THE HAL BREAKS LAYERING
-	FlagOn( HalWatchdogMask, flag );
+	FlagOn( WatchdogCurMask, flag );
 	//check to see if all of the players have shown up.
-	if( FlagsEqual(HalWatchdogMask, WatchdogDesiredMask) )
+	if( FlagsEqual(WatchdogCurMask, WatchdogDesiredMask) )
 	{
 		//We have flipped all the flags required.
 		//So lets pet the watchdog.
 		HalPetWatchdog();
 		//Nhow lets clear the mask because we need to
 		//restart our checking.
-		HalWatchdogMask = FLAG_NONE;
+		WatchdogCurMask = FLAG_NONE;
 
 #ifdef DEBUG
 		WatchdogLastClearedTime = time;

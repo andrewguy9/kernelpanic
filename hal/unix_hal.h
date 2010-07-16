@@ -67,8 +67,6 @@ void HalEnableInterrupts();
 
 void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack);
 
-extern volatile BITMAP_WORD HalWatchdogMask;
-
 void HalResetClock();
 
 void HalRaiseSoftInterrupt();

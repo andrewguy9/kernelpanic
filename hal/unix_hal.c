@@ -40,9 +40,7 @@
 //Unix Globals.
 //
 
-volatile BITFIELD HalWatchdogMask;
 unsigned int HalWatchDogTimeout;
-unsigned int HalWatchdogCount;
 STACK_INIT_ROUTINE StackInitRoutine;
 
 struct itimerval WatchdogInterval;
@@ -181,8 +179,7 @@ void HalStartup()
 
 	ASSERT( HalIsAtomic() );
 
-	//Set up the watchdog.
-	HalWatchdogMask = FLAG_NONE;
+	//Initialize WatchdogVariables (Dont register ISR)
 	HalWatchDogTimeout = 0;
 }
 
@@ -381,7 +378,7 @@ void TimerInterrupt();
  */
 void HalWatchdogHandler( int SignalNumber ) 
 {
-	HalPanic( "Wachdog Timeout", HalWatchdogMask );
+	HalPanic( "Wachdog Timeout", 0);
 }
 
 /*
