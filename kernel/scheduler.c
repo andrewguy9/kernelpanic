@@ -267,7 +267,15 @@ void SchedulerSwitch()
 	ASSERT( ! InterruptIsAtomic() );
 	ASSERT( CritInterruptIsAtomic() );
 	
-	//Release the lock so that the scheduler can run again.
+	//We need to Finish the SchedulerObject, then
+	//release the SchedulerMutex.
+	//After this we cannot touch any scheduler objects.
+	//Note that handlers use the ScheudlerCritObject 
+	//SHOULD NEVER return TRUE because we Finish it here.
+	//TODO i know that releasing here is a hack,
+	//maybe someday we will move a mutex into the 
+	//HANDLER_OBJECTs themselves.
+	HandlerFinish( &SchedulerCritObject );
 	MutexUnlock( &SchedulerMutex );
 }
 
@@ -317,6 +325,11 @@ void SchedulerNeedsSwitch()
 				& SchedulerCritObject,
 				SchedulerCritHandler,
 				NULL );
+	} 
+	else 
+	{
+		//We failed to acquire the mutex, so we know that someone
+		//else is already evicting the thread.
 	}
 }
 
@@ -329,6 +342,9 @@ void SchedulerNeedsSwitch()
 BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
 {
 	TIME currentTime = TimerGetTime();
+
+	//Only the global SchedulerTimer should invoke this callback.
+	ASSERT( handler == &SchedulerTimer );
 
 	//Prevent the scheduler from running while we check the active thread.
 	//Note that we can touch QuantumStartTime because we are a SoftISR.
@@ -360,6 +376,9 @@ BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
  */
 BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 {
+	//Only the global SchedulerCritObject should invoke this callback.
+	ASSERT( handler == &SchedulerCritObject );
+
 	//Select the next thread to run.
 	//Re-queue the curring thread if he is giving up 
 	//conrol volontarily. 
@@ -377,10 +396,9 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 	//This will release any held resources.
 	SchedulerSwitch();
 
-	//TODO: Returning FALSE here causes the work item to get leaked,
-	//but prevents it from asserting when used. The only solution to 
-	//this is to have new threads complete work items. this is good 
-	//enough for now.
+	//Note that the SchedulerCritObject was Finished by our call to 
+	//SchedulerSwitch. We must return false here so that we don't 
+	//double Finish.
 	return FALSE;
 }
 
@@ -433,39 +451,51 @@ void SchedulerThreadStartup( void )
 {
 	struct THREAD * thread;
 	
-	//Thread startup should occur in atomic section.
-	//We are waking up from the trampoline, so we should not
-	//be in a critical section, however, we know that the
-	//scheduler was running when we were selected.
-	//We need to make sure that we re-enable the scheduler.
+	//This is the first function called when context 
+	//switching into a newly created thread.
+	//We are waking up from the new stack 'trampoline', 
+	//so we know that we came from a context switch.
+	//This means we should release the scheduler resources 
+	//which were held across the context switch, 
+	//namely the SchedulerCritObject, and the SchedulerMutex.
+	
+	//Context switches should be run atomically.
 	ASSERT( InterruptIsAtomic() );
 
-	ASSERT( MutexIsLocked( &SchedulerMutex ) );
-	MutexUnlock( &SchedulerMutex );
-	
-	//Get the thread.
+	//Get the thread (set before the context switch)
 	thread = SchedulerGetActiveThread();
 	
-	//We need to end atomic section before starting thread's main.
+	//Now it should be safe to lower the atomic section.
+	//The scheduler will not yet be consistant, but we 
+	//should still be in a critical section (so its safe-ish).
 	InterruptEnable();
 	ASSERT( !InterruptIsAtomic() );
-
-	//Lets force a CritInterrupt drain so that we don't miss if there 
-	//were elements in the queue when we bailed out.
 	ASSERT( CritInterruptIsAtomic() );
+
+	//Now we will release the scheduler objects to allow the scheduler
+	//to be consistant again.
+	ASSERT( MutexIsLocked( &SchedulerMutex ) );
+	HandlerFinish( &SchedulerCritObject );
+	MutexUnlock( &SchedulerMutex );
+
+	//Now we can end the critical section. Now the ContextSwitch is complete.
 	CritInterruptEnable();
 	ASSERT( !CritInterruptIsAtomic() );
 
 	//run the thread.
 	thread->Main( thread->Argument );
 
-	//Stop the thread
+	//The new thread's main returned. We must ensure that
+	//we do not return from the trampoline, so force the
+	//kernel to switch to another thread. Also move the 
+	//thread into THREAD_STATE_DONE so that he is never
+	//rescheduled.
 	SchedulerStartCritical();
 	thread->State = THREAD_STATE_DONE;
 	SchedulerForceSwitch();
 
 	//We should never get here.
-	//This function should not return.
+	//This function MUST not return. 
 	KernelPanic();
 }
 
