@@ -1,6 +1,10 @@
 #ifndef BITFIELD_H
 #define BITFIELD_H
 
+/*
+ * Presents an abstraction for single word bitmaps (i.e. flags).
+ */
+
 typedef int BITFIELD;
 
 #define FlagOn(FIELD, FLAG)     ((FIELD) |= (FLAG))
