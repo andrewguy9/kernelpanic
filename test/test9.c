@@ -16,9 +16,12 @@
 #define THREAD2FLAG 2
 #define THREAD3FLAG 3
 
-#define THREAD1QUANTUM 1
-#define THREAD2QUANTUM 2
-#define THREAD3QUANTUM 3
+//Note: Because Unix does not provide good real time support,
+//using small quantums can lead to delayed timer delivery.
+//This will cause problems when used with the watchdog. 
+#define THREAD1QUANTUM 30
+#define THREAD2QUANTUM 60
+#define THREAD3QUANTUM 90
 
 #define FREQ 2*(THREAD1QUANTUM+THREAD2QUANTUM+THREAD3QUANTUM)
 
@@ -32,10 +35,7 @@ void TestThreadMain( void * arg )
 	while( 1 )
 	{
 		(*var)++;
-		//TODO THERE MUST BE A BUG IN THE SLEEP UNIT,
-		//BEAUSE ADDING THIS SLEEP CAN CAUSE THREADS TO NOT
-		//BE RUN FOR SEVERAL SECONDS AT A TIME.
-		//Sleep(1);
+		Sleep(1);
 	}
 }
 
