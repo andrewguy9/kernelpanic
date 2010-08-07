@@ -91,10 +91,10 @@ struct WEIGHTED_LINK * HeapSmallest( struct WEIGHTED_LINK *n1, struct WEIGHTED_L
 }
 
 struct WEIGHTED_LINK * HeapFindElement( INDEX index, struct HEAP * heap )
-{//TODO BROKEN FUNCTION!!!
+{
 
 	//Make sure that the index is in bounds.
-	ASSERT( index <= heap-> Size && index != 0 );
+	ASSERT( index <= heap->Size && index != 0 );
 
 	//Find the number of steps go from head to index.
 	COUNT steps=0;
