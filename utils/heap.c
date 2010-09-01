@@ -123,11 +123,14 @@ struct WEIGHTED_LINK * HeapFindElement( INDEX index, struct HEAP * heap )
 	return cur;
 }
 
-void HeapAdd( struct WEIGHTED_LINK * node, struct HEAP * heap )
+void HeapAdd(WEIGHT weight, struct WEIGHTED_LINK * node, struct HEAP * heap )
 {
 
 	struct WEIGHTED_LINK * parent;
 	
+	//set the weight so we can start to percolate.
+	node->Weight = weight;
+
 	//node will be a leaf, so set pointers to null.
 	node->Left = NULL;
 	node->Right = NULL;

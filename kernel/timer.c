@@ -94,24 +94,25 @@ void TimerRegister(
 		HANDLER_FUNCTION * handler,
 		void * context )
 {
+	TIME timerTime;
 
 	InterruptDisable();
 
 	//Construct timer
 	HandlerRegister( newTimer );
-	newTimer->Link.WeightedLink.Weight = Time + wait;
+	timerTime = Time + wait;
 	newTimer->Function = handler;
 	newTimer->Context = context;
 
 	//Add to heap
-	if( newTimer->Link.WeightedLink.Weight >= Time )
+	if( timerTime >= Time )
 	{
-		HeapAdd( &newTimer->Link.WeightedLink, Timers );
+		HeapAdd(timerTime, &newTimer->Link.WeightedLink, Timers );
 	}
 	else
 	{
 		//Overflow ocurred
-		HeapAdd( &newTimer->Link.WeightedLink, TimersOverflow);
+		HeapAdd(timerTime, &newTimer->Link.WeightedLink, TimersOverflow);
 	}
 	InterruptEnable();
 }

@@ -28,11 +28,10 @@ void Add( int value )
 	queueNode->Data = value;
 	stackNode->Data = value;
 	heapNode->Data = value;
-	heapNode->Link.WeightedLink.Weight = value;
 
 	LinkedListPush( &stackNode->Link.LinkedListLink, &stackList );
 	LinkedListEnqueue( &queueNode->Link.LinkedListLink, &queueList );
-	HeapAdd( &heapNode->Link.WeightedLink, &heap );
+	HeapAdd(value, &heapNode->Link.WeightedLink, &heap );
 }
 
 void Pop()

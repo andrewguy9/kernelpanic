@@ -1,11 +1,13 @@
 #include"avl.h"
 
 //TODO Fix this unit up and convert it to a real AVL tree.
-void AvlAdd( struct WEIGHTED_LINK * Node, struct AVL_TREE * Tree )
+void AvlAdd( WEIGHT weight, struct WEIGHTED_LINK * Node, struct AVL_TREE * Tree )
 {
 	struct WEIGHTED_LINK * parent;
 
 	ASSERT( Node != NULL );
+
+	Node->Weight = weight;
 
 	Node->Left = NULL;
 	Node->Right = NULL;

@@ -10,7 +10,7 @@ struct HEAP
 	COUNT Size;
 };
 
-void HeapAdd( struct WEIGHTED_LINK * node, struct HEAP * heap );
+void HeapAdd( WEIGHT weight, struct WEIGHTED_LINK * node, struct HEAP * heap );
 
 struct WEIGHTED_LINK * HeapPop( struct HEAP * heap );
 

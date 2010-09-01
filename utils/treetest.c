@@ -22,9 +22,8 @@ void Add( int value )
 	struct ELEMENT * avlNode = malloc( sizeof( struct ELEMENT ) );
 
 	avlNode->Data = value;
-	avlNode->Link.WeightedLink.Weight = value;
 
-	AvlAdd( &avlNode->Link.WeightedLink, &avl );
+	AvlAdd(value, &avlNode->Link.WeightedLink, &avl );
 }
 
 void Remove(int value)
