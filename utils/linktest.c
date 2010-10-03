@@ -34,11 +34,18 @@ void Add( int value )
 	HeapAdd(value, &heapNode->Link.WeightedLink, &heap );
 }
 
+struct ELEMENT * getElementFromLink(union LINK * link) {
+	if(link == NULL) {
+		return NULL;
+	} else {
+		return BASE_OBJECT( link, struct ELEMENT, Link );
+	}
+}
 void Pop()
 {
-	struct ELEMENT * queueNode =  BASE_OBJECT( LinkedListPop( &queueList ), struct ELEMENT, Link ) ;
-	struct ELEMENT * stackNode = BASE_OBJECT( LinkedListPop( &stackList ), struct ELEMENT, Link );
-	struct ELEMENT * heapNode = BASE_OBJECT( HeapPop( &heap ), struct ELEMENT, Link);
+	struct ELEMENT * queueNode = getElementFromLink( (union LINK *) LinkedListPop( &queueList ));
+	struct ELEMENT * stackNode = getElementFromLink( (union LINK *) LinkedListPop( &stackList ));
+	struct ELEMENT * heapNode  = getElementFromLink( (union LINK *) HeapPop( &heap ));
 	
 	if( queueNode != NULL )
 		printf("queue returned %d\n", queueNode->Data );

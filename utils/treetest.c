@@ -19,26 +19,28 @@ struct AVL_TREE avl;
 
 void Add( int value )
 {
-	struct ELEMENT * avlNode = malloc( sizeof( struct ELEMENT ) );
+	struct ELEMENT * element = malloc( sizeof( struct ELEMENT ) );
 
-	avlNode->Data = value;
+	element->Data = value;
 
-	AvlAdd(value, &avlNode->Link.WeightedLink, &avl );
+	AvlAdd(value, &element->Link.WeightedLink, &avl );
 }
 
 void Remove(int value)
 {
-	struct ELEMENT * avlNode = BASE_OBJECT( 
-			AvlFind( value, &avl ),
-			struct ELEMENT, 
-			Link);
-	
-	ASSERT( avlNode->Data == value );
+	union LINK * avlLink = (union LINK *) AvlFind(value, &avl);
 
-	if( avlNode != NULL )
+	if( avlLink != NULL )
 	{
-		printf("avl returned  %d\n", avlNode->Data );
-		AvlDelete( &avlNode->Link.WeightedLink, &avl );
+		struct ELEMENT * element = BASE_OBJECT( 
+				avlLink,
+				struct ELEMENT, 
+				Link);
+
+		ASSERT( element->Data == value );
+
+		printf("avl returned  %d\n", element->Data );
+		AvlDelete( &element->Link.WeightedLink, &avl );
 	}
 	else
 	{
