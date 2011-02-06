@@ -20,17 +20,6 @@ struct itimerval TimerInterval;
 
 struct sigaction HalIrqTable[HAL_IRQ_MAX];
 
-/*
-                 |HAL_ISR_WATCHDOG   |HAL_ISR_TIMER   |HAL_ISR_SOFT   |HAL_ISR_CRIT   |HAL_ISR_TRAMPOLINE   |
------------------|-------------------|----------------|---------------|---------------|---------------------|
-InterruptMask    |                   |****************|***************|***************|*********************|
-SoftInterruptMask|                   |                |***************|***************|*********************|
-CritInterruptMask|                   |                |               |***************|*********************|
-NoInterruptMask  |                   |                |               |               |*********************|
-TrampolineMask   |                   |                |               |               |*********************|
--------------------------------------------------------------------------------------------------------------
-*/
-
 //Create a mask for bootstrapping new stacks. 
 sigset_t TrampolineMask;
 
