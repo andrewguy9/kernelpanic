@@ -20,6 +20,10 @@ typedef void (*STACK_INIT_ROUTINE) (void);
 //between context switches. This context will be machine specific.
 struct MACHINE_CONTEXT;
 
+//ISR_HANDLER is the prototype all kernel interrupt handlers should use.
+//they will be invoked either directly by hardware, or hal wrapper functionality.
+typedef void (*ISR_HANDLER)();
+
 //
 //Prototypes
 //
@@ -36,6 +40,8 @@ void HalSerialStartup();
 void HalContextStartup( STACK_INIT_ROUTINE stackInitRoutine );
 void HalPanic(char file[], int line);
 void HalSleepProcessor();
+void HalIsrInit();
+void HalRegisterISRHandler( ISR_HANDLER handler, void * which, INDEX level );
 
 //
 //Include AVR only interfaces.

@@ -9,34 +9,6 @@
 #include<stdlib.h>
 
 //
-//Define signal to kernel interrupt mappings.
-//
-
-#ifdef DARWIN
-#define HAL_SIGNAL_TRAMPOLINE SIGINFO
-#define HAL_SIGNAL_WATCHDOG   SIGVTALRM
-#define HAL_SIGNAL_TIMER      SIGALRM
-#define HAL_SIGNAL_SOFT       SIGUSR1
-#define HAL_SIGNAL_CRIT       SIGUSR2
-#endif
-
-#ifdef LINUX
-#define HAL_SIGNAL_TRAMPOLINE SIGCHLD
-#define HAL_SIGNAL_WATCHDOG   SIGVTALRM
-#define HAL_SIGNAL_TIMER      SIGALRM
-#define HAL_SIGNAL_SOFT       SIGUSR1
-#define HAL_SIGNAL_CRIT       SIGUSR2
-#endif
-
-#ifdef BSD
-#define HAL_SIGNAL_TRAMPOLINE SIGINFO
-#define HAL_SIGNAL_WATCHDOG   SIGVTALRM
-#define HAL_SIGNAL_TIMER      SIGALRM
-#define HAL_SIGNAL_SOFT       SIGUSR1
-#define HAL_SIGNAL_CRIT       SIGUSR2
-#endif
-
-//
 //Unix Globals.
 //
 
@@ -46,8 +18,10 @@ STACK_INIT_ROUTINE StackInitRoutine;
 struct itimerval WatchdogInterval;
 struct itimerval TimerInterval;
 
+struct sigaction HalIrqTable[HAL_IRQ_MAX];
+
 /*
-                 |HAL_SIGNAL_WATCHDOG|HAL_SIGNAL_TIMER|HAL_SIGNAL_SOFT|HAL_SIGNAL_CRIT|HAL_SIGNAL_TRAMPOLINE|
+                 |HAL_ISR_WATCHDOG   |HAL_ISR_TIMER   |HAL_ISR_SOFT   |HAL_ISR_CRIT   |HAL_ISR_TRAMPOLINE   |
 -----------------|-------------------|----------------|---------------|---------------|---------------------|
 InterruptMask    |                   |****************|***************|***************|*********************|
 SoftInterruptMask|                   |                |***************|***************|*********************|
@@ -57,20 +31,10 @@ TrampolineMask   |                   |                |               |         
 -------------------------------------------------------------------------------------------------------------
 */
 
-//Masks are used to disable various interrupt types.
-//If a signal is in the mask it cannot be delivered
-//once that mask is applied.
-sigset_t InterruptMask;
-sigset_t SoftInterruptMask;
-sigset_t CritInterruptMask;
-sigset_t NoInterruptMask;
+//Create a mask for bootstrapping new stacks. 
 sigset_t TrampolineMask;
 
-//Timer Action Storage.
-struct sigaction WatchdogAction;
-struct sigaction TimerAction;
-struct sigaction SoftAction;
-struct sigaction CritAction;
+//Create a signal action for stack bootstrapping.
 struct sigaction SwitchStackAction;
 
 //Prototype for later use.
@@ -82,100 +46,28 @@ void HalStackTrampoline( int SignalNumber );
 
 void HalStartup()
 {
-	int status;
-
-	/*
-	 * Create the masks:
-	 * The InterruptMasks are signal masks which prevent
-	 * different kinds of signals from being delivered at different times.
-	 */
-
-	//Create the InterruptMask.
-	status = sigemptyset( &InterruptMask );
-	ASSERT( status == 0 );
-	status = sigaddset( &InterruptMask, HAL_SIGNAL_TIMER );
-	ASSERT( status == 0 );
-	status = sigaddset( &InterruptMask, HAL_SIGNAL_SOFT );
-	ASSERT( status == 0 );
-	status = sigaddset( &InterruptMask, HAL_SIGNAL_CRIT );
-	ASSERT( status == 0 );
-	status = sigaddset( &InterruptMask, HAL_SIGNAL_TRAMPOLINE );
-	ASSERT( status == 0 );
-
-	//Create the SoftInterruptMask.
-	status = sigemptyset( &SoftInterruptMask );
-	ASSERT( status == 0 );
-	status = sigaddset( &SoftInterruptMask, HAL_SIGNAL_SOFT );
-	ASSERT( status == 0 );
-	status = sigaddset( &SoftInterruptMask, HAL_SIGNAL_CRIT );
-	ASSERT( status == 0 );
-	status = sigaddset( &SoftInterruptMask, HAL_SIGNAL_TRAMPOLINE );
-	ASSERT( status == 0 );
-
-	//Create the enable CritInterruptMask
-	status = sigemptyset( &CritInterruptMask );
-	ASSERT( status == 0 );
-	status = sigaddset( &CritInterruptMask, HAL_SIGNAL_CRIT );
-	ASSERT( status == 0 );
-	status = sigaddset( &CritInterruptMask, HAL_SIGNAL_TRAMPOLINE );
-	ASSERT( status == 0 );
-
-	//Create the NoInterruptMask.
-	status = sigemptyset( &NoInterruptMask );
-	ASSERT( status == 0 );
-	status = sigaddset( &NoInterruptMask, HAL_SIGNAL_TRAMPOLINE );
-	ASSERT( status == 0 );
+	HalIsrInit();
 
 	//Create the TrapolineMask.
-	status = sigemptyset( &TrampolineMask );
-	ASSERT( status == 0 );
-	status = sigaddset( &TrampolineMask, HAL_SIGNAL_TRAMPOLINE );
-	ASSERT( status == 0 );
+	sigemptyset( &TrampolineMask );
+	sigaddset( &TrampolineMask, HAL_ISR_TRAMPOLINE );
 
-	/*
-	 * Create the actions:
-	 * The Actions are calls to register for various signals
-	 */
-
-	//Create the watchdog action
-	WatchdogAction.sa_handler = HalWatchdogHandler;
-	WatchdogAction.sa_mask = InterruptMask;
-	WatchdogAction.sa_flags = 0;
-	status = sigaction( HAL_SIGNAL_WATCHDOG, &WatchdogAction, NULL );
-	ASSERT( status == 0 );
-
-	//Create the timer action.
-	TimerAction.sa_handler = HalTimerHandler;
-	TimerAction.sa_mask = InterruptMask;
-	TimerAction.sa_flags = 0;
-	status = sigaction( HAL_SIGNAL_TIMER, &TimerAction, NULL );
-	ASSERT( status == 0 );	
-
-	//Create the soft action.
-	SoftAction.sa_handler = HalSoftHandler;
-	SoftAction.sa_mask = SoftInterruptMask;
-	SoftAction.sa_flags = 0;
-	status = sigaction( HAL_SIGNAL_SOFT, &SoftAction, NULL );
-	ASSERT( status == 0 );	
-
-	//Create the crit action.
-	CritAction.sa_handler = HalCritHandler;
-	CritAction.sa_mask = CritInterruptMask;
-	CritAction.sa_flags = 0;
-	status = sigaction( HAL_SIGNAL_CRIT, &CritAction, NULL );
-	ASSERT( status == 0 );	
+	HalBlockSignal( (void *) HAL_ISR_TRAMPOLINE );
+	HalRegisterISRHandler( HalCritHandler,     (void *) HAL_ISR_CRIT,       HAL_IRQ_CRIT       );
+	HalRegisterISRHandler( HalSoftHandler,     (void *) HAL_ISR_SOFT,       HAL_IRQ_SOFT       );
+	HalRegisterISRHandler( HalTimerHandler,    (void *) HAL_ISR_TIMER,      HAL_IRQ_TIMER      );
+	HalRegisterISRHandler( HalWatchdogHandler, (void *) HAL_ISR_WATCHDOG,   HAL_IRQ_WATCHDOG   );
 
 	//Create the SwitchStackAction 
 	//NOTE: We use the interrupt mask here, because we want to block all operations.
 	SwitchStackAction.sa_handler = HalStackTrampoline;
-	SwitchStackAction.sa_mask = InterruptMask;
+	SwitchStackAction.sa_mask = HalIrqTable[HAL_IRQ_TIMER].sa_mask;
 	SwitchStackAction.sa_flags = SA_ONSTACK;
-	status = sigaction(HAL_SIGNAL_TRAMPOLINE, &SwitchStackAction, NULL );
+	sigaction(HAL_ISR_TRAMPOLINE, &SwitchStackAction, NULL );
 
 	//We start the hardware up in the InterruptSet
 	//This means that no interrupts will be delivered during kernel initialization.
-	status = sigprocmask( SIG_SETMASK, &InterruptMask, NULL );
-	ASSERT( status == 0 );
+	HalDisableInterrupts();
 
 	ASSERT( HalIsAtomic() );
 
@@ -209,13 +101,14 @@ void HalContextStartup( STACK_INIT_ROUTINE stackInitRoutine )
 #ifdef DEBUG
 BOOL HalIsAtomic()
 {
+	//TODO HalIsAtomic needs to be rewritten.
 	sigset_t curSet;
 	int status;
 	
 	status = sigprocmask( 0, NULL, &curSet );
 	ASSERT( status == 0 );
 
-	status = sigismember( &curSet, HAL_SIGNAL_TIMER );
+	status = sigismember( &curSet, HAL_ISR_TIMER );
 	ASSERT( status != -1 );
 	if( status == 1 )
 	{
@@ -233,13 +126,14 @@ BOOL HalIsAtomic()
 
 BOOL HalIsSoftAtomic()
 {
+	//TODO HalIsSoftAtomic needs to be rewritten.
 	sigset_t curSet;
 	int status;
 
 	status = sigprocmask( 0, NULL, &curSet );
 	ASSERT( status == 0 );
 
-	status = sigismember( &curSet, HAL_SIGNAL_SOFT );
+	status = sigismember( &curSet, HAL_ISR_SOFT );
 	ASSERT( status != -1 );
 	if( status == 1 )
 	{
@@ -258,13 +152,14 @@ BOOL HalIsSoftAtomic()
 
 BOOL HalIsCritAtomic()
 {
+	//TODO HalIsCritAtomic needs to be rewritten.
 	sigset_t curSet;
 	int status;
 
 	status = sigprocmask( 0, NULL, &curSet );
 	ASSERT( status == 0 );
 
-	status = sigismember( &curSet, HAL_SIGNAL_CRIT );
+	status = sigismember( &curSet, HAL_ISR_CRIT );
 	ASSERT( status != -1 );
 	if( status == 1 )
 	{
@@ -283,38 +178,28 @@ BOOL HalIsCritAtomic()
 
 void HalDisableInterrupts()
 {
-	int status;
-
-	status = sigprocmask( SIG_SETMASK, &InterruptMask, NULL ); 
-	ASSERT( status == 0 );
+	sigprocmask( SIG_SETMASK, &HalIrqTable[HAL_IRQ_TIMER].sa_mask, NULL );
 
 	ASSERT( HalIsAtomic() );
 }
 
 void HalDisableSoftInterrupts()
 {
-	int status;
-
-	status = sigprocmask( SIG_SETMASK, &SoftInterruptMask, NULL ); 
-	ASSERT( status == 0 );
+	sigprocmask( SIG_SETMASK, &HalIrqTable[HAL_IRQ_SOFT].sa_mask, NULL );
 
 	ASSERT( HalIsSoftAtomic() );
 }
 
 void HalDisableCritInterrupts()
 {
-	int status;
+	sigprocmask( SIG_SETMASK, &HalIrqTable[HAL_IRQ_CRIT].sa_mask, NULL );
 
-	status = sigprocmask( SIG_SETMASK, &CritInterruptMask, NULL ); 
-	ASSERT( status == 0 );
+	ASSERT( HalIsCritAtomic() );
 }
 
 void HalEnableInterrupts()
 {
-	int status;
-
-	status = sigprocmask( SIG_SETMASK, &NoInterruptMask, NULL );
-	ASSERT( status == 0 );
+	sigprocmask( SIG_SETMASK, &HalIrqTable[HAL_IRQ_NONE].sa_mask, NULL);
 }
 
 void HalPanic(char file[], int line)
@@ -432,36 +317,34 @@ void HalCreateStackFrame(
 	ASSERT( HalIsAtomic() );
 
 #ifdef DEBUG
-		//Set up the stack boundry.
-		Context->High = (char *) (cstack + stackSize);
-		Context->Low = cstack;
+	//Set up the stack boundry.
+	Context->High = (char *) (cstack + stackSize);
+	Context->Low = cstack;
 #endif
 
-		Context->Foo = foo;
+	Context->Foo = foo;
 
-		halTempContext = Context;
-		halTempContextProcessed = FALSE;
+	halTempContext = Context;
+	halTempContextProcessed = FALSE;
 
-		newStack.ss_sp = cstack;
-		newStack.ss_size = stackSize;
-		newStack.ss_flags = 0;
-		status = sigaltstack( &newStack, NULL ); 
-		ASSERT( status == 0 );
+	newStack.ss_sp = cstack;
+	newStack.ss_size = stackSize;
+	newStack.ss_flags = 0;
+	status = sigaltstack( &newStack, NULL ); 
+	ASSERT( status == 0 );
 
 
-		//At this point we know that we are atomic. 
-		//All signal types are blocked. 
-		//We will unblock the Trampoine signal, and make
-		//sure that it was delivered.
-		status = sigprocmask( SIG_UNBLOCK, &TrampolineMask, NULL );
-		ASSERT( status == 0 );
+	//At this point we know that we are atomic. 
+	//All signal types are blocked. 
+	//We will unblock the Trampoine signal, and make
+	//sure that it was delivered.
+	sigprocmask( SIG_UNBLOCK, &TrampolineMask, NULL );
 
-		raise( HAL_SIGNAL_TRAMPOLINE );
+	raise( HAL_ISR_TRAMPOLINE );
 
-		while( ! halTempContextProcessed );
+	while( ! halTempContextProcessed );
 
-		status = sigprocmask(SIG_BLOCK, &TrampolineMask, NULL );
-		ASSERT( status == 0 );
+	sigprocmask(SIG_BLOCK, &TrampolineMask, NULL );
 }
 
 /*
@@ -535,10 +418,61 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT 
 
 void HalRaiseSoftInterrupt()
 {
-	raise( HAL_SIGNAL_SOFT );
+	raise( HAL_ISR_SOFT );
 }
 
 void HalRaiseCritInterrupt()
 {
-	raise( HAL_SIGNAL_CRIT );
+	raise( HAL_ISR_CRIT );
 }
+
+void HalIsrInit() 
+{
+	INDEX i;
+
+	for(i=0; i < HAL_IRQ_MAX; i++) {
+		HalIrqTable[i].sa_handler = NULL;
+		sigemptyset(&HalIrqTable[i].sa_mask);
+		HalIrqTable[i].sa_flags = 0;
+	}
+}
+
+/*
+ * This is a unix specific hal function.
+ * Some signals my be harmful to panic. 
+ * This function will block them for all IRQs.
+ * Must be called before HalBlockSignal calls.
+ */ 
+void HalBlockSignal( void * which )
+{
+	INDEX i;
+	INDEX signum = (INDEX) which;
+
+	for(i=0; i<HAL_IRQ_MAX; i++) {
+		sigaddset(&HalIrqTable[i].sa_mask, signum);
+	}
+}
+/*
+ * IRQ based systems typically have a reserved space in memory which 
+ * serves as a jump table. The table is filled with function pointers
+ * to invoke when various irq level transitions occur. Typically different
+ * offsets also get a level associated with it. So that you can change the 
+ * order of various devices. (so a can mask c and b can mask c.
+ *
+ * handler - the function pointer to invoke.
+ * which - the location which indicates what hardware event happed.
+ * level - what irq to assign to the hardware event.
+ */
+void HalRegisterISRHandler( ISR_HANDLER handler, void * which, INDEX level)
+{
+	INDEX i;
+	INDEX signum = (INDEX) which;
+
+	for(i=level; i<HAL_IRQ_MAX; i++) {
+		sigaddset(&HalIrqTable[i].sa_mask, signum);
+	}
+
+	HalIrqTable[level].sa_handler = handler;
+	ASSUME( sigaction(signum, &HalIrqTable[level], NULL), 0 );
+}
+

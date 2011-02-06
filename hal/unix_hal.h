@@ -17,6 +17,41 @@
 #include<stdlib.h>
 #include<signal.h>
 
+//
+//Define signal to kernel interrupt mappings.
+//
+
+#ifdef DARWIN
+#define HAL_ISR_TRAMPOLINE SIGINFO
+#define HAL_ISR_WATCHDOG   SIGVTALRM
+#define HAL_ISR_TIMER      SIGALRM
+#define HAL_ISR_SOFT       SIGUSR1
+#define HAL_ISR_CRIT       SIGUSR2
+#endif
+
+#ifdef LINUX
+#define HAL_ISR_TRAMPOLINE SIGCHLD
+#define HAL_ISR_WATCHDOG   SIGVTALRM
+#define HAL_ISR_TIMER      SIGALRM
+#define HAL_ISR_SOFT       SIGUSR1
+#define HAL_ISR_CRIT       SIGUSR2
+#endif
+
+#ifdef BSD
+#define HAL_ISR_TRAMPOLINE SIGINFO
+#define HAL_ISR_WATCHDOG   SIGVTALRM
+#define HAL_ISR_TIMER      SIGALRM
+#define HAL_ISR_SOFT       SIGUSR1
+#define HAL_ISR_CRIT       SIGUSR2
+#endif
+
+#define HAL_IRQ_NONE        0
+#define HAL_IRQ_CRIT        1
+#define HAL_IRQ_SOFT        2
+#define HAL_IRQ_TIMER       3
+#define HAL_IRQ_WATCHDOG    5
+#define HAL_IRQ_MAX         6
+
 /*
  * On System V we can use sigaltstack and setjmp, longjmp to boostrap new user
  * threads without the need for machine specific code.
@@ -71,3 +106,5 @@ void HalResetClock();
 
 void HalRaiseSoftInterrupt();
 void HalRaiseCritInterrupt();
+
+void HalBlockSignal( void * which );
