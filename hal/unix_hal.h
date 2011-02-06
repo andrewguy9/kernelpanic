@@ -49,8 +49,8 @@
 #define HAL_IRQ_CRIT        1
 #define HAL_IRQ_SOFT        2
 #define HAL_IRQ_TIMER       3
-#define HAL_IRQ_WATCHDOG    5
-#define HAL_IRQ_MAX         6
+#define HAL_IRQ_WATCHDOG    4
+#define HAL_IRQ_MAX         5
 
 /*
  * On System V we can use sigaltstack and setjmp, longjmp to boostrap new user
@@ -96,10 +96,6 @@ BOOL HalIsCritAtomic();
 #endif
 
 void HalSetIrq(INDEX irq);
-#define HalDisableInterrupts()     HalSetIrq(HAL_IRQ_TIMER)
-#define HalDisableSoftInterrupts() HalSetIrq(HAL_IRQ_SOFT)
-#define HalDisableCritInterrupts() HalSetIrq(HAL_IRQ_CRIT)
-#define HalEnableInterrupts()      HalSetIrq(HAL_IRQ_NONE)
 
 void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack);
 
@@ -109,3 +105,4 @@ void HalRaiseSoftInterrupt();
 void HalRaiseCritInterrupt();
 
 void HalBlockSignal( void * which );
+

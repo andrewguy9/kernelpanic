@@ -67,7 +67,7 @@ void HalStartup()
 
 	//We start the hardware up in the InterruptSet
 	//This means that no interrupts will be delivered during kernel initialization.
-	HalDisableInterrupts();
+	HalSetIrq(HAL_IRQ_TIMER);
 
 	ASSERT( HalIsAtomic() );
 

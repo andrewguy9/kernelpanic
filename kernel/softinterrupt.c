@@ -209,7 +209,7 @@ void SoftInterruptDefer( enum INTERRUPT_LEVEL level, BOOL enable )
 	{
 		//Soft Interrupts are disabled, so we should set the 
 		//soft disabled mask.
-		HalDisableSoftInterrupts();
+		HalSetIrq(HAL_IRQ_SOFT);
 	}
 	else
 	{

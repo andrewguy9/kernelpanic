@@ -207,13 +207,13 @@ void CritInterruptDefer( enum INTERRUPT_LEVEL level, BOOL enable )
 	{
 		//Crit Interrupts are disabled, so we should set the 
 		//crit disabled mask.
-		HalDisableCritInterrupts();
+		HalSetIrq(HAL_IRQ_CRIT);
 	}
 	else
 	{
 		//Crit interrupts are allowed. Because crit interrupts have
 		//lowest priority we know that all interrupts should be allowed.
-		HalEnableInterrupts();
+		HalSetIrq(HAL_IRQ_NONE);
 	}
 }
 
