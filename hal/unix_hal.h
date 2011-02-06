@@ -95,10 +95,11 @@ BOOL HalIsSoftAtomic();
 BOOL HalIsCritAtomic();
 #endif
 
-void HalDisableInterrupts();
-void HalDisableSoftInterrupts();
-void HalDisableCritInterrupts();
-void HalEnableInterrupts();
+void HalSetIrq(INDEX irq);
+#define HalDisableInterrupts()     HalSetIrq(HAL_IRQ_TIMER)
+#define HalDisableSoftInterrupts() HalSetIrq(HAL_IRQ_SOFT)
+#define HalDisableCritInterrupts() HalSetIrq(HAL_IRQ_CRIT)
+#define HalEnableInterrupts()      HalSetIrq(HAL_IRQ_NONE)
 
 void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack);
 

@@ -176,30 +176,9 @@ BOOL HalIsCritAtomic()
 
 #endif //DEBUG
 
-void HalDisableInterrupts()
+void HalSetIrq(INDEX irq) 
 {
-	sigprocmask( SIG_SETMASK, &HalIrqTable[HAL_IRQ_TIMER].sa_mask, NULL );
-
-	ASSERT( HalIsAtomic() );
-}
-
-void HalDisableSoftInterrupts()
-{
-	sigprocmask( SIG_SETMASK, &HalIrqTable[HAL_IRQ_SOFT].sa_mask, NULL );
-
-	ASSERT( HalIsSoftAtomic() );
-}
-
-void HalDisableCritInterrupts()
-{
-	sigprocmask( SIG_SETMASK, &HalIrqTable[HAL_IRQ_CRIT].sa_mask, NULL );
-
-	ASSERT( HalIsCritAtomic() );
-}
-
-void HalEnableInterrupts()
-{
-	sigprocmask( SIG_SETMASK, &HalIrqTable[HAL_IRQ_NONE].sa_mask, NULL);
+	sigprocmask( SIG_SETMASK, &HalIrqTable[irq].sa_mask, NULL);
 }
 
 void HalPanic(char file[], int line)
