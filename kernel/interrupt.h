@@ -2,8 +2,7 @@
 #define INTERRUPT_H
 
 #include"../utils/utils.h"
-
-enum INTERRUPT_LEVEL { INTERRUPT_LEVEL, INTERRUPT_LEVEL_SOFT, INTERRUPT_LEVEL_CRIT };
+#include"hal.h"
 
 //
 //Unit Management
@@ -23,7 +22,7 @@ void InterruptIncrement();
 
 void InterruptDecrement();
 
-void InterruptDefer( enum INTERRUPT_LEVEL level, BOOL enable );
+void InterruptDefer( enum IRQ_LEVEL level, BOOL enable );
 
 //
 //Functions for Sanity Checking

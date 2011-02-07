@@ -24,7 +24,7 @@ void CritInterruptIncrement();
 
 void CritInterruptDecrement();
 
-void CritInterruptDefer( enum INTERRUPT_LEVEL level, BOOL enable );
+void CritInterruptDefer( enum IRQ_LEVEL level, BOOL enable );
 
 //
 //Functions for Sanity Checking

@@ -48,7 +48,7 @@ void InterruptDisable()
 {
 	if( InterruptLevel == 0 ) 
 	{
-		InterruptDefer( INTERRUPT_LEVEL, FALSE );
+		InterruptDefer( IRQ_LEVEL_TIMER, FALSE );
 	}
 
 	InterruptLevel++;
@@ -71,7 +71,7 @@ void InterruptEnable()
 		//InterruptDisable call we will need to change the
 		//interrupt mask. We should call InterruptDefer 
 		//so that the correct mask can be selected.
-		InterruptDefer( INTERRUPT_LEVEL, TRUE );
+		InterruptDefer( IRQ_LEVEL_TIMER, TRUE );
 	}
 }
 
@@ -143,9 +143,9 @@ BOOL InterruptIsEdge()
  * units when re-enabling interrupts. This allows for selection
  * of the highest priority mask.
  */
-void InterruptDefer( enum INTERRUPT_LEVEL level, BOOL enable )
+void InterruptDefer( enum IRQ_LEVEL level, BOOL enable )
 {
-	if( InterruptLevel > 0 || (level == INTERRUPT_LEVEL && ! enable ) )
+	if( InterruptLevel > 0 || (level == IRQ_LEVEL_TIMER && ! enable ) )
 	{
 		//Interrupts are disabled, so we should set the 
 		//interrupt disabled mask.

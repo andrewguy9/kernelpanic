@@ -51,7 +51,7 @@ void SoftInterruptDisable()
 {
 	if( SoftInterruptLevel == 0 ) 
 	{
-		InterruptDefer( INTERRUPT_LEVEL_SOFT, FALSE );
+		InterruptDefer( IRQ_LEVEL_SOFT, FALSE );
 	}
 
 	SoftInterruptLevel++;
@@ -77,7 +77,7 @@ void SoftInterruptEnable()
 		//NOTE: Even though this is the soft unit we still must 
 		//call InterruptDefer (Because we still may need a full
 		//interrupt mask).
-		InterruptDefer( INTERRUPT_LEVEL_SOFT, TRUE );
+		InterruptDefer( IRQ_LEVEL_SOFT, TRUE );
 	}
 }
 
@@ -203,9 +203,9 @@ void SoftInterruptRegisterHandler(
  * If SoftInterrupts are disabled we will apply that mask,
  * otherwise we defer to the Crit unit.
  */
-void SoftInterruptDefer( enum INTERRUPT_LEVEL level, BOOL enable )
+void SoftInterruptDefer( enum IRQ_LEVEL level, BOOL enable )
 {
-	if( SoftInterruptLevel > 0 || ( level == INTERRUPT_LEVEL_SOFT  && ! enable ) )
+	if( SoftInterruptLevel > 0 || ( level == IRQ_LEVEL_SOFT  && ! enable ) )
 	{
 		//Soft Interrupts are disabled, so we should set the 
 		//soft disabled mask.

@@ -23,7 +23,7 @@ void SoftInterruptIncrement();
 
 void SoftInterruptDecrement();
 
-void SoftInterruptDefer( enum INTERRUPT_LEVEL level, BOOL enable );
+void SoftInterruptDefer( enum IRQ_LEVEL level, BOOL enable );
 
 //
 //Functions for Sanity Checking
