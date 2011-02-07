@@ -149,7 +149,7 @@ void InterruptDefer( enum INTERRUPT_LEVEL level, BOOL enable )
 	{
 		//Interrupts are disabled, so we should set the 
 		//interrupt disabled mask.
-		HalSetIrq(HAL_IRQ_TIMER);
+		HalSetIrq(IRQ_LEVEL_TIMER);
 	}
 	else
 	{

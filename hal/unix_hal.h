@@ -45,13 +45,6 @@
 #define HAL_ISR_CRIT       SIGUSR2
 #endif
 
-#define HAL_IRQ_NONE        0
-#define HAL_IRQ_CRIT        1
-#define HAL_IRQ_SOFT        2
-#define HAL_IRQ_TIMER       3
-#define HAL_IRQ_WATCHDOG    4
-#define HAL_IRQ_MAX         5
-
 /*
  * On System V we can use sigaltstack and setjmp, longjmp to boostrap new user
  * threads without the need for machine specific code.
@@ -95,7 +88,7 @@ BOOL HalIsSoftAtomic();
 BOOL HalIsCritAtomic();
 #endif
 
-void HalSetIrq(INDEX irq);
+void HalSetIrq(enum IRQ_LEVEL irq);
 
 void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack);
 

@@ -18,7 +18,7 @@ STACK_INIT_ROUTINE StackInitRoutine;
 struct itimerval WatchdogInterval;
 struct itimerval TimerInterval;
 
-struct sigaction HalIrqTable[HAL_IRQ_MAX];
+struct sigaction HalIrqTable[IRQ_LEVEL_MAX];
 
 //Create a mask for bootstrapping new stacks. 
 sigset_t TrampolineMask;
@@ -42,21 +42,21 @@ void HalStartup()
 	sigaddset( &TrampolineMask, HAL_ISR_TRAMPOLINE );
 
 	HalBlockSignal( (void *) HAL_ISR_TRAMPOLINE );
-	HalRegisterISRHandler( HalCritHandler,     (void *) HAL_ISR_CRIT,       HAL_IRQ_CRIT       );
-	HalRegisterISRHandler( HalSoftHandler,     (void *) HAL_ISR_SOFT,       HAL_IRQ_SOFT       );
-	HalRegisterISRHandler( HalTimerHandler,    (void *) HAL_ISR_TIMER,      HAL_IRQ_TIMER      );
-	HalRegisterISRHandler( HalWatchdogHandler, (void *) HAL_ISR_WATCHDOG,   HAL_IRQ_WATCHDOG   );
+	HalRegisterISRHandler( HalCritHandler,     (void *) HAL_ISR_CRIT,     IRQ_LEVEL_CRIT     );
+	HalRegisterISRHandler( HalSoftHandler,     (void *) HAL_ISR_SOFT,     IRQ_LEVEL_SOFT     );
+	HalRegisterISRHandler( HalTimerHandler,    (void *) HAL_ISR_TIMER,    IRQ_LEVEL_TIMER    );
+	HalRegisterISRHandler( HalWatchdogHandler, (void *) HAL_ISR_WATCHDOG, IRQ_LEVEL_WATCHDOG );
 
 	//Create the SwitchStackAction 
 	//NOTE: We use the interrupt mask here, because we want to block all operations.
 	SwitchStackAction.sa_handler = HalStackTrampoline;
-	SwitchStackAction.sa_mask = HalIrqTable[HAL_IRQ_TIMER].sa_mask;
+	SwitchStackAction.sa_mask = HalIrqTable[IRQ_LEVEL_TIMER].sa_mask;
 	SwitchStackAction.sa_flags = SA_ONSTACK;
 	sigaction(HAL_ISR_TRAMPOLINE, &SwitchStackAction, NULL );
 
 	//We start the hardware up in the InterruptSet
 	//This means that no interrupts will be delivered during kernel initialization.
-	HalSetIrq(HAL_IRQ_TIMER);
+	HalSetIrq(IRQ_LEVEL_TIMER);
 
 	ASSERT( HalIsAtomic() );
 
@@ -165,7 +165,7 @@ BOOL HalIsCritAtomic()
 
 #endif //DEBUG
 
-void HalSetIrq(INDEX irq) 
+void HalSetIrq(enum IRQ_LEVEL irq) 
 {
 	sigprocmask( SIG_SETMASK, &HalIrqTable[irq].sa_mask, NULL);
 }
@@ -398,7 +398,7 @@ void HalIsrInit()
 {
 	INDEX i;
 
-	for(i=0; i < HAL_IRQ_MAX; i++) {
+	for(i=0; i < IRQ_LEVEL_MAX; i++) {
 		HalIrqTable[i].sa_handler = NULL;
 		sigemptyset(&HalIrqTable[i].sa_mask);
 		HalIrqTable[i].sa_flags = 0;
@@ -416,7 +416,7 @@ void HalBlockSignal( void * which )
 	INDEX i;
 	INDEX signum = (INDEX) which;
 
-	for(i=0; i<HAL_IRQ_MAX; i++) {
+	for(i=0; i<IRQ_LEVEL_MAX; i++) {
 		sigaddset(&HalIrqTable[i].sa_mask, signum);
 	}
 }
@@ -431,12 +431,12 @@ void HalBlockSignal( void * which )
  * which - the location which indicates what hardware event happed.
  * level - what irq to assign to the hardware event.
  */
-void HalRegisterISRHandler( ISR_HANDLER handler, void * which, INDEX level)
+void HalRegisterISRHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
 {
 	INDEX i;
 	INDEX signum = (INDEX) which;
 
-	for(i=level; i<HAL_IRQ_MAX; i++) {
+	for(i=level; i<IRQ_LEVEL_MAX; i++) {
 		sigaddset(&HalIrqTable[i].sa_mask, signum);
 	}
 

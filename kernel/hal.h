@@ -24,6 +24,15 @@ struct MACHINE_CONTEXT;
 //they will be invoked either directly by hardware, or hal wrapper functionality.
 typedef void (*ISR_HANDLER)();
 
+enum IRQ_LEVEL {
+    IRQ_LEVEL_NONE,
+    IRQ_LEVEL_CRIT,
+    IRQ_LEVEL_SOFT,
+    IRQ_LEVEL_TIMER,
+    IRQ_LEVEL_WATCHDOG,
+    IRQ_LEVEL_MAX
+};
+
 //
 //Prototypes
 //
@@ -41,7 +50,7 @@ void HalContextStartup( STACK_INIT_ROUTINE stackInitRoutine );
 void HalPanic(char file[], int line);
 void HalSleepProcessor();
 void HalIsrInit();
-void HalRegisterISRHandler( ISR_HANDLER handler, void * which, INDEX level );
+void HalRegisterISRHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level );
 
 //
 //Include AVR only interfaces.
