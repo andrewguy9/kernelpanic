@@ -88,79 +88,18 @@ void HalContextStartup( STACK_INIT_ROUTINE stackInitRoutine )
 }
 
 #ifdef DEBUG
-BOOL HalIsAtomic()
+/*
+ * Returns true if the system is running at at least IRQ level.
+ */
+BOOL HalIsIrqAtomic(enum IRQ_LEVEL level) 
 {
-	//TODO HalIsAtomic needs to be rewritten.
-	sigset_t curSet;
-	int status;
-	
-	status = sigprocmask( 0, NULL, &curSet );
-	ASSERT( status == 0 );
-
-	status = sigismember( &curSet, HAL_ISR_TIMER );
-	ASSERT( status != -1 );
-	if( status == 1 )
-	{
-		//Alarm was a member of the "blocked" mask, so we are atomic.
-		ASSERT( HalIsSoftAtomic() );
-		return TRUE;
-	}
-	else
-	{
-		//Alarm was not a member of the "blocked" mask, so we are not atomic.
-		ASSERT( status == 0 );
-		return FALSE; 
-	}
-}
-
-BOOL HalIsSoftAtomic()
-{
-	//TODO HalIsSoftAtomic needs to be rewritten.
 	sigset_t curSet;
 	int status;
 
-	status = sigprocmask( 0, NULL, &curSet );
-	ASSERT( status == 0 );
+	status = sigprocmask(0, NULL, &curSet);
+	ASSERT(status == 0);
 
-	status = sigismember( &curSet, HAL_ISR_SOFT );
-	ASSERT( status != -1 );
-	if( status == 1 )
-	{
-		//Alarm was a member of the "blocked" mask, so we are atomic.
-		ASSERT( HalIsCritAtomic() );
-
-		return TRUE;
-	}
-	else
-	{
-		//Alarm was not a member of the "blocked" mask, so we are not atomic.
-		ASSERT( status == 0 );
-		return FALSE; 
-	}
-}
-
-BOOL HalIsCritAtomic()
-{
-	//TODO HalIsCritAtomic needs to be rewritten.
-	sigset_t curSet;
-	int status;
-
-	status = sigprocmask( 0, NULL, &curSet );
-	ASSERT( status == 0 );
-
-	status = sigismember( &curSet, HAL_ISR_CRIT );
-	ASSERT( status != -1 );
-	if( status == 1 )
-	{
-		//Alarm was a member of the "blocked" mask, so we are atomic.
-		return TRUE;
-	}
-	else
-	{
-		//Alarm was not a member of the "blocked" mask, so we are not atomic.
-		ASSERT( status == 0 );
-		return FALSE; 
-	}
+	return !((HalIrqTable[level].sa_mask ^ curSet) & HalIrqTable[level].sa_mask);
 }
 
 #endif //DEBUG
