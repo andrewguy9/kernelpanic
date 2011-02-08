@@ -23,7 +23,9 @@
 //SoftInterrupt Variables
 //
 
-volatile COUNT SoftInterruptLevel;//The number of calls to SoftInterruptDisable
+//TODO THIS IS A TEMP HACK WHILE I MOVE OFF OF DISCRETE LEVELS
+#define SoftInterruptLevel (InterruptDisabledCount[IRQ_LEVEL_SOFT])
+
 struct LINKED_LIST SoftInterruptHandlerList;
 
 //

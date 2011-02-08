@@ -5,7 +5,8 @@
 
 /*
  * Interrupt Unit Description
- * The interrupt unit provides additional control of the interrupt flag.
+ * The interrupt unit provides counted interface for controlling the current
+ * IRQ_LEVEL.
  *
  * Calls to InterruptDisable/InterruptEnable allow functions to nest 
  * disable/enable pairings so that we don't have to track all code paths 
@@ -22,7 +23,10 @@
 //Interrupt Variables
 //
 
-volatile COUNT InterruptLevel;//The number of calls to InterruptDisable
+volatile COUNT InterruptDisabledCount[IRQ_LEVEL_MAX];
+
+//TODO THIS IS A TEMP HACK WHILE I MOVE OFF OF DISCRETE LEVELS
+#define InterruptLevel (InterruptDisabledCount[IRQ_LEVEL_TIMER])
 
 //
 //Unit Management

@@ -21,7 +21,9 @@
 //Crit Interrupt Variables
 //
 
-volatile COUNT CritInterruptLevel;//The number of calls to CritInterruptDisable
+//TODO THIS IS A TEMP HACK WHILE I MOVE OFF OF DISCRETE LEVELS
+#define CritInterruptLevel (InterruptDisabledCount[IRQ_LEVEL_CRIT])
+
 struct LINKED_LIST CritInterruptHandlerList;
 
 //

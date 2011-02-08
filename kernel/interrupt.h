@@ -4,6 +4,9 @@
 #include"../utils/utils.h"
 #include"hal.h"
 
+//TODO THIS IS A TEMP BACK WHILE I MOVE OFF DISCRETE LEVELS.
+extern volatile COUNT InterruptDisabledCount[IRQ_LEVEL_MAX];
+
 //
 //Unit Management
 //
