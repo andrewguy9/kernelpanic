@@ -23,6 +23,12 @@ struct sigaction HalIrqTable[IRQ_LEVEL_MAX];
 //Create a mask for bootstrapping new stacks. 
 sigset_t TrampolineMask;
 
+//Create a mask for debugging
+#ifdef DEBUG
+sigset_t HalCurrrentIrqMask;
+BOOL HalCurrrentIrqMaskValid;
+#endif //DEBUG
+
 //Create a signal action for stack bootstrapping.
 struct sigaction SwitchStackAction;
 
@@ -99,6 +105,8 @@ BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
 	status = sigprocmask(0, NULL, &curSet);
 	ASSERT(status == 0);
 
+	HalUpdateISRDebugInfo();
+
 	return !((HalIrqTable[level].sa_mask ^ curSet) & HalIrqTable[level].sa_mask);
 }
 
@@ -107,6 +115,10 @@ BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
 void HalSetIrq(enum IRQ_LEVEL irq) 
 {
 	sigprocmask( SIG_SETMASK, &HalIrqTable[irq].sa_mask, NULL);
+
+#ifdef DEBUG
+	HalUpdateISRDebugInfo();
+#endif
 }
 
 void HalPanic(char file[], int line)
@@ -170,6 +182,10 @@ void TimerInterrupt();
  */
 void HalWatchdogHandler( int SignalNumber ) 
 {
+#ifdef DEBUG
+	HalUpdateISRDebugInfo();
+#endif
+
 	HalPanic( "Wachdog Timeout", 0);
 }
 
@@ -179,6 +195,10 @@ void HalWatchdogHandler( int SignalNumber )
  */
 void HalTimerHandler( int SignalNumber )
 {
+#ifdef DEBUG
+	HalUpdateISRDebugInfo();
+#endif
+
 	//The kernel should add this signal to the blocked list inorder to avoid 
 	//nesting calls the the handler.
 	//verify this.
@@ -186,6 +206,12 @@ void HalTimerHandler( int SignalNumber )
 
 	//Call the kernel's timer handler.
 	TimerInterrupt();
+
+#ifdef DEBUG
+	//We are about to return into an unknown frame. 
+	//I can't predict what the irq will be there.
+	HalInvalidateISRDebugInfo();
+#endif
 }
 
 
@@ -195,7 +221,17 @@ void CritInterrupt();
 
 void HalSoftHandler( int SignalNumber )
 {
+#ifdef DEBUG
+	HalUpdateISRDebugInfo();
+#endif
+
 	SoftInterrupt();
+
+#ifdef DEBUG
+	//We are about to return into an unknown frame. 
+	//I can't predict what the irq will be there.
+	HalInvalidateISRDebugInfo();
+#endif
 }
 
 /*
@@ -204,7 +240,17 @@ void HalSoftHandler( int SignalNumber )
  */
 void HalCritHandler( int SignalNumber )
 {
+#ifdef DEBUG
+	HalUpdateISRDebugInfo();
+#endif
+
 	CritInterrupt(); 
+
+#ifdef DEBUG
+	//We are about to return into an unknown frame. 
+	//I can't predict what the irq will be there.
+	HalInvalidateISRDebugInfo();
+#endif
 }
 
 struct MACHINE_CONTEXT * halTempContext;
@@ -383,3 +429,15 @@ void HalRegisterISRHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL le
 	ASSUME( sigaction(signum, &HalIrqTable[level], NULL), 0 );
 }
 
+#ifdef DEBUG
+void HalUpdateISRDebugInfo()
+{
+	HalCurrrentIrqMaskValid = TRUE;
+	sigprocmask(0, NULL, &HalCurrrentIrqMask);
+}
+
+void HalInvalidateISRDebugInfo()
+{
+	HalCurrrentIrqMaskValid = FALSE;
+}
+#endif
