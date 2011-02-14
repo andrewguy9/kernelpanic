@@ -18,7 +18,7 @@ kernel/$(TARGET)_panic.o: kernel/panic.c kernel/panic.h
 
 kernel/$(TARGET)_sleep.o: kernel/sleep.c kernel/sleep.h
 
-kernel/$(TARGET)_interrupt.o: kernel/interrupt.c kernel/interrupt.h
+kernel/$(TARGET)_isr.o: kernel/isr.c kernel/isr.h
 
 kernel/$(TARGET)_softinterrupt.o: kernel/softinterrupt.c kernel/softinterrupt.h
 

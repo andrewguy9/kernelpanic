@@ -48,10 +48,10 @@ void HalStartup()
 	sigaddset( &TrampolineMask, HAL_ISR_TRAMPOLINE );
 
 	HalBlockSignal( (void *) HAL_ISR_TRAMPOLINE );
-	HalRegisterISRHandler( HalCritHandler,     (void *) HAL_ISR_CRIT,     IRQ_LEVEL_CRIT     );
-	HalRegisterISRHandler( HalSoftHandler,     (void *) HAL_ISR_SOFT,     IRQ_LEVEL_SOFT     );
-	HalRegisterISRHandler( HalTimerHandler,    (void *) HAL_ISR_TIMER,    IRQ_LEVEL_TIMER    );
-	HalRegisterISRHandler( HalWatchdogHandler, (void *) HAL_ISR_WATCHDOG, IRQ_LEVEL_WATCHDOG );
+	HalRegisterIsrHandler( HalCritHandler,     (void *) HAL_ISR_CRIT,     IRQ_LEVEL_CRIT     );
+	HalRegisterIsrHandler( HalSoftHandler,     (void *) HAL_ISR_SOFT,     IRQ_LEVEL_SOFT     );
+	HalRegisterIsrHandler( HalTimerHandler,    (void *) HAL_ISR_TIMER,    IRQ_LEVEL_TIMER    );
+	HalRegisterIsrHandler( HalWatchdogHandler, (void *) HAL_ISR_WATCHDOG, IRQ_LEVEL_WATCHDOG );
 
 	//Create the SwitchStackAction 
 	//NOTE: We use the interrupt mask here, because we want to block all operations.
@@ -105,7 +105,7 @@ BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
 	status = sigprocmask(0, NULL, &curSet);
 	ASSERT(status == 0);
 
-	HalUpdateISRDebugInfo();
+	HalUpdateIsrDebugInfo();
 
 	return !((HalIrqTable[level].sa_mask ^ curSet) & HalIrqTable[level].sa_mask);
 }
@@ -117,7 +117,7 @@ void HalSetIrq(enum IRQ_LEVEL irq)
 	sigprocmask( SIG_SETMASK, &HalIrqTable[irq].sa_mask, NULL);
 
 #ifdef DEBUG
-	HalUpdateISRDebugInfo();
+	HalUpdateIsrDebugInfo();
 #endif
 }
 
@@ -183,7 +183,7 @@ void TimerInterrupt();
 void HalWatchdogHandler( int SignalNumber ) 
 {
 #ifdef DEBUG
-	HalUpdateISRDebugInfo();
+	HalUpdateIsrDebugInfo();
 #endif
 
 	HalPanic( "Wachdog Timeout", 0);
@@ -196,7 +196,7 @@ void HalWatchdogHandler( int SignalNumber )
 void HalTimerHandler( int SignalNumber )
 {
 #ifdef DEBUG
-	HalUpdateISRDebugInfo();
+	HalUpdateIsrDebugInfo();
 #endif
 
 	//The kernel should add this signal to the blocked list inorder to avoid 
@@ -210,7 +210,7 @@ void HalTimerHandler( int SignalNumber )
 #ifdef DEBUG
 	//We are about to return into an unknown frame. 
 	//I can't predict what the irq will be there.
-	HalInvalidateISRDebugInfo();
+	HalInvalidateIsrDebugInfo();
 #endif
 }
 
@@ -222,7 +222,7 @@ void CritInterrupt();
 void HalSoftHandler( int SignalNumber )
 {
 #ifdef DEBUG
-	HalUpdateISRDebugInfo();
+	HalUpdateIsrDebugInfo();
 #endif
 
 	SoftInterrupt();
@@ -230,7 +230,7 @@ void HalSoftHandler( int SignalNumber )
 #ifdef DEBUG
 	//We are about to return into an unknown frame. 
 	//I can't predict what the irq will be there.
-	HalInvalidateISRDebugInfo();
+	HalInvalidateIsrDebugInfo();
 #endif
 }
 
@@ -241,7 +241,7 @@ void HalSoftHandler( int SignalNumber )
 void HalCritHandler( int SignalNumber )
 {
 #ifdef DEBUG
-	HalUpdateISRDebugInfo();
+	HalUpdateIsrDebugInfo();
 #endif
 
 	CritInterrupt(); 
@@ -249,7 +249,7 @@ void HalCritHandler( int SignalNumber )
 #ifdef DEBUG
 	//We are about to return into an unknown frame. 
 	//I can't predict what the irq will be there.
-	HalInvalidateISRDebugInfo();
+	HalInvalidateIsrDebugInfo();
 #endif
 }
 
@@ -416,7 +416,7 @@ void HalBlockSignal( void * which )
  * which - the location which indicates what hardware event happed.
  * level - what irq to assign to the hardware event.
  */
-void HalRegisterISRHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
+void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
 {
 	INDEX i;
 	INDEX signum = (INDEX) which;
@@ -430,13 +430,13 @@ void HalRegisterISRHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL le
 }
 
 #ifdef DEBUG
-void HalUpdateISRDebugInfo()
+void HalUpdateIsrDebugInfo()
 {
 	HalCurrrentIrqMaskValid = TRUE;
 	sigprocmask(0, NULL, &HalCurrrentIrqMask);
 }
 
-void HalInvalidateISRDebugInfo()
+void HalInvalidateIsrDebugInfo()
 {
 	HalCurrrentIrqMaskValid = FALSE;
 }

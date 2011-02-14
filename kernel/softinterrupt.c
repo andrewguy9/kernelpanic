@@ -23,9 +23,6 @@
 //SoftInterrupt Variables
 //
 
-//TODO THIS IS A TEMP HACK WHILE I MOVE OFF OF DISCRETE LEVELS
-#define SoftInterruptLevel (InterruptDisabledCount[IRQ_LEVEL_SOFT])
-
 struct LINKED_LIST SoftInterruptHandlerList;
 
 //
@@ -37,114 +34,9 @@ void SoftInterruptStartup()
 {
 	ASSERT( HalIsSoftAtomic() );
 
-	SoftInterruptLevel = 1;//Will be reset to 0 when startup completes
+	//TODO WAS I SUPPOSED TO DELETE THIS?
 	LinkedListInit( &SoftInterruptHandlerList );
 }
-
-//
-//Handle Atomic Sections
-//
-
-/*
- * Used by threads or PostInterruptHandlers to turn 
- * off SoftInterrupts. Can be called recursively.
- */
-void SoftInterruptDisable()
-{
-	if( SoftInterruptLevel == 0 ) 
-	{
-		InterruptDefer( IRQ_LEVEL_SOFT, FALSE );
-	}
-
-	SoftInterruptLevel++;
-}
-
-/*
- * Called by threads or PostInterruptHandlers to turn
- * SoftInterrupts back on. Can be called recirsivly. 
- */
-void SoftInterruptEnable()
-{
-	ASSERT( HalIsSoftAtomic() );
-	ASSERT( SoftInterruptLevel > 0 );
-
-	SoftInterruptLevel--;
-
-	if( SoftInterruptLevel == 0 )
-	{
-		//Because we are on the falling edge of a counted 
-		//SoftInterruptDisable call we will need to change the
-		//interrupt mask. We should call InterruptDefer 
-		//so that the correct mask can be selected.
-		//NOTE: Even though this is the soft unit we still must 
-		//call InterruptDefer (Because we still may need a full
-		//interrupt mask).
-		InterruptDefer( IRQ_LEVEL_SOFT, TRUE );
-	}
-}
-
-void SoftInterruptIncrement()
-{
-	ASSERT( HalIsSoftAtomic() );
-	ASSERT( SoftInterruptLevel == 0 );
-
-	SoftInterruptLevel++;
-}
-
-void SoftInterruptDecrement()
-{
-	ASSERT( HalIsSoftAtomic() );
-	ASSERT( SoftInterruptLevel == 1 );
-
-	SoftInterruptLevel--;
-}
-
-//
-//Functions for Sanity Checking
-//
-
-#ifdef DEBUG
-/*
- * Should be called only by assertions as this
- * is not gauranteed to produce accurate results.
- */
-BOOL SoftInterruptIsAtomic()
-{
-	//
-	//If HalIsAtomic is true, 
-	//then the SoftInterruptLevel should be positive,
-	//since we are physically atomic.
-	//If HalIsAtomic is false,
-	//then SoftInterrupt level should be 0, because we have 
-	//SoftInterrupts enabled.
-	//
-
-	if( SoftInterruptLevel == 0 )
-	{
-
-		ASSERT( ! HalIsSoftAtomic() );
-		return FALSE;
-	}
-	else 
-	{
-		ASSERT( HalIsSoftAtomic() );
-		return TRUE;
-	}
-}
-
-/*
- * Should be called only by assertions at top and bottom
- * of ISRs.
- */
-BOOL SoftInterruptIsEdge()
-{
-	if( HalIsSoftAtomic() && SoftInterruptLevel == 0 )
-		return TRUE;
-	else 
-		return FALSE;
-}
-#endif //DEBUG
-
 
 void SoftInterrupt()
 {
@@ -199,24 +91,4 @@ void SoftInterruptRegisterHandler(
 	HalRaiseSoftInterrupt();
 }
 
-/*
- * Called by the Interrupt unit when he determines that he 
- * does not know what interrupt mask to apply. 
- * If SoftInterrupts are disabled we will apply that mask,
- * otherwise we defer to the Crit unit.
- */
-void SoftInterruptDefer( enum IRQ_LEVEL level, BOOL enable )
-{
-	if( SoftInterruptLevel > 0 || ( level == IRQ_LEVEL_SOFT  && ! enable ) )
-	{
-		//Soft Interrupts are disabled, so we should set the 
-		//soft disabled mask.
-		HalSetIrq(IRQ_LEVEL_SOFT);
-	}
-	else
-	{
-		//Soft interrupts are allowed, we should defer to crit interrupts.
-		CritInterruptDefer( level, enable );
-	}
-}
 

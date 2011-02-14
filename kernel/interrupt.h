@@ -3,37 +3,35 @@
 
 #include"../utils/utils.h"
 #include"hal.h"
-
-//TODO THIS IS A TEMP BACK WHILE I MOVE OFF DISCRETE LEVELS.
-extern volatile COUNT InterruptDisabledCount[IRQ_LEVEL_MAX];
+#include"isr.h"
 
 //
 //Unit Management
 //
 
-void InterruptStartup();
+#define InterruptStartup() IsrStartup()
 
 //
 //Handle Atomic Sections
 //
 
-void InterruptDisable();
+#define InterruptDisable() IsrDisable(IRQ_LEVEL_TIMER)
 
-void InterruptEnable();
+#define InterruptEnable() IsrEnable(IRQ_LEVEL_TIMER)
 
-void InterruptIncrement();
+#define InterruptIncrement() IsrIncrement(IRQ_LEVEL_TIMER)
 
-void InterruptDecrement();
+#define InterruptDecrement() IsrDecrement(IRQ_LEVEL_TIMER)
 
-void InterruptDefer( enum IRQ_LEVEL level, BOOL enable );
+#define InterruptDefer( level, enable ) IsrDefer( level, enable )
 
 //
 //Functions for Sanity Checking
 //
 
 #ifdef DEBUG
-BOOL InterruptIsAtomic();
-BOOL InterruptIsEdge();
+#define InterruptIsAtomic() IsrIsAtomic(IRQ_LEVEL_TIMER)
+#define InterruptIsEdge() IsrIsAtomic(IRQ_LEVEL_TIMER)
 #endif//DEBUG
 
 #endif

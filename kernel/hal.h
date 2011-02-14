@@ -50,7 +50,7 @@ void HalContextStartup( STACK_INIT_ROUTINE stackInitRoutine );
 void HalPanic(char file[], int line);
 void HalSleepProcessor();
 void HalIsrInit();
-void HalRegisterISRHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level );
+void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level );
 
 //
 //Include AVR only interfaces.

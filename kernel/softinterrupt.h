@@ -15,23 +15,23 @@ void SoftInterruptStartup();
 //Handle Atomic Sections
 //
 
-void SoftInterruptDisable();
+#define SoftInterruptDisable() IsrDisable(IRQ_LEVEL_SOFT)
 
-void SoftInterruptEnable();
+#define SoftInterruptEnable() IsrEnable(IRQ_LEVEL_SOFT)
 
-void SoftInterruptIncrement();
+#define SoftInterruptIncrement() IsrIncrement(IRQ_LEVEL_SOFT)
 
-void SoftInterruptDecrement();
+#define SoftInterruptDecrement() IsrDecrement(IRQ_LEVEL_SOFT)
 
-void SoftInterruptDefer( enum IRQ_LEVEL level, BOOL enable );
+#define SoftInterruptDefer( level, enable ) IsrDefer(level, enable )
 
 //
 //Functions for Sanity Checking
 //
 
 #ifdef DEBUG
-BOOL SoftInterruptIsAtomic();
-BOOL SoftInterruptIsEdge();
+#define SoftInterruptIsAtomic() IsrIsAtomic(IRQ_LEVEL_SOFT)
+#define SoftInterruptIsEdge() IsrIsEdge(IRQ_LEVEL_SOFT)
 #endif//DEBUG
 
 //

@@ -16,23 +16,23 @@ void CritInterruptStartup();
 //Handle Atomic Sections
 //
 
-void CritInterruptDisable();
+#define CritInterruptDisable() IsrDisable(IRQ_LEVEL_CRIT)
 
-void CritInterruptEnable();
+#define CritInterruptEnable() IsrEnable(IRQ_LEVEL_CRIT)
 
-void CritInterruptIncrement();
+#define CritInterruptIncrement() IsrIncrement(IRQ_LEVEL_CRIT)
 
-void CritInterruptDecrement();
+#define CritInterruptDecrement() IsrDecrement(IRQ_LEVEL_CRIT)
 
-void CritInterruptDefer( enum IRQ_LEVEL level, BOOL enable );
+#define CritInterruptDefer( level, enable ) IsrDefer(level, enable)
 
 //
 //Functions for Sanity Checking
 //
 
 #ifdef DEBUG
-BOOL CritInterruptIsAtomic();
-BOOL CritInterruptIsEdge();
+#define CritInterruptIsAtomic() IsrIsAtomic(IRQ_LEVEL_CRIT)
+#define CritInterruptIsEdge() IsrIsEdge(IRQ_LEVEL_CRIT)
 #endif//DEBUG
 
 //
