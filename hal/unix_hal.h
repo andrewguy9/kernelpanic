@@ -86,10 +86,6 @@ struct MACHINE_CONTEXT
 BOOL HalIsIrqAtomic(enum IRQ_LEVEL level);
 void HalUpdateIsrDebugInfo();
 void HalInvalidateIsrDebugInfo();
-//TODO REMOVE THESE OLD FUNCTIONS
-#define HalIsAtomic()          (HalIsIrqAtomic(IRQ_LEVEL_TIMER))
-#define HalIsSoftAtomic() (HalIsIrqAtomic(IRQ_LEVEL_SOFT))
-#define HalIsCritAtomic() (HalIsIrqAtomic(IRQ_LEVEL_CRIT))
 #endif
 
 void HalSetIrq(enum IRQ_LEVEL irq);

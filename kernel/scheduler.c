@@ -194,7 +194,7 @@ void  SchedulerForceSwitch()
  */
 void SchedulerResumeThread( struct THREAD * thread )
 {
-	ASSERT( HalIsCritAtomic( ) );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
 	ASSERT( thread->State == THREAD_STATE_BLOCKED );
 
 	thread->State = THREAD_STATE_RUNNING;
@@ -204,14 +204,14 @@ void SchedulerResumeThread( struct THREAD * thread )
 
 BOOL SchedulerIsThreadDead( struct THREAD * thread )
 {
-	ASSERT( HalIsCritAtomic( ) );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
 	
 	return thread->State == THREAD_STATE_DONE;
 }
 
 BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
 {
-	ASSERT( HalIsCritAtomic( ) );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
 	
 	return thread->State == THREAD_STATE_BLOCKED;
 }
@@ -227,7 +227,7 @@ BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
  */
 void SchedulerBlockThread( )
 {
-	ASSERT( HalIsCritAtomic() );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
 
 	ActiveThread->State = THREAD_STATE_BLOCKED;
 	
@@ -288,7 +288,7 @@ void SchedulerSwitch()
  */
 void Schedule()
 {
-	ASSERT( HalIsCritAtomic() );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
 
 	//save old thread unless its blocking or is the idle thread.
 	if( ActiveThread != &IdleThread && 
@@ -316,7 +316,7 @@ void Schedule()
  */
 void SchedulerNeedsSwitch()
 {
-	ASSERT( HalIsCritAtomic() );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
 
 	if( MutexLock( &SchedulerMutex ) )
 	{
@@ -441,7 +441,7 @@ void SchedulerStartup()
  */
 struct LOCKING_CONTEXT * SchedulerGetLockingContext()
 {
-	ASSERT( HalIsCritAtomic() );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
 
 	ActiveThread = SchedulerGetActiveThread();
 	return &ActiveThread->LockingContext;
@@ -511,7 +511,7 @@ void SchedulerCreateThread(
 {
 	//Make sure data is valid
 	ASSERT( debugFlag < 8 );
-	ASSERT( HalIsCritAtomic() );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
 
 	//Populate thread struct
 	thread->Priority = priority;

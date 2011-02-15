@@ -32,7 +32,7 @@ struct LINKED_LIST SoftInterruptHandlerList;
 //Run at kernel startup to initialize flags.
 void SoftInterruptStartup()
 {
-	ASSERT( HalIsSoftAtomic() );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_SOFT) );
 
 	//TODO WAS I SUPPOSED TO DELETE THIS?
 	LinkedListInit( &SoftInterruptHandlerList );

@@ -33,9 +33,9 @@ void KernelInit()
  */
 void KernelStart()
 {
-	ASSERT( HalIsAtomic() );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
 	InterruptEnable();
-	ASSERT( ! HalIsAtomic() );
+	ASSERT( ! HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
 
 	while(1)
 	{

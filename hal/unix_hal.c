@@ -64,7 +64,7 @@ void HalStartup()
 	//This means that no interrupts will be delivered during kernel initialization.
 	HalSetIrq(IRQ_LEVEL_TIMER);
 
-	ASSERT( HalIsAtomic() );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
 
 	//Initialize WatchdogVariables (Dont register ISR)
 	HalWatchDogTimeout = 0;
@@ -129,7 +129,7 @@ void HalPanic(char file[], int line)
 
 void HalSleepProcessor()
 {
-	ASSERT( !HalIsAtomic() );
+	ASSERT( !HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
 	pause();
 }
 
@@ -202,7 +202,7 @@ void HalTimerHandler( int SignalNumber )
 	//The kernel should add this signal to the blocked list inorder to avoid 
 	//nesting calls the the handler.
 	//verify this.
-	ASSERT( HalIsAtomic() );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
 
 	//Call the kernel's timer handler.
 	TimerInterrupt();
@@ -267,7 +267,7 @@ void HalCreateStackFrame(
 	char * cstack = stack;
 	stack_t newStack;
 
-	ASSERT( HalIsAtomic() );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
 
 #ifdef DEBUG
 	//Set up the stack boundry.
@@ -322,7 +322,7 @@ void HalStackTrampoline( int SignalNumber )
 	{
 		//If we get here, then someone has jumped into a newly created thread.
 		//Test to make sure we are atomic
-		ASSERT( HalIsAtomic() );
+		ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
 
 		StackInitRoutine();
 		
@@ -365,7 +365,7 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT 
 	{
 		//This was the restore call started by longjmp call.
 		//We have just switched into a different thread.
-		ASSERT( HalIsAtomic() );
+		ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
 	}
 }
 

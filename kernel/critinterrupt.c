@@ -30,7 +30,7 @@ struct LINKED_LIST CritInterruptHandlerList;
 //Run at kernel startup to initialize flags.
 void CritInterruptStartup()
 {
-	ASSERT( HalIsCritAtomic() );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
 
 	//TODO WERE WE SUPPOSED TO DELETE THIS LINE.
 	LinkedListInit( & CritInterruptHandlerList );
