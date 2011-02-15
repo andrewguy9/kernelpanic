@@ -34,7 +34,6 @@ void SoftInterruptStartup()
 {
 	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_SOFT) );
 
-	//TODO WAS I SUPPOSED TO DELETE THIS?
 	LinkedListInit( &SoftInterruptHandlerList );
 }
 

@@ -1,5 +1,7 @@
 #include"hal.h"
 #include"interrupt.h"
+#include"softinterrupt.h"
+#include"critinterrupt.h"
 #include"timer.h"
 #include"scheduler.h"
 #include"panic.h"
@@ -18,7 +20,9 @@ void KernelInit()
 {//entry point for kernel...
 	HalStartup();
 
-	InterruptStartup();
+	IsrStartup();
+	SoftInterruptStartup();
+	CritInterruptStartup();
 
 	WatchdogStartup();
 

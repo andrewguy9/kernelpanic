@@ -32,7 +32,6 @@ void CritInterruptStartup()
 {
 	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
 
-	//TODO WERE WE SUPPOSED TO DELETE THIS LINE.
 	LinkedListInit( & CritInterruptHandlerList );
 }
 
