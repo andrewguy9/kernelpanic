@@ -20,7 +20,7 @@
 //ISR Variables
 //
 
-volatile COUNT IsrDisabledCount[IRQ_LEVEL_MAX];
+volatile COUNT IsrDisabledCount[IRQ_LEVEL_MAX + 1];
 
 //
 //Unit Management
@@ -30,7 +30,7 @@ volatile COUNT IsrDisabledCount[IRQ_LEVEL_MAX];
 void IsrStartup()
 {
 	INDEX i;
-	for(i = 0; i < IRQ_LEVEL_MAX; i++) {
+	for(i = 0; i < IRQ_LEVEL_MAX + 1; i++) {
 		IsrDisabledCount[i] = 0;
 	}
 	//TODO THIS IS A HACK. Should be separate call.
@@ -189,7 +189,7 @@ void IsrDefer( enum IRQ_LEVEL level, BOOL enable )
 #else 
 	
 	enum IRQ_LEVEL l;
-	for(l = IRQ_LEVEL_MAX - 1; l > IRQ_LEVEL_NONE; l--) {
+	for(l = IRQ_LEVEL_MAX; l > IRQ_LEVEL_NONE; l--) {
 		if( IsrCheckLevel(level, l, enable) ) {
 			return;
 		}

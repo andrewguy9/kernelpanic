@@ -18,7 +18,7 @@ STACK_INIT_ROUTINE StackInitRoutine;
 struct itimerval WatchdogInterval;
 struct itimerval TimerInterval;
 
-struct sigaction HalIrqTable[IRQ_LEVEL_MAX];
+struct sigaction HalIrqTable[IRQ_LEVEL_MAX + 1];
 
 //Create a mask for bootstrapping new stacks. 
 sigset_t TrampolineMask;
@@ -383,7 +383,7 @@ void HalIsrInit()
 {
 	INDEX i;
 
-	for(i=0; i < IRQ_LEVEL_MAX; i++) {
+	for(i=0; i < IRQ_LEVEL_MAX + 1; i++) {
 		HalIrqTable[i].sa_handler = NULL;
 		sigemptyset(&HalIrqTable[i].sa_mask);
 		HalIrqTable[i].sa_flags = 0;
@@ -401,7 +401,7 @@ void HalBlockSignal( void * which )
 	INDEX i;
 	INDEX signum = (INDEX) which;
 
-	for(i=0; i<IRQ_LEVEL_MAX; i++) {
+	for(i=0; i<IRQ_LEVEL_MAX + 1; i++) {
 		sigaddset(&HalIrqTable[i].sa_mask, signum);
 	}
 }
@@ -421,7 +421,7 @@ void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL le
 	INDEX i;
 	INDEX signum = (INDEX) which;
 
-	for(i=level; i<IRQ_LEVEL_MAX; i++) {
+	for(i=level; i<IRQ_LEVEL_MAX + 1; i++) {
 		sigaddset(&HalIrqTable[i].sa_mask, signum);
 	}
 
