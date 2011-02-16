@@ -1,11 +1,13 @@
 #include"mutex.h"
-#include"interrupt.h"
+#include"isr.h"
 
 /*
  * MUTEX UNIT DESCRIPTION
  * The mutex library is a thread and ISR safe primitive synchronization mechanism.
+ * Mutexes are consistant at any IRQ, so they can be used for syncronization between
+ * different IRQ levels.
  *
- * Mutexes should be used whenever threads and asr's need to access the same data.
+ * Mutexes should be used whenever threads and ISRs need to access the same data.
  * Be aware that mutexes do not support blocking. This means that they are NOT starvation
  * safe. If a unit polls tightly on the mutex it could hold it FOREVER, or it may not ever 
  * acquire the lock.
@@ -23,7 +25,7 @@
 BOOL MutexLock( struct MUTEX * lock )
 {
 	BOOL success;
-	InterruptDisable();
+	IsrDisable(IRQ_LEVEL_MAX);
 	if( lock->Locked )
 	{
 		success = FALSE;
@@ -33,7 +35,7 @@ BOOL MutexLock( struct MUTEX * lock )
 		success = TRUE;
 		lock->Locked = TRUE;
 	}
-	InterruptEnable();
+	IsrEnable(IRQ_LEVEL_MAX);
 	return success;
 }
 
@@ -42,10 +44,10 @@ BOOL MutexLock( struct MUTEX * lock )
  */
 void MutexUnlock( struct MUTEX * lock )
 {
-	InterruptDisable();
+	IsrDisable(IRQ_LEVEL_MAX);
 	ASSERT( lock->Locked == TRUE );
 	lock->Locked = FALSE;
-	InterruptEnable();
+	IsrEnable(IRQ_LEVEL_MAX);
 }
 
 #ifdef DEBUG
@@ -57,9 +59,9 @@ void MutexUnlock( struct MUTEX * lock )
 BOOL MutexIsLocked( struct MUTEX * lock )
 {
 	BOOL value;
-	InterruptDisable();
+	IsrDisable(IRQ_LEVEL_MAX);
 	value = lock->Locked;
-	InterruptEnable();
+	IsrEnable(IRQ_LEVEL_MAX);
 	return value;
 }
 #endif
