@@ -79,7 +79,7 @@ void WatchdogNotify( INDEX index )
 	//find the bit we want to flip.
 	flag = FlagGetBit( index );
 	
-	InterruptDisable();
+	IsrDisable(IRQ_LEVEL_WATCHDOG);
 
 	//Assert that this flag is present in the desired mask.
 	ASSERT(FlagGet(flag, WatchdogDesiredMask));
@@ -103,7 +103,7 @@ void WatchdogNotify( INDEX index )
 		WatchdogLastClearedTime = time;
 #endif
 	}
-	InterruptEnable();
+	IsrEnable(IRQ_LEVEL_WATCHDOG);
 }
 
 void WatchdogAddFlag( INDEX index )
@@ -125,7 +125,7 @@ void WatchdogAddFlag( INDEX index )
 
 	flag = FlagGetBit( index );
 
-	InterruptDisable();
+	IsrDisable(IRQ_LEVEL_WATCHDOG);
 	FlagOn( WatchdogDesiredMask, flag );
-	InterruptEnable();
+	IsrEnable(IRQ_LEVEL_WATCHDOG);
 }
