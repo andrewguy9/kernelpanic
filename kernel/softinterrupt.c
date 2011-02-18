@@ -45,7 +45,7 @@ void SoftInterrupt()
 
 	SoftInterruptIncrement();
 
-	InterruptDisable();
+	IsrDisable(IRQ_LEVEL_MAX);
 	while( ! LinkedListIsEmpty( & SoftInterruptHandlerList ) )
 	{
 		handler = BASE_OBJECT(
@@ -53,7 +53,7 @@ void SoftInterrupt()
 				struct HANDLER_OBJECT,
 				Link );
 		
-		InterruptEnable();
+		IsrEnable(IRQ_LEVEL_MAX);
 
 		HandlerRun( handler );
 		func = handler->Function;
@@ -64,9 +64,9 @@ void SoftInterrupt()
 			HandlerFinish( handler );
 		}
 
-		InterruptDisable();
+		IsrDisable(IRQ_LEVEL_MAX);
 	}
-	InterruptEnable();
+	IsrEnable(IRQ_LEVEL_MAX);
 
 	SoftInterruptDecrement();
 }
@@ -76,16 +76,15 @@ void SoftInterruptRegisterHandler(
 		HANDLER_FUNCTION foo,
 		void * context )
 {
-
 	handler->Function = foo;
 	handler->Context = context;
 
 	HandlerRegister( handler );
 
-	InterruptDisable();
+	IsrDisable(IRQ_LEVEL_MAX);
 	LinkedListEnqueue( &handler->Link.LinkedListLink,
 			& SoftInterruptHandlerList );
-	InterruptEnable();
+	IsrEnable(IRQ_LEVEL_MAX);
 
 	HalRaiseSoftInterrupt();
 }
