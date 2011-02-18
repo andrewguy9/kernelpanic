@@ -17,6 +17,9 @@
  * Its perfectly safe to have a timer re-register itself.
  */
 
+//TODO WE SHOULD REFACTOR TIME INTO A TIME UNIT, AND HAVE TIMERS
+//BE IN THIS UNIT.
+
 //
 //Unit Variables
 //
@@ -37,7 +40,7 @@ struct HEAP * TimersOverflow;
 
 /*
  * Takes expired timers off of the heap,
- * and adds them to the PostInterruptHandlers
+ * and queues them as SoftInterrupts
  * list.
  */
 void QueueTimers( )
@@ -96,7 +99,7 @@ void TimerRegister(
 {
 	TIME timerTime;
 
-	InterruptDisable();
+	IsrDisable(IRQ_LEVEL_MAX);
 
 	//Construct timer
 	HandlerRegister( newTimer );
@@ -114,22 +117,22 @@ void TimerRegister(
 		//Overflow ocurred
 		HeapAdd(timerTime, &newTimer->Link.WeightedLink, TimersOverflow);
 	}
-	InterruptEnable();
+	IsrEnable(IRQ_LEVEL_MAX);
 }
 
 TIME TimerGetTime()
 {
 	TIME value;
-	InterruptDisable();
+	IsrDisable(IRQ_LEVEL_MAX);
 	value = Time;
-	InterruptEnable();
+	IsrEnable(IRQ_LEVEL_MAX);
 	return value;
 }
 
 void TimerInterrupt(void) 
 {
 	//update interrupt level to represent that we are in inerrupt
-	InterruptIncrement();
+	TimerIncrement();
 
 	//reset the clock
 	HalResetClock();
@@ -138,6 +141,6 @@ void TimerInterrupt(void)
 	QueueTimers( );
 
 	//Restore the interrupt level, 
-	InterruptDecrement();
+	TimerDecrement();
 }
 
