@@ -43,7 +43,7 @@ void CritInterrupt()
 
 	CritInterruptIncrement();
 
-	InterruptDisable();
+	IsrDisable(IRQ_LEVEL_MAX);
 	while( ! LinkedListIsEmpty( & CritInterruptHandlerList ) )
 	{
 		handler = BASE_OBJECT(
@@ -51,7 +51,7 @@ void CritInterrupt()
 				struct HANDLER_OBJECT,
 				Link );
 
-		InterruptEnable();
+		IsrEnable(IRQ_LEVEL_MAX);
 
 		HandlerRun( handler );
 		func = handler->Function;
@@ -62,9 +62,9 @@ void CritInterrupt()
 			HandlerFinish( handler );
 		}
 
-		InterruptDisable();
+		IsrDisable(IRQ_LEVEL_MAX);
 	}
-	InterruptEnable();
+	IsrEnable(IRQ_LEVEL_MAX);
 
 	CritInterruptDecrement();
 }
@@ -80,10 +80,10 @@ void CritInterruptRegisterHandler(
 
 	HandlerRegister( handler );
 
-	InterruptDisable();
+	IsrDisable(IRQ_LEVEL_MAX);
 	LinkedListEnqueue( &handler->Link.LinkedListLink,
 			& CritInterruptHandlerList );
-	InterruptEnable();
+	IsrEnable(IRQ_LEVEL_MAX);
 
 	HalRaiseCritInterrupt();
 }
