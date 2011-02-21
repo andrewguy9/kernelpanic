@@ -28,6 +28,7 @@
 TIME Time;
 
 //Keep track of timers waiting to execute.
+//We protect the timer heap with IRQ_LEVEL_MAX.
 struct HEAP TimerHeap1;
 struct HEAP TimerHeap2;
 
@@ -117,15 +118,16 @@ void TimerRegister(
 		//Overflow ocurred
 		HeapAdd(timerTime, &newTimer->Link.WeightedLink, TimersOverflow);
 	}
+
 	IsrEnable(IRQ_LEVEL_MAX);
 }
 
 TIME TimerGetTime()
 {
 	TIME value;
-	IsrDisable(IRQ_LEVEL_MAX);
+	IsrDisable(IRQ_LEVEL_TIMER);
 	value = Time;
-	IsrEnable(IRQ_LEVEL_MAX);
+	IsrEnable(IRQ_LEVEL_TIMER);
 	return value;
 }
 
