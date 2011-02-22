@@ -12,7 +12,7 @@ include test/rules.mk
 
 tests: utils/$(TARGET)_linktest.out utils/$(TARGET)_treetest.out utils/$(TARGET)_ringtest.out utils/$(TARGET)_bitmaptest.out umouse/$(TARGET)_maptest.out utils/$(TARGET)_bhamtest.out umouse/$(TARGET)_motortest.out umouse/$(TARGET)_floodfilltest.out umouse/$(TARGET)_movetest.out
 
-umouse: $(TARGET)_test0.out $(TARGET)_test1.out $(TARGET)_test2.out $(TARGET)_test3.out $(TARGET)_test4.out $(TARGET)_test5.out $(TARGET)_test6.out $(TARGET)_test7.out $(TARGET)_test8.out $(TARGET)_test9.out $(TARGET)_test10.out $(TARGET)_test11.out $(TARGET)_test12.out $(TARGET)_umouse.out 
+umouse: $(TARGET)_test0.out $(TARGET)_test1.out $(TARGET)_test2.out $(TARGET)_test3.out $(TARGET)_test4.out $(TARGET)_test5.out $(TARGET)_test6.out $(TARGET)_test7.out $(TARGET)_test8.out $(TARGET)_test9.out $(TARGET)_test11.out $(TARGET)_test12.out $(TARGET)_umouse.out 
 
 #########################
 #utils on board tests
@@ -56,8 +56,6 @@ $(TARGET)_test7.out: test/$(TARGET)_test7.o kernel/$(TARGET)_gather.o kernel/$(T
 $(TARGET)_test8.out: test/$(TARGET)_test8.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_isr.o kernel/$(TARGET)_softinterrupt.o kernel/$(TARGET)_critinterrupt.o kernel/$(TARGET)_context.o kernel/$(TARGET)_locking.o kernel/$(TARGET)_watchdog.o kernel/$(TARGET)_handler.o 
 
 $(TARGET)_test9.out: test/$(TARGET)_test9.o kernel/$(TARGET)_sleep.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_resource.o kernel/$(TARGET)_semaphore.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_isr.o kernel/$(TARGET)_softinterrupt.o kernel/$(TARGET)_critinterrupt.o kernel/$(TARGET)_locking.o kernel/$(TARGET)_context.o kernel/$(TARGET)_watchdog.o kernel/$(TARGET)_handler.o 
-
-$(TARGET)_test10.out: test/$(TARGET)_test10.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_resource.o kernel/$(TARGET)_semaphore.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_isr.o kernel/$(TARGET)_softinterrupt.o kernel/$(TARGET)_critinterrupt.o kernel/$(TARGET)_locking.o kernel/$(TARGET)_context.o kernel/$(TARGET)_watchdog.o kernel/$(TARGET)_handler.o 
 
 $(TARGET)_test11.out: test/$(TARGET)_test11.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_semaphore.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_isr.o kernel/$(TARGET)_softinterrupt.o kernel/$(TARGET)_critinterrupt.o utils/$(TARGET)_ringbuffer.o kernel/$(TARGET)_pipe.o kernel/$(TARGET)_locking.o kernel/$(TARGET)_context.o kernel/$(TARGET)_watchdog.o kernel/$(TARGET)_socket.o kernel/$(TARGET)_handler.o 
 
