@@ -13,7 +13,7 @@
 //
 
 unsigned int HalWatchDogTimeout;
-STACK_INIT_ROUTINE StackInitRoutine;
+STACK_INIT_ROUTINE * StackInitRoutine;
 
 struct itimerval WatchdogInterval;
 struct itimerval TimerInterval;
@@ -88,7 +88,7 @@ void HalSerialStartup()
 	//TODO Fill in with rest of Serial IO Unit.
 }
 
-void HalContextStartup( STACK_INIT_ROUTINE stackInitRoutine ) 
+void HalContextStartup( STACK_INIT_ROUTINE * stackInitRoutine ) 
 {
 	StackInitRoutine = stackInitRoutine;
 }
@@ -266,8 +266,7 @@ void HalCreateStackFrame(
 	int status;
 	char * cstack = stack;
 	stack_t newStack;
-
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
+	sigset_t oldSet;
 
 #ifdef DEBUG
 	//Set up the stack boundry.
@@ -276,6 +275,11 @@ void HalCreateStackFrame(
 #endif
 
 	Context->Foo = foo;
+
+	//We are about to bootstrap the new thread. Because we have to modify global
+	//state here, we must make sure no interrupts occur until after we are bootstrapped.
+	//We do all of this under the nose of the Isr unit.
+	sigprocmask(SIG_BLOCK, &HalIrqTable[IRQ_LEVEL_MAX].sa_mask, &oldSet);
 
 	halTempContext = Context;
 	halTempContextProcessed = FALSE;
@@ -297,7 +301,8 @@ void HalCreateStackFrame(
 
 	while( ! halTempContextProcessed );
 
-	sigprocmask(SIG_BLOCK, &TrampolineMask, NULL );
+	//Now that we have bootstrapped the new thread, lets restore the old mask.
+	sigprocmask(SIG_SETMASK, &oldSet, NULL);
 }
 
 /*
@@ -350,9 +355,15 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 }
 
 //TODO: Add stack range check.
+/*
+ * Performs a context switch between one MACHINE_CONTEXT (thread) and another.
+ * Because want to avoid having interrupts fire while the register file is in an intermidiate 
+ * state, all regilar interrupts should be disabled when calling this function.
+ */
 void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack)
 {
 	int status;
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_MAX) );
 
 	//Save the stack state into old context.
 	status = _setjmp( oldStack->Registers );
@@ -365,8 +376,9 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT 
 	{
 		//This was the restore call started by longjmp call.
 		//We have just switched into a different thread.
-		ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
 	}
+
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_MAX) );
 }
 
 void HalRaiseSoftInterrupt()
@@ -374,6 +386,7 @@ void HalRaiseSoftInterrupt()
 	raise( HAL_ISR_SOFT );
 }
 
+//TODO IT WOULD BE NICE TO HAVE THIS DEFINED BY THE CritInterruptUnit itself.
 void HalRaiseCritInterrupt()
 {
 	raise( HAL_ISR_CRIT );

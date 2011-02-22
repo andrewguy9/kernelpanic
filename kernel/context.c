@@ -8,6 +8,29 @@
  * The context unit helps deal with thread context (i.e. stacks).
  */
 
+//This variable is used to hold the function to call when a new context has been switched into 
+//for the first time.
+STACK_INIT_ROUTINE * ContextHandoff;
+
+/*
+ * When a thread is first started, this funciton is called.
+ */
+STACK_INIT_ROUTINE ContextBootstrap;
+void ContextBootstrap()
+{
+
+	//Here is where we end up if the kernel context switches to a new thread.
+	//i.e. this is the same state as the line after HalContextSwitch.
+	IsrEnable(IRQ_LEVEL_MAX);
+
+	ContextHandoff();
+}
+
+void ContextStartup(STACK_INIT_ROUTINE * foo) {
+	ContextHandoff = foo;
+	HalContextStartup(ContextBootstrap);
+}
+
 /*
  * Sets up a machine context for a future thread.
  */
@@ -31,9 +54,7 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
 			Pointer[cur] = 0xaa;
 #endif
 		//Populate regular stack
-		InterruptDisable();
-		HalCreateStackFrame( MachineState, Pointer, Foo, Size );
-		InterruptEnable();
+		HalCreateStackFrame( MachineState, Pointer, ContextBootstrap, Size );
 	}
 	else
 	{
@@ -52,13 +73,14 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
 	}
 }
 
+/*
+ * Performs a context switch from one MACHINE_CONTEXT (thread) to another. 
+ */
 void ContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack)
 {
 #ifdef DEBUG
 	TIME time = TimerGetTime();
 #endif
-
-	ASSERT( InterruptIsAtomic() );
 
 	if( oldStack != newStack )
 	{
@@ -69,9 +91,16 @@ void ContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * n
 		newStack->LastRanTime = time;
 		newStack->LastSelectedTime = time;
 #endif
+
+		//The Hal requires that no interrupts fire during the switch.
+		IsrDisable(IRQ_LEVEL_MAX);
+		
 		//now that the system looks like the switch has
 		//happened, go ahead and do the switch.
+		//NOTE: If you change anything below here, you have to update ContextBootstrap.
 		HalContextSwitch(oldStack, newStack);
+		
+		IsrEnable(IRQ_LEVEL_MAX);
 	}
 	else
 	{
@@ -82,6 +111,5 @@ void ContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * n
 		newStack->LastRanTime = time;
 #endif
 	}
-	ASSERT( InterruptIsAtomic() );
 }
 

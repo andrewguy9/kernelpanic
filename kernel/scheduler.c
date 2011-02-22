@@ -36,17 +36,21 @@
  * CriticalSections:
  * Once upon a time, critical sections were maintained with a mutex.
  * This meant that the Scheduler Critical Section APIs were not 
- * reentrant compatable. However, today we use the Interrupt unit's counted
+ * reentrant compatable. However, today we use the ISR unit's counted
  * IRQ interface (Critical Section managed by the CritInterrupt IRQ).
  * We keep the Scheduler Critical interfaces because they have asserts
- * to protect against previously disallowed reentrancy. Someday we should
- * remove them when we become convinced that it is safe.
+ * to protect against previously disallowed reentrancy. 
+ * TODO Someday we should remove them when we become convinced that it is safe.
  */
 
 void Schedule();
 BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler );
 BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler );
 void SchedulerNeedsSwitch();
+void SchedulerThreadStartup( void );
+
+//NOTE: ActiveThread, NextThread, RunQueue are protected by IRQ_LEVEL_CRIT.
+//NOTE: QuantumStartTime is used by the SchedulerTimer, so update to him need to be IRQ_LEVEL_SOFT (Timers run at soft, not IRQ_LEVEL_TIMER).
 
 //Pointers to the currnet and next thread.
 struct THREAD * ActiveThread;
@@ -78,6 +82,10 @@ struct THREAD IdleThread;
 //
 
 
+/*
+ * Returns a pointer to the current thread. Should only
+ * be called by a thread, never in interrupt.
+ */
 struct THREAD * SchedulerGetActiveThread()
 {
 	return ActiveThread;
@@ -141,8 +149,7 @@ void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
 //
 
 /*
- * Disables the scheduler so that the current stack will not be switched. This allows 
- * threads level atomicy without having to turn interrupts off.
+ * Disables the scheduler so that the current stack will not be switched. 
  *
  * SchedulerStartCritical CANNOT be called recursively. 
  * TODO: We can we replaced with CritInterruptDisable
@@ -150,7 +157,7 @@ void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
 void SchedulerStartCritical( )
 {
 	//This is only safe if we are in a thread or crit operation.
-	ASSERT( !InterruptIsAtomic() && !SoftInterruptIsAtomic() );
+	ASSERT( !SoftInterruptIsAtomic() );
 	CritInterruptDisable();
 }
 
@@ -180,7 +187,7 @@ BOOL SchedulerIsCritical()
 /*
  * Ends a critical section and forces an immediate context switch
  */
-void  SchedulerForceSwitch()
+void SchedulerForceSwitch()
 {
 	ASSERT( CritInterruptIsAtomic() );
 	
@@ -194,7 +201,7 @@ void  SchedulerForceSwitch()
  */
 void SchedulerResumeThread( struct THREAD * thread )
 {
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
+	ASSERT( CritInterruptIsAtomic() );
 	ASSERT( thread->State == THREAD_STATE_BLOCKED );
 
 	thread->State = THREAD_STATE_RUNNING;
@@ -204,14 +211,14 @@ void SchedulerResumeThread( struct THREAD * thread )
 
 BOOL SchedulerIsThreadDead( struct THREAD * thread )
 {
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
+	ASSERT( CritInterruptIsAtomic() );
 	
 	return thread->State == THREAD_STATE_DONE;
 }
 
 BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
 {
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
+	ASSERT( CritInterruptIsAtomic() );
 	
 	return thread->State == THREAD_STATE_BLOCKED;
 }
@@ -227,7 +234,7 @@ BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
  */
 void SchedulerBlockThread( )
 {
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
+	ASSERT( CritInterruptIsAtomic() );
 
 	ActiveThread->State = THREAD_STATE_BLOCKED;
 	
@@ -244,7 +251,11 @@ void SchedulerSwitch()
 	struct THREAD * newThread;
 	
 	ASSERT( CritInterruptIsAtomic() );
-	ASSERT( ! InterruptIsAtomic() );
+	//TODO WHAT I'M ACTUALLY TRYING TO DO IS MAKE SURE THAT THE NUMBER OF DISABLED COUNTS IS EQUAL
+	//TODO ON BOTH THREADS. THIS WAY THE KERNEL KNOWS THAT ENABLED CALLS WONT BE MISSED.
+	//TODO TODAY WE GUARANTEE THIS BY BEING REALLY RIDGID ABOUT WHAT THE COUNT HAS TO BE.
+	//TODO IT WOULD BE NICE TO BE MORE FLEXABLE HERE.
+	ASSERT( ! TimerIsAtomic() );
 
 	//Update watchdog for both counters, since they have/are running.
 	WatchdogNotify( ActiveThread->MachineContext.Flag );
@@ -260,12 +271,10 @@ void SchedulerSwitch()
 	ActiveThread = NextThread;
 	NextThread = NULL;
 
-	InterruptDisable();
 	ContextSwitch(&oldThread->MachineContext, &newThread->MachineContext);
-	InterruptEnable();
 
-	ASSERT( ! InterruptIsAtomic() );
-	ASSERT( CritInterruptIsAtomic() );
+	ASSERT( ! TimerIsAtomic() );
+	ASSERT( CritInterruptIsAtomic() );//TODO SEE NOTE ABOVE.
 	
 	//We need to Finish the SchedulerObject, then
 	//release the SchedulerMutex.
@@ -288,7 +297,7 @@ void SchedulerSwitch()
  */
 void Schedule()
 {
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
+	ASSERT( CritInterruptIsAtomic() );
 
 	//save old thread unless its blocking or is the idle thread.
 	if( ActiveThread != &IdleThread && 
@@ -316,8 +325,6 @@ void Schedule()
  */
 void SchedulerNeedsSwitch()
 {
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
-
 	if( MutexLock( &SchedulerMutex ) )
 	{
 		//We acquired the mutex, so we know that a switch has been requested.
@@ -388,6 +395,9 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 	//the timer will know when to wake the scheduler.
 	//Note that we must disable SoftISRs while updating QuantumStartTime
 	//so that it is consistant from the perspective of the timer.
+	//You might think that there is a race between SoftInterruptEnable() and SchedulerSwitch,
+	//and you would be right, but this doesn't matter because the timer will fail to acquire
+	//the SchedulerMutex. Worst case we will let a thread run 1 ms. too long.
 	SoftInterruptDisable(); 
 	QuantumStartTime = TimerGetTime();
 	SoftInterruptEnable(); 
@@ -405,10 +415,11 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 void SchedulerStartup()
 {
 	//Setup the hal to use the scheduler.
-	HalContextStartup( SchedulerThreadStartup );
+	ContextStartup( SchedulerThreadStartup );
 	
 	//Initialize queues
 	LinkedListInit( &RunQueue );
+
 	//Initialize the timer
 	HandlerInit( & SchedulerTimer );
 	TimerRegister( & SchedulerTimer,
@@ -420,7 +431,8 @@ void SchedulerStartup()
 	MutexInit( &SchedulerMutex, FALSE );
 	HandlerInit( &SchedulerCritObject );
 	
-	QuantumStartTime = 0;
+	QuantumStartTime = TimerGetTime();
+
 	//Create a thread for idle loop.
 	SchedulerCreateThread( &IdleThread, //Thread 
 			1, //Priority
@@ -459,17 +471,11 @@ void SchedulerThreadStartup( void )
 	//which were held across the context switch, 
 	//namely the SchedulerCritObject, and the SchedulerMutex.
 	
-	//Context switches should be run atomically.
-	ASSERT( InterruptIsAtomic() );
-
 	//Get the thread (set before the context switch)
 	thread = SchedulerGetActiveThread();
 	
-	//Now it should be safe to lower the atomic section.
-	//The scheduler will not yet be consistant, but we 
-	//should still be in a critical section (so its safe-ish).
-	InterruptEnable();
-	ASSERT( !InterruptIsAtomic() );
+	//We should be in a critical section because we context switched here,
+	//leaking the raise. 
 	ASSERT( CritInterruptIsAtomic() );
 
 	//Now we will release the scheduler objects to allow the scheduler

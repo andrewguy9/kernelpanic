@@ -115,24 +115,31 @@ BOOL IsrIsAtomic(enum IRQ_LEVEL level)
 {
 	//
 	//If HalIsIrqAtomic(level) for a level is true, 
-	//then the IsrDisabledCount[level] should be positive,
+	//then the IsrDisabledCount[] should be positive for levels 'level' to IRQ_LEVEL_COUNT.
 	//since we are physically atomic.
 	//If HalIsIrqAtomic(level) for a level is false,
 	//then interrupt level should be 0, because we have 
 	//interrupts enabled.
 	//
 
-	if( IsrDisabledCount[level] == 0 )
-	{
+	ASSERT( level != IRQ_LEVEL_NONE);//Because enums can be signed or unsigned we need to make sure IRQ_LEVEL_NONE aka 0 is never passed.
 
-		ASSERT( ! HalIsIrqAtomic( level ) );
-		return FALSE;
+	enum IRQ_LEVEL l;
+	for(l = IRQ_LEVEL_COUNT - 1; l >= level; l--) {
+		if( IsrDisabledCount[l] == 0 )
+		{
+
+			ASSERT( ! HalIsIrqAtomic( l ) );
+		}
+		else 
+		{
+			//Some level higher than level is atomic.
+			//That means that level itself is atomic. 
+			ASSERT( HalIsIrqAtomic( l ) );
+			return TRUE;
+		}
 	}
-	else 
-	{
-		ASSERT( HalIsIrqAtomic( level ) );
-		return TRUE;
-	}
+	return FALSE;
 }
 
 /*
