@@ -12,6 +12,12 @@
  * queue work items. 
  */
 
+/*
+ * NOTE: Work Item Queues are protected at IRQ_LEVEL_CRIT.
+ * That means that only thread or CritInterrupts may register
+ * new work items!
+ */
+
 //
 //Helper Functions
 //
@@ -41,7 +47,7 @@ void WorkerAddItem( struct WORKER_QUEUE * queue, struct WORKER_ITEM * item )
 {
 
 	//Make sure we are at thread level.
-	ASSERT( !InterruptIsAtomic() && !SoftInterruptIsAtomic() );
+	ASSERT( !SoftInterruptIsAtomic() );
 
 	SemaphoreUp( & queue->Lock );
 
@@ -49,12 +55,12 @@ void WorkerAddItem( struct WORKER_QUEUE * queue, struct WORKER_ITEM * item )
 	//returns accurate results.
 	item->Queue = queue;
 	
-	InterruptDisable();
+	CritInterruptDisable();
 	//Finished needs to be updated with critical sections disabled.
 	item->Finished = FALSE;
 	//Adding to the queue needs to be done with Critinterrupts Disabled.
 	LinkedListEnqueue( &item->Link.LinkedListLink, & queue->List );
-	InterruptEnable();
+	CritInterruptEnable();
 }
 
 //
@@ -211,9 +217,9 @@ void WorkerInitItem( struct WORKER_QUEUE * queue, WORKER_FUNCTION foo, void * co
 BOOL WorkerItemIsFinished( struct WORKER_ITEM * item )
 {
 	BOOL result;
-	InterruptDisable();
+	IsrDisable(IRQ_LEVEL_MAX);
 	result = item->Finished;
-	InterruptEnable();
+	IsrEnable(IRQ_LEVEL_MAX);
 	return result;
 }
 
