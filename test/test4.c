@@ -68,12 +68,12 @@ void SleeperMain()
 			Sleep( Sequence[cur] );
 
 			//Check to see if the timer fired before we woke.
-			InterruptDisable();
+			IsrDisable(IRQ_LEVEL_MAX);
 			if( !HandlerIsFinished( &Timer ) )
 			{
 				KernelPanic( );
 			}
-			InterruptEnable();
+			IsrEnable(IRQ_LEVEL_MAX);
 
 			//Increase our iteration count.
 			TimerCycles++;
