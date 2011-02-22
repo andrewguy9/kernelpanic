@@ -47,7 +47,7 @@ ISR(USART0_RX_vect)
 	char temp;
 	temp = UDR; 
 
-	InterruptIncrement();
+	IsrIncrement(IRQ_LEVEL_IO);
 	if( AsrInputCount < SCRATCH_SIZE )
 	{
 		AsrInputScratch[AsrInputCount++] = temp;
@@ -56,7 +56,7 @@ ISR(USART0_RX_vect)
 	{
 		KernelPanic( );
 	}
-	InterruptDecrement();
+	IsrDecrement(IRQ_LEVEL_IO);
 #endif
 }
 
@@ -64,12 +64,12 @@ ISR(USART0_RX_vect)
 ISR(USART0_TX_vect)
 {
 #if 0 
-	InterruptIncrement();
+	IsrIncrement(IRQ_LEVEL_IO);
 	if( AsrOutputIndex < AsrOutputCount )
 	{
 		UDR = AsrOutputScratch[AsrOutputIndex++];
 	}
-	InterruptDecrement();
+	IsrDecrement(IRQ_LEVEL_IO);
 #endif
 }
 #endif
@@ -94,7 +94,7 @@ void InputMain()
 		{
 			//We write everything into the socket.
 			//Swap the interrupt buffers.
-			InterruptDisable();
+			IsrDisable(IRQ_LEVEL_IO);
 
 			ThreadInputCount = AsrInputCount;
 			AsrInputCount = 0;
@@ -104,7 +104,7 @@ void InputMain()
 			ThreadInputScratch = AsrInputScratch;
 			AsrInputScratch = temp;
 
-			InterruptEnable();
+			IsrEnable(IRQ_LEVEL_IO);
 		}
 
 		if( ThreadInputCount > 0 )
@@ -140,13 +140,13 @@ void WriteMain()
 		swap = FALSE;
 		while( ! swap )
 		{
-			InterruptDisable();
+			IsrDisable(IRQ_LEVEL_IO);
 			swap = AsrOutputIndex >= AsrOutputCount;
-			InterruptEnable();
+			IsrEnable(IRQ_LEVEL_IO);
 
 			if( swap )
 			{//Isr is ready for swap
-				InterruptDisable();
+				IsrDisable(IRQ_LEVEL_IO);
 
 				temp = AsrOutputScratch;
 				AsrOutputScratch = ThreadOutputScratch;
@@ -156,7 +156,7 @@ void WriteMain()
 				ThreadOutputCount = 0;
 				AsrOutputIndex = 0;
 
-				InterruptEnable();
+				IsrEnable(IRQ_LEVEL_IO);
 				SchedulerEndCritical();
 			}
 			else
