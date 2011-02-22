@@ -1,7 +1,7 @@
 #ifndef SOFT_INTERRUPT_H
 #define SOFT_INTERRUPT_H
 
-#include"interrupt.h"
+#include"isr.h"
 #include"../utils/utils.h"
 #include"handler.h"
 

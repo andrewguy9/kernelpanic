@@ -3,7 +3,6 @@
 #include"../kernel/timer.h"
 #include"../utils/utils.h"
 #include"../kernel/startup.h"
-#include"../kernel/interrupt.h"
 #include"../kernel/panic.h"
 #include"../kernel/critinterrupt.h"
 

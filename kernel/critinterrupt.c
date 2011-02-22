@@ -1,5 +1,4 @@
 #include"critinterrupt.h"
-#include"interrupt.h"
 #include"hal.h"
 
 /*

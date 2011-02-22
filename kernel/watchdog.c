@@ -1,7 +1,7 @@
 #include"watchdog.h"
 #include"hal.h"
 #include"panic.h"
-#include"interrupt.h"
+#include"isr.h"
 #include"../utils/bitfield.h"
 
 /*

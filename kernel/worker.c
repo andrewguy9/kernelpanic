@@ -1,6 +1,6 @@
 #include"worker.h"
 #include"../utils/linkedlist.h"
-#include"interrupt.h"
+#include"isr.h"
 #include"softinterrupt.h"
 #include"critinterrupt.h"
 #include"scheduler.h"

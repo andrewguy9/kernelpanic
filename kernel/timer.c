@@ -2,7 +2,7 @@
 #include"../utils/utils.h"
 #include"../utils/heap.h"
 #include"thread.h"
-#include"interrupt.h"
+#include"isr.h"
 #include"softinterrupt.h"
 #include"hal.h"
 

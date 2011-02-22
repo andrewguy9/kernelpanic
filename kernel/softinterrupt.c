@@ -1,5 +1,4 @@
 #include"softinterrupt.h"
-#include"interrupt.h"
 #include"critinterrupt.h"
 #include"../utils/linkedlist.h"
 #include"hal.h"

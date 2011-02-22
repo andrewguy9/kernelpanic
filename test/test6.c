@@ -1,7 +1,6 @@
 #include"../kernel/startup.h"
 #include"../kernel/scheduler.h"
 #include"../kernel/worker.h"
-#include"../kernel/interrupt.h"
 #include"../kernel/critinterrupt.h"
 #include"../kernel/semaphore.h"
 #include"../kernel/panic.h"

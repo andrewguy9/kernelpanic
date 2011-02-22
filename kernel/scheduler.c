@@ -2,7 +2,6 @@
 #include"../utils/utils.h"
 #include"../utils/linkedlist.h"
 #include"timer.h"
-#include"interrupt.h"
 #include"softinterrupt.h"
 #include"critinterrupt.h"
 #include"context.h"

@@ -1,5 +1,5 @@
 #include"hal.h"
-#include"interrupt.h"
+#include"isr.h"
 #include"softinterrupt.h"
 #include"critinterrupt.h"
 #include"timer.h"
@@ -38,7 +38,8 @@ void KernelInit()
 void KernelStart()
 {
 	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
-	InterruptEnable();
+	//TODO THIS IS A STARTUP HACK, WE SHOULD FIX IT.
+	IsrEnable(IRQ_LEVEL_TIMER);
 	ASSERT( ! HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
 
 	while(1)
