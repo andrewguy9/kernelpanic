@@ -84,18 +84,9 @@ struct MACHINE_CONTEXT
 
 #ifdef DEBUG
 BOOL HalIsIrqAtomic(enum IRQ_LEVEL level);
-void HalUpdateIsrDebugInfo();
-void HalInvalidateIsrDebugInfo();
 #endif
-
-void HalSetIrq(enum IRQ_LEVEL irq);
 
 void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack);
 
 void HalResetClock();
-
-void HalRaiseSoftInterrupt();
-void HalRaiseCritInterrupt();
-
-void HalBlockSignal( void * which );
 
