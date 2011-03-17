@@ -44,7 +44,32 @@ struct itimerval TimerInterval;
 //IRQ Management
 //
 
+/*
+ * This table establishes what handler to call and what signals to mask when a 
+ * signal is delivered.
+ *
+ * sigaction is the handler to call. This will normally be the generic handler: HalIsrHandler.
+ * sa_mask is the mask to apply.
+ * sa_flags is used for special masking rules/alt stack settings.
+ */
 struct sigaction HalIrqTable[IRQ_LEVEL_COUNT];
+
+/*
+ * HalIsrHandler uses this table to call the user specified handler.
+ */
+ISR_HANDLER HalIsrJumpTable[IRQ_LEVEL_COUNT];
+
+/*
+ * HalIsrHandler uses this table to go from a signal to an IRQ.
+ *
+ * Key - IRQ level.
+ * Value - Signal Number.
+ *
+ * HalIsrHandler will scan from the start of the array to the end.
+ * When it finds the same signal number, then that index is the index it should call
+ * from the HalIsrJumpTable.
+ */
+INDEX HalIrqToSignal[IRQ_LEVEL_COUNT];
 
 //Create a mask for debugging
 #ifdef DEBUG
@@ -60,7 +85,7 @@ BOOL HalCurrrentIrqMaskValid;
 //Watchdog
 //
 
-void HalWatchdogHandler( int SignalNumber );
+void WatchdogInterrupt();//TODO THIS PROTOTYPE COMES FROM Watchdog UNIT.
 
 //
 //Stack Mangement
@@ -72,7 +97,6 @@ void HalStackTrampoline( int SignalNumber );
 //Time Mangement
 //
 
-void HalTimerHandler( int SignalNumber );
 void TimerInterrupt();//TODO THIS PROTOTYPE COMES FROM Timer UNIT.
 
 
@@ -80,8 +104,6 @@ void TimerInterrupt();//TODO THIS PROTOTYPE COMES FROM Timer UNIT.
 //IRQ Management
 //
 
-void HalSoftHandler( int SignalNumber );
-void HalCritHandler( int SignalNumber );
 #ifdef DEBUG
 void HalUpdateIsrDebugInfo();
 void HalInvalidateIsrDebugInfo();
@@ -100,18 +122,6 @@ void CritInterrupt();//TODO THIS PROTOTYPE COMES FROM CritInterrupt UNIT.
 //Watchdog
 //
 
-/* Acts like the handler for a hardware
- * watchdog interrupt.
- * Panic's the kernel.
- */
-void HalWatchdogHandler( int SignalNumber ) 
-{
-#ifdef DEBUG
-	HalUpdateIsrDebugInfo();
-#endif
-
-	HalPanic( "Wachdog Timeout", 0);
-}
 
 //
 //Stack Mangement
@@ -154,67 +164,39 @@ void HalStackTrampoline( int SignalNumber )
 //Time Mangement
 //
 
-/*
- * Acts like the hardware clock.
- * Calls TimerInterrupt and updates watchdog.
- */
-void HalTimerHandler( int SignalNumber )
-{
-#ifdef DEBUG
-	HalUpdateIsrDebugInfo();
-#endif
-
-	//The kernel should add this signal to the blocked list inorder to avoid 
-	//nesting calls the the handler.
-	//verify this.
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
-
-	//Call the kernel's timer handler.
-	TimerInterrupt();
-
-#ifdef DEBUG
-	//We are about to return into an unknown frame. 
-	//I can't predict what the irq will be there.
-	HalInvalidateIsrDebugInfo();
-#endif
-}
-
 //
 //IRQ Management
 //
 
-void HalSoftHandler( int SignalNumber )
-{
-#ifdef DEBUG
-	HalUpdateIsrDebugInfo();
-#endif
-
-	SoftInterrupt();
-
-#ifdef DEBUG
-	//We are about to return into an unknown frame. 
-	//I can't predict what the irq will be there.
-	HalInvalidateIsrDebugInfo();
-#endif
-}
-
 /*
- * Handler for the Crit ISRs. 
- * This is just a stub.
+ * All signals call this routine. 
+ * This routine then calls the appropriate ISR Handler.
  */
-void HalCritHandler( int SignalNumber )
+void HalIsrHandler( int SignalNumber ) 
 {
+	INDEX index;
+	enum IRQ_LEVEL irq;
+
 #ifdef DEBUG
 	HalUpdateIsrDebugInfo();
 #endif
 
-	CritInterrupt(); 
-
+	//We dont know which irq is associated with SignalNumber, so lets find it.
+	for(index = 0; index < IRQ_LEVEL_COUNT; index++) {
+		if( HalIrqToSignal[index] == SignalNumber ) {
+			//We found it, call the appropriate ISR.
+			irq = index;
+			HalIsrJumpTable[irq]();
 #ifdef DEBUG
-	//We are about to return into an unknown frame. 
-	//I can't predict what the irq will be there.
-	HalInvalidateIsrDebugInfo();
+			//We are about to return into an unknown frame. 
+			//I can't predict what the irq will be there.
+			HalInvalidateIsrDebugInfo();
 #endif
+			return;
+		}
+	}
+	
+	HalPanic("Signal delivered for which no Irq was registered", SignalNumber);
 }
 
 #ifdef DEBUG
@@ -251,6 +233,22 @@ void HalBlockSignal( void * which )
 //-----------------------------------------------------------------------------
 
 //
+//Hal Utilities
+//
+
+void HalPanic(char file[], int line)
+{
+	printf("PANIC: %s:%d\n",file,line);
+	abort(); 
+}
+
+void HalSleepProcessor()
+{
+	ASSERT( !HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
+	pause();
+}
+
+//
 //Unit Management
 //
 
@@ -267,10 +265,10 @@ void HalStartup()
 	HalBlockSignal( (void *) HAL_ISR_TRAMPOLINE );
 
 	//Now can can set up different IRQ levels.
-	HalRegisterIsrHandler( HalCritHandler,     (void *) HAL_ISR_CRIT,     IRQ_LEVEL_CRIT     );
-	HalRegisterIsrHandler( HalSoftHandler,     (void *) HAL_ISR_SOFT,     IRQ_LEVEL_SOFT     );
-	HalRegisterIsrHandler( HalTimerHandler,    (void *) HAL_ISR_TIMER,    IRQ_LEVEL_TIMER    );
-	HalRegisterIsrHandler( HalWatchdogHandler, (void *) HAL_ISR_WATCHDOG, IRQ_LEVEL_WATCHDOG );
+	HalRegisterIsrHandler( CritInterrupt,     (void *) HAL_ISR_CRIT,     IRQ_LEVEL_CRIT     );
+	HalRegisterIsrHandler( SoftInterrupt,     (void *) HAL_ISR_SOFT,     IRQ_LEVEL_SOFT     );
+	HalRegisterIsrHandler( TimerInterrupt,    (void *) HAL_ISR_TIMER,    IRQ_LEVEL_TIMER    );
+	HalRegisterIsrHandler( WatchdogInterrupt, (void *) HAL_ISR_WATCHDOG, IRQ_LEVEL_WATCHDOG );
 
 	//Create the SwitchStackAction 
 	//NOTE: We use the interrupt mask here, because we want to block all operations.
@@ -287,24 +285,6 @@ void HalStartup()
 
 	//Initialize WatchdogVariables (Dont register ISR)
 	HalWatchDogTimeout = 0;
-}
-
-void HalPanic(char file[], int line)
-{
-	printf("PANIC: %s:%d\n",file,line);
-	abort(); 
-}
-
-void HalSleepProcessor()
-{
-	ASSERT( !HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
-	pause();
-}
-
-void HalResetClock()
-{
-	//Note: On Unix we dont do anything here because 
-	//the timer is already periodic, unlike the avr.
 }
 
 //
@@ -463,6 +443,12 @@ void HalInitClock()
 	ASSERT(status == 0 );
 }
 
+void HalResetClock()
+{
+	//Note: On Unix we dont do anything here because 
+	//the timer is already periodic, unlike the avr.
+}
+
 //
 //IRQ Management
 //
@@ -536,7 +522,9 @@ void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL le
 		sigaddset(&HalIrqTable[i].sa_mask, signum);
 	}
 
-	HalIrqTable[level].sa_handler = handler;
+	HalIrqToSignal[level] = signum;
+	HalIsrJumpTable[level] = handler;
+	HalIrqTable[level].sa_handler = HalIsrHandler;
 	ASSUME( sigaction(signum, &HalIrqTable[level], NULL), 0 );
 }
 

@@ -129,3 +129,8 @@ void WatchdogAddFlag( INDEX index )
 	FlagOn( WatchdogDesiredMask, flag );
 	IsrEnable(IRQ_LEVEL_WATCHDOG);
 }
+
+void WatchdogInterrupt()
+{
+	KernelPanic();
+}
