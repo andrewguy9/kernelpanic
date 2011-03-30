@@ -21,6 +21,13 @@
 //BE IN THIS UNIT.
 
 //
+//  Prototypes
+//
+
+void TimerInterrupt(void);
+void QueueTimers( );
+
+//
 //Unit Variables
 //
 

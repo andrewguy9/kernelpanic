@@ -17,6 +17,12 @@
  */
 
 //
+//Prototypes
+//
+
+void CritInterrupt();
+
+//
 //Crit Interrupt Variables
 //
 

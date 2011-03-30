@@ -25,6 +25,16 @@
  * to indicator lights on various platforms.
  */
 
+//
+//Prototypes
+//
+
+void WatchdogInterrupt();
+
+//
+//Globals
+//
+
 BITFIELD WatchdogDesiredMask;
 BITFIELD WatchdogCurMask;
 

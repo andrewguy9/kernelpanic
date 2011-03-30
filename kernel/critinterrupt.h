@@ -39,7 +39,6 @@ void CritInterruptStartup();
 //Functions for handlers
 //
 
-void CritInterrupt();
 void CritInterruptRegisterHandler(
 		struct HANDLER_OBJECT * handler,
 		HANDLER_FUNCTION foo,

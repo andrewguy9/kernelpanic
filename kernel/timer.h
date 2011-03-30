@@ -43,10 +43,4 @@ void TimerRegister(
 #define TimerIsEdge() IsrIsAtomic(IRQ_LEVEL_TIMER)
 #endif//DEBUG
 
-//
-//  Timer Handler
-//
-
-void TimerInterrupt(void);
-
 #endif

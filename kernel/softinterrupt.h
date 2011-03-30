@@ -38,7 +38,6 @@ void SoftInterruptStartup();
 //Functions for handlers.
 //
 
-void SoftInterrupt();
 void SoftInterruptRegisterHandler(
 		struct HANDLER_OBJECT * handler,
 		HANDLER_FUNCTION foo,

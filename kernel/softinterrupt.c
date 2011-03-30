@@ -19,6 +19,12 @@
  */
 
 //
+//Prototypes
+//
+
+void SoftInterrupt();
+
+//
 //SoftInterrupt Variables
 //
 
