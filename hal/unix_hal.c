@@ -25,7 +25,10 @@ struct itimerval WatchdogInterval;
 
 STACK_INIT_ROUTINE * StackInitRoutine;
 
-//Create a mask for bootstrapping new stacks. 
+//We block the TrampolineSignal at all IRQ levels.
+//When we actually want to bootstrap a new stack,
+//we can use the Trampoline mask to temporarily enable
+//it.
 sigset_t TrampolineMask;
 //Create a signal action for stack bootstrapping.
 struct sigaction SwitchStackAction;
@@ -85,8 +88,6 @@ BOOL HalCurrrentIrqMaskValid;
 //Watchdog
 //
 
-void WatchdogInterrupt();//TODO THIS PROTOTYPE COMES FROM Watchdog UNIT.
-
 //
 //Stack Mangement
 //
@@ -97,9 +98,6 @@ void HalStackTrampoline( int SignalNumber );
 //Time Mangement
 //
 
-void TimerInterrupt();//TODO THIS PROTOTYPE COMES FROM Timer UNIT.
-
-
 //
 //IRQ Management
 //
@@ -108,11 +106,8 @@ void TimerInterrupt();//TODO THIS PROTOTYPE COMES FROM Timer UNIT.
 void HalUpdateIsrDebugInfo();
 void HalInvalidateIsrDebugInfo();
 #endif
+void HalClearSignals();
 void HalBlockSignal( void * which );
-
-void SoftInterrupt();//TODO THIS PROTOTYPE COMES FROM SoftInterrupt UNIT.
-void CritInterrupt();//TODO THIS PROTOTYPE COMES FROM CritInterrupt UNIT.
-
 
 //-----------------------------------------------------------------------------
 //------------------------- HELPER FUNCTIONS ----------------------------------
@@ -214,9 +209,25 @@ void HalInvalidateIsrDebugInfo()
 
 /*
  * This is a unix specific hal function.
+ * When starting up, we need to make sure that all
+ * our IRQ tracking globals are initialized.
+ */
+void HalClearSignals()
+{
+	INDEX i;
+
+	for(i=0; i < IRQ_LEVEL_COUNT; i++) {
+		HalIrqTable[i].sa_handler = NULL;
+		sigemptyset(&HalIrqTable[i].sa_mask);
+		HalIrqTable[i].sa_flags = 0;
+	}
+}
+
+/*
+ * This is a unix specific hal function.
  * Some signals my be harmful to panic. 
  * This function will block them for all IRQs.
- * Must be called before HalBlockSignal calls.
+ * Must be called before all HalRegisterIsrHandler calls.
  */ 
 void HalBlockSignal( void * which )
 {
@@ -254,42 +265,17 @@ void HalSleepProcessor()
 
 void HalStartup()
 {
-	HalIsrInit();
-
-	//Create the TrapolineMask.
-	sigemptyset( &TrampolineMask );
-	sigaddset( &TrampolineMask, HAL_ISR_TRAMPOLINE );
-
-	//We want all ISRS to block HAL_ISR_TRAMPOLINE, so lets set that up before 
-	//initializing IRQ levels.
-	HalBlockSignal( (void *) HAL_ISR_TRAMPOLINE );
-
-	//Now can can set up different IRQ levels.
-	HalRegisterIsrHandler( CritInterrupt,     (void *) HAL_ISR_CRIT,     IRQ_LEVEL_CRIT     );
-	HalRegisterIsrHandler( SoftInterrupt,     (void *) HAL_ISR_SOFT,     IRQ_LEVEL_SOFT     );
-	HalRegisterIsrHandler( TimerInterrupt,    (void *) HAL_ISR_TIMER,    IRQ_LEVEL_TIMER    );
-	HalRegisterIsrHandler( WatchdogInterrupt, (void *) HAL_ISR_WATCHDOG, IRQ_LEVEL_WATCHDOG );
-
-	//Create the SwitchStackAction 
-	//NOTE: We use the interrupt mask here, because we want to block all operations.
-	SwitchStackAction.sa_handler = HalStackTrampoline;
-	SwitchStackAction.sa_mask = HalIrqTable[IRQ_LEVEL_MAX].sa_mask;
-	SwitchStackAction.sa_flags = SA_ONSTACK;
-	sigaction(HAL_ISR_TRAMPOLINE, &SwitchStackAction, NULL );
-
-	//We start the hardware up in the InterruptSet
-	//This means that no interrupts will be delivered during kernel initialization.
-	HalSetIrq(IRQ_LEVEL_TIMER);
-
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
-
-	//Initialize WatchdogVariables (Dont register ISR)
-	HalWatchDogTimeout = 0;
 }
 
 //
 //Watchdog
 //
+
+void HalWatchdogInit()
+{
+	//Initialize WatchdogVariables (Dont register ISR)
+	HalWatchDogTimeout = 0;
+}
 
 void HalPetWatchdog( )
 {
@@ -332,6 +318,19 @@ void HalEnableWatchdog( int timeout )
 void HalContextStartup( STACK_INIT_ROUTINE * stackInitRoutine ) 
 {
 	StackInitRoutine = stackInitRoutine;
+
+	//Create the TrapolineMask.
+	sigemptyset( &TrampolineMask );
+	sigaddset( &TrampolineMask, HAL_ISR_TRAMPOLINE );
+
+	//TODO THIS IS REALLY UNSAFE BECAUSE ISRS CAN'T CHANGE AFTER WE DO THIS.
+	//TODO IT WOULD BE BETTER IF THE CONTEXT CODE DID A sigAction/restore step.
+	//NOTE: We use the interrupt mask here, because we want to block all operations.
+	SwitchStackAction.sa_handler = HalStackTrampoline;
+	SwitchStackAction.sa_mask = HalIrqTable[IRQ_LEVEL_MAX].sa_mask;
+	SwitchStackAction.sa_flags = SA_ONSTACK;
+	sigaction(HAL_ISR_TRAMPOLINE, &SwitchStackAction, NULL );
+
 }
 
 void HalCreateStackFrame( 
@@ -493,13 +492,12 @@ void HalRaiseCritInterrupt()
 
 void HalIsrInit() 
 {
-	INDEX i;
+	HalClearSignals();
 
-	for(i=0; i < IRQ_LEVEL_COUNT; i++) {
-		HalIrqTable[i].sa_handler = NULL;
-		sigemptyset(&HalIrqTable[i].sa_mask);
-		HalIrqTable[i].sa_flags = 0;
-	}
+	//Unix Hal requires uses HAL_ISR_TRAMPOLINE to bootstrap new
+	//thread stacks. We need to ensure that it is blocked by all
+	//IRQ levels.
+	HalBlockSignal( (void *) HAL_ISR_TRAMPOLINE );
 }
 
 /*
@@ -515,6 +513,9 @@ void HalIsrInit()
  */
 void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
 {
+
+	//TODO THERE IS A BAKED IN ASSUMPTION THAT LEVEL WILL ALWAYS BE INCREASING.
+	//IF THIS IS VIOLATED THEN WE CRASH WHEN ENTERING AN ISR. THIS NEEDS TO BE FIXED.
 	INDEX i;
 	INDEX signum = (INDEX) which;
 

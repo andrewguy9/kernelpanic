@@ -96,6 +96,7 @@ void TimerStartup( )
 	Timers = &TimerHeap1;
 	TimersOverflow = &TimerHeap2;
 
+	HalRegisterIsrHandler( TimerInterrupt, (void *) HAL_ISR_TIMER, IRQ_LEVEL_TIMER );
 	HalInitClock();
 }
 

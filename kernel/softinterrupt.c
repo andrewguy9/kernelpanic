@@ -37,9 +37,8 @@ struct LINKED_LIST SoftInterruptHandlerList;
 //Run at kernel startup to initialize flags.
 void SoftInterruptStartup()
 {
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_SOFT) );
-
 	LinkedListInit( &SoftInterruptHandlerList );
+	HalRegisterIsrHandler( SoftInterrupt, (void *) HAL_ISR_SOFT, IRQ_LEVEL_SOFT );
 }
 
 void SoftInterrupt()

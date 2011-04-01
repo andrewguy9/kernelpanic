@@ -18,17 +18,21 @@
  */
 void KernelInit()
 {//entry point for kernel...
-	HalStartup();
+	HalIsrInit();
 
 	IsrStartup();
-	SoftInterruptStartup();
 	CritInterruptStartup();
+	SoftInterruptStartup();
 
 	WatchdogStartup();
 
 	TimerStartup();
 
+	//TODO THIS IS A STARTUP HACK, WE SHOULD FIX IT.
+	IsrDisable(IRQ_LEVEL_TIMER);
+
 	SchedulerStartup();
+	
 }
 
 /*

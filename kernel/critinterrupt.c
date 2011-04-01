@@ -35,9 +35,8 @@ struct LINKED_LIST CritInterruptHandlerList;
 //Run at kernel startup to initialize flags.
 void CritInterruptStartup()
 {
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
-
 	LinkedListInit( & CritInterruptHandlerList );
+	HalRegisterIsrHandler( CritInterrupt, (void *) HAL_ISR_CRIT, IRQ_LEVEL_CRIT );
 }
 
 void CritInterrupt() 

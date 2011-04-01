@@ -33,10 +33,6 @@ void IsrStartup()
 	for(i = 0; i < IRQ_LEVEL_COUNT; i++) {
 		IsrDisabledCount[i] = 0;
 	}
-	//TODO THIS IS A HACK. Should be separate call.
-	//We need to make this contract explicit.
-	ASSERT( HalIsIrqAtomic( IRQ_LEVEL_TIMER ) );
-	IsrDisabledCount[IRQ_LEVEL_TIMER] = 1;
 }
 
 //
