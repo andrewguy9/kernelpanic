@@ -25,14 +25,6 @@ struct itimerval WatchdogInterval;
 
 STACK_INIT_ROUTINE * StackInitRoutine;
 
-//We block the TrampolineSignal at all IRQ levels.
-//When we actually want to bootstrap a new stack,
-//we can use the Trampoline mask to temporarily enable
-//it.
-sigset_t TrampolineMask;
-//Create a signal action for stack bootstrapping.
-struct sigaction SwitchStackAction;
-
 struct MACHINE_CONTEXT * halTempContext;
 volatile BOOL halTempContextProcessed;
 
@@ -318,19 +310,6 @@ void HalEnableWatchdog( int timeout )
 void HalContextStartup( STACK_INIT_ROUTINE * stackInitRoutine ) 
 {
 	StackInitRoutine = stackInitRoutine;
-
-	//Create the TrapolineMask.
-	sigemptyset( &TrampolineMask );
-	sigaddset( &TrampolineMask, HAL_ISR_TRAMPOLINE );
-
-	//TODO THIS IS REALLY UNSAFE BECAUSE ISRS CAN'T CHANGE AFTER WE DO THIS.
-	//TODO IT WOULD BE BETTER IF THE CONTEXT CODE DID A sigAction/restore step.
-	//NOTE: We use the interrupt mask here, because we want to block all operations.
-	SwitchStackAction.sa_handler = HalStackTrampoline;
-	SwitchStackAction.sa_mask = HalIrqTable[IRQ_LEVEL_MAX].sa_mask;
-	SwitchStackAction.sa_flags = SA_ONSTACK;
-	sigaction(HAL_ISR_TRAMPOLINE, &SwitchStackAction, NULL );
-
 }
 
 void HalCreateStackFrame( 
@@ -339,11 +318,15 @@ void HalCreateStackFrame(
 		STACK_INIT_ROUTINE foo, 
 		COUNT stackSize)
 {
-
 	int status;
 	char * cstack = stack;
 	stack_t newStack;
 	sigset_t oldSet;
+	sigset_t trampolineMask;
+	struct sigaction switchStackAction;
+
+	sigemptyset( &trampolineMask );
+	sigaddset( &trampolineMask, HAL_ISR_TRAMPOLINE );
 
 #ifdef DEBUG
 	//Set up the stack boundry.
@@ -357,6 +340,12 @@ void HalCreateStackFrame(
 	//state here, we must make sure no interrupts occur until after we are bootstrapped.
 	//We do all of this under the nose of the Isr unit.
 	sigprocmask(SIG_BLOCK, &HalIrqTable[IRQ_LEVEL_MAX].sa_mask, &oldSet);
+
+	//NOTE: We use the interrupt mask here, because we want to block all operations.
+	switchStackAction.sa_handler = HalStackTrampoline;
+	switchStackAction.sa_mask = HalIrqTable[IRQ_LEVEL_MAX].sa_mask;
+	switchStackAction.sa_flags = SA_ONSTACK;
+	sigaction(HAL_ISR_TRAMPOLINE, &switchStackAction, NULL );
 
 	halTempContext = Context;
 	halTempContextProcessed = FALSE;
@@ -372,7 +361,7 @@ void HalCreateStackFrame(
 	//All signal types are blocked. 
 	//We will unblock the Trampoine signal, and make
 	//sure that it was delivered.
-	sigprocmask( SIG_UNBLOCK, &TrampolineMask, NULL );
+	sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL );
 
 	raise( HAL_ISR_TRAMPOLINE );
 
@@ -514,8 +503,6 @@ void HalIsrInit()
 void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
 {
 
-	//TODO THERE IS A BAKED IN ASSUMPTION THAT LEVEL WILL ALWAYS BE INCREASING.
-	//IF THIS IS VIOLATED THEN WE CRASH WHEN ENTERING AN ISR. THIS NEEDS TO BE FIXED.
 	INDEX i;
 	INDEX signum = (INDEX) which;
 
