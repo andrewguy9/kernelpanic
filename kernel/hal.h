@@ -44,6 +44,8 @@ void HalInitClock();
 void HalWatchdogInit();
 void HalContextStartup( STACK_INIT_ROUTINE * stackInitRoutine );
 void HalIsrInit();
+void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level );
+void HalIsrFinalize();
 
 void HalStartup();
 
@@ -56,7 +58,6 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context );
 void HalSerialStartup();
 void HalPanic(char file[], int line);
 void HalSleepProcessor();
-void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level );
 void HalRaiseSoftInterrupt();
 void HalRaiseCritInterrupt();
 void HalSetIrq(enum IRQ_LEVEL irq);

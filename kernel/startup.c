@@ -28,6 +28,7 @@ void KernelInit()
 
 	TimerStartup();
 
+	HalIsrFinalize();
 	//TODO THIS IS A STARTUP HACK, WE SHOULD FIX IT.
 	IsrDisable(IRQ_LEVEL_TIMER);
 

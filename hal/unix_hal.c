@@ -526,7 +526,17 @@ void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL le
 	HalIrqToSignal[level] = signum;
 	HalIsrJumpTable[level] = handler;
 	HalIrqTable[level].sa_handler = HalIsrHandler;
-	ASSUME( sigaction(signum, &HalIrqTable[level], NULL), 0 );
+}
+
+void HalIsrFinalize()
+{
+	enum IRQ_LEVEL level;
+
+	for(level = IRQ_LEVEL_NONE; level < IRQ_LEVEL_COUNT; level++) {
+		if(HalIrqToSignal[level] != 0) {
+			ASSUME( sigaction(HalIrqToSignal[level], &HalIrqTable[level], NULL), 0 );
+		}
+	}
 }
 
 //
