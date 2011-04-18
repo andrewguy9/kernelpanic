@@ -31,8 +31,6 @@ void KernelInit()
 
 	TimerStartup();//TODO THE TIMER REGISTERED IN THIS FUNCTION IS RACING THE CALL WE MAKE TO IsrDisable. 
 
-	HalIsrFinalize();
-
 	SchedulerStartup();
 }
 

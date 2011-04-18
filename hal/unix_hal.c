@@ -39,6 +39,8 @@ struct itimerval TimerInterval;
 //IRQ Management
 //
 
+void HalIsrFinalize();
+
 /*
  * This table establishes what handler to call and what signals to mask when a 
  * signal is delivered.
