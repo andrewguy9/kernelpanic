@@ -506,6 +506,8 @@ void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL le
 	INDEX i;
 	INDEX signum = (INDEX) which;
 
+	ASSERT(HalIsIrqAtomic(IRQ_LEVEL_MAX));
+
 	for(i=level; i < IRQ_LEVEL_COUNT; i++) {
 		sigaddset(&HalIrqTable[i].sa_mask, signum);
 	}
@@ -513,6 +515,9 @@ void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL le
 	HalIrqToSignal[level] = signum;
 	HalIsrJumpTable[level] = handler;
 	HalIrqTable[level].sa_handler = HalIsrHandler;
+
+	HalIsrFinalize();
+	HalSetIrq(IRQ_LEVEL_MAX); 
 }
 
 void HalIsrFinalize()

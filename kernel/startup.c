@@ -21,19 +21,19 @@ void KernelInit()
 	HalIsrInit();
 
 	IsrStartup();
+	//TODO THIS IS A STARTUP HACK, WE SHOULD FIX IT.
+	IsrDisable(IRQ_LEVEL_MAX);
+
 	CritInterruptStartup();
 	SoftInterruptStartup();
 
 	WatchdogStartup();
 
-	TimerStartup();
+	TimerStartup();//TODO THE TIMER REGISTERED IN THIS FUNCTION IS RACING THE CALL WE MAKE TO IsrDisable. 
 
 	HalIsrFinalize();
-	//TODO THIS IS A STARTUP HACK, WE SHOULD FIX IT.
-	IsrDisable(IRQ_LEVEL_TIMER);
 
 	SchedulerStartup();
-	
 }
 
 /*
@@ -42,10 +42,10 @@ void KernelInit()
  */
 void KernelStart()
 {
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
+	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_MAX) );
 	//TODO THIS IS A STARTUP HACK, WE SHOULD FIX IT.
-	IsrEnable(IRQ_LEVEL_TIMER);
-	ASSERT( ! HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
+	IsrEnable(IRQ_LEVEL_MAX);
+	ASSERT( ! HalIsIrqAtomic(IRQ_LEVEL_MAX) );
 
 	while(1)
 	{
