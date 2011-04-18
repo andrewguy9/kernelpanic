@@ -152,6 +152,8 @@ void ConsumerMain( void * arg )
 int main()
 {
 	KernelInit();
+	
+	SchedulerStartup();
 
 	ConsumerCount = 0;
 	ProducerCount = 0;

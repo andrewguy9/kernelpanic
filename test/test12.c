@@ -111,6 +111,8 @@ void WaiterNonBlockingMain()
 int main()
 {
 	KernelInit();
+	
+	SchedulerStartup();
 
 	SignalInit( &Signal, FALSE );
 

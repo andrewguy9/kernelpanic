@@ -83,6 +83,9 @@ void SleeperMain()
 int main()
 {
 	KernelInit();
+	
+	SchedulerStartup();
+
 	TimerCycles = 0;
 
 	HandlerInit( &Timer );

@@ -37,7 +37,7 @@ umouse/$(TARGET)_movetest.out: umouse/$(TARGET)_movetest.o umouse/$(TARGET)_map.
 
 ############################
 
-$(TARGET)_test0.out: test/$(TARGET)_test0.o kernel/$(TARGET)_handler.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_isr.o kernel/$(TARGET)_softinterrupt.o kernel/$(TARGET)_critinterrupt.o kernel/$(TARGET)_locking.o kernel/$(TARGET)_context.o kernel/$(TARGET)_watchdog.o
+$(TARGET)_test0.out: test/$(TARGET)_test0.o kernel/$(TARGET)_handler.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_isr.o kernel/$(TARGET)_softinterrupt.o kernel/$(TARGET)_critinterrupt.o kernel/$(TARGET)_watchdog.o
 
 $(TARGET)_test1.out: test/$(TARGET)_test1.o kernel/$(TARGET)_panic.o kernel/$(TARGET)_resource.o kernel/$(TARGET)_semaphore.o kernel/$(TARGET)_mutex.o kernel/$(TARGET)_scheduler.o kernel/$(TARGET)_timer.o kernel/$(TARGET)_startup.o utils/$(TARGET)_heap.o utils/$(TARGET)_linkedlist.o kernel/$(TARGET)_hal.o kernel/$(TARGET)_isr.o kernel/$(TARGET)_softinterrupt.o kernel/$(TARGET)_critinterrupt.o kernel/$(TARGET)_locking.o kernel/$(TARGET)_context.o kernel/$(TARGET)_watchdog.o kernel/$(TARGET)_handler.o 
 

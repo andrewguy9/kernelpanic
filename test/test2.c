@@ -76,6 +76,8 @@ void ConsumerMain()
 int main()
 {
 	KernelInit();
+	
+	SchedulerStartup();
 
 	//Initialize Pipes.
 	PipeInit( RingBuff, RING_SIZE, &Pipe );

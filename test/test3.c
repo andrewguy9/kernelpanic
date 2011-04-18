@@ -119,6 +119,8 @@ char Reader3Stack[STACK_SIZE];
 int main()
 {
 	KernelInit();
+	
+	SchedulerStartup();
 
 	TimesRead = 0;
 	TimesWritten = 0;

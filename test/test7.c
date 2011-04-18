@@ -168,6 +168,8 @@ int main()
 	}
 
 	KernelInit();
+	
+	SchedulerStartup();
 
 	GatherInit( &Gather, NUM_THREADS );
 

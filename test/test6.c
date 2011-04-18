@@ -129,6 +129,8 @@ enum WORKER_RETURN WorkerProducerTask( struct WORKER_ITEM * item )
 int main()
 {
 	KernelInit();
+	
+	SchedulerStartup();
 
 	WorkerCreateWorker(
 			&WorkerQueue,

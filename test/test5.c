@@ -80,6 +80,9 @@ void ConsumerNonBlockingMain()
 int main()
 {
 	KernelInit();
+	
+	SchedulerStartup();
+
 	SemaphoreInit( &Lock, 0 );
 
 	SchedulerCreateThread( 

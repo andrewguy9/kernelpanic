@@ -3,7 +3,6 @@
 #include"softinterrupt.h"
 #include"critinterrupt.h"
 #include"timer.h"
-#include"scheduler.h"
 #include"panic.h"
 #include"watchdog.h"
 
@@ -30,8 +29,6 @@ void KernelInit()
 	WatchdogStartup();
 
 	TimerStartup();//TODO THE TIMER REGISTERED IN THIS FUNCTION IS RACING THE CALL WE MAKE TO IsrDisable. 
-
-	SchedulerStartup();
 }
 
 /*

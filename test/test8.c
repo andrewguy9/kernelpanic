@@ -105,6 +105,8 @@ int main()
 {
 	//Initialize the kernel structures.
 	KernelInit();
+	
+	SchedulerStartup();
 
 	//Initialize variables
 	DeathCount = 0;

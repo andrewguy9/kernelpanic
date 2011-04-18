@@ -70,6 +70,8 @@ int main()
 {
 	//Initialize the kernel structures.
 	KernelInit();
+	
+	SchedulerStartup();
 
 	//Initialize Threads
 	SchedulerCreateThread(
