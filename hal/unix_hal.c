@@ -580,15 +580,6 @@ void HalIsrFinalize()
 }
 
 //
-//Serial Management
-//
-
-void HalSerialStartup()
-{
-	//TODO Fill in with rest of Serial IO Unit.
-}
-
-//
 //Atomic Management
 //
 

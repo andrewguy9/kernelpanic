@@ -55,7 +55,6 @@ void HalStartInterrupt();
 void HalEndInterrupt();
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize);
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context );
-void HalSerialStartup();
 void HalPanic(char file[], int line);
 void HalSleepProcessor();
 void HalRaiseInterrupt(enum IRQ_LEVEL level);

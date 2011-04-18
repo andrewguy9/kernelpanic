@@ -26,8 +26,6 @@ kernel/$(TARGET)_critinterrupt.o: kernel/critinterrupt.c kernel/critinterrupt.h
 
 kernel/$(TARGET)_socket.o: kernel/socket.c kernel/socket.h
 
-kernel/$(TARGET)_io.o: kernel/io.c kernel/io.h
-
 kernel/$(TARGET)_pipe.o: kernel/pipe.c kernel/pipe.h
 
 kernel/$(TARGET)_locking.o: kernel/locking.c kernel/locking.h
