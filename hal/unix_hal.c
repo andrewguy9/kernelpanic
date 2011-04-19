@@ -470,15 +470,9 @@ void HalSetIrq(enum IRQ_LEVEL irq)
 #endif
 }
 
-void HalRaiseSoftInterrupt()
+void HalRaiseInterrupt(enum IRQ_LEVEL level)
 {
-	raise( HAL_ISR_SOFT );
-}
-
-//TODO IT WOULD BE NICE TO HAVE THIS DEFINED BY THE CritInterruptUnit itself.
-void HalRaiseCritInterrupt()
-{
-	raise( HAL_ISR_CRIT );
+	raise( HalIrqToSignal[level] );
 }
 
 void HalIsrInit() 

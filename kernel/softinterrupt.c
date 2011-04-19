@@ -90,7 +90,7 @@ void SoftInterruptRegisterHandler(
 			& SoftInterruptHandlerList );
 	IsrEnable(IRQ_LEVEL_MAX);
 
-	HalRaiseSoftInterrupt();
+	HalRaiseInterrupt(IRQ_LEVEL_SOFT);
 }
 
 

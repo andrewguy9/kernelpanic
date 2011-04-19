@@ -89,7 +89,7 @@ void CritInterruptRegisterHandler(
 			& CritInterruptHandlerList );
 	IsrEnable(IRQ_LEVEL_MAX);
 
-	HalRaiseCritInterrupt();
+	HalRaiseInterrupt(IRQ_LEVEL_CRIT);
 }
 
 
