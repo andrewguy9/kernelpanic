@@ -41,3 +41,5 @@ kernel/$(TARGET)_watchdog.o: kernel/watchdog.c kernel/watchdog.h
 kernel/$(TARGET)_signal.o: kernel/signal.c kernel/signal.h
 
 kernel/$(TARGET)_handler.o: kernel/handler.c kernel/handler.h
+
+kernel/$(TARGET)_serial.o: kernel/serial.c kernel/serial.h

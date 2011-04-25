@@ -28,7 +28,8 @@ enum IRQ_LEVEL {
     IRQ_LEVEL_NONE,
     IRQ_LEVEL_CRIT,
     IRQ_LEVEL_SOFT,
-	IRQ_LEVEL_IO,
+	IRQ_LEVEL_SERIAL_WRITE,
+	IRQ_LEVEL_SERIAL_READ,
     IRQ_LEVEL_TIMER,
     IRQ_LEVEL_WATCHDOG,
 	IRQ_LEVEL_COUNT, //The number of defined IRQs.
@@ -59,6 +60,9 @@ void HalPanic(char file[], int line);
 void HalSleepProcessor();
 void HalRaiseInterrupt(enum IRQ_LEVEL level);
 void HalSetIrq(enum IRQ_LEVEL irq);
+void HalStartSerial();
+BOOL HalSerialGetChar(char * out);
+void HalSerialWriteChar(char data);
 
 ATOMIC HalAtomicGetAndAnd(ATOMIC * var, ATOMIC val);
 ATOMIC HalAtomicGetAndOr(ATOMIC * var, ATOMIC val);

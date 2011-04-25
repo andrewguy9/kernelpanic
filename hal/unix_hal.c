@@ -7,6 +7,7 @@
 #include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>
+#include<fcntl.h>
 
 //-----------------------------------------------------------------------------
 //-------------------------- GLOBALS ------------------------------------------
@@ -593,3 +594,39 @@ ATOMIC HalAtomicGetAndAnd(ATOMIC * var, ATOMIC val)
 	return __sync_fetch_and_and(var, val);
 }
 
+//
+// Serial Mangement
+//
+
+void HalStartSerial()
+{
+	int oflags;
+
+	fcntl(STDIN_FILENO, F_SETOWN, getpid(  ));
+	oflags = fcntl(STDIN_FILENO, F_GETFL);
+	fcntl(STDIN_FILENO, F_SETFL, oflags | FASYNC);
+	
+	fcntl(STDOUT_FILENO, F_SETOWN, getpid(  ));
+	oflags = fcntl(STDOUT_FILENO, F_GETFL);
+	fcntl(STDOUT_FILENO, F_SETFL, oflags | FASYNC);
+}
+
+BOOL HalSerialGetChar(char * out)
+{
+	int readlen = read(STDIN_FILENO, out, sizeof(char));
+
+	if(readlen > 0) {
+		return TRUE;
+	} else if(readlen == 0) {
+		return FALSE;
+	} else {
+		return FALSE;
+	}
+}
+
+void HalSerialWriteChar(char data)
+{
+	int writelen = write(STDOUT_FILENO, &data, sizeof(char));
+
+	ASSERT(writelen == sizeof(char));
+}
