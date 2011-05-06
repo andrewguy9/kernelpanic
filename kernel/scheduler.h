@@ -1,16 +1,17 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
+#include"critinterrupt.h"
 #include"../utils/link.h"
 #include"../utils/utils.h"
 #include"thread.h"
 
-void SchedulerStartCritical( );
+#define SchedulerStartCritical() (CritInterruptDisable())
 
-void SchedulerEndCritical( );
+#define SchedulerEndCritical() (CritInterruptEnable())
 
 #ifdef DEBUG
-BOOL SchedulerIsCritical();
+#define SchedulerIsCritical() (CritInterruptIsAtomic())
 #endif
 
 void SchedulerForceSwitch( );

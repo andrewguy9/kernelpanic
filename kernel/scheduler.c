@@ -3,7 +3,6 @@
 #include"../utils/linkedlist.h"
 #include"timer.h"
 #include"softinterrupt.h"
-#include"critinterrupt.h"
 #include"context.h"
 #include"panic.h"
 #include"mutex.h"
@@ -146,42 +145,6 @@ void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
 //
 //Public Functions
 //
-
-/*
- * Disables the scheduler so that the current stack will not be switched. 
- *
- * SchedulerStartCritical CANNOT be called recursively. 
- * TODO: We can we replaced with CritInterruptDisable
- */
-void SchedulerStartCritical( )
-{
-	//This is only safe if we are in a thread or crit operation.
-	ASSERT( !SoftInterruptIsAtomic() );
-	CritInterruptDisable();
-}
-
-/*
- * Re-enables the scheduler. 
- * TODO: We can replace this with calls to CritInterruptEnable
- */
-void SchedulerEndCritical()
-{
-	ASSERT( CritInterruptIsAtomic() );
-	CritInterruptEnable();
-}
-
-#ifdef DEBUG
-/*
- * Returns 'TRUE' if the scheduler is turned off (is critical section).
- * returns 'FALSE' if the scheduler is turned on (not critical section).
- * Should be used in ASSERTs only.
- * TODO: We can move from this CritInterruptIsAtomic
- */
-BOOL SchedulerIsCritical()
-{
-	return CritInterruptIsAtomic();
-}
-#endif //DEBUG
 
 /*
  * Ends a critical section and forces an immediate context switch
