@@ -8,6 +8,7 @@
 #include<unistd.h>
 #include<stdlib.h>
 #include<fcntl.h>
+#include<errno.h>
 
 //-----------------------------------------------------------------------------
 //-------------------------- GLOBALS ------------------------------------------
@@ -618,9 +619,19 @@ BOOL HalSerialGetChar(char * out)
 	if(readlen > 0) {
 		return TRUE;
 	} else if(readlen == 0) {
+		//We are allowed to recieve zero bytes from the serial.
 		return FALSE;
 	} else {
-		return FALSE;
+		if(errno == EINTR) {
+			return FALSE; //We are allowed to be interrupted by another signal.
+		} else if(errno == EAGAIN) {
+			return FALSE; 
+		} else if(errno == EWOULDBLOCK) {
+			return FALSE;
+		} else {
+			HalPanic("Recieved error from STDIN!\n", errno );
+			return FALSE;
+		}
 	}
 }
 
@@ -628,5 +639,11 @@ void HalSerialWriteChar(char data)
 {
 	int writelen = write(STDOUT_FILENO, &data, sizeof(char));
 
-	ASSERT(writelen == sizeof(char));
+	if( writelen > 0 ) {
+
+	} else if(writelen == 0) {
+		HalPanic("Wrote 0 to STDOUT\n", 0);
+	} else {
+		HalPanic("Failed to write to STDOUT", errno);
+	}
 }
