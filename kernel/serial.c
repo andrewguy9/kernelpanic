@@ -45,13 +45,12 @@ BOOL GetBytesCritHandler(struct HANDLER_OBJECT * handler)
 		}
 	}
 
+	// Here we set the GetBytesSignal and then enable IRQ_LEVEL_SERIAL_WRITE.
+	// Setting the signal is only safe because we are inside a CritHandler!
+	SignalSet( &GetBytesSignal );
+	
 	IsrEnable(IRQ_LEVEL_SERIAL_WRITE);
 	
-	// Here there is a race between us adding the new bytes and someone 
-	// taking them out before we signal. This can lead to spurious signaling.
-	// On this side we don't care if we signal too often because at worst we 
-	// trick someone into reading a zero byte read.
-	SignalSet( &GetBytesSignal );
 	return TRUE;
 }
 
