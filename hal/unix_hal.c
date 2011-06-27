@@ -9,6 +9,7 @@
 #include<stdlib.h>
 #include<fcntl.h>
 #include<errno.h>
+#include<termios.h>
 
 //-----------------------------------------------------------------------------
 //-------------------------- GLOBALS ------------------------------------------
@@ -74,6 +75,15 @@ sigset_t HalCurrrentIrqMask;
 BOOL HalCurrrentIrqMaskValid;
 #endif //DEBUG
 
+//
+//Serial Management
+//
+
+struct termios serialSettings;
+struct termios serialSettingsOld;
+int serialInFd;
+int serialOutFd;
+
 //-----------------------------------------------------------------------------
 //--------------------------- HELPER PROTOTYPES -------------------------------
 //-----------------------------------------------------------------------------
@@ -104,6 +114,13 @@ void HalInvalidateIsrDebugInfo();
 #endif
 void HalClearSignals();
 void HalBlockSignal( void * which );
+
+//
+//Serial Mangement
+//
+
+#define SERIAL_INPUT_DEVICE "/dev/tty"
+#define SERIAL_OUTPUT_DEVICE "/dev/tty"
 
 //-----------------------------------------------------------------------------
 //------------------------- HELPER FUNCTIONS ----------------------------------
@@ -603,18 +620,60 @@ void HalStartSerial()
 {
 	int oflags;
 
-	fcntl(STDIN_FILENO, F_SETOWN, getpid(  ));
-	oflags = fcntl(STDIN_FILENO, F_GETFL);
-	fcntl(STDIN_FILENO, F_SETFL, oflags | FASYNC);
+	// Open the term for reading and writing.	
+	if( (serialInFd = open(SERIAL_INPUT_DEVICE, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0 ) {
+		HalPanic("failed to open input fd", errno);
+	}
+	if( (serialOutFd = open(SERIAL_OUTPUT_DEVICE, O_WRONLY | O_NOCTTY | O_NONBLOCK) ) < 0 ) {
+		HalPanic("failed to open output fd", errno);
+	}
+
+	//Get the term settings
+	tcgetattr(serialInFd, &serialSettingsOld);
+
+	// For now, lets reuse whatever terminal settings we were started with.
+	serialSettings.c_cflag = serialSettingsOld.c_cflag;
+	serialSettings.c_iflag = serialSettingsOld.c_iflag;
+	serialSettings.c_oflag = serialSettingsOld.c_oflag;
+	serialSettings.c_lflag = serialSettingsOld.c_lflag;
+
+	serialSettings.c_cc[VEOF] = serialSettingsOld.c_cc[VEOF];
+	serialSettings.c_cc[VEOL] = serialSettingsOld.c_cc[VEOL];
+	serialSettings.c_cc[VEOL2] = serialSettingsOld.c_cc[VEOL2];
+	serialSettings.c_cc[VERASE] = serialSettingsOld.c_cc[VERASE];
+	serialSettings.c_cc[VWERASE] = serialSettingsOld.c_cc[VWERASE];
+	serialSettings.c_cc[VKILL] = serialSettingsOld.c_cc[VKILL];
+	serialSettings.c_cc[VREPRINT] = serialSettingsOld.c_cc[VREPRINT];
+	serialSettings.c_cc[VINTR] = serialSettingsOld.c_cc[VINTR];
+	serialSettings.c_cc[VQUIT] = serialSettingsOld.c_cc[VQUIT];
+	serialSettings.c_cc[VSUSP] = serialSettingsOld.c_cc[VSUSP];
+	serialSettings.c_cc[VDSUSP] = serialSettingsOld.c_cc[VDSUSP];
+	serialSettings.c_cc[VSTART] = serialSettingsOld.c_cc[VSTART];
+	serialSettings.c_cc[VSTOP] = serialSettingsOld.c_cc[VSTOP];
+	serialSettings.c_cc[VLNEXT] = serialSettingsOld.c_cc[VLNEXT];
+	serialSettings.c_cc[VDISCARD] = serialSettingsOld.c_cc[VDISCARD];
+	serialSettings.c_cc[VMIN] = serialSettingsOld.c_cc[VMIN];
+	serialSettings.c_cc[VTIME] = serialSettingsOld.c_cc[VTIME];
+	serialSettings.c_cc[VSTATUS] = serialSettingsOld.c_cc[VSTATUS];
 	
-	fcntl(STDOUT_FILENO, F_SETOWN, getpid(  ));
-	oflags = fcntl(STDOUT_FILENO, F_GETFL);
-	fcntl(STDOUT_FILENO, F_SETFL, oflags | FASYNC);
+	serialSettings.c_ispeed = serialSettingsOld.c_ispeed;
+	serialSettings.c_ospeed = serialSettingsOld.c_ospeed;
+
+	tcflush(serialInFd, TCIFLUSH);
+	tcsetattr(serialInFd,TCSANOW,&serialSettings);
+	
+	fcntl(serialInFd, F_SETOWN, getpid(  ));
+	oflags = fcntl(serialInFd, F_GETFL);
+	fcntl(serialInFd, F_SETFL, oflags | FASYNC);
+	
+	fcntl(serialOutFd, F_SETOWN, getpid(  ));
+	oflags = fcntl(serialOutFd, F_GETFL);
+	fcntl(serialOutFd, F_SETFL, oflags | FASYNC);
 }
 
 BOOL HalSerialGetChar(char * out)
 {
-	int readlen = read(STDIN_FILENO, out, sizeof(char));
+	int readlen = read(serialInFd, out, sizeof(char));
 
 	if(readlen > 0) {
 		return TRUE;
@@ -637,7 +696,7 @@ BOOL HalSerialGetChar(char * out)
 
 void HalSerialWriteChar(char data)
 {
-	int writelen = write(STDOUT_FILENO, &data, sizeof(char));
+	int writelen = write(serialOutFd, &data, sizeof(char));
 
 	if( writelen > 0 ) {
 

@@ -23,9 +23,7 @@ void TestThreadMain( void * arg )
 		read = SerialRead(buf, BUF_SIZE);
 		buf[read]= '\0';
 		if(read > 0) {
-			SerialWrite("Read: ", 6);
 			SerialWrite(buf, read);
-			SerialWrite("\n", 1);
 		}
 	}
 }
