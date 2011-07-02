@@ -4,8 +4,6 @@
 #include"../utils/ringbuffer.h"
 #include"signal.h"
 
-#include<stdio.h>
-
 #define BUFFER_SIZE 32
 
 char SerialInputBuffer[BUFFER_SIZE];
@@ -34,7 +32,13 @@ void SendBytesInterrupt(void)
 
 BOOL GetBytesCritHandler(struct HANDLER_OBJECT * handler)
 {
-	IsrDisable(IRQ_LEVEL_SERIAL_WRITE);
+	SignalSet( &GetBytesSignal );
+	return TRUE;
+}
+
+void GetBytesInterrupt(void)
+{
+	IsrIncrement(IRQ_LEVEL_SERIAL_READ);
 
 	while(!RingBufferIsFull(&SerialInputRing)) {
 		char data;
@@ -45,21 +49,9 @@ BOOL GetBytesCritHandler(struct HANDLER_OBJECT * handler)
 		}
 	}
 
-	// Here we set the GetBytesSignal and then enable IRQ_LEVEL_SERIAL_WRITE.
-	// Setting the signal is only safe because we are inside a CritHandler!
-	SignalSet( &GetBytesSignal );
-	
-	IsrEnable(IRQ_LEVEL_SERIAL_WRITE);
-	
-	return TRUE;
-}
-
-void GetBytesInterrupt(void)
-{
-	IsrIncrement(IRQ_LEVEL_SERIAL_READ);
-
-	if( HandlerIsFinished(&GetBytesCritObject) )
+	if( HandlerIsFinished(&GetBytesCritObject) ) {
 		CritInterruptRegisterHandler( &GetBytesCritObject, GetBytesCritHandler, NULL );
+	}
 
 	IsrDecrement(IRQ_LEVEL_SERIAL_READ);
 }
