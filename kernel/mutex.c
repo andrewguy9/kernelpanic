@@ -1,5 +1,5 @@
 #include"mutex.h"
-#include"isr.h"
+#include"hal.h"
 
 /*
  * MUTEX UNIT DESCRIPTION
@@ -24,19 +24,12 @@
  */
 BOOL MutexLock( struct MUTEX * lock )
 {
-	BOOL success;
-	IsrDisable(IRQ_LEVEL_MAX);
-	if( lock->Locked )
-	{
-		success = FALSE;
+	if(HalAtomicGetAndSet(&lock->Locked)) {
+		return FALSE;
 	}
-	else
-	{
-		success = TRUE;
-		lock->Locked = TRUE;
+	else {
+		return TRUE;
 	}
-	IsrEnable(IRQ_LEVEL_MAX);
-	return success;
 }
 
 /*
@@ -44,10 +37,8 @@ BOOL MutexLock( struct MUTEX * lock )
  */
 void MutexUnlock( struct MUTEX * lock )
 {
-	IsrDisable(IRQ_LEVEL_MAX);
-	ASSERT( lock->Locked == TRUE );
-	lock->Locked = FALSE;
-	IsrEnable(IRQ_LEVEL_MAX);
+	ATOMIC wasLocked = HalAtomicGetAndClear(&lock->Locked);
+	ASSERT( wasLocked );
 }
 
 #ifdef DEBUG
@@ -58,18 +49,22 @@ void MutexUnlock( struct MUTEX * lock )
  */
 BOOL MutexIsLocked( struct MUTEX * lock )
 {
-	BOOL value;
-	IsrDisable(IRQ_LEVEL_MAX);
-	value = lock->Locked;
-	IsrEnable(IRQ_LEVEL_MAX);
-	return value;
+	if(lock->Locked) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
 }
 #endif
 
 /*
  * Initializes a mutex to unlocked.
  */
-void MutexInit( struct MUTEX * lock, BOOL intialState )
+void MutexInit( struct MUTEX * lock, BOOL initialState )
 {
-	lock->Locked = intialState; 
+	if(initialState) {
+		lock->Locked = 1;
+	} else {
+		lock->Locked = 0;
+	}	
 }
