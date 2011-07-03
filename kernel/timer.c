@@ -33,6 +33,7 @@ void QueueTimers( );
 
 //Keep track of system time.
 TIME Time;
+TIME TimerLastTime;
 
 //Keep track of timers waiting to execute.
 //We protect the timer heap with IRQ_LEVEL_MAX.
@@ -55,9 +56,10 @@ void QueueTimers( )
 {
 	struct HEAP *temp;
 
-	Time++;
+	TimerLastTime = Time;
+	Time = HalGetTime();
 
-	if( Time == 0 )
+	if( Time < TimerLastTime )
 	{//Overflow occured, switch heaps
 
 		//There should be no timers left when we overflow.
@@ -89,7 +91,10 @@ void QueueTimers( )
 
 void TimerStartup( )
 {
-	Time = 0;
+	HalInitClock();
+	Time = HalGetTime();
+	TimerLastTime = 0;
+
 	HeapInit( &TimerHeap1 );
 	HeapInit( &TimerHeap2 );
 
@@ -97,7 +102,7 @@ void TimerStartup( )
 	TimersOverflow = &TimerHeap2;
 
 	HalRegisterIsrHandler( TimerInterrupt, (void *) HAL_ISR_TIMER, IRQ_LEVEL_TIMER );
-	HalInitClock();
+	HalInitTimer();
 }
 
 void TimerRegister( 

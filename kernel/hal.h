@@ -41,6 +41,7 @@ enum IRQ_LEVEL {
 //
 
 void HalInitClock();
+void HalInitTimer();
 void HalWatchdogInit();
 void HalContextStartup( STACK_INIT_ROUTINE * stackInitRoutine );
 void HalIsrInit();
@@ -65,6 +66,8 @@ ATOMIC HalAtomicGetAndOr(ATOMIC * var, ATOMIC val);
 
 #define HalAtomicGetAndSet(var) (HalAtomicGetAndOr(var, 1))
 #define HalAtomicGetAndClear(var) (HalAtomicGetAndAnd(var, 0))
+
+TIME HalGetTime();
 
 //
 //Include AVR only interfaces.

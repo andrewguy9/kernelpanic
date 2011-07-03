@@ -92,6 +92,8 @@ void HalStackTrampoline( int SignalNumber );
 //Time Mangement
 //
 
+struct timeval HalStartupTime;
+
 //
 //IRQ Management
 //
@@ -420,23 +422,43 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT 
 //Time Management
 //
 
+TIME HalTimeDelta(struct timeval *time1, struct timeval *time2) 
+{
+	TIME delta = 0;
+	delta += (time2->tv_sec  - time1->tv_sec)  * 1000; // Seconds * 1000 = Milliseconds
+	delta += (time2->tv_usec - time1->tv_usec) / 1000; // Microseconds / 1000 = Milliseconds
+
+	return delta;
+}
+
 void HalInitClock()
 {
-	int status;
+	//Set the startup time.
+	ASSUME(gettimeofday(&HalStartupTime, NULL), 0);
+}
 
+void HalInitTimer()
+{
 	//Set the timer interval.
 	TimerInterval.it_interval.tv_sec = 0;
 	TimerInterval.it_interval.tv_usec = 1000;
 	TimerInterval.it_value.tv_sec = 0;
 	TimerInterval.it_value.tv_usec = 1000;
-	status = setitimer( ITIMER_REAL, &TimerInterval, NULL );
-	ASSERT(status == 0 );
+	ASSUME(setitimer( ITIMER_REAL, &TimerInterval, NULL ), 0);
 }
 
 void HalResetClock()
 {
 	//Note: On Unix we dont do anything here because 
 	//the timer is already periodic, unlike the avr.
+}
+
+TIME HalGetTime()
+{
+	struct timeval sysTime;
+	ASSUME(gettimeofday(&sysTime, NULL), 0);
+
+	return HalTimeDelta(&HalStartupTime, &sysTime);
 }
 
 //
