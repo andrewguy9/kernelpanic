@@ -439,9 +439,17 @@ void HalSetTimer(TIME delta)
 {
 	struct itimerval TimerInterval;
 
-	int seconds = delta / 1000;
-	int mills = delta % 1000;
-	int micros = mills * 1000;
+	time_t seconds = delta / 1000;
+	time_t mills = delta % 1000;
+	time_t micros = mills * 1000;
+
+	if(seconds > 100000000) {
+		seconds = 100000000;
+	}
+
+	if(seconds ==0 && micros == 0) {
+		micros = 1000;
+	}
 
 	//Set the timer interval.
 	TimerInterval.it_interval.tv_sec = 0;
