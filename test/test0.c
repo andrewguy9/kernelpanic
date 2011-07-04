@@ -22,7 +22,7 @@ BOOL FrequentHandler( struct HANDLER_OBJECT * timer )
 
 	TimerRegister( 
 			timer,
-			2,
+			20,
 			FrequentHandler,
 		    count );
 	return FALSE;
@@ -39,7 +39,7 @@ BOOL SeldomHandler( struct HANDLER_OBJECT * timer )
 
 	TimerRegister(
 			&SeldomTimer,
-			4,
+			40,
 			SeldomHandler,
 			count );
 	return FALSE;
@@ -55,7 +55,7 @@ int main()
 	HandlerInit(&FrequentTimer);
 	TimerRegister( 
 			&FrequentTimer,
-			2,
+			20,
 			FrequentHandler,
 		    &FrequentCount );
 
@@ -64,7 +64,7 @@ int main()
 	HandlerInit(&SeldomTimer);
 	TimerRegister( 
 			&SeldomTimer,
-			4,
+			40,
 			SeldomHandler,
 			&SeldomCount );
 
