@@ -41,7 +41,7 @@ enum IRQ_LEVEL {
 //
 
 void HalInitClock();
-void HalInitTimer();
+void HalSetTimer(TIME delta);
 void HalWatchdogInit();
 void HalContextStartup( STACK_INIT_ROUTINE * stackInitRoutine );
 void HalIsrInit();

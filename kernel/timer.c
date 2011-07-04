@@ -25,7 +25,8 @@
 //
 
 void TimerInterrupt(void);
-void QueueTimers( );
+void QueueTimers(void);
+void TimerSetNextTimer(void);
 
 //
 //Unit Variables
@@ -87,6 +88,25 @@ void QueueTimers( )
 				timer->Function,
 				timer->Context);
 	}
+
+	//Now that we have de-queued all the fired timers,
+	//lets calculate when the next hardware interrupt should be.
+	TimerSetNextTimer();
+}
+
+void TimerSetNextTimer() 
+{
+	if(HeapSize(Timers) > 0) {
+		TIME nextTimer = HeapHeadWeight( Timers );
+		TIME delta = nextTimer - Time;
+		HalSetTimer(delta);
+	} else {
+		//If there are no timers in the Timers heap,
+		//then we know that the next time to wake will be 
+		//an unknown number after the next overflow. 
+		TIME rollover = -1 - Time;
+		HalSetTimer(rollover + 1);
+	}
 }
 
 void TimerStartup( )
@@ -102,7 +122,7 @@ void TimerStartup( )
 	TimersOverflow = &TimerHeap2;
 
 	HalRegisterIsrHandler( TimerInterrupt, (void *) HAL_ISR_TIMER, IRQ_LEVEL_TIMER );
-	HalInitTimer();
+	TimerSetNextTimer();
 }
 
 void TimerRegister( 
@@ -133,6 +153,11 @@ void TimerRegister(
 	}
 
 	IsrEnable(IRQ_LEVEL_MAX);
+	//Because we added a new timer, we may want to wait
+	//a different amount of time than previously thought.
+	//Lets update the hardware countdown.
+	TimerSetNextTimer();
+
 }
 
 TIME TimerGetTime()

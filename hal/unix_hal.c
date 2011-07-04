@@ -33,8 +33,6 @@ volatile BOOL halTempContextProcessed;
 //Time Mangement
 //
 
-struct itimerval TimerInterval;
-
 //
 //IRQ Management
 //
@@ -437,13 +435,20 @@ void HalInitClock()
 	ASSUME(gettimeofday(&HalStartupTime, NULL), 0);
 }
 
-void HalInitTimer()
+void HalSetTimer(TIME delta)
 {
+	struct itimerval TimerInterval;
+
+	int seconds = delta / 1000;
+	int mills = delta % 1000;
+	int micros = mills * 1000;
+
 	//Set the timer interval.
 	TimerInterval.it_interval.tv_sec = 0;
-	TimerInterval.it_interval.tv_usec = 1000;
-	TimerInterval.it_value.tv_sec = 0;
-	TimerInterval.it_value.tv_usec = 1000;
+	TimerInterval.it_interval.tv_usec = 0;
+	TimerInterval.it_value.tv_sec = seconds;
+	TimerInterval.it_value.tv_usec = micros;
+
 	ASSUME(setitimer( ITIMER_REAL, &TimerInterval, NULL ), 0);
 }
 
