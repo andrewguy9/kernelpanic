@@ -420,13 +420,30 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT 
 //Time Management
 //
 
+/*
+ * Calculates the difference between two times in milliseconds.
+ * Time1 is supposed to be before time2.
+ * If time1 appears to be after time2, HalTimeDelta will return 0 (same time).
+ */
 TIME HalTimeDelta(struct timeval *time1, struct timeval *time2) 
 {
-	TIME delta = 0;
-	delta += (time2->tv_sec  - time1->tv_sec)  * 1000; // Seconds * 1000 = Milliseconds
-	delta += (time2->tv_usec - time1->tv_usec) / 1000; // Microseconds / 1000 = Milliseconds
+	struct timeval time_diff;
+	TIME delta;
+	
+	if(time2->tv_sec < time1->tv_sec) {
+		return 0;
+	} else if(time2->tv_sec == time1->tv_sec && time2->tv_usec < time1->tv_usec) {
+		return 0;
+	} else {
 
-	return delta;
+		time_diff.tv_sec = time2->tv_sec - time1->tv_sec;
+		time_diff.tv_usec = time2->tv_usec - time1->tv_usec;
+
+		delta += (time2->tv_sec  - time1->tv_sec)  * 1000; // Seconds * 1000 = Milliseconds
+		delta += (time2->tv_usec - time1->tv_usec) / 1000; // Microseconds / 1000 = Milliseconds
+
+		return delta;
+	}
 }
 
 void HalInitClock()
