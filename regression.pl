@@ -7,6 +7,7 @@ use strict;
 local $| = 1;
 
 my @failures = ();
+my @stacks = ();
 
 use File::Copy;
 
@@ -64,6 +65,7 @@ while( my $test = <REGRESSION_TESTS> ) {
 				move("/cores/core.$kid", "$core");
 				print " Core left at $core ";
 				print "\n";
+				push @stacks, get_stack($test, $core);
 			}
 		}
 	}
@@ -73,13 +75,33 @@ print "all done testing\n";
 
 print "\n\n";
 print "Summary:\n";
-print "-------------------------------------------------------------------------------\n";
+print "-"x80 . "\n";
 if(@failures) {
 	for my $cur (@failures) {
 		print "$cur\n";
+		my $stack = shift @stacks;
+		print $stack;
+		print "-"x80 . "\n";
 	}
 } else {
 	print "All tests passed!\n";
 }
-print "-------------------------------------------------------------------------------\n";
-	print "done\n";
+print "done\n";
+
+
+sub get_stack {
+	my ($program, $core) = @_;
+
+	my $stack = "";
+
+	open GDB_OUTPUT, "gdb --command ./get_stack.gdb $program $core |" or die "Could not execute: $!";
+	while(<GDB_OUTPUT>) {
+		chomp $_;
+		if($_ =~ /^#\d*\s*0x([0-9]|[a-f])* in .* at .*:\d*$/) {
+			$stack .= "$_\n";
+		}
+	}
+	close GDB_OUTPUT;
+
+	return $stack;
+}
