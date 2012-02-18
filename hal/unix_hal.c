@@ -16,7 +16,6 @@
 //Watchdog Variables
 //
 
-unsigned int HalWatchDogTimeout;
 struct itimerval WatchdogInterval;
 
 //
@@ -267,42 +266,28 @@ void HalStartup()
 
 void HalWatchdogInit()
 {
-	//Initialize WatchdogVariables (Dont register ISR)
-	HalWatchDogTimeout = 0;
+        //Initialize WatchdogVariables (Dont register ISR)
+        //TODO REMOVE
 }
 
-void HalPetWatchdog( )
+//TODO FIX HEADER
+void HalPetWatchdog( TIME when )
 {
-	int status;
+        int status;
 
-	//Note: calling HalPetWatchdog when the watchdog is disabled
-	//is safe because setting it_intertval to zero keeps the dog
-	//disabled.
-	WatchdogInterval.it_interval.tv_sec = 0;
-	WatchdogInterval.it_interval.tv_usec = HalWatchDogTimeout * 1000;
-	WatchdogInterval.it_value.tv_sec = 0;
-	WatchdogInterval.it_value.tv_usec = HalWatchDogTimeout * 1000;
-	status = setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL );
-	ASSERT(status == 0 );
-}
+        //NOTE: ITIMER_VIRUTAL will decrement when the process is running.
+        //This means that on unix the watchdog will not catch cases where
+        //the process is idle or sparse.
 
-void HalEnableWatchdog( int timeout )
-{
-	int status;
-
-	HalWatchDogTimeout = timeout;
-	// Reset the count. Beware repeated calls to HalEnableWatchdog as it will 
-	// interrupt accuracy of the watchdog.
-	
-	//NOTE: ITIMER_VIRUTAL will decrement when the process is running.
-	//This means that on unix the watchdog will not catch cases where 
-	//the process is idle or sparse. 
-	WatchdogInterval.it_interval.tv_sec = 0;
-	WatchdogInterval.it_interval.tv_usec = HalWatchDogTimeout * 1000;
-	WatchdogInterval.it_value.tv_sec = 0;
-	WatchdogInterval.it_value.tv_usec = HalWatchDogTimeout * 1000;
-	status = setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL );
-	ASSERT(status == 0 );
+        //Note: calling HalPetWatchdog when the watchdog is disabled
+        //is safe because setting it_intertval to zero keeps the dog
+        //disabled.
+        WatchdogInterval.it_interval.tv_sec = 0;
+        WatchdogInterval.it_interval.tv_usec = 0;
+        WatchdogInterval.it_value.tv_sec = 0;
+        WatchdogInterval.it_value.tv_usec = when * 1000;
+        status = setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL );
+        ASSERT(status == 0 );
 }
 
 //

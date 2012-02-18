@@ -23,7 +23,7 @@
 #define THREAD2QUANTUM 60
 #define THREAD3QUANTUM 90
 
-#define FREQ 2*(THREAD1QUANTUM+THREAD2QUANTUM+THREAD3QUANTUM)
+#define TIMEOUT 2*(THREAD1QUANTUM+THREAD2QUANTUM+THREAD3QUANTUM)
 
 //
 //Main routine for threads.
@@ -105,7 +105,7 @@ int main()
 			TRUE);
 
 	//Enable the watchdog
-	WatchdogEnable( FREQ );
+	WatchdogEnable( TIMEOUT );
 
 	//Start the kernel.
 	KernelStart();

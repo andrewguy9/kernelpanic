@@ -49,7 +49,6 @@ void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL le
 
 void HalStartup();
 
-void HalEnableWatchdog( int timeout );
 void HalPetWatchdog( );
 void HalStartInterrupt();
 void HalEndInterrupt();
