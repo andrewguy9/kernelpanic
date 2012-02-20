@@ -76,16 +76,6 @@ void WatchdogNotify( INDEX index )
 #ifdef DEBUG
         TIME time;
 #endif
-        //We ignore index 0.
-        //TODO NOW THAT THREADS CANT BE IN THE SET, WE CANT IGNORE 0, I THINK.
-        if( index == 0 )
-        {
-                return;
-        }
-        else
-        {
-                index--;
-        }
 
         //Ensure that we are using a valid flag.
         ASSERT( index <= FLAG_MAX_INDEX );
@@ -124,27 +114,16 @@ void WatchdogAddFlag( INDEX index )
 {
         BITFIELD flag = FLAG_NONE;
 
-	if( index == 0 )
-	{
-		return;
-	}
-	else
-	{
-		//We shift index down because we start numbering bits at 1.
-		//zero should be ignored.
-		index--;
-	}
+        ASSERT( index <= FLAG_MAX_INDEX );
 
-	ASSERT( index <= FLAG_MAX_INDEX );
+        flag = FlagGetBit( index );
 
-	flag = FlagGetBit( index );
-
-	IsrDisable(IRQ_LEVEL_WATCHDOG);
-	FlagOn( WatchdogDesiredMask, flag );
-	IsrEnable(IRQ_LEVEL_WATCHDOG);
+        IsrDisable(IRQ_LEVEL_WATCHDOG);
+        FlagOn( WatchdogDesiredMask, flag );
+        IsrEnable(IRQ_LEVEL_WATCHDOG);
 }
 
 void WatchdogInterrupt()
 {
-	KernelPanic();
+        KernelPanic();
 }

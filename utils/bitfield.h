@@ -11,6 +11,7 @@ typedef int BITFIELD;
 #define FlagOff(FIELD, FLAG)    ((FIELD) &= (~(FLAG)))
 #define FlagToggle(FIELD, FLAG) ((FIELD) ^= (FLAG))
 #define FlagGet(FIELD, FLAG)    ((FIELD) &  (FLAG))
+
 #define FlagGetBit(INDEX)       (1<<(INDEX))
 #define FlagsEqual(FIELD_A, FIELD_B) ((FIELD_A)==(FIELD_B))
 
