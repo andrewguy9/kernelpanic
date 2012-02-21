@@ -44,11 +44,9 @@ TIME WatchdogLastUpdatedTime;
 TIME WatchdogLastClearedTime;
 #endif
 
-/*
- * Call this to setup the watchdog system
- */
-void WatchdogStartup( )
+void WatchdogEnable( TIME timeout )
 {
+        Timeout = timeout;
         WatchdogDesiredMask = FLAG_NONE;
         WatchdogCurMask = FLAG_NONE;
 
@@ -57,13 +55,10 @@ void WatchdogStartup( )
         WatchdogLastClearedTime = 0;
 #endif
 
-        HalWatchdogInit();
         HalRegisterIsrHandler( WatchdogInterrupt, (void *) HAL_ISR_WATCHDOG, IRQ_LEVEL_WATCHDOG );
-}
 
-void WatchdogEnable( TIME timeout )
-{
-        Timeout = timeout;
+        // Now that we have set up the handler, lets arm the watchdog.
+        HalPetWatchdog( Timeout );
 }
 
 /*

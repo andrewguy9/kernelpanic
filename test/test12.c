@@ -110,46 +110,43 @@ void WaiterNonBlockingMain()
 
 int main()
 {
-	KernelInit();
-	
-	SchedulerStartup();
+        KernelInit();
 
-	SignalInit( &Signal, FALSE );
+        SchedulerStartup();
 
-	Flair = FALSE;
-	Respond1 = FALSE;
-	Respond2 = FALSE;
+        SignalInit( &Signal, FALSE );
 
-	SchedulerCreateThread(
-			&ManagerThread,
-			1,
-			ManagerStack,
-			STACK_SIZE,
-			ManagerMain,
-			NULL,
-			0,
-			TRUE );
+        Flair = FALSE;
+        Respond1 = FALSE;
+        Respond2 = FALSE;
 
-	SchedulerCreateThread(
-			&WaiterBlockingThread,
-			1,
-			WaiterBlockingStack,
-			STACK_SIZE,
-			WaiterBlockingMain,
-			NULL,
-			0,
-			TRUE );
+        SchedulerCreateThread(
+                        &ManagerThread,
+                        1,
+                        ManagerStack,
+                        STACK_SIZE,
+                        ManagerMain,
+                        NULL,
+                        TRUE );
 
-	SchedulerCreateThread(
-			&WaiterNonBlockingThread,
-			1,
-			WaiterNonBlockingStack,
-			STACK_SIZE,
-			WaiterNonBlockingMain,
-			NULL,
-			0,
-			TRUE );
+        SchedulerCreateThread(
+                        &WaiterBlockingThread,
+                        1,
+                        WaiterBlockingStack,
+                        STACK_SIZE,
+                        WaiterBlockingMain,
+                        NULL,
+                        TRUE );
 
-	KernelStart();
-	return 0;
+        SchedulerCreateThread(
+                        &WaiterNonBlockingThread,
+                        1,
+                        WaiterNonBlockingStack,
+                        STACK_SIZE,
+                        WaiterNonBlockingMain,
+                        NULL,
+                        TRUE );
+
+        KernelStart();
+        return 0;
 }

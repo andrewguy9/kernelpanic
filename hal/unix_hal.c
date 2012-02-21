@@ -264,13 +264,6 @@ void HalStartup()
 //Watchdog
 //
 
-void HalWatchdogInit()
-{
-        //Initialize WatchdogVariables (Dont register ISR)
-        //TODO REMOVE
-}
-
-//TODO FIX HEADER
 void HalPetWatchdog( TIME when )
 {
         int status;

@@ -67,34 +67,33 @@ void StallThreadMain( void * arg )
 
 void RestartThreadMain( void * arg )
 {
-	while(TRUE)
-	{
-		SchedulerStartCritical();
+        while(TRUE)
+        {
+                SchedulerStartCritical();
 
-		if( SchedulerIsThreadDead( &DeathThread ) )
-		{
-			SchedulerCreateThread(
-					&DeathThread,
-					1,
-					DeathThreadStack,
-					STACK_SIZE,
-					DeathThreadMain,
-					NULL,
-					4,
-					TRUE);
+                if( SchedulerIsThreadDead( &DeathThread ) )
+                {
+                        SchedulerCreateThread(
+                                        &DeathThread,
+                                        1,
+                                        DeathThreadStack,
+                                        STACK_SIZE,
+                                        DeathThreadMain,
+                                        NULL,
+                                        TRUE);
 
-			DeathCount--;
-		}
+                        DeathCount--;
+                }
 
-		if( SchedulerIsThreadBlocked( &StallThread ) )
-		{
-			SchedulerResumeThread( &StallThread );
+                if( SchedulerIsThreadBlocked( &StallThread ) )
+                {
+                        SchedulerResumeThread( &StallThread );
 
-			StallCount--;
-		}
+                        StallCount--;
+                }
 
-		SchedulerEndCritical();
-	}
+                SchedulerEndCritical();
+        }
 }
 
 //
@@ -103,48 +102,45 @@ void RestartThreadMain( void * arg )
 
 int main()
 {
-	//Initialize the kernel structures.
-	KernelInit();
-	
-	SchedulerStartup();
+        //Initialize the kernel structures.
+        KernelInit();
 
-	//Initialize variables
-	DeathCount = 0;
-	TotalDeath = 0;
-	StallCount = 0;
-	TotalStall = 0;
+        SchedulerStartup();
 
-	//Initialize Threads
-	SchedulerCreateThread(
-			&DeathThread,
-			1,
-			DeathThreadStack,
-			STACK_SIZE,
-			DeathThreadMain,
-			NULL,
-		   	4,
-			TRUE);
+        //Initialize variables
+        DeathCount = 0;
+        TotalDeath = 0;
+        StallCount = 0;
+        TotalStall = 0;
 
-	SchedulerCreateThread(
-			&StallThread,
-			1,
-			StallThreadStack,
-			STACK_SIZE,
-			StallThreadMain,
-			NULL,
-			5,
-			TRUE);
+        //Initialize Threads
+        SchedulerCreateThread(
+                        &DeathThread,
+                        1,
+                        DeathThreadStack,
+                        STACK_SIZE,
+                        DeathThreadMain,
+                        NULL,
+                        TRUE);
 
-	SchedulerCreateThread(
-			&RestartThread,
-			1,
-			RestartThreadStack,
-			STACK_SIZE,
-			RestartThreadMain,
-			NULL,
-			6,
-			TRUE);
+        SchedulerCreateThread(
+                        &StallThread,
+                        1,
+                        StallThreadStack,
+                        STACK_SIZE,
+                        StallThreadMain,
+                        NULL,
+                        TRUE);
 
-	KernelStart();
-	return 0;
+        SchedulerCreateThread(
+                        &RestartThread,
+                        1,
+                        RestartThreadStack,
+                        STACK_SIZE,
+                        RestartThreadMain,
+                        NULL,
+                        TRUE);
+
+        KernelStart();
+        return 0;
 }

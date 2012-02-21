@@ -34,43 +34,39 @@ void ContextStartup(STACK_INIT_ROUTINE * foo) {
 /*
  * Sets up a machine context for a future thread.
  */
-void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo, INDEX debugFlag )
+void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo)
 {
 #ifdef DEBUG
-	int cur;
+        int cur;
 #endif
 
-	//Set up the watchdog flag.
-	MachineState->Flag = debugFlag;
-	WatchdogAddFlag( debugFlag );
-
-	//initialize stack
-	if( Size != 0 )
-	{
+        //initialize stack
+        if( Size != 0 )
+        {
 #ifdef DEBUG
-		//Write pattern over stack so we can expose
-		//variable initialization errors.
-		for(cur=0; cur<Size; cur++)
-			Pointer[cur] = 0xaa;
+                //Write pattern over stack so we can expose
+                //variable initialization errors.
+                for(cur=0; cur<Size; cur++)
+                        Pointer[cur] = 0xaa;
 #endif
-		//Populate regular stack
-		HalCreateStackFrame( MachineState, Pointer, ContextBootstrap, Size );
-	}
-	else
-	{
-		//Populate stack for idle thread (machine's start thread).
-		HalGetInitialStackFrame( MachineState );
+                //Populate regular stack
+                HalCreateStackFrame( MachineState, Pointer, ContextBootstrap, Size );
+        }
+        else
+        {
+                //Populate stack for idle thread (machine's start thread).
+                HalGetInitialStackFrame( MachineState );
 
 #ifdef DEBUG
-		MachineState->TimesRun = 0;
-		MachineState->TimesSwitched = 0;
-		MachineState->LastRanTime = 0;
-		MachineState->LastSelectedTime = 0;
+                MachineState->TimesRun = 0;
+                MachineState->TimesSwitched = 0;
+                MachineState->LastRanTime = 0;
+                MachineState->LastSelectedTime = 0;
 
-		MachineState->High = (char*) -1;
-		MachineState->Low = 0;
+                MachineState->High = (char*) -1;
+                MachineState->Low = 0;
 #endif
-	}
+        }
 }
 
 /*

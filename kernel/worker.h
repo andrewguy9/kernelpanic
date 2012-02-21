@@ -33,10 +33,9 @@ struct WORKER_ITEM
 };
 
 void WorkerCreateWorker(
-		struct WORKER_QUEUE * queue,
-		char * stack,
-		unsigned int stackSize,
-		INDEX flag);
+                struct WORKER_QUEUE * queue,
+                char * stack,
+                unsigned int stackSize);
 
 void WorkerInitItem( struct WORKER_QUEUE * queue, WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  );
 

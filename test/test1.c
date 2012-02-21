@@ -54,42 +54,39 @@ char TestThread3Stack[STACK_SIZE];
 
 int main()
 {
-	//Initialize the kernel structures.
-	KernelInit();
+        //Initialize the kernel structures.
+        KernelInit();
 
-	SchedulerStartup();
+        SchedulerStartup();
 
-	//Initialize Threads
-	SchedulerCreateThread(
-			&TestThread1,
-			2,
-			TestThread1Stack,
-			STACK_SIZE,
-			Test1ThreadMain,
-			&Value1,
-		   	4,
-			TRUE);
+        //Initialize Threads
+        SchedulerCreateThread(
+                        &TestThread1,
+                        2,
+                        TestThread1Stack,
+                        STACK_SIZE,
+                        Test1ThreadMain,
+                        &Value1,
+                        TRUE);
 
-	SchedulerCreateThread(
-			&TestThread2,
-			4,
-			TestThread2Stack,
-			STACK_SIZE,
-			Test1ThreadMain,
-			&Value2,
-			5,
-			TRUE);
+        SchedulerCreateThread(
+                        &TestThread2,
+                        4,
+                        TestThread2Stack,
+                        STACK_SIZE,
+                        Test1ThreadMain,
+                        &Value2,
+                        TRUE);
 
-	SchedulerCreateThread(
-			&TestThread3,
-			8,
-			TestThread3Stack,
-			STACK_SIZE,
-			Test1ThreadMain,
-			&Value3,
-			6,
-			TRUE);
+        SchedulerCreateThread(
+                        &TestThread3,
+                        8,
+                        TestThread3Stack,
+                        STACK_SIZE,
+                        Test1ThreadMain,
+                        &Value3,
+                        TRUE);
 
-	KernelStart();
-	return 0;
+        KernelStart();
+        return 0;
 }

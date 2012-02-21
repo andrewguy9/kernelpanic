@@ -165,24 +165,22 @@ void WorkerThreadMain( void * arg )
 //
 
 void WorkerCreateWorker(
-		struct WORKER_QUEUE * queue,
-		char * stack,
-		unsigned int stackSize,
-		INDEX flag)
+                struct WORKER_QUEUE * queue,
+                char * stack,
+                unsigned int stackSize)
 {
-	LinkedListInit( &queue->List );
+        LinkedListInit( &queue->List );
 
-	SemaphoreInit( &queue->Lock, 0 );
+        SemaphoreInit( &queue->Lock, 0 );
 
-	SchedulerCreateThread( 
-			&queue->Thread,
-			10,
-			stack,
-			stackSize,
-			WorkerThreadMain,
-			queue,
-			flag,
-			TRUE);
+        SchedulerCreateThread(
+                        &queue->Thread,
+                        10,
+                        stack,
+                        stackSize,
+                        WorkerThreadMain,
+                        queue,
+                        TRUE);
 }
 
 void WorkerInitItem( struct WORKER_QUEUE * queue, WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  )

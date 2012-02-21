@@ -8,22 +8,24 @@
  * Tests the watchdog.
  * Starts three threads each with different quantums.
  * Each thread increments a variable, Value1 2 and 3.
- * Value1 = 2 * Value2 
+ * Value1 = 2 * Value2
  * Value2 = 2 * Value3.
  */
 
-#define THREAD1FLAG 1
-#define THREAD2FLAG 2
-#define THREAD3FLAG 3
-
 //Note: Because Unix does not provide good real time support,
 //using small quantums can lead to delayed timer delivery.
-//This will cause problems when used with the watchdog. 
+//This will cause problems when used with the watchdog.
 #define THREAD1QUANTUM 30
 #define THREAD2QUANTUM 60
 #define THREAD3QUANTUM 90
 
 #define TIMEOUT 2*(THREAD1QUANTUM+THREAD2QUANTUM+THREAD3QUANTUM)
+
+struct THREAD_CONTEXT
+{
+        COUNT Value;
+        INDEX WatchdogId;
+};
 
 //
 //Main routine for threads.
@@ -31,21 +33,24 @@
 
 void TestThreadMain( void * arg )
 {
-	COUNT * var = (COUNT *) arg;
-	while( 1 )
-	{
-		(*var)++;
-		Sleep(1);
-	}
+        struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
+
+        WatchdogAddFlag(context->WatchdogId);
+
+        while( 1 )
+        {
+                context->Value++;
+                WatchdogNotify(context->WatchdogId);
+        }
 }
 
 //
 //Vars 
 //
 
-COUNT Value1 = 0;
-COUNT Value2 = 0;
-COUNT Value3 = 0;
+struct THREAD_CONTEXT Value1 = {0, 0};
+struct THREAD_CONTEXT Value2 = {0, 1};
+struct THREAD_CONTEXT Value3 = {0, 2};
 
 //
 //Thread structures
@@ -68,46 +73,43 @@ char TestThreadStackExp[STACK_SIZE];
 
 int main()
 {
-	//Initialize the kernel structures.
-	KernelInit();
-	
-	SchedulerStartup();
+        //Initialize the kernel structures.
+        KernelInit();
 
-	//Initialize Threads
-	SchedulerCreateThread(
-			&TestThreadIncrement,
-			THREAD1QUANTUM,
-			TestThreadStackIncrement,
-			STACK_SIZE,
-			TestThreadMain,
-			&Value1,
-		   	THREAD1FLAG,
-			TRUE);
+        SchedulerStartup();
 
-	SchedulerCreateThread(
-			&TestThreadDivide,
-			THREAD2QUANTUM,
-			TestThreadStackDivide,
-			STACK_SIZE,
-			TestThreadMain,
-			&Value2,
-			THREAD2FLAG,
-			TRUE);
+        //Initialize Threads
+        SchedulerCreateThread(
+                        &TestThreadIncrement,
+                        THREAD1QUANTUM,
+                        TestThreadStackIncrement,
+                        STACK_SIZE,
+                        TestThreadMain,
+                        &Value1,
+                        TRUE);
 
-	SchedulerCreateThread(
-			&TestThreadExp,
-			THREAD3QUANTUM,
-			TestThreadStackExp,
-			STACK_SIZE,
-			TestThreadMain,
-			&Value3,
-			THREAD3FLAG,
-			TRUE);
+        SchedulerCreateThread(
+                        &TestThreadDivide,
+                        THREAD2QUANTUM,
+                        TestThreadStackDivide,
+                        STACK_SIZE,
+                        TestThreadMain,
+                        &Value2,
+                        TRUE);
 
-	//Enable the watchdog
-	WatchdogEnable( TIMEOUT );
+        SchedulerCreateThread(
+                        &TestThreadExp,
+                        THREAD3QUANTUM,
+                        TestThreadStackExp,
+                        STACK_SIZE,
+                        TestThreadMain,
+                        &Value3,
+                        TRUE);
 
-	//Start the kernel.
-	KernelStart();
-	return 0;
+        //Enable the watchdog
+        WatchdogEnable( TIMEOUT );
+
+        //Start the kernel.
+        KernelStart();
+        return 0;
 }

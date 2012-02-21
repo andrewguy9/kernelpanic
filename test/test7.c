@@ -159,86 +159,78 @@ void ValidateMain(void * arg)
 
 int main()
 {
-	INDEX index;
+        INDEX index;
 
-	for(index=0; index < NUM_THREADS; index++)
-	{
-		TransitionArray1[index] = TRUE;
-		TransitionArray2[index] = FALSE;
-	}
+        for(index=0; index < NUM_THREADS; index++)
+        {
+                TransitionArray1[index] = TRUE;
+                TransitionArray2[index] = FALSE;
+        }
 
-	KernelInit();
-	
-	SchedulerStartup();
+        KernelInit();
 
-	GatherInit( &Gather, NUM_THREADS );
+        SchedulerStartup();
 
-	SchedulerCreateThread(
-			&BlockThread1,
-			1,
-		    BlockThread1Stack,
-		    STACK_SIZE, 
-			BlockingMain,
-			(void *) 0,
-		    0,
-		    TRUE);
-	SchedulerCreateThread(
-			&BlockThread2,
-			1,
-		    BlockThread2Stack,
-		    STACK_SIZE, 
-			BlockingMain,
-			(void *) 1,
-		    1,
-		    TRUE);
-	SchedulerCreateThread(
-			&WaitThread1,
-			1,
-		    WaitThread1Stack,
-		    STACK_SIZE, 
-			WaitMain,
-			(void *) 2,
-		    2,
-		    TRUE);
-	SchedulerCreateThread(
-			&WaitThread2,
-			1,
-		    WaitThread2Stack,
-		    STACK_SIZE, 
-			WaitMain,
-			(void *) 3,
-		    3,
-		    TRUE);
-	SchedulerCreateThread(
-			&SpinThread1,
-			1,
-		    SpinThread1Stack,
-		    STACK_SIZE, 
-			SpinMain,
-			(void *) 4,
-		    2,
-		    TRUE);
-	SchedulerCreateThread(
-			&SpinThread2,
-			1,
-		    SpinThread2Stack,
-		    STACK_SIZE, 
-			SpinMain,
-			(void *) 5,
-		    3,
-		    TRUE);
-	SchedulerCreateThread(
-			&ValidateThread,
-			1, 
-			ValidateThreadStack,
-			STACK_SIZE,
-			ValidateMain,
-			(void *) 6,
-			4,
-			TRUE);
+        GatherInit( &Gather, NUM_THREADS );
 
-	KernelStart();
-	return 0;
-	
+        SchedulerCreateThread(
+                        &BlockThread1,
+                        1,
+                        BlockThread1Stack,
+                        STACK_SIZE,
+                        BlockingMain,
+                        (void *) 0,
+                        TRUE);
+        SchedulerCreateThread(
+                        &BlockThread2,
+                        1,
+                        BlockThread2Stack,
+                        STACK_SIZE,
+                        BlockingMain,
+                        (void *) 1,
+                        TRUE);
+        SchedulerCreateThread(
+                        &WaitThread1,
+                        1,
+                        WaitThread1Stack,
+                        STACK_SIZE,
+                        WaitMain,
+                        (void *) 2,
+                        TRUE);
+        SchedulerCreateThread(
+                        &WaitThread2,
+                        1,
+                        WaitThread2Stack,
+                        STACK_SIZE,
+                        WaitMain,
+                        (void *) 3,
+                        TRUE);
+        SchedulerCreateThread(
+                        &SpinThread1,
+                        1,
+                        SpinThread1Stack,
+                        STACK_SIZE,
+                        SpinMain,
+                        (void *) 4,
+                        TRUE);
+        SchedulerCreateThread(
+                        &SpinThread2,
+                        1,
+                        SpinThread2Stack,
+                        STACK_SIZE,
+                        SpinMain,
+                        (void *) 5,
+                        TRUE);
+        SchedulerCreateThread(
+                        &ValidateThread,
+                        1,
+                        ValidateThreadStack,
+                        STACK_SIZE,
+                        ValidateMain,
+                        (void *) 6,
+                        TRUE);
+
+        KernelStart();
+        return 0;
 }
 
