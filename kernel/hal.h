@@ -60,12 +60,6 @@ void HalSleepProcessor();
 void HalRaiseInterrupt(enum IRQ_LEVEL level);
 void HalSetIrq(enum IRQ_LEVEL irq);
 
-ATOMIC HalAtomicGetAndAnd(ATOMIC * var, ATOMIC val);
-ATOMIC HalAtomicGetAndOr(ATOMIC * var, ATOMIC val);
-
-#define HalAtomicGetAndSet(var) (HalAtomicGetAndOr(var, 1))
-#define HalAtomicGetAndClear(var) (HalAtomicGetAndAnd(var, 0))
-
 TIME HalGetTime();
 
 //

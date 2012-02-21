@@ -21,4 +21,10 @@ typedef unsigned long int TIME;
 typedef unsigned int ATOMIC;
 #endif
 
+ATOMIC HalAtomicGetAndAnd(ATOMIC * var, ATOMIC val);
+ATOMIC HalAtomicGetAndOr(ATOMIC * var, ATOMIC val);
+
+#define HalAtomicGetAndSet(var) (HalAtomicGetAndOr(var, 1))
+#define HalAtomicGetAndClear(var) (HalAtomicGetAndAnd(var, 0))
+
 #endif // TYPES_H
