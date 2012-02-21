@@ -174,7 +174,6 @@ int main()
                         ProducerMain,
                         (void*) &Socket1,
                         TRUE );
-        /*
         SchedulerCreateThread(
                         &Producer2,
                         1,
@@ -191,8 +190,6 @@ int main()
                         ProducerMain,
                         (void*) &Socket3,
                         TRUE );
-*/
-
         SchedulerCreateThread(
                         &Consumer1,
                         1,
@@ -201,7 +198,6 @@ int main()
                         ConsumerMain,
                         &Socket1,
                         TRUE );
-        /*
         SchedulerCreateThread(
                         &Consumer2,
                         1,
@@ -218,7 +214,6 @@ int main()
                         ConsumerMain,
                         &Socket3,
                         TRUE );
-*/
 
         KernelStart();
         return 0;
