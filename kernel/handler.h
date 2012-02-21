@@ -4,26 +4,26 @@
 #include"../utils/link.h"
 #include"../utils/utils.h"
 /*
- * Handlers are a generic tool for managing callbacks. 
+ * Handlers are a generic tool for managing callbacks.
  * They use a generic link so they can be used in any kernel
  * data structure. The handler unit provides a state machine
  * to describe the life cycle of a callback handler.
- * 
+ *
  * HANDLER_FUNCTIONs recieve a pointer to the callback structure
  * itself. This allows for handlers to re-register themselves.
- * 
+ *
  * There are two examples of situations when this is desirable:
- * 
- * 1) A timer which wants to be fired on a periodic basis can 
+ *
+ * 1) A timer which wants to be fired on a periodic basis can
  * reregister itself.
  *
- * 2) Timers are executed as PostInterruptHandlers, so they 
- * get dequeued out of the timer heap and placed into the 
- * Interrupt queue directly. 
+ * 2) Timers are executed as PostInterruptHandlers, so they
+ * get dequeued out of the timer heap and placed into the
+ * Interrupt queue directly.
  */
 
 /*
- * Init  
+ * Init
  * |
  * HANDLER_READY<-------------
  * |                         |
@@ -42,11 +42,11 @@
  *  HANDLER_READY is the initial state of a handler object.
  *  HANDLER_QUEUED is the state of a handler which is queued and waiting for execution.
  *  HANDLER_RUNNING is the state of a handler which has been dequeued and is running.
- *  
+ *
  *  When a handler is running and re-enqueues into a handler list he can
  *  transition from HANDLER_RUNNING directly to HANDLER_QUEUED.
  *
- *  When a handler finishes running and does not reschedule itself it will 
+ *  When a handler finishes running and does not reschedule itself it will
  *  transition back to HANDLER_READY.
  */
 
@@ -55,17 +55,17 @@ enum HANDLER_STATE { HANDLER_READY=1, HANDLER_QUEUED, HANDLER_RUNNING };
 struct HANDLER_OBJECT;
 
 //Handler Functions return true if they have completed and want the owning component
-//to mark them as completed. If false is retured then ownership has transitioned to a 
+//to mark them as completed. If false is retured then ownership has transitioned to a
 //new component and the structure should no longer be touched.
 typedef BOOL (HANDLER_FUNCTION)( struct HANDLER_OBJECT * HandlerObj );
 
 struct HANDLER_OBJECT
 {
-	union LINK Link;
-	HANDLER_FUNCTION * Function;
-	void * Context;
+        union LINK Link;
+        HANDLER_FUNCTION * Function;
+        void * Context;
 
-	enum HANDLER_STATE State;
+        enum HANDLER_STATE State;
 };
 
 //Should be called on all HANDLER_OBJECTs before use.

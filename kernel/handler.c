@@ -2,30 +2,30 @@
 
 void HandlerInit( struct HANDLER_OBJECT * handler )
 {
-	handler->Context = NULL;
-	handler->Function = NULL;
-	handler->State = HANDLER_READY;
+        handler->Context = NULL;
+        handler->Function = NULL;
+        handler->State = HANDLER_READY;
 }
 
 void HandlerRegister( struct HANDLER_OBJECT * handler )
 {
-	ASSERT( handler->State == HANDLER_READY || handler->State == HANDLER_RUNNING );
-	handler->State = HANDLER_QUEUED;
+        ASSERT( handler->State == HANDLER_READY || handler->State == HANDLER_RUNNING );
+        handler->State = HANDLER_QUEUED;
 }
 
 void HandlerRun(struct HANDLER_OBJECT * handler )
 {
-	ASSERT( handler->State == HANDLER_QUEUED );
-	handler->State = HANDLER_RUNNING;
+        ASSERT( handler->State == HANDLER_QUEUED );
+        handler->State = HANDLER_RUNNING;
 }
 
 void HandlerFinish( struct HANDLER_OBJECT * handler )
 {
-	ASSERT( handler->State == HANDLER_RUNNING );
-	handler->State = HANDLER_READY;
+        ASSERT( handler->State == HANDLER_RUNNING );
+        handler->State = HANDLER_READY;
 }
 
 BOOL HandlerIsFinished( struct HANDLER_OBJECT * handler )
 {
-	return handler->State == HANDLER_READY;
+        return handler->State == HANDLER_READY;
 }
