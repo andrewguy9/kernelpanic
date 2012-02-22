@@ -7,7 +7,7 @@
  * SoftInterrupt Unit Description
  * The SoftInterrupt unit provides additional control of the SoftInterrupt flag.
  *
- * Calls to SoftInterruptDisable/SoftInterruptEnable allow functions to nest 
+ * Calls to SoftInterruptDisable/SoftInterruptEnable allow functions to nest
  * disable/enable pairings so that we don't have to track all code paths 
  * around flag state changes.
  *
@@ -37,60 +37,60 @@ struct LINKED_LIST SoftInterruptHandlerList;
 //Run at kernel startup to initialize flags.
 void SoftInterruptStartup()
 {
-	LinkedListInit( &SoftInterruptHandlerList );
-	HalRegisterIsrHandler( SoftInterrupt, (void *) HAL_ISR_SOFT, IRQ_LEVEL_SOFT );
+        LinkedListInit( &SoftInterruptHandlerList );
+        HalRegisterIsrHandler( SoftInterrupt, (void *) HAL_ISR_SOFT, IRQ_LEVEL_SOFT );
 }
 
 void SoftInterrupt()
 {
-	struct HANDLER_OBJECT * handler;
-	BOOL isComplete;
-	HANDLER_FUNCTION * func;
+        struct HANDLER_OBJECT * handler;
+        BOOL isComplete;
+        HANDLER_FUNCTION * func;
 
-	SoftInterruptIncrement();
+        SoftInterruptIncrement();
 
-	IsrDisable(IRQ_LEVEL_MAX);
-	while( ! LinkedListIsEmpty( & SoftInterruptHandlerList ) )
-	{
-		handler = BASE_OBJECT(
-				LinkedListPop( & SoftInterruptHandlerList ),
-				struct HANDLER_OBJECT,
-				Link );
-		
-		IsrEnable(IRQ_LEVEL_MAX);
+        IsrDisable(IRQ_LEVEL_MAX);
+        while( ! LinkedListIsEmpty( & SoftInterruptHandlerList ) )
+        {
+                handler = BASE_OBJECT(
+                                LinkedListPop( & SoftInterruptHandlerList ),
+                                struct HANDLER_OBJECT,
+                                Link );
 
-		HandlerRun( handler );
-		func = handler->Function;
-		isComplete = func( handler );
+                IsrEnable(IRQ_LEVEL_MAX);
 
-		if(isComplete) 
-		{
-			HandlerFinish( handler );
-		}
+                HandlerRun( handler );
+                func = handler->Function;
+                isComplete = func( handler );
 
-		IsrDisable(IRQ_LEVEL_MAX);
-	}
-	IsrEnable(IRQ_LEVEL_MAX);
+                if(isComplete)
+                {
+                        HandlerFinish( handler );
+                }
 
-	SoftInterruptDecrement();
+                IsrDisable(IRQ_LEVEL_MAX);
+        }
+        IsrEnable(IRQ_LEVEL_MAX);
+
+        SoftInterruptDecrement();
 }
 
 void SoftInterruptRegisterHandler(
-		struct HANDLER_OBJECT * handler,
-		HANDLER_FUNCTION foo,
-		void * context )
+                struct HANDLER_OBJECT * handler,
+                HANDLER_FUNCTION foo,
+                void * context )
 {
-	handler->Function = foo;
-	handler->Context = context;
+        handler->Function = foo;
+        handler->Context = context;
 
-	HandlerRegister( handler );
+        HandlerRegister( handler );
 
-	IsrDisable(IRQ_LEVEL_MAX);
-	LinkedListEnqueue( &handler->Link.LinkedListLink,
-			& SoftInterruptHandlerList );
-	IsrEnable(IRQ_LEVEL_MAX);
+        IsrDisable(IRQ_LEVEL_MAX);
+        LinkedListEnqueue( &handler->Link.LinkedListLink,
+                        & SoftInterruptHandlerList );
+        IsrEnable(IRQ_LEVEL_MAX);
 
-	HalRaiseInterrupt(IRQ_LEVEL_SOFT);
+        HalRaiseInterrupt(IRQ_LEVEL_SOFT);
 }
 
 
