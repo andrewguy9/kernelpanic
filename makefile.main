@@ -17,7 +17,7 @@ umouse: $(TARGET)_test0.out $(TARGET)_test1.out $(TARGET)_test2.out $(TARGET)_te
 #########################
 #utils on board tests
 
-utils/$(TARGET)_linktest.out: utils/$(TARGET)_linktest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_heap.o
+utils/$(TARGET)_linktest.out: utils/$(TARGET)_linktest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_atomiclist.o utils/$(TARGET)_heap.o utils/$(TARGET)_types.o
 
 utils/$(TARGET)_treetest.out: utils/$(TARGET)_treetest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_avl.o
 

@@ -4,9 +4,9 @@
 #include"link.h"
 #include"utils.h"
 
-struct LINKED_LIST 
+struct LINKED_LIST
 {
-	struct LINKED_LIST_LINK * Head;
+        struct LINKED_LIST_LINK * Head;
 };
 
 //Add to front of list.
