@@ -162,14 +162,12 @@ void TimerRegister(
 
 TIME TimerGetTime()
 {
-	TIME value;
-	IsrDisable(IRQ_LEVEL_TIMER);
-	value = Time;
-	IsrEnable(IRQ_LEVEL_TIMER);
-	return value;
+        TIME value;
+        value = Time;
+        return value;
 }
 
-void TimerInterrupt(void) 
+void TimerInterrupt(void)
 {
 	//update interrupt level to represent that we are in inerrupt
 	TimerIncrement();
