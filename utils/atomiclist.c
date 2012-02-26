@@ -14,7 +14,36 @@ void AtomicListPush( struct ATOMIC_LIST_LINK * node, struct ATOMIC_LIST * list )
 
 struct ATOMIC_LIST_LINK * AtomicListPop( struct ATOMIC_LIST * list )
 {
-        return NULL;
+        union ATOMIC_UNION oldHead;
+        union ATOMIC_UNION newHead;
+
+        struct ATOMIC_LIST_LINK * node;
+        struct ATOMIC_LIST_LINK * next;
+        COUNT generation;
+
+        do {
+                // Get access to logical head.
+                oldHead.Atomic = list->Head.Atomic;
+                node = oldHead.Tuple.Pointer;
+                generation = oldHead.Tuple.Generation;
+
+                if(node == NULL) {
+                        return NULL;
+                }
+
+                // Determine new head values.
+                next = node->Next;
+                generation++;
+
+                // Attempt a writeback.
+                newHead.Tuple.Pointer = next;
+                newHead.Tuple.Generation = generation;
+        } while (oldHead.Atomic != HalDoubleCompareAndSwap(
+                                &list->Head,
+                                oldHead.Atomic,
+                                newHead.Atomic) );
+
+        return node;
 }
 
 void AtomicListInit( struct ATOMIC_LIST * list )

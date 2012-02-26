@@ -41,10 +41,4 @@ DOUBLE_COUNT HalDoubleCompareAndSwap(DOUBLE_COUNT * var, void * old, void * next
 
 #define HalAtomicGetAndSet(var) (HalAtomicGetAndOr(var, 1))
 #define HalAtomicGetAndClear(var) (HalAtomicGetAndAnd(var, 0))
-#define HalCompareAndSwapPointers(var, old, next) \
-        ((void*) HalCompareAndSwap( \
-                (void*)(var),       \
-                (old),       \
-                (next)))
-
 #endif // TYPES_H
