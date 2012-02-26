@@ -1,6 +1,6 @@
 #include"softinterrupt.h"
 #include"critinterrupt.h"
-#include"../utils/linkedlist.h"
+#include"../utils/atomiclist.h"
 #include"hal.h"
 
 /*
@@ -28,7 +28,7 @@ void SoftInterrupt();
 //SoftInterrupt Variables
 //
 
-struct LINKED_LIST SoftInterruptHandlerList;
+struct ATOMIC_LIST SoftInterruptHandlerList;
 
 //
 //Unit Management
@@ -37,27 +37,25 @@ struct LINKED_LIST SoftInterruptHandlerList;
 //Run at kernel startup to initialize flags.
 void SoftInterruptStartup()
 {
-        LinkedListInit( &SoftInterruptHandlerList );
+        AtomicListInit( &SoftInterruptHandlerList );
         HalRegisterIsrHandler( SoftInterrupt, (void *) HAL_ISR_SOFT, IRQ_LEVEL_SOFT );
 }
 
 void SoftInterrupt()
 {
+        struct ATOMIC_LIST_LINK * link;
         struct HANDLER_OBJECT * handler;
         BOOL isComplete;
         HANDLER_FUNCTION * func;
 
         SoftInterruptIncrement();
 
-        IsrDisable(IRQ_LEVEL_MAX);
-        while( ! LinkedListIsEmpty( & SoftInterruptHandlerList ) )
+        while( (link = AtomicListPop(&SoftInterruptHandlerList)) )
         {
                 handler = BASE_OBJECT(
-                                LinkedListPop( & SoftInterruptHandlerList ),
+                                link,
                                 struct HANDLER_OBJECT,
                                 Link );
-
-                IsrEnable(IRQ_LEVEL_MAX);
 
                 HandlerRun( handler );
                 func = handler->Function;
@@ -68,9 +66,7 @@ void SoftInterrupt()
                         HandlerFinish( handler );
                 }
 
-                IsrDisable(IRQ_LEVEL_MAX);
         }
-        IsrEnable(IRQ_LEVEL_MAX);
 
         SoftInterruptDecrement();
 }
@@ -85,10 +81,8 @@ void SoftInterruptRegisterHandler(
 
         HandlerRegister( handler );
 
-        IsrDisable(IRQ_LEVEL_MAX);
-        LinkedListEnqueue( &handler->Link.LinkedListLink,
-                        & SoftInterruptHandlerList );
-        IsrEnable(IRQ_LEVEL_MAX);
+        AtomicListPush( &handler->Link.AtomicListLink,
+                        &SoftInterruptHandlerList );
 
         HalRaiseInterrupt(IRQ_LEVEL_SOFT);
 }
