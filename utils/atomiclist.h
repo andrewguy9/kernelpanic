@@ -7,7 +7,10 @@
 
 struct ATOMIC_LIST
 {
-        struct ATOMIC_LIST_LINK * Head;
+        //Head.Atomic is used for swap values.
+        //Head.Tuple.Pointer is the Head Pointer
+        //Head.Tuple.Atomic is the pop counter.
+        union ATOMIC_UNION Head;
 };
 
 //Add to front of list.

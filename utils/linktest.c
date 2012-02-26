@@ -97,9 +97,9 @@ void DumpList( struct LINKED_LIST * list )
 
 void DumpAtomic( struct ATOMIC_LIST * list )
 {
-        struct ELEMENT * cur = (struct ELEMENT *) list->Head;
+        struct ELEMENT * cur = (struct ELEMENT *) list->Head.Tuple.Pointer;
 
-        if( list->Head == NULL )
+        if( list->Head.Tuple.Pointer == NULL )
         {
                 printf("null list\n");
                 return;
