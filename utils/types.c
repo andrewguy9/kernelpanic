@@ -16,4 +16,9 @@ ATOMIC HalCompareAndSwap(ATOMIC * var, void * old, void * next)
         return __sync_val_compare_and_swap(var, old, next);
 }
 
+DOUBLE_COUNT HalDoubleCompareAndSwap(DOUBLE_COUNT * var, void * old, void * next)
+{
+        return __sync_val_compare_and_swap(var, old, next);
+}
+
 #endif

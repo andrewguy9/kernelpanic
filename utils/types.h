@@ -19,11 +19,25 @@ typedef unsigned long int INDEX;
 typedef unsigned char BOOL;
 typedef unsigned long int TIME;
 typedef unsigned long int ATOMIC;
+typedef unsigned long long DOUBLE_COUNT;
 #endif
+
+struct ATOMIC_TUPLE
+{
+        void * Pointer;
+        COUNT Generation;
+};
+
+union ATOMIC_UNION
+{
+        DOUBLE_COUNT Atomic;
+        struct ATOMIC_TUPLE Tuple;
+};
 
 ATOMIC HalAtomicGetAndAnd(ATOMIC * var, ATOMIC val);
 ATOMIC HalAtomicGetAndOr(ATOMIC * var, ATOMIC val);
 ATOMIC HalCompareAndSwap(ATOMIC * var, void * old, void * next);
+DOUBLE_COUNT HalDoubleCompareAndSwap(DOUBLE_COUNT * var, void * old, void * next);
 
 #define HalAtomicGetAndSet(var) (HalAtomicGetAndOr(var, 1))
 #define HalAtomicGetAndClear(var) (HalAtomicGetAndAnd(var, 0))
