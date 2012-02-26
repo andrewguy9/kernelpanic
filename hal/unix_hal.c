@@ -406,7 +406,7 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT 
 TIME HalTimeDelta(struct timeval *time1, struct timeval *time2)
 {
         struct timeval time_diff;
-        TIME delta;
+        TIME delta = 0;
 
         if(time2->tv_sec < time1->tv_sec) {
                 return 0;
