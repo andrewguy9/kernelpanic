@@ -8,8 +8,8 @@
 
 /*
  * Timer Unit Description:
- * The timer unit keeps time for the kernel. The current time can be queried 
- * by calling TimerGetTime(). 
+ * The timer unit keeps time for the kernel. The current time can be queried
+ * by calling TimerGetTime().
  *
  * Timers can be registered with the system by calling TimerRegister().
  * When the timer fires, the function and argument provided to TimerRegister()
@@ -55,108 +55,108 @@ struct HEAP * TimersOverflow;
  */
 void QueueTimers( )
 {
-	struct HEAP *temp;
+        struct HEAP *temp;
 
-	TimerLastTime = Time;
-	Time = HalGetTime();
+        TimerLastTime = Time;
+        Time = HalGetTime();
 
-	if( Time < TimerLastTime )
-	{//Overflow occured, switch heaps
+        if( Time < TimerLastTime )
+        {//Overflow occured, switch heaps
 
-		//There should be no timers left when we overflow.
-		ASSERT( HeapSize( Timers ) == 0 );
-				
-		temp = Timers;
-		Timers = TimersOverflow;
-		TimersOverflow = temp;
-	}
+                //There should be no timers left when we overflow.
+                ASSERT( HeapSize( Timers ) == 0 );
 
-	while( HeapSize( Timers ) > 0 && 
-			HeapHeadWeight( Timers ) <= Time )
-	{
+                temp = Timers;
+                Timers = TimersOverflow;
+                TimersOverflow = temp;
+        }
 
-		struct HANDLER_OBJECT * timer = BASE_OBJECT( 
-				HeapPop(  Timers ),
-				struct HANDLER_OBJECT,
-				Link );
+        while( HeapSize( Timers ) > 0 &&
+                        HeapHeadWeight( Timers ) <= Time )
+        {
 
-		//Mark timer as running since its dequeued.
-		HandlerRun( timer );
+                struct HANDLER_OBJECT * timer = BASE_OBJECT(
+                                HeapPop(  Timers ),
+                                struct HANDLER_OBJECT,
+                                Link );
 
-		SoftInterruptRegisterHandler(
-				timer,
-				timer->Function,
-				timer->Context);
-	}
+                //Mark timer as running since its dequeued.
+                HandlerRun( timer );
 
-	//Now that we have de-queued all the fired timers,
-	//lets calculate when the next hardware interrupt should be.
-	TimerSetNextTimer();
+                SoftInterruptRegisterHandler(
+                                timer,
+                                timer->Function,
+                                timer->Context);
+        }
+
+        //Now that we have de-queued all the fired timers,
+        //lets calculate when the next hardware interrupt should be.
+        TimerSetNextTimer();
 }
 
-void TimerSetNextTimer() 
+void TimerSetNextTimer()
 {
-	if(HeapSize(Timers) > 0) {
-		TIME nextTimer = HeapHeadWeight( Timers );
-		TIME delta = nextTimer - Time;
-		HalSetTimer(delta);
-	} else {
-		//If there are no timers in the Timers heap,
-		//then we know that the next time to wake will be 
-		//an unknown number after the next overflow. 
-		TIME rollover = -1 - Time;
-		HalSetTimer(rollover + 1);
-	}
+        if(HeapSize(Timers) > 0) {
+                TIME nextTimer = HeapHeadWeight( Timers );
+                TIME delta = nextTimer - Time;
+                HalSetTimer(delta);
+        } else {
+                //If there are no timers in the Timers heap,
+                //then we know that the next time to wake will be
+                //an unknown number after the next overflow.
+                TIME rollover = -1 - Time;
+                HalSetTimer(rollover + 1);
+        }
 }
 
 void TimerStartup( )
 {
-	HalInitClock();
-	Time = HalGetTime();
-	TimerLastTime = 0;
+        HalInitClock();
+        Time = HalGetTime();
+        TimerLastTime = 0;
 
-	HeapInit( &TimerHeap1 );
-	HeapInit( &TimerHeap2 );
+        HeapInit( &TimerHeap1 );
+        HeapInit( &TimerHeap2 );
 
-	Timers = &TimerHeap1;
-	TimersOverflow = &TimerHeap2;
+        Timers = &TimerHeap1;
+        TimersOverflow = &TimerHeap2;
 
-	HalRegisterIsrHandler( TimerInterrupt, (void *) HAL_ISR_TIMER, IRQ_LEVEL_TIMER );
-	TimerSetNextTimer();
+        HalRegisterIsrHandler( TimerInterrupt, (void *) HAL_ISR_TIMER, IRQ_LEVEL_TIMER );
+        TimerSetNextTimer();
 }
 
-void TimerRegister( 
-		struct HANDLER_OBJECT * newTimer,
-		TIME wait,
-		HANDLER_FUNCTION * handler,
-		void * context )
+void TimerRegister(
+                struct HANDLER_OBJECT * newTimer,
+                TIME wait,
+                HANDLER_FUNCTION * handler,
+                void * context )
 {
-	TIME timerTime;
+        TIME timerTime;
 
-	IsrDisable(IRQ_LEVEL_MAX);
+        IsrDisable(IRQ_LEVEL_MAX);
 
-	//Construct timer
-	HandlerRegister( newTimer );
-	timerTime = Time + wait;
-	newTimer->Function = handler;
-	newTimer->Context = context;
+        //Construct timer
+        HandlerRegister( newTimer );
+        timerTime = Time + wait;
+        newTimer->Function = handler;
+        newTimer->Context = context;
 
-	//Add to heap
-	if( timerTime >= Time )
-	{
-		HeapAdd(timerTime, &newTimer->Link.WeightedLink, Timers );
-	}
-	else
-	{
-		//Overflow ocurred
-		HeapAdd(timerTime, &newTimer->Link.WeightedLink, TimersOverflow);
-	}
+        //Add to heap
+        if( timerTime >= Time )
+        {
+                HeapAdd(timerTime, &newTimer->Link.WeightedLink, Timers );
+        }
+        else
+        {
+                //Overflow ocurred
+                HeapAdd(timerTime, &newTimer->Link.WeightedLink, TimersOverflow);
+        }
 
-	IsrEnable(IRQ_LEVEL_MAX);
-	//Because we added a new timer, we may want to wait
-	//a different amount of time than previously thought.
-	//Lets update the hardware countdown.
-	TimerSetNextTimer();
+        IsrEnable(IRQ_LEVEL_MAX);
+        //Because we added a new timer, we may want to wait
+        //a different amount of time than previously thought.
+        //Lets update the hardware countdown.
+        TimerSetNextTimer();
 
 }
 
@@ -169,16 +169,16 @@ TIME TimerGetTime()
 
 void TimerInterrupt(void)
 {
-	//update interrupt level to represent that we are in inerrupt
-	TimerIncrement();
+        //update interrupt level to represent that we are in inerrupt
+        TimerIncrement();
 
-	//reset the clock
-	HalResetClock();
+        //reset the clock
+        HalResetClock();
 
-	//Queue Timers to run as Post Handlers.
-	QueueTimers( );
+        //Queue Timers to run as Post Handlers.
+        QueueTimers( );
 
-	//Restore the interrupt level, 
-	TimerDecrement();
+        //Restore the interrupt level,
+        TimerDecrement();
 }
 
