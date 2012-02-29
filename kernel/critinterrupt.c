@@ -80,7 +80,7 @@ void CritInterruptRegisterHandler(
 
         HandlerRegister( handler );
 
-        AtomicListPush( &handler->Link.LinkedListLink,
+        AtomicListPush( &handler->Link.AtomicListLink,
                         &CritInterruptHandlerList );
 
         HalRaiseInterrupt(IRQ_LEVEL_CRIT);

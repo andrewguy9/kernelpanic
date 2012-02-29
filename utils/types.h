@@ -36,9 +36,11 @@ union ATOMIC_UNION
 
 ATOMIC HalAtomicGetAndAnd(ATOMIC * var, ATOMIC val);
 ATOMIC HalAtomicGetAndOr(ATOMIC * var, ATOMIC val);
-ATOMIC HalCompareAndSwap(ATOMIC * var, void * old, void * next);
-DOUBLE_COUNT HalDoubleCompareAndSwap(DOUBLE_COUNT * var, void * old, void * next);
+ATOMIC HalCompareAndSwap(ATOMIC * var, ATOMIC old, ATOMIC next);
+DOUBLE_COUNT HalDoubleCompareAndSwap(DOUBLE_COUNT * var, DOUBLE_COUNT old, DOUBLE_COUNT next);
 
 #define HalAtomicGetAndSet(var) (HalAtomicGetAndOr(var, 1))
 #define HalAtomicGetAndClear(var) (HalAtomicGetAndAnd(var, 0))
+#define HalCompareAndSwapPtrs(var, old, next) \
+        HalCompareAndSwap((ATOMIC *) (var), (ATOMIC) (old), (ATOMIC) (next))
 #endif // TYPES_H
