@@ -25,15 +25,14 @@
 //
 
 void TimerInterrupt(void);
-void QueueTimers(void);
-void TimerSetNextTimer(void);
+void QueueTimers(TIME time);
+void TimerSetNextTimer(TIME time);
 
 //
 //Unit Variables
 //
 
 //Keep track of system time.
-TIME Time;
 TIME TimerLastTime;
 
 //Keep track of timers waiting to execute.
@@ -53,14 +52,11 @@ struct HEAP * TimersOverflow;
  * and queues them as SoftInterrupts
  * list.
  */
-void QueueTimers( )
+void QueueTimers( TIME time )
 {
         struct HEAP *temp;
 
-        TimerLastTime = Time;
-        Time = HalGetTime();
-
-        if( Time < TimerLastTime )
+        if( time < TimerLastTime )
         {//Overflow occured, switch heaps
 
                 //There should be no timers left when we overflow.
@@ -72,7 +68,7 @@ void QueueTimers( )
         }
 
         while( HeapSize( Timers ) > 0 &&
-                        HeapHeadWeight( Timers ) <= Time )
+                        HeapHeadWeight( Timers ) <= time )
         {
 
                 struct HANDLER_OBJECT * timer = BASE_OBJECT(
@@ -91,20 +87,21 @@ void QueueTimers( )
 
         //Now that we have de-queued all the fired timers,
         //lets calculate when the next hardware interrupt should be.
-        TimerSetNextTimer();
+        TimerSetNextTimer( time );
+        TimerLastTime = time;
 }
 
-void TimerSetNextTimer()
+void TimerSetNextTimer(TIME time)
 {
         if(HeapSize(Timers) > 0) {
                 TIME nextTimer = HeapHeadWeight( Timers );
-                TIME delta = nextTimer - Time;
+                TIME delta = nextTimer - time;
                 HalSetTimer(delta);
         } else {
                 //If there are no timers in the Timers heap,
                 //then we know that the next time to wake will be
                 //an unknown number after the next overflow.
-                TIME rollover = -1 - Time;
+                TIME rollover = -1 - time;
                 HalSetTimer(rollover + 1);
         }
 }
@@ -112,8 +109,7 @@ void TimerSetNextTimer()
 void TimerStartup( )
 {
         HalInitClock();
-        Time = HalGetTime();
-        TimerLastTime = 0;
+        TimerLastTime = HalGetTime();
 
         HeapInit( &TimerHeap1 );
         HeapInit( &TimerHeap2 );
@@ -122,7 +118,7 @@ void TimerStartup( )
         TimersOverflow = &TimerHeap2;
 
         HalRegisterIsrHandler( TimerInterrupt, (void *) HAL_ISR_TIMER, IRQ_LEVEL_TIMER );
-        TimerSetNextTimer();
+        TimerSetNextTimer(TimerLastTime);
 }
 
 void TimerRegister(
@@ -131,18 +127,18 @@ void TimerRegister(
                 HANDLER_FUNCTION * handler,
                 void * context )
 {
-        TIME timerTime;
+        TIME time = HalGetTime();
+        TIME timerTime = time + wait;
 
         IsrDisable(IRQ_LEVEL_MAX);
 
         //Construct timer
         HandlerRegister( newTimer );
-        timerTime = Time + wait;
         newTimer->Function = handler;
         newTimer->Context = context;
 
         //Add to heap
-        if( timerTime >= Time )
+        if( timerTime >= time )
         {
                 HeapAdd(timerTime, &newTimer->Link.WeightedLink, Timers );
         }
@@ -156,15 +152,13 @@ void TimerRegister(
         //Because we added a new timer, we may want to wait
         //a different amount of time than previously thought.
         //Lets update the hardware countdown.
-        TimerSetNextTimer();
+        TimerSetNextTimer(time);
 
 }
 
 TIME TimerGetTime()
 {
-        TIME value;
-        value = Time;
-        return value;
+        return HalGetTime();
 }
 
 void TimerInterrupt(void)
@@ -176,7 +170,7 @@ void TimerInterrupt(void)
         HalResetClock();
 
         //Queue Timers to run as Post Handlers.
-        QueueTimers( );
+        QueueTimers( HalGetTime() );
 
         //Restore the interrupt level,
         TimerDecrement();
