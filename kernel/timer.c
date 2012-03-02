@@ -25,7 +25,8 @@
 //
 
 void TimerInterrupt(void);
-void QueueTimers(TIME time);
+void TimerInner(TIME time);
+void QueueTimers(TIME time, struct HEAP * heap);
 void TimerSetNextTimer(TIME time);
 
 //
@@ -47,32 +48,14 @@ struct HEAP * TimersOverflow;
 //Unit Helper Routines
 //
 
-/*
- * Takes expired timers off of the heap,
- * and queues them as SoftInterrupts
- * list.
- */
-void QueueTimers( TIME time )
+void QueueTimers(TIME time, struct HEAP * heap)
 {
-        struct HEAP *temp;
-
-        if( time < TimerLastTime )
-        {//Overflow occured, switch heaps
-
-                //There should be no timers left when we overflow.
-                ASSERT( HeapSize( Timers ) == 0 );
-
-                temp = Timers;
-                Timers = TimersOverflow;
-                TimersOverflow = temp;
-        }
-
-        while( HeapSize( Timers ) > 0 &&
-                        HeapHeadWeight( Timers ) <= time )
+        while( HeapSize( heap ) > 0 &&
+                        HeapHeadWeight( heap ) <= time )
         {
 
                 struct HANDLER_OBJECT * timer = BASE_OBJECT(
-                                HeapPop(  Timers ),
+                                HeapPop(  heap ),
                                 struct HANDLER_OBJECT,
                                 Link );
 
@@ -84,6 +67,30 @@ void QueueTimers( TIME time )
                                 timer->Function,
                                 timer->Context);
         }
+}
+
+/*
+ * Takes expired timers off of the heap,
+ * and queues them as SoftInterrupts
+ * list.
+ */
+void TimerInner( TIME time )
+{
+        struct HEAP *temp;
+
+        if( time < TimerLastTime )
+        {//Overflow occured, drain heap
+
+                QueueTimers(-1, Timers);
+                ASSERT(HeapSize(Timers) == 0);
+
+                //Switch Queues.
+
+                temp = Timers;
+                Timers = TimersOverflow;
+                TimersOverflow = temp;
+        }
+        QueueTimers(time, Timers);
 
         //Now that we have de-queued all the fired timers,
         //lets calculate when the next hardware interrupt should be.
@@ -170,7 +177,7 @@ void TimerInterrupt(void)
         HalResetClock();
 
         //Queue Timers to run as Post Handlers.
-        QueueTimers( HalGetTime() );
+        TimerInner( HalGetTime() );
 
         //Restore the interrupt level,
         TimerDecrement();
