@@ -3,12 +3,12 @@
 
 /*
  * Semaphore Unit Description
- * Implements a semaphore as a thread only syncronization mechanism. 
+ * Implements a semaphore as a thread only syncronization mechanism.
  *
- * Semaphore is like a mutex but it allows blocking so that it can be 
+ * Semaphore is like a mutex but it allows blocking so that it can be
  * starvation safe. A semaphore is initialized to a specific count.
  *
- * Threads call Up and Down to access the semaphore. 
+ * Threads call Up and Down to access the semaphore.
  * Up increments the count and down decrements the count.
  *
  * Rather than going negative, the semaphore will block the threads
@@ -19,44 +19,37 @@
 
 void SemaphoreInit( struct SEMAPHORE * lock, COUNT count )
 {
-	LinkedListInit( & lock->WaitingThreads );
-	lock->Count = count;
+        LinkedListInit( & lock->WaitingThreads );
+        lock->Count = count;
 }
 
 void SemaphoreDown( struct SEMAPHORE * lock, struct LOCKING_CONTEXT * context )
 {//LOCK
-	LockingStart();
-	if( lock->Count == 0 )
-	{//block the thread
-		union LINK * link = LockingBlock( NULL, context );
-		LinkedListEnqueue( &link->LinkedListLink,
-			   	&lock->WaitingThreads);
-	}
-	else
-	{
-		lock->Count--;
-		LockingAcquire( context );	
-	}
-	LockingEnd();
+        LockingStart();
+        if ( lock->Count == 0 ) {//block the thread
+                union LINK * link = LockingBlock( NULL, context );
+                LinkedListEnqueue( &link->LinkedListLink,
+                                &lock->WaitingThreads);
+        } else {
+                lock->Count--;
+                LockingAcquire( context );
+        }
+        LockingEnd();
 }
 
 void SemaphoreUp( struct SEMAPHORE * lock )
 {//UNLOCK
-	struct LOCKING_CONTEXT * context;
-	LockingStart();
-	if( ! LinkedListIsEmpty( & lock->WaitingThreads ) )
-	{
-		context = BASE_OBJECT(
-				LinkedListPop( &lock->WaitingThreads ),
-				struct LOCKING_CONTEXT,
-				Link);
+        struct LOCKING_CONTEXT * context;
+        LockingStart();
+        if ( ! LinkedListIsEmpty( & lock->WaitingThreads ) ) {
+                context = BASE_OBJECT(
+                                LinkedListPop( &lock->WaitingThreads ),
+                                struct LOCKING_CONTEXT,
+                                Link);
 
-		LockingAcquire( context );
-	}
-	else
-	{
-		lock->Count++;
-	}
-
-	LockingEnd( );
+                LockingAcquire( context );
+        } else {
+                lock->Count++;
+        }
+        LockingEnd( );
 }
