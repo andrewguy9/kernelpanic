@@ -53,8 +53,7 @@ void IsrRegisterHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level
  */
 void IsrDisable(enum IRQ_LEVEL level)
 {
-        if( IsrDisabledCount[level] == 0 )
-        {
+        if( IsrDisabledCount[level] == 0 ) {
                 IsrDefer( level, FALSE );
         }
 
@@ -71,8 +70,7 @@ void IsrEnable(enum IRQ_LEVEL level)
 
         IsrDisabledCount[level]--;
 
-        if( IsrDisabledCount[level] == 0 )
-        {
+        if( IsrDisabledCount[level] == 0 ) {
                 //Because we are on the falling edge of a counted
                 //IsrDisable call we will need to change the
                 //interrupt mask. We should call IsrDefer
@@ -122,12 +120,9 @@ BOOL IsrIsAtomic(enum IRQ_LEVEL level)
 
         enum IRQ_LEVEL l;
         for(l = IRQ_LEVEL_COUNT - 1; l >= level; l--) {
-                if( IsrDisabledCount[l] == 0 )
-                {
+                if( IsrDisabledCount[l] == 0 ) {
                         ASSERT( ! HalIsIrqAtomic( l ) );
-                }
-                else
-                {
+                } else {
                         //Some level higher than level is atomic.
                         //That means that level itself is atomic.
                         ASSERT( HalIsIrqAtomic( l ) );
@@ -143,22 +138,20 @@ BOOL IsrIsAtomic(enum IRQ_LEVEL level)
  */
 BOOL IsrIsEdge(enum IRQ_LEVEL level)
 {
-        if( HalIsIrqAtomic( level ) && IsrDisabledCount[level] == 0 )
+        if( HalIsIrqAtomic( level ) && IsrDisabledCount[level] == 0 ) {
                 return TRUE;
-        else
+        } else {
                 return FALSE;
+        }
 }
 #endif //DEBUG
 
 BOOL IsrCheckLevel( enum IRQ_LEVEL changingLevel, enum IRQ_LEVEL candidateLevel, BOOL enable)
 {
-        if( IsrDisabledCount[candidateLevel] > 0 || (candidateLevel == changingLevel && ! enable) )
-        {
+        if( IsrDisabledCount[candidateLevel] > 0 || (candidateLevel == changingLevel && ! enable) ) {
                 HalSetIrq(candidateLevel);
                 return TRUE;
-        }
-        else
-        {
+        } else {
                 return FALSE;
         }
 }
@@ -174,22 +167,6 @@ BOOL IsrCheckLevel( enum IRQ_LEVEL changingLevel, enum IRQ_LEVEL candidateLevel,
  */
 void IsrDefer( enum IRQ_LEVEL level, BOOL enable )
 {
-#if 0
-
-        if( IsrDisabledCount[level] > 0 || (level == IRQ_LEVEL_TIMER && ! enable ) )
-        {
-                //Interrupts are disabled, so we should set the
-                //interrupt disabled mask.
-                HalSetIrq(IRQ_LEVEL_TIMER);
-        }
-        else
-        {
-                //interrupts are allowed, we should defer to crit interrupts.
-                SoftIsrDefer( level, enable );
-        }
-
-#else
-
         enum IRQ_LEVEL l;
         for(l = IRQ_LEVEL_COUNT - 1; l > IRQ_LEVEL_NONE; l--) {
                 if( IsrCheckLevel(level, l, enable) ) {
@@ -199,7 +176,6 @@ void IsrDefer( enum IRQ_LEVEL level, BOOL enable )
 
         //If we get here, then we know that our IRQ should be passive.
         HalSetIrq(IRQ_LEVEL_NONE);
-#endif
 }
 
 
