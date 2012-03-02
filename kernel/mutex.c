@@ -1,5 +1,4 @@
 #include"mutex.h"
-#include"hal.h"
 #include"../utils/types.h"
 
 /*
@@ -10,11 +9,11 @@
  *
  * Mutexes should be used whenever threads and ISRs need to access the same data.
  * Be aware that mutexes do not support blocking. This means that they are NOT starvation
- * safe. If a unit polls tightly on the mutex it could hold it FOREVER, or it may not ever 
+ * safe. If a unit polls tightly on the mutex it could hold it FOREVER, or it may not ever
  * acquire the lock.
  *
  * To make sure this does not happen only use mutexes when usage of the lock is gauranteed
- * to be sparse. 
+ * to be sparse.
  */
 
 
@@ -25,12 +24,11 @@
  */
 BOOL MutexLock( struct MUTEX * lock )
 {
-	if(HalAtomicGetAndSet(&lock->Locked)) {
-		return FALSE;
-	}
-	else {
-		return TRUE;
-	}
+        if(AtomicGetAndSet(&lock->Locked)) {
+                return FALSE;
+        } else {
+                return TRUE;
+        }
 }
 
 /*
@@ -38,8 +36,8 @@ BOOL MutexLock( struct MUTEX * lock )
  */
 void MutexUnlock( struct MUTEX * lock )
 {
-	ATOMIC wasLocked = HalAtomicGetAndClear(&lock->Locked);
-	ASSERT( wasLocked );
+        ATOMIC wasLocked = AtomicGetAndClear(&lock->Locked);
+        ASSERT( wasLocked );
 }
 
 #ifdef DEBUG

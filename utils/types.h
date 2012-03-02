@@ -34,13 +34,13 @@ union ATOMIC_UNION
         struct ATOMIC_TUPLE Tuple;
 };
 
-ATOMIC HalAtomicGetAndAnd(ATOMIC * var, ATOMIC val);
-ATOMIC HalAtomicGetAndOr(ATOMIC * var, ATOMIC val);
-ATOMIC HalCompareAndSwap(ATOMIC * var, ATOMIC old, ATOMIC next);
-DOUBLE_COUNT HalDoubleCompareAndSwap(DOUBLE_COUNT * var, DOUBLE_COUNT old, DOUBLE_COUNT next);
+ATOMIC AtomicGetAndAnd(ATOMIC * var, ATOMIC val);
+ATOMIC AtomicGetAndOr(ATOMIC * var, ATOMIC val);
+ATOMIC CompareAndSwap(ATOMIC * var, ATOMIC old, ATOMIC next);
+DOUBLE_COUNT DoubleCompareAndSwap(DOUBLE_COUNT * var, DOUBLE_COUNT old, DOUBLE_COUNT next);
 
-#define HalAtomicGetAndSet(var) (HalAtomicGetAndOr(var, 1))
-#define HalAtomicGetAndClear(var) (HalAtomicGetAndAnd(var, 0))
-#define HalCompareAndSwapPtrs(var, old, next) \
-        HalCompareAndSwap((ATOMIC *) (var), (ATOMIC) (old), (ATOMIC) (next))
+#define AtomicGetAndSet(var) (AtomicGetAndOr(var, 1))
+#define AtomicGetAndClear(var) (AtomicGetAndAnd(var, 0))
+#define CompareAndSwapPtrs(var, old, next) \
+        CompareAndSwap((ATOMIC *) (var), (ATOMIC) (old), (ATOMIC) (next))
 #endif // TYPES_H

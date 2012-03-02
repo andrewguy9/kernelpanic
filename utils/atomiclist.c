@@ -6,7 +6,7 @@ void AtomicListPush( struct ATOMIC_LIST_LINK * node, struct ATOMIC_LIST * list )
                 // Get node pointing at the old head.
                 node->Next = list->Head.Tuple.Pointer;
 
-        } while ( (void *) node->Next != (void *) HalCompareAndSwapPtrs(
+        } while ( (void *) node->Next != (void *) CompareAndSwapPtrs(
                                 &list->Head.Tuple.Pointer, // Swap this location
                                 list->Head.Tuple.Pointer,  // If it equals this value
                                 node) );                     // with this  value.
@@ -38,7 +38,7 @@ struct ATOMIC_LIST_LINK * AtomicListPop( struct ATOMIC_LIST * list )
                 // Attempt a writeback.
                 newHead.Tuple.Pointer = next;
                 newHead.Tuple.Generation = generation;
-        } while (oldHead.Atomic != HalDoubleCompareAndSwap(
+        } while (oldHead.Atomic != DoubleCompareAndSwap(
                                 &list->Head.Atomic,
                                 oldHead.Atomic,
                                 newHead.Atomic) );
