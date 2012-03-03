@@ -58,7 +58,6 @@ int main()
 			STACK_SIZE,
 			TestThreadMain,
 			NULL,
-		   	4,
 			TRUE);
 
 	KernelStart();

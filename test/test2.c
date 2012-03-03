@@ -75,64 +75,59 @@ void ConsumerMain()
 //main
 int main()
 {
-	KernelInit();
-	
-	SchedulerStartup();
+        KernelInit();
 
-	//Initialize Pipes.
-	PipeInit( RingBuff, RING_SIZE, &Pipe );
+        SchedulerStartup();
 
-	//Initialize Socket
-	SocketInit( & Pipe, & Pipe, & Socket ); 
+        //Initialize Pipes.
+        PipeInit( RingBuff, RING_SIZE, &Pipe );
 
-	//Initialize Threads
-	SchedulerCreateThread(
-			&Producer1,
-			1,
-			ProducerStack1,
-			STACK_SIZE,
-			ProducerMain,
-			NULL,
-			1,
-			TRUE);
-	SchedulerCreateThread(
-			&Producer2,
-			1,
-			ProducerStack2,
-			STACK_SIZE,
-			ProducerMain,
-			NULL,
-			2,
-			TRUE);
-	SchedulerCreateThread(
-			&Consumer1,
-			1,
-			ConsumerStack1,
-			STACK_SIZE,
-			ConsumerMain,
-			NULL,
-			3,
-			TRUE);
-	SchedulerCreateThread(
-			&Consumer2,
-			1,
-			ConsumerStack2,
-			STACK_SIZE,
-			ConsumerMain,
-			NULL,
-			5,
-			TRUE);
+        //Initialize Socket
+        SocketInit( & Pipe, & Pipe, & Socket );
 
-	SchedulerCreateThread(
-			&Consumer3,
-			1,
-			ConsumerStack3,
-			STACK_SIZE,
-			ConsumerMain,
-			NULL,
-			6,
-			TRUE);
-	//Kick off the kernel.
-	KernelStart();
-	return 0;
+        //Initialize Threads
+        SchedulerCreateThread(
+                        &Producer1,
+                        1,
+                        ProducerStack1,
+                        STACK_SIZE,
+                        ProducerMain,
+                        NULL,
+                        TRUE);
+        SchedulerCreateThread(
+                        &Producer2,
+                        1,
+                        ProducerStack2,
+                        STACK_SIZE,
+                        ProducerMain,
+                        NULL,
+                        TRUE);
+        SchedulerCreateThread(
+                        &Consumer1,
+                        1,
+                        ConsumerStack1,
+                        STACK_SIZE,
+                        ConsumerMain,
+                        NULL,
+                        TRUE);
+        SchedulerCreateThread(
+                        &Consumer2,
+                        1,
+                        ConsumerStack2,
+                        STACK_SIZE,
+                        ConsumerMain,
+                        NULL,
+                        TRUE);
+
+        SchedulerCreateThread(
+                        &Consumer3,
+                        1,
+                        ConsumerStack3,
+                        STACK_SIZE,
+                        ConsumerMain,
+                        NULL,
+                        TRUE);
+        //Kick off the kernel.
+        KernelStart();
+        return 0;
 }

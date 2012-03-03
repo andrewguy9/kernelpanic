@@ -50,7 +50,6 @@ void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL le
 
 void HalStartup();
 
-void HalEnableWatchdog( int timeout );
 void HalPetWatchdog( );
 void HalStartInterrupt();
 void HalEndInterrupt();
@@ -63,12 +62,6 @@ void HalSetIrq(enum IRQ_LEVEL irq);
 void HalStartSerial();
 BOOL HalSerialGetChar(char * out);
 void HalSerialWriteChar(char data);
-
-ATOMIC HalAtomicGetAndAnd(ATOMIC * var, ATOMIC val);
-ATOMIC HalAtomicGetAndOr(ATOMIC * var, ATOMIC val);
-
-#define HalAtomicGetAndSet(var) (HalAtomicGetAndOr(var, 1))
-#define HalAtomicGetAndClear(var) (HalAtomicGetAndAnd(var, 0))
 
 TIME HalGetTime();
 

@@ -1,4 +1,5 @@
 #include"critinterrupt.h"
+#include"../utils/atomiclist.h"
 #include"hal.h"
 
 /*
@@ -26,7 +27,7 @@ void CritInterrupt();
 //Crit Interrupt Variables
 //
 
-struct LINKED_LIST CritInterruptHandlerList;
+struct ATOMIC_LIST CritInterruptHandlerList;
 
 //
 //Unit Management
@@ -35,61 +36,54 @@ struct LINKED_LIST CritInterruptHandlerList;
 //Run at kernel startup to initialize flags.
 void CritInterruptStartup()
 {
-	LinkedListInit( & CritInterruptHandlerList );
-	HalRegisterIsrHandler( CritInterrupt, (void *) HAL_ISR_CRIT, IRQ_LEVEL_CRIT );
+        AtomicListInit( & CritInterruptHandlerList );
+        HalRegisterIsrHandler( CritInterrupt, (void *) HAL_ISR_CRIT, IRQ_LEVEL_CRIT );
 }
 
-void CritInterrupt() 
+void CritInterrupt()
 {
-	struct HANDLER_OBJECT * handler;
-	BOOL isComplete;
-	HANDLER_FUNCTION * func;
+        struct ATOMIC_LIST_LINK * link;
+        struct HANDLER_OBJECT * handler;
+        BOOL isComplete;
+        HANDLER_FUNCTION * func;
 
-	CritInterruptIncrement();
+        CritInterruptIncrement();
 
-	IsrDisable(IRQ_LEVEL_MAX);
-	while( ! LinkedListIsEmpty( & CritInterruptHandlerList ) )
-	{
-		handler = BASE_OBJECT(
-				LinkedListPop( & CritInterruptHandlerList ),
-				struct HANDLER_OBJECT,
-				Link );
+        while( (link = AtomicListPop(&CritInterruptHandlerList)) )
+        {
+                handler = BASE_OBJECT(
+                                link,
+                                struct HANDLER_OBJECT,
+                                Link );
 
-		IsrEnable(IRQ_LEVEL_MAX);
+                HandlerRun( handler );
+                func = handler->Function;
+                isComplete = func( handler );
 
-		HandlerRun( handler );
-		func = handler->Function;
-		isComplete = func( handler );
+                if(isComplete)
+                {
+                        HandlerFinish( handler );
+                }
+        }
 
-		if(isComplete) 
-		{
-			HandlerFinish( handler );
-		}
-
-		IsrDisable(IRQ_LEVEL_MAX);
-	}
-	IsrEnable(IRQ_LEVEL_MAX);
-
-	CritInterruptDecrement();
+        CritInterruptDecrement();
 }
 
 void CritInterruptRegisterHandler(
-		struct HANDLER_OBJECT * handler,
-		HANDLER_FUNCTION foo,
-		void * context )
+                struct HANDLER_OBJECT * handler,
+                HANDLER_FUNCTION foo,
+                void * context )
 {
 
-	handler->Function = foo;
-	handler->Context = context;
+        handler->Function = foo;
+        handler->Context = context;
 
-	HandlerRegister( handler );
+        HandlerRegister( handler );
 
-	IsrDisable(IRQ_LEVEL_MAX);
-	LinkedListEnqueue( &handler->Link.LinkedListLink,
-			& CritInterruptHandlerList );
-	IsrEnable(IRQ_LEVEL_MAX);
+        AtomicListPush( &handler->Link.AtomicListLink,
+                        &CritInterruptHandlerList );
 
-	HalRaiseInterrupt(IRQ_LEVEL_CRIT);
+        HalRaiseInterrupt(IRQ_LEVEL_CRIT);
 }
 
 

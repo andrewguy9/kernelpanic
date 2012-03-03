@@ -118,59 +118,54 @@ char Reader3Stack[STACK_SIZE];
 
 int main()
 {
-	KernelInit();
-	
-	SchedulerStartup();
+        KernelInit();
 
-	TimesRead = 0;
-	TimesWritten = 0;
+        SchedulerStartup();
 
-	SchedulerCreateThread( 
-			& Reader1,
-			5,
-			Reader1Stack,
-			STACK_SIZE,
-			Reader,
-			NULL,
-			0,
-			TRUE);
-	SchedulerCreateThread( 
-			& Reader2,
-			5,
-			Reader2Stack,
-			STACK_SIZE,
-			Reader,
-			NULL,
-			1,
-			TRUE);
-	SchedulerCreateThread( 
-			& Reader3,
-			5,
-			Reader3Stack,
-			STACK_SIZE,
-			Reader,
-			NULL,
-			2,
-			TRUE);
-	SchedulerCreateThread( 
-			& Writer1,
-			5,
-			Writer1Stack,
-			STACK_SIZE,
-			Writer,
-			NULL,
-			4,
-			TRUE);
-	SchedulerCreateThread( 
-			& Writer2,
-			5,
-			Writer2Stack,
-			STACK_SIZE,
-			Writer,
-			NULL,
-			5,
-			TRUE);
+        TimesRead = 0;
+        TimesWritten = 0;
 
-	KernelStart();
-	return 0;
+        SchedulerCreateThread(
+                        & Reader1,
+                        5,
+                        Reader1Stack,
+                        STACK_SIZE,
+                        Reader,
+                        NULL,
+                        TRUE);
+        SchedulerCreateThread(
+                        & Reader2,
+                        5,
+                        Reader2Stack,
+                        STACK_SIZE,
+                        Reader,
+                        NULL,
+                        TRUE);
+        SchedulerCreateThread(
+                        & Reader3,
+                        5,
+                        Reader3Stack,
+                        STACK_SIZE,
+                        Reader,
+                        NULL,
+                        TRUE);
+        SchedulerCreateThread(
+                        & Writer1,
+                        5,
+                        Writer1Stack,
+                        STACK_SIZE,
+                        Writer,
+                        NULL,
+                        TRUE);
+        SchedulerCreateThread(
+                        & Writer2,
+                        5,
+                        Writer2Stack,
+                        STACK_SIZE,
+                        Writer,
+                        NULL,
+                        TRUE);
+
+        KernelStart();
+        return 0;
 }

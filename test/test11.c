@@ -151,81 +151,70 @@ void ConsumerMain( void * arg )
 
 int main()
 {
-	KernelInit();
-	
-	SchedulerStartup();
+        KernelInit();
 
-	ConsumerCount = 0;
-	ProducerCount = 0;
+        SchedulerStartup();
 
-	PipeInit( MessageBuffer1, BUFFER_LENGTH, &Pipe1 );
-	PipeInit( MessageBuffer2, BUFFER_LENGTH, &Pipe2 );
-	PipeInit( MessageBuffer3, BUFFER_LENGTH, &Pipe3 );
+        ConsumerCount = 0;
+        ProducerCount = 0;
 
-	SocketInit( &Pipe1, &Pipe1, &Socket1 );
-	SocketInit( &Pipe2, &Pipe2, &Socket2 );
-	SocketInit( &Pipe3, &Pipe3, &Socket3 );
+        PipeInit( MessageBuffer1, BUFFER_LENGTH, &Pipe1 );
+        PipeInit( MessageBuffer2, BUFFER_LENGTH, &Pipe2 );
+        PipeInit( MessageBuffer3, BUFFER_LENGTH, &Pipe3 );
 
-	SchedulerCreateThread(
-			&Producer1,
-			1,
-			ProducerStack1,
-			STACK_SIZE,
-			ProducerMain,
-			(void*) &Socket1,
-			0,
-			TRUE );
-	/*
-	SchedulerCreateThread(
-			&Producer2,
-			1,
-			ProducerStack2,
-			STACK_SIZE,
-			ProducerMain,
-			(void*) &Socket2,
-			0,
-			TRUE );
-	SchedulerCreateThread(
-			&Producer3,
-			1,
-			ProducerStack3,
-			STACK_SIZE,
-			ProducerMain,
-			(void*) &Socket3,
-			0,
-			TRUE );
-*/
+        SocketInit( &Pipe1, &Pipe1, &Socket1 );
+        SocketInit( &Pipe2, &Pipe2, &Socket2 );
+        SocketInit( &Pipe3, &Pipe3, &Socket3 );
 
-	SchedulerCreateThread(
-			&Consumer1,
-			1,
-			ConsumerStack1,
-			STACK_SIZE,
-			ConsumerMain,
-			&Socket1,
-			0,
-			TRUE );
-	/*
-	SchedulerCreateThread(
-			&Consumer2,
-			1,
-			ConsumerStack2,
-			STACK_SIZE,
-			ConsumerMain,
-			&Socket2,
-			0,
-			TRUE );	
-	SchedulerCreateThread(
-			&Consumer3,
-			1,
-			ConsumerStack3,
-			STACK_SIZE,
-			ConsumerMain,
-			&Socket3,
-			0,
-			TRUE );
-*/
+        SchedulerCreateThread(
+                        &Producer1,
+                        1,
+                        ProducerStack1,
+                        STACK_SIZE,
+                        ProducerMain,
+                        (void*) &Socket1,
+                        TRUE );
+        SchedulerCreateThread(
+                        &Producer2,
+                        1,
+                        ProducerStack2,
+                        STACK_SIZE,
+                        ProducerMain,
+                        (void*) &Socket2,
+                        TRUE );
+        SchedulerCreateThread(
+                        &Producer3,
+                        1,
+                        ProducerStack3,
+                        STACK_SIZE,
+                        ProducerMain,
+                        (void*) &Socket3,
+                        TRUE );
+        SchedulerCreateThread(
+                        &Consumer1,
+                        1,
+                        ConsumerStack1,
+                        STACK_SIZE,
+                        ConsumerMain,
+                        &Socket1,
+                        TRUE );
+        SchedulerCreateThread(
+                        &Consumer2,
+                        1,
+                        ConsumerStack2,
+                        STACK_SIZE,
+                        ConsumerMain,
+                        &Socket2,
+                        TRUE );
+        SchedulerCreateThread(
+                        &Consumer3,
+                        1,
+                        ConsumerStack3,
+                        STACK_SIZE,
+                        ConsumerMain,
+                        &Socket3,
+                        TRUE );
 
-	KernelStart();
-	return 0;
+        KernelStart();
+        return 0;
 }

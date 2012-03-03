@@ -18,7 +18,7 @@ KERN_PREFIX = kern_
 ##############################################
 #c flags
 ifeq ($(shell uname), Darwin)
-PC_CFLAGS  = "-g -Wall"
+PC_CFLAGS  = "-g -Wall -arch i386"
 AVR_CFLAGS = "-Wall -mmcu=atmega128 -O2"
 OS = "DARWIN"
 endif

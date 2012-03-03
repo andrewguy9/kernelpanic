@@ -6,15 +6,15 @@
  * This is where that data should be stored. However it is important to keep this as small
  * as possible.
  */
-enum RESOURCE_STATE 
-{ 
-	RESOURCE_SHARED, 
-	RESOURCE_EXCLUSIVE 
+enum RESOURCE_STATE
+{
+        RESOURCE_SHARED,
+        RESOURCE_EXCLUSIVE
 };
 
-union BLOCKING_CONTEXT 
+union BLOCKING_CONTEXT
 {
-	enum RESOURCE_STATE ResourceWaitState;
+        enum RESOURCE_STATE ResourceWaitState;
 };
 
 #endif

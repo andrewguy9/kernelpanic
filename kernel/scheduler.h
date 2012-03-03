@@ -28,16 +28,15 @@ struct THREAD * SchedulerGetActiveThread();
 
 void SchedulerStartup( );
 
-void 
-SchedulerCreateThread( 
-		struct THREAD * thread,
-		unsigned char priority,
-		char * stack,
-		COUNT stackSize,
-		THREAD_MAIN main,
-		void * Argument,
-		INDEX debugFlag,
-		BOOL start);
+void
+SchedulerCreateThread(
+                struct THREAD * thread,
+                unsigned char priority,
+                char * stack,
+                COUNT stackSize,
+                THREAD_MAIN main,
+                void * Argument,
+                BOOL start);
 
 struct LOCKING_CONTEXT * SchedulerGetLockingContext();
 

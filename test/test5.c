@@ -79,42 +79,39 @@ void ConsumerNonBlockingMain()
 
 int main()
 {
-	KernelInit();
-	
-	SchedulerStartup();
+        KernelInit();
 
-	SemaphoreInit( &Lock, 0 );
+        SchedulerStartup();
 
-	SchedulerCreateThread( 
-			&Producer, 
-			1 , 
-			ProducerStack , 
-			STACK_SIZE , 
-			ProducerMain , 
-			NULL,
-			0,
-			TRUE );
+        SemaphoreInit( &Lock, 0 );
 
-	SchedulerCreateThread( 
-			&ConsumerBlocking, 
-			1 , 
-			ConsumerBlockingStack , 
-			STACK_SIZE , 
-			ConsumerBlockingMain,
-			NULL,
-		   	4, 
-			TRUE );
+        SchedulerCreateThread(
+                        &Producer,
+                        1 ,
+                        ProducerStack ,
+                        STACK_SIZE ,
+                        ProducerMain ,
+                        NULL,
+                        TRUE );
 
-	SchedulerCreateThread(
-		   	&ConsumerNonBlocking ,
-		   	1 , 
-			ConsumerNonBlockingStack , 
-			STACK_SIZE , 
-			ConsumerNonBlockingMain ,
-			NULL,
-		   	5, 
-			TRUE );
+        SchedulerCreateThread(
+                        &ConsumerBlocking,
+                        1 ,
+                        ConsumerBlockingStack ,
+                        STACK_SIZE ,
+                        ConsumerBlockingMain,
+                        NULL,
+                        TRUE );
 
-	KernelStart();
-	return 0;
+        SchedulerCreateThread(
+                        &ConsumerNonBlocking ,
+                        1 ,
+                        ConsumerNonBlockingStack ,
+                        STACK_SIZE ,
+                        ConsumerNonBlockingMain ,
+                        NULL,
+                        TRUE );
+
+        KernelStart();
+        return 0;
 }

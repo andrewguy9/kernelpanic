@@ -3,7 +3,6 @@
 
 #include"../utils/utils.h"
 #include"handler.h"
-#include"../utils/linkedlist.h"
 #include"isr.h"
 
 //

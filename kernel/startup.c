@@ -8,7 +8,7 @@
 
 /*
  * Startup Unit:
- * The startup unit bootstraps the kernel. 
+ * The startup unit bootstraps the kernel.
  */
 
 /*
@@ -17,18 +17,16 @@
  */
 void KernelInit()
 {//entry point for kernel...
-	HalIsrInit();
+        HalIsrInit();
 
-	IsrStartup();
-	//TODO THIS IS A STARTUP HACK, WE SHOULD FIX IT.
-	IsrDisable(IRQ_LEVEL_MAX);
+        IsrStartup();
+        //TODO THIS IS A STARTUP HACK, WE SHOULD FIX IT.
+        IsrDisable(IRQ_LEVEL_MAX);
 
-	CritInterruptStartup();
-	SoftInterruptStartup();
+        CritInterruptStartup();
+        SoftInterruptStartup();
 
-	WatchdogStartup();
-
-	TimerStartup();//TODO THE TIMER REGISTERED IN THIS FUNCTION IS RACING THE CALL WE MAKE TO IsrDisable. 
+        TimerStartup();//TODO THE TIMER REGISTERED IN THIS FUNCTION IS RACING THE CALL WE MAKE TO IsrDisable.
 }
 
 /*
@@ -37,16 +35,16 @@ void KernelInit()
  */
 void KernelStart()
 {
-	ASSERT( HalIsIrqAtomic(IRQ_LEVEL_MAX) );
-	//TODO THIS IS A STARTUP HACK, WE SHOULD FIX IT.
-	IsrEnable(IRQ_LEVEL_MAX);
-	ASSERT( ! HalIsIrqAtomic(IRQ_LEVEL_MAX) );
+        ASSERT( HalIsIrqAtomic(IRQ_LEVEL_MAX) );
+        //TODO THIS IS A STARTUP HACK, WE SHOULD FIX IT.
+        IsrEnable(IRQ_LEVEL_MAX);
+        ASSERT( ! HalIsIrqAtomic(IRQ_LEVEL_MAX) );
 
-	while(1)
-	{
-		HalSleepProcessor();
-	}
+        while(1)
+        {
+                HalSleepProcessor();
+        }
 
-	KernelPanic();
+        KernelPanic();
 }
 

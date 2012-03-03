@@ -82,24 +82,23 @@ void SleeperMain()
 
 int main()
 {
-	KernelInit();
-	
-	SchedulerStartup();
+        KernelInit();
 
-	TimerCycles = 0;
+        SchedulerStartup();
 
-	HandlerInit( &Timer );
+        TimerCycles = 0;
 
-	SchedulerCreateThread(
-			&SleeperThread,
-			1,
-			SleeperStack,
-			STACK_SIZE,
-			SleeperMain,
-			NULL,
-			2,
-			TRUE);
+        HandlerInit( &Timer );
 
-	KernelStart();
-	return 0;
+        SchedulerCreateThread(
+                        &SleeperThread,
+                        1,
+                        SleeperStack,
+                        STACK_SIZE,
+                        SleeperMain,
+                        NULL,
+                        TRUE);
+
+        KernelStart();
+        return 0;
 }

@@ -115,41 +115,40 @@ enum WORKER_RETURN WorkerConsumerTask( struct WORKER_ITEM * item )
 
 enum WORKER_RETURN WorkerProducerTask( struct WORKER_ITEM * item )
 {
-	struct WORKER_CONTEXT * workContext = WorkerGetContext( item );
-	SemaphoreUp( &Semaphore );
-	workContext->Count++;
-	return WORKER_FINISHED;
+        struct WORKER_CONTEXT * workContext = WorkerGetContext( item );
+        SemaphoreUp( &Semaphore );
+        workContext->Count++;
+        return WORKER_FINISHED;
 }
 
 //TODO We should have a normal thread fire off work items as well to test 
 //the thread paths.
 
-//Main 
+//Main
 
 int main()
 {
-	KernelInit();
-	
-	SchedulerStartup();
+        KernelInit();
 
-	WorkerCreateWorker(
-			&WorkerQueue,
-			WorkerStack,
-			STACK_SIZE,
-			1 );
+        SchedulerStartup();
 
-	ProducerContext.Count = 0; 
-	ConsumerContext.Count = 0;
+        WorkerCreateWorker(
+                        &WorkerQueue,
+                        WorkerStack,
+                        STACK_SIZE);
 
-	HandlerInit( &WorkTimer );
-	TimerRegister(
-			&WorkTimer,
-			1,
-			WorkTimerHandler,
-			NULL );
+        ProducerContext.Count = 0;
+        ConsumerContext.Count = 0;
 
-	KernelStart();
+        HandlerInit( &WorkTimer );
+        TimerRegister(
+                        &WorkTimer,
+                        1,
+                        WorkTimerHandler,
+                        NULL );
 
-	return 0;
+        KernelStart();
+
+        return 0;
 }
 

@@ -13,10 +13,10 @@
  * For instance, when a thread is run, its mask is applied to the running
  * mask. ISRs can also apply a flag to the mask.
  *
- * Then the watchdog timer expires the HalDesiredMask is compared against the 
+ * Then the watchdog timer expires the HalDesiredMask is compared against the
  * HalRunningMask. If they dont match, then a component of the kernel didn't
  * run between runs of the watchdog. This is considered an error and the
- * kernel will panic. 
+ * kernel will panic.
  *
  * It is the responsibility of the app developer to set the desired mask.
  * If a bit in the desired mask is 0, there will be no check on that bit.
@@ -37,32 +37,28 @@ void WatchdogInterrupt();
 
 BITFIELD WatchdogDesiredMask;
 BITFIELD WatchdogCurMask;
+TIME Timeout;
 
-#ifdef DEBUG 
+#ifdef DEBUG
 TIME WatchdogLastUpdatedTime;
 TIME WatchdogLastClearedTime;
 #endif
 
-/*
- * Call this to setup the watchdog system
- */
-void WatchdogStartup( )
+void WatchdogEnable( TIME timeout )
 {
-	WatchdogDesiredMask = FLAG_NONE;
-	WatchdogCurMask = FLAG_NONE;
+        Timeout = timeout;
+        WatchdogDesiredMask = FLAG_NONE;
+        WatchdogCurMask = FLAG_NONE;
 
-#ifdef DEBUG 
-	WatchdogLastUpdatedTime = 0;
-	WatchdogLastClearedTime = 0;
+#ifdef DEBUG
+        WatchdogLastUpdatedTime = 0;
+        WatchdogLastClearedTime = 0;
 #endif
-	
-	HalWatchdogInit();
-	HalRegisterIsrHandler( WatchdogInterrupt, (void *) HAL_ISR_WATCHDOG, IRQ_LEVEL_WATCHDOG );
-}
 
-void WatchdogEnable( int timeout )
-{
-	HalEnableWatchdog( timeout );
+        HalRegisterIsrHandler( WatchdogInterrupt, (void *) HAL_ISR_WATCHDOG, IRQ_LEVEL_WATCHDOG );
+
+        // Now that we have set up the handler, lets arm the watchdog.
+        HalPetWatchdog( Timeout );
 }
 
 /*
@@ -71,79 +67,58 @@ void WatchdogEnable( int timeout )
  */
 void WatchdogNotify( INDEX index )
 {
-	BITMAP_WORD flag;
+        BITMAP_WORD flag;
 #ifdef DEBUG
-	TIME time;
+        TIME time;
 #endif
 
-	//We ignore index 0.
-	if( index == 0 )
-	{
-		return;
-	}
-	else
-	{
-		index--;
-	}
+        //Ensure that we are using a valid flag.
+        ASSERT( index <= FLAG_MAX_INDEX );
 
-	//Ensure that we are using a valid flag.
-	ASSERT( index <= FLAG_MAX_INDEX );
+        //find the bit we want to flip.
+        flag = FlagGetBit( index );
 
-	//find the bit we want to flip.
-	flag = FlagGetBit( index );
-	
-	IsrDisable(IRQ_LEVEL_WATCHDOG);
+        IsrDisable(IRQ_LEVEL_WATCHDOG);
 
-	//Assert that this flag is present in the desired mask.
-	ASSERT(FlagGet(flag, WatchdogDesiredMask));
+        //Assert that this flag is present in the desired mask.
+        ASSERT(FlagGet(flag, WatchdogDesiredMask));
 
 #ifdef DEBUG
-	time = TimerGetTime();
-	WatchdogLastUpdatedTime = time;
+        time = TimerGetTime();
+        WatchdogLastUpdatedTime = time;
 #endif
-	FlagOn( WatchdogCurMask, flag );
-	//check to see if all of the players have shown up.
-	if( FlagsEqual(WatchdogCurMask, WatchdogDesiredMask) )
-	{
-		//We have flipped all the flags required.
-		//So lets pet the watchdog.
-		HalPetWatchdog();
-		//Nhow lets clear the mask because we need to
-		//restart our checking.
-		WatchdogCurMask = FLAG_NONE;
+        FlagOn( WatchdogCurMask, flag );
+        //check to see if all of the players have shown up.
+        if( FlagsEqual(WatchdogCurMask, WatchdogDesiredMask) )
+        {
+                //We have flipped all the flags required.
+                //So lets pet the watchdog.
+                HalPetWatchdog(Timeout);
+                //Now lets clear the mask because we need to
+                //restart our checking.
+                WatchdogCurMask = FLAG_NONE;
 
 #ifdef DEBUG
-		WatchdogLastClearedTime = time;
+                WatchdogLastClearedTime = time;
 #endif
-	}
-	IsrEnable(IRQ_LEVEL_WATCHDOG);
+        }
+        IsrEnable(IRQ_LEVEL_WATCHDOG);
 }
 
 void WatchdogAddFlag( INDEX index )
 {
-	BITFIELD flag = FLAG_NONE;
+        BITFIELD flag = FLAG_NONE;
 
-	if( index == 0 )
-	{
-		return;
-	}
-	else
-	{
-		//We shift index down because we start numbering bits at 1.
-		//zero should be ignored.
-		index--;
-	}
+        ASSERT( index <= FLAG_MAX_INDEX );
 
-	ASSERT( index <= FLAG_MAX_INDEX );
+        flag = FlagGetBit( index );
 
-	flag = FlagGetBit( index );
-
-	IsrDisable(IRQ_LEVEL_WATCHDOG);
-	FlagOn( WatchdogDesiredMask, flag );
-	IsrEnable(IRQ_LEVEL_WATCHDOG);
+        IsrDisable(IRQ_LEVEL_WATCHDOG);
+        FlagOn( WatchdogDesiredMask, flag );
+        IsrEnable(IRQ_LEVEL_WATCHDOG);
 }
 
 void WatchdogInterrupt()
 {
-	KernelPanic();
+        KernelPanic();
 }
