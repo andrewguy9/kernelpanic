@@ -1,24 +1,28 @@
 #!/usr/bin/perl
 
-use List::Util qw[min max];
 use warnings;
 use strict;
+use File::Copy;
+use List::Util qw[min max];
+use Getopt::Long;
+
+#Get options
+my $timeout = 60;
+my $batchsize = 1;
+
+# Getopt::Long::Configure ('bundling_override');
+GetOptions (
+        'batch=i' => \$batchsize,
+        'time=i' => \$timeout,
+);
+
+print "Timeout $timeout\n";
+print "BatchSize $batchsize\n";
 
 #Set STDOUT to flush right away
 local $| = 1;
 
 my %cores = (); # Key is test, value is pid.
-
-use File::Copy;
-
-#Get timeout for tests.
-my $timeout = $ARGV[0];
-if(!$timeout) {
-        print "Assuming timeout of 60\n";
-        $timeout = 60;
-}
-#Get batchsize for tests
-my $batchsize = 7;
 
 #Get regression tests to run.
 open(REGRESSION_TESTS, "regression.txt");
@@ -30,7 +34,7 @@ while( my $test = <REGRESSION_TESTS> ) {
 }
 
 # Run tests
-print "Setting up batch - - - - - - - - - - - - - - - - - - - - - - - - \n";
+print "Setting up batch - - - - - - - - - - - - - - - - - - - - - - - - \n" if $batchsize != 1;
 my %kids = ();
 my $should_wait = min($batchsize, scalar @tests);
 my $passed = 0;
@@ -81,7 +85,7 @@ while (@tests) {
                 for my $line (@summary) {
                         print "$line\n";
                 }
-                print "Setting up batch - - - - - - - - - - - - - - - - - - - - - - - - \n";
+                print "Setting up batch - - - - - - - - - - - - - - - - - - - - - - - - \n" if $batchsize != 1;
                 local $SIG{ALRM} = undef;
                 @successes = ();
                 @failures = ();
