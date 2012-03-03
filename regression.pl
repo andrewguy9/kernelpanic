@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 
+use List::Util qw[min max];
 use warnings;
 use strict;
 
 #Set STDOUT to flush right away
 local $| = 1;
 
-my @failures = ();
 my @stacks = ();
 
 use File::Copy;
@@ -17,58 +17,81 @@ if(!$timeout) {
         print "Assuming timeout of 60\n";
         $timeout = 60;
 }
+#Get batchsize for tests
+my $batchsize = 7;
 
 #Get regression tests to run.
 open(REGRESSION_TESTS, "regression.txt");
 
-#Make sure cores are generated.
-system "ulimit -c unlimited";
-
+my @tests = ();
 while( my $test = <REGRESSION_TESTS> ) {
-
-        #start the current test.
         chomp( $test );
+        unshift @tests, $test;
+}
 
-        my $killed = 0;
-        #print "Starting $test\n";
+# Run tests
+print "Setting up batch - - - - - - - - - - - - - - - - - - - - - - - - \n";
+my %kids = ();
+my $should_wait = min($batchsize, scalar @tests);
+my $passed = 0;
+my @successes = ();
+my @failures = ();
+while (@tests) {
+        my $test = pop @tests;
+
         my $pid = fork();
-
         if(not defined $pid) {
-                print "failed to fork\n";
+                die "failed to fork\n";
         } elsif ($pid == 0) {
-                #print "i'm a child, running $test\n";
                 exec "./$test";
                 die "failed to start $test\n";
-        } else {
-                #print "i'm the parent, adding $pid to list\n";
-                print "$test running as pid $pid...";
+        }
 
+        #print "i'm the parent, adding $pid to list\n";
+        $kids{ $pid } = $test;
+
+        $should_wait--;
+        #We have a full batch.
+        if( $should_wait == 0 ) {
                 #set up a timer to break us out after some time.
                 local $SIG{ALRM} = sub{
-                        $killed = 1;
-                        kill 'INT', $pid;
-                        #die 'alarm';#dont know why he wants to die!
+                        $passed = 1;
+                        for my $kid (keys %kids) {
+                                kill 'INT', $kid;
+                        }
                 };
                 alarm $timeout;
 
-                my $kid = wait;
-                local $SIG{ALRM} = undef;
-                if ($kid == -1) {
-                        die "wait returned -1"
-                } else {
-                        if($killed) {
-                                print " passed!\n";
-                        } else {
-                                print " ***died unexpectedly*** ";
-                                my $core = "./$test.$kid.core";
-                                push @failures, "gdb $test $core";
-                                move("/cores/core.$kid", "$core");
-                                print " Core left at $core ";
-                                print "\n";
-                                push @stacks, get_stack($test, $core);
+                #wait for all kids to finish.
+                while( %kids ) {
+                        my $dead = wait;
+                        if ($dead == -1) {
+                                die "wait returned -1"
                         }
+                        if($passed) {
+                                push @successes, "Test $kids{$dead}($dead)... Passed";
+                        } else {
+                                my $core = "./$kids{$dead}.$dead.core";
+                                push @failures, "Test $kids{$dead}($dead)... FAILED!!!";
+                                move("/cores/core.$dead", "$core");
+                                print "Core left at $core\n";
+                                push @stacks, get_stack($kids{$dead}, $core);
+                        }
+                        delete $kids{$dead};
+                } # While kids still around
+                my @summary = (@successes, @failures);
+                @summary = sort @summary;
+                for my $line (@summary) {
+                        print "$line\n";
                 }
-        }
+                print "Setting up batch - - - - - - - - - - - - - - - - - - - - - - - - \n";
+                local $SIG{ALRM} = undef;
+                @successes = ();
+                @failures = ();
+                %kids = ();
+                $should_wait = min($batchsize, scalar @tests);
+                $passed = 0;
+        } # Should Wait
 }
 
 print "all done testing\n";
@@ -76,10 +99,8 @@ print "all done testing\n";
 print "\n\n";
 print "Summary:\n";
 print "-"x80 . "\n";
-if(@failures) {
-        for my $cur (@failures) {
-                print "$cur\n";
-                my $stack = shift @stacks;
+if(@stacks) {
+        for my $stack (@stacks) {
                 print $stack;
                 print "-"x80 . "\n";
         }
@@ -92,7 +113,7 @@ print "done\n";
 sub get_stack {
         my ($program, $core) = @_;
 
-        my $stack = "";
+        my $stack = "gdb $program $core\n";
 
         open GDB_OUTPUT, "gdb --command ./get_stack.gdb $program $core |" or die "Could not execute: $!";
         while(<GDB_OUTPUT>) {
