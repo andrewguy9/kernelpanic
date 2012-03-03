@@ -62,7 +62,7 @@ void ResourceWakeThreads( struct RESOURCE * lock )
                         LinkedListPop( & lock->WaitingThreads );
                         LockingAcquire( cur );
                 } else if ( cur->BlockingContext.ResourceWaitState == RESOURCE_EXCLUSIVE ) {
-                        if( lock->NumShared == 0 ) {
+                        if ( lock->NumShared == 0 ) {
                                 //First thread was exclusive. Wake him.
                                 LinkedListPop( & lock->WaitingThreads );
                                 lock->State = RESOURCE_EXCLUSIVE;
@@ -123,7 +123,7 @@ void ResourceLockExclusive( struct RESOURCE * lock, struct LOCKING_CONTEXT * con
         struct LINKED_LIST_LINK * link;
         LockingStart();
 
-        if( ! LinkedListIsEmpty( &lock->WaitingThreads ) ) {
+        if ( ! LinkedListIsEmpty( &lock->WaitingThreads ) ) {
                 //There are threads already threads blocking on
                 //this lock, so we need to get in line.
                 block.ResourceWaitState = RESOURCE_EXCLUSIVE;
@@ -140,7 +140,7 @@ void ResourceLockExclusive( struct RESOURCE * lock, struct LOCKING_CONTEXT * con
                         link = & LockingBlock( &block, context )->LinkedListLink;
                         LinkedListEnqueue( link, & lock->WaitingThreads );
                 }
-        } else if( lock->State == RESOURCE_EXCLUSIVE ) {
+        } else if ( lock->State == RESOURCE_EXCLUSIVE ) {
                 //The lock is already exclusive. Block.
                 block.ResourceWaitState = RESOURCE_EXCLUSIVE;
                 link = & LockingBlock( &block, context )->LinkedListLink;
@@ -178,8 +178,8 @@ void ResourceUnlockExclusive( struct RESOURCE * lock )
         //There should be no shared after exclusive unlock
         ASSERT( lock->NumShared == 0 );
 
-        if( lock->State == RESOURCE_EXCLUSIVE ) {
-                if( LinkedListIsEmpty( & lock->WaitingThreads ) ) {
+        if ( lock->State == RESOURCE_EXCLUSIVE ) {
+                if ( LinkedListIsEmpty( & lock->WaitingThreads ) ) {
                         //No threads to take over, restore to shared
                         lock->State = RESOURCE_SHARED;
                 } else {

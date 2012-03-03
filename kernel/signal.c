@@ -28,7 +28,7 @@ void SignalSet( struct SIGNAL * signal )
         struct LOCKING_CONTEXT * context;
 
         LockingStart();
-        if( signal->State ) {
+        if ( signal->State ) {
                 //
                 //We are already in the signaled state.
                 //We have no real work to do.
@@ -68,7 +68,7 @@ void SignalWaitForSignal( struct SIGNAL * signal, struct LOCKING_CONTEXT * conte
 {
         LockingStart();
 
-        if( signal->State ) {
+        if ( signal->State ) {
                 //
                 //We are already signaled, so the
                 //person calling should be notified right now.

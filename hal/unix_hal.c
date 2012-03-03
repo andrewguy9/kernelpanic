@@ -42,7 +42,7 @@ volatile BOOL halTempContextProcessed;
 void HalIsrFinalize();
 
 /*
- * This table establishes what handler to call and what signals to mask when a 
+ * This table establishes what handler to call and what signals to mask when a
  * signal is delivered.
  *
  * sigaction is the handler to call. This will normally be the generic handler: HalIsrHandler.
@@ -138,22 +138,19 @@ void HalBlockSignal( void * which );
  * sigaltstack will cause this fuction to be called on an alternate stack.
  * This allows us to bootstrap new threads.
  */
-void HalStackTrampoline( int SignalNumber ) 
+void HalStackTrampoline( int SignalNumber )
 {
         int status;
         status = _setjmp( halTempContext->Registers );
 
-        if( status == 0 )
-        {
+        if( status == 0 ) {
                 //Because status was 0 we know that this is the creation of
                 //the stack frame. We can use the locals to construct the frame.
 
                 halTempContextProcessed = TRUE;
                 halTempContext = NULL;
                 return;
-        }
-        else
-        {
+        } else {
                 //If we get here, then someone has jumped into a newly created thread.
                 //Test to make sure we are atomic
                 ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );

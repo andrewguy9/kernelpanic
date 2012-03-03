@@ -39,8 +39,8 @@ void SoftInterruptStartup();
 //
 
 void SoftInterruptRegisterHandler(
-		struct HANDLER_OBJECT * handler,
-		HANDLER_FUNCTION foo,
-		void * context );
+                struct HANDLER_OBJECT * handler,
+                HANDLER_FUNCTION foo,
+                void * context );
 
 #endif

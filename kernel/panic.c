@@ -3,19 +3,19 @@
 
 /*
  * Panic Unit Description:TODO THIS COMMENT IS OLD/WRONG
- * When the system encounters an error it should call a panic function. 
- * We support two types of panic. 
- * GeneralPanic is for thread panicing and Kernel is for kernel 
+ * When the system encounters an error it should call a panic function.
+ * We support two types of panic.
+ * GeneralPanic is for thread panicing and Kernel is for kernel
  * (and isr) panicing. The panic routines poll on their local failed
- * variables until a debugger is used to set it to zero. Using this 
+ * variables until a debugger is used to set it to zero. Using this
  * strategy you can continue running the program in the debugger.
  */
 
 /*
  * Disables interrupts and enters busy loop. Call for errors inside
- * of kernel. 
+ * of kernel.
  */
 void Panic( char file[], int line )
 {
-	HalPanic(file,line);
+        HalPanic(file,line);
 }

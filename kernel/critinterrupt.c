@@ -49,8 +49,7 @@ void CritInterrupt()
 
         CritInterruptIncrement();
 
-        while( (link = AtomicListPop(&CritInterruptHandlerList)) )
-        {
+        while( (link = AtomicListPop(&CritInterruptHandlerList)) ) {
                 handler = BASE_OBJECT(
                                 link,
                                 struct HANDLER_OBJECT,
@@ -60,8 +59,7 @@ void CritInterrupt()
                 func = handler->Function;
                 isComplete = func( handler );
 
-                if(isComplete)
-                {
+                if(isComplete) {
                         HandlerFinish( handler );
                 }
         }

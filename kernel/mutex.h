@@ -5,7 +5,7 @@
 
 struct MUTEX
 {
-	ATOMIC Locked;
+        ATOMIC Locked;
 };
 
 BOOL MutexLock( struct MUTEX * lock );

@@ -7,10 +7,10 @@
 
 struct SOCKET
 {
-	struct PIPE * ReadPipe;
-	struct PIPE * WritePipe;
-	struct SEMAPHORE ReadLock;
-	struct SEMAPHORE WriteLock;
+        struct PIPE * ReadPipe;
+        struct PIPE * WritePipe;
+        struct SEMAPHORE ReadLock;
+        struct SEMAPHORE WriteLock;
 };
 
 void SocketInit( struct PIPE * readPipe, struct PIPE * writePipe, struct SOCKET * socket );

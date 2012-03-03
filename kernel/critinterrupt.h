@@ -39,8 +39,8 @@ void CritInterruptStartup();
 //
 
 void CritInterruptRegisterHandler(
-		struct HANDLER_OBJECT * handler,
-		HANDLER_FUNCTION foo,
-		void * context );
+                struct HANDLER_OBJECT * handler,
+                HANDLER_FUNCTION foo,
+                void * context );
 
 #endif

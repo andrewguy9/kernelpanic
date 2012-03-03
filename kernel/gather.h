@@ -7,9 +7,9 @@
 
 struct GATHER
 {
-	volatile COUNT Needed;
-	volatile COUNT Present;
-	struct LINKED_LIST List;	
+        volatile COUNT Needed;
+        volatile COUNT Present;
+        struct LINKED_LIST List;
 };
 
 void GatherInit( struct GATHER * gather, COUNT count );

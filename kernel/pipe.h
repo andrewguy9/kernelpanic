@@ -7,10 +7,10 @@
 
 struct PIPE
 {
-	struct RING_BUFFER Ring;
-	struct SEMAPHORE Mutex;
-	struct SEMAPHORE ReaderLock;
-	struct SEMAPHORE WriterLock;
+        struct RING_BUFFER Ring;
+        struct SEMAPHORE Mutex;
+        struct SEMAPHORE ReaderLock;
+        struct SEMAPHORE WriterLock;
 };
 
 void PipeInit( char * buff, COUNT size, struct PIPE * pipe );

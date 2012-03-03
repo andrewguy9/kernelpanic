@@ -89,8 +89,7 @@ void WatchdogNotify( INDEX index )
 #endif
         FlagOn( WatchdogCurMask, flag );
         //check to see if all of the players have shown up.
-        if( FlagsEqual(WatchdogCurMask, WatchdogDesiredMask) )
-        {
+        if ( FlagsEqual(WatchdogCurMask, WatchdogDesiredMask) ) {
                 //We have flipped all the flags required.
                 //So lets pet the watchdog.
                 HalPetWatchdog(Timeout);

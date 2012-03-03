@@ -10,26 +10,26 @@ enum WORKER_RETURN { WORKER_PENDED, WORKER_BLOCKED, WORKER_FINISHED };
 
 typedef enum WORKER_RETURN (* WORKER_FUNCTION) ( struct WORKER_ITEM * item );
 
-struct WORKER_QUEUE 
+struct WORKER_QUEUE
 {
-	struct THREAD Thread;
-	struct LINKED_LIST List;
-	struct SEMAPHORE Lock;
+        struct THREAD Thread;
+        struct LINKED_LIST List;
+        struct SEMAPHORE Lock;
 };
 
 /*
- * Note: All of the elements in WORKER_ITEMs are only consistant from the 
+ * Note: All of the elements in WORKER_ITEMs are only consistant from the
  * perspective of the work queue its assigned to.
  * The only exception to this is "Finished" which will always be updated atomically.
  */
 struct WORKER_ITEM
 {
-	union LINK Link;
-	struct WORKER_QUEUE * Queue;
-	WORKER_FUNCTION Foo;
-	struct LOCKING_CONTEXT LockingContext;
-	void * Context;
-	BOOL Finished;//TODO IT WOULD BE NICE TO MOVE TO A DIFFERENT FINISHED MECHANISM, SAY READY LIKE THE HANDLERS?
+        union LINK Link;
+        struct WORKER_QUEUE * Queue;
+        WORKER_FUNCTION Foo;
+        struct LOCKING_CONTEXT LockingContext;
+        void * Context;
+        BOOL Finished;//TODO IT WOULD BE NICE TO MOVE TO A DIFFERENT FINISHED MECHANISM, SAY READY LIKE THE HANDLERS?
 };
 
 void WorkerCreateWorker(

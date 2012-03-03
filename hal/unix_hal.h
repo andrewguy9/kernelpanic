@@ -55,7 +55,7 @@
  * On System V we can use sigaltstack and setjmp, longjmp to boostrap new user
  * threads without the need for machine specific code.
  *
- * For context switches we use setjmp to save the current register values 
+ * For context switches we use setjmp to save the current register values
  * and longjmp to jump to a saved register context.
  *
  * To bootstrap a thread, we call sigaltstack to set the signal stack for

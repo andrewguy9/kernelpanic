@@ -40,8 +40,7 @@ void KernelStart()
         IsrEnable(IRQ_LEVEL_MAX);
         ASSERT( ! HalIsIrqAtomic(IRQ_LEVEL_MAX) );
 
-        while(1)
-        {
+        while(1) {
                 HalSleepProcessor();
         }
 

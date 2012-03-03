@@ -51,8 +51,7 @@ struct HEAP * TimersOverflow;
 void QueueTimers(TIME time, struct HEAP * heap)
 {
         while( HeapSize( heap ) > 0 &&
-                        HeapHeadWeight( heap ) <= time )
-        {
+                        HeapHeadWeight( heap ) <= time ) {
 
                 struct HANDLER_OBJECT * timer = BASE_OBJECT(
                                 HeapPop(  heap ),
@@ -78,8 +77,8 @@ void TimerInner( TIME time )
 {
         struct HEAP *temp;
 
-        if( time < TimerLastTime )
-        {//Overflow occured, drain heap
+        if ( time < TimerLastTime ) {
+                //Overflow occured, drain heap
 
                 QueueTimers(-1, Timers);
                 ASSERT(HeapSize(Timers) == 0);
@@ -100,7 +99,7 @@ void TimerInner( TIME time )
 
 void TimerSetNextTimer(TIME time)
 {
-        if(HeapSize(Timers) > 0) {
+        if (HeapSize(Timers) > 0) {
                 TIME nextTimer = HeapHeadWeight( Timers );
                 TIME delta = nextTimer - time;
                 HalSetTimer(delta);
@@ -145,12 +144,9 @@ void TimerRegister(
         newTimer->Context = context;
 
         //Add to heap
-        if( timerTime >= time )
-        {
+        if ( timerTime >= time ) {
                 HeapAdd(timerTime, &newTimer->Link.WeightedLink, Timers );
-        }
-        else
-        {
+        } else {
                 //Overflow ocurred
                 HeapAdd(timerTime, &newTimer->Link.WeightedLink, TimersOverflow);
         }

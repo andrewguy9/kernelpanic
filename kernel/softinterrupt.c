@@ -50,8 +50,7 @@ void SoftInterrupt()
 
         SoftInterruptIncrement();
 
-        while( (link = AtomicListPop(&SoftInterruptHandlerList)) )
-        {
+        while( (link = AtomicListPop(&SoftInterruptHandlerList)) ) {
                 handler = BASE_OBJECT(
                                 link,
                                 struct HANDLER_OBJECT,
@@ -61,8 +60,7 @@ void SoftInterrupt()
                 func = handler->Function;
                 isComplete = func( handler );
 
-                if(isComplete)
-                {
+                if (isComplete) {
                         HandlerFinish( handler );
                 }
 

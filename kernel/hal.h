@@ -28,11 +28,11 @@ enum IRQ_LEVEL {
     IRQ_LEVEL_NONE,
     IRQ_LEVEL_CRIT,
     IRQ_LEVEL_SOFT,
-	IRQ_LEVEL_SERIAL_WRITE,
-	IRQ_LEVEL_SERIAL_READ,
+    IRQ_LEVEL_SERIAL_WRITE,
+    IRQ_LEVEL_SERIAL_READ,
     IRQ_LEVEL_TIMER,
     IRQ_LEVEL_WATCHDOG,
-	IRQ_LEVEL_COUNT, //The number of defined IRQs.
+    IRQ_LEVEL_COUNT, //The number of defined IRQs.
 
     IRQ_LEVEL_MAX = IRQ_LEVEL_TIMER,//Value of the highest atomic IRQ.
 };

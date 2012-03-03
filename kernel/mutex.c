@@ -48,11 +48,11 @@ void MutexUnlock( struct MUTEX * lock )
  */
 BOOL MutexIsLocked( struct MUTEX * lock )
 {
-	if(lock->Locked) {
-		return TRUE;
-	} else {
-		return FALSE;
-	}
+        if(lock->Locked) {
+                return TRUE;
+        } else {
+                return FALSE;
+        }
 }
 #endif
 
@@ -61,9 +61,9 @@ BOOL MutexIsLocked( struct MUTEX * lock )
  */
 void MutexInit( struct MUTEX * lock, BOOL initialState )
 {
-	if(initialState) {
-		lock->Locked = 1;
-	} else {
-		lock->Locked = 0;
-	}	
+        if(initialState) {
+                lock->Locked = 1;
+        } else {
+                lock->Locked = 0;
+        }
 }

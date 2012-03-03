@@ -6,7 +6,7 @@
 #include"blockingcontext.h"
 
 /*
-State machine for a struct LOCKING_CONTEXT's state 
+State machine for a struct LOCKING_CONTEXT's state
 through a locking operation...
 
 THREAD(ACQUIRED)    PLAIN(ACQIRED)    THREAD(BLOCK)     PLAIN(BLOCK)       WORKER(ACUQIRED)   WORKER(BLOCK)
@@ -14,8 +14,8 @@ THREAD(ACQUIRED)    PLAIN(ACQIRED)    THREAD(BLOCK)     PLAIN(BLOCK)       WORKE
 *             *
 Init()        *
 *             *
-[ready]******************************************************************************************                  
-*                  *                   *                 *                   *                  *                  
+[ready]******************************************************************************************
+*                  *                   *                 *                   *                  *
 Start()            Start()             Start()           Start()             Start()            Start()
 start critical     start critical      start critical    start critical      start critical     start critical
 |                  |                   |                 |                   |                  |
@@ -69,9 +69,9 @@ LockingCall()
 
 enum LOCKING_STATE
 {
-	LOCKING_STATE_READY,
-	LOCKING_STATE_BLOCKING,
-	LOCKING_STATE_ACQUIRED
+        LOCKING_STATE_READY,
+        LOCKING_STATE_BLOCKING,
+        LOCKING_STATE_ACQUIRED
 };
 
 //Prototype for wake functions.
@@ -84,11 +84,11 @@ typedef void BLOCK_FUNCTION( struct LOCKING_CONTEXT * context );
  */
 struct LOCKING_CONTEXT
 {
-	enum LOCKING_STATE State;
-	union LINK Link;
-	union BLOCKING_CONTEXT BlockingContext;
-	BLOCK_FUNCTION * BlockFunction;
-	WAKE_FUNCTION * WakeFunction;
+        enum LOCKING_STATE State;
+        union LINK Link;
+        union BLOCKING_CONTEXT BlockingContext;
+        BLOCK_FUNCTION * BlockFunction;
+        WAKE_FUNCTION * WakeFunction;
 };
 
 //start a locking operation

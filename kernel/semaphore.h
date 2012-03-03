@@ -7,8 +7,8 @@
 
 struct SEMAPHORE
 {
-	volatile COUNT Count;
-	struct LINKED_LIST WaitingThreads;
+        volatile COUNT Count;
+        struct LINKED_LIST WaitingThreads;
 };
 
 void SemaphoreInit( struct SEMAPHORE * lock, COUNT count );

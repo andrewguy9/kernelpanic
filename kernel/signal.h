@@ -7,8 +7,8 @@
 
 struct SIGNAL
 {
-	BOOL State;
-	struct LINKED_LIST WaitingThreads;
+        BOOL State;
+        struct LINKED_LIST WaitingThreads;
 };
 
 void SignalInit( struct SIGNAL * signal, BOOL state );
