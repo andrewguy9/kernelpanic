@@ -7,7 +7,7 @@ use strict;
 #Set STDOUT to flush right away
 local $| = 1;
 
-my @stacks = ();
+my %cores = (); # Key is test, value is pid.
 
 use File::Copy;
 
@@ -71,11 +71,8 @@ while (@tests) {
                         if($passed) {
                                 push @successes, "Test $kids{$dead}($dead)... Passed";
                         } else {
-                                my $core = "./$kids{$dead}.$dead.core";
                                 push @failures, "Test $kids{$dead}($dead)... FAILED!!!";
-                                move("/cores/core.$dead", "$core");
-                                print "Core left at $core\n";
-                                push @stacks, get_stack($kids{$dead}, $core);
+                                $cores{$kids{$dead}} = $dead;
                         }
                         delete $kids{$dead};
                 } # While kids still around
@@ -94,7 +91,14 @@ while (@tests) {
         } # Should Wait
 }
 
-print "all done testing\n";
+my @stacks = ();
+print "all done testing, gathering cores\n";
+for my $test (sort keys %cores) {
+        my $core = "./$test.$cores{$test}.core";
+        move("/cores/core.$cores{$test}", "$core");
+        print "Core left at $core\n";
+        push @stacks, get_stack($test, $core);
+}
 
 print "\n\n";
 print "Summary:\n";
