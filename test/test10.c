@@ -4,7 +4,7 @@
 #include"../kernel/serial.h"
 
 /*
- * Reads from STDIN and prints the results to STDOUT. 
+ * Reads from STDIN and prints the results to STDOUT.
  */
 
 //
@@ -15,17 +15,17 @@
 
 void TestThreadMain( void * arg )
 {
-	char buf[BUF_SIZE];
-	COUNT read;
+        char buf[BUF_SIZE];
+        COUNT read;
 
-	while( 1 )
-	{
-		read = SerialRead(buf, BUF_SIZE);
-		buf[read]= '\0';
-		if(read > 0) {
-			SerialWrite(buf, read);
-		}
-	}
+        while( 1 )
+        {
+                read = SerialRead(buf, BUF_SIZE);
+                buf[read]= '\0';
+                if(read > 0) {
+                        SerialWrite(buf, read);
+                }
+        }
 }
 
 
@@ -44,22 +44,22 @@ char TestThreadStack[STACK_SIZE];
 
 int main()
 {
-	//Initialize the kernel structures.
-	KernelInit();
+        //Initialize the kernel structures.
+        KernelInit();
 
-	SchedulerStartup();
-	SerialStartup();
-	
-	//Initialize Threads
-	SchedulerCreateThread(
-			&TestThread,
-			2,
-			TestThreadStack,
-			STACK_SIZE,
-			TestThreadMain,
-			NULL,
-			TRUE);
+        SchedulerStartup();
+        SerialStartup();
 
-	KernelStart();
-	return 0;
+        //Initialize Threads
+        SchedulerCreateThread(
+                        &TestThread,
+                        2,
+                        TestThreadStack,
+                        STACK_SIZE,
+                        TestThreadMain,
+                        NULL,
+                        TRUE);
+
+        KernelStart();
+        return 0;
 }
