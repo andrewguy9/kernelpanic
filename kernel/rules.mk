@@ -43,3 +43,5 @@ kernel/$(TARGET)_signal.o: kernel/signal.c kernel/signal.h
 kernel/$(TARGET)_handler.o: kernel/handler.c kernel/handler.h
 
 kernel/$(TARGET)_serial.o: kernel/serial.c kernel/serial.h
+
+kernel/$(TARGET)_generation.o: kernel/generation.c kernel/generation.h
