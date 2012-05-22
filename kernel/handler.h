@@ -36,6 +36,10 @@
  * HANDLER_RUNNING        |  |
  * |           |          |  |
  * Finished    ------------  |
+ * |    *                    |
+ * |    *                    |
+ * |    CompletionHandler    |
+ * |                         |
  * |                         |
  * ---------------------------
  *
@@ -64,6 +68,8 @@ struct HANDLER_OBJECT
         union LINK Link;
         HANDLER_FUNCTION * Function;
         void * Context;
+
+        HANDLER_FUNCTION * CompleteFunction;
 
         enum HANDLER_STATE State;
 };
