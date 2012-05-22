@@ -50,6 +50,7 @@ void SoftInterrupt()
 
         SoftInterruptIncrement();
 
+        //TODO TOO MUCH DUPLICATION.
         while( (link = AtomicListPop(&SoftInterruptHandlerList)) ) {
                 handler = BASE_OBJECT(
                                 link,

@@ -49,6 +49,7 @@ void CritInterrupt()
 
         CritInterruptIncrement();
 
+        //TODO TOO MUCH DUPLICATION
         while( (link = AtomicListPop(&CritInterruptHandlerList)) ) {
                 handler = BASE_OBJECT(
                                 link,

@@ -50,6 +50,7 @@ struct HEAP * TimersOverflow;
 
 void QueueTimers(TIME time, struct HEAP * heap)
 {
+        //TODO TOO MUCH DUPLICATION.
         while( HeapSize( heap ) > 0 &&
                         HeapHeadWeight( heap ) <= time ) {
 
