@@ -75,7 +75,11 @@ struct HANDLER_OBJECT
 };
 
 //Should be called on all HANDLER_OBJECTs before use.
-void HandlerInit( struct HANDLER_OBJECT * handler );
+void HandlerInit( struct HANDLER_OBJECT * handler);
+//Should be called after HandlerInit.
+void HandlerCompetion(
+                struct HANDLER_OBJECT * handler,
+                HANDLER_FUNCTION * foo);
 //Should be called by the owning component when a handler has been queued.
 void HandlerRegister( struct HANDLER_OBJECT * handler );
 //Should be called by the owning component when a handler has been selected to run.
