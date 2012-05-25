@@ -72,6 +72,16 @@ volatile TIME QuantumStartTime;
 struct HANDLER_OBJECT SchedulerCritObject;
 struct MUTEX SchedulerMutex;
 
+BOOL PostCritHandler(struct HANDLER_OBJECT * obj )
+{
+        ASSERT(obj == &SchedulerCritObject);
+
+        ASSERT(MutexIsLocked(&SchedulerMutex));
+        MutexUnlock(&SchedulerMutex);
+
+        return TRUE;
+}
+
 //Thread for idle loop ( the start up thread too )
 struct THREAD IdleThread;
 
@@ -233,17 +243,6 @@ void SchedulerSwitch()
 
         ASSERT( ! TimerIsAtomic() );
         ASSERT( CritInterruptIsAtomic() );//TODO SEE NOTE ABOVE.
-
-        //We need to Finish the SchedulerObject, then
-        //release the SchedulerMutex.
-        //After this we cannot touch any scheduler objects.
-        //Note that handlers use the ScheudlerCritObject
-        //SHOULD NEVER return TRUE because we Finish it here.
-        //TODO i know that releasing here is a hack,
-        //maybe someday we will move a mutex into the
-        //HANDLER_OBJECTs themselves.
-        HandlerFinish( &SchedulerCritObject );
-        MutexUnlock( &SchedulerMutex );
 }
 
 
@@ -282,6 +281,8 @@ void Schedule()
 void SchedulerNeedsSwitch()
 {
         if ( MutexLock( &SchedulerMutex ) ) {
+                HandlerInit( &SchedulerCritObject );
+                HandlerCompetion(&SchedulerCritObject, PostCritHandler);
                 //We acquired the mutex, so we know that a switch has been requested.
                 CritInterruptRegisterHandler(
                                 & SchedulerCritObject,
@@ -353,10 +354,7 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
         //This will release any held resources.
         SchedulerSwitch();
 
-        //Note that the SchedulerCritObject was Finished by our call to
-        //SchedulerSwitch. We must return false here so that we don't
-        //double Finish.
-        return FALSE;
+        return TRUE;
 }
 
 void SchedulerStartup()
@@ -376,7 +374,6 @@ void SchedulerStartup()
 
         //Initialize the crit handler
         MutexInit( &SchedulerMutex, FALSE );
-        HandlerInit( &SchedulerCritObject );
 
         QuantumStartTime = TimerGetTime();
 
@@ -428,7 +425,6 @@ void SchedulerThreadStartup( void )
         //to be consistant again.
         ASSERT( MutexIsLocked( &SchedulerMutex ) );
         HandlerFinish( &SchedulerCritObject );
-        MutexUnlock( &SchedulerMutex );
 
         //Now we can end the critical section. Now the ContextSwitch is complete.
         CritInterruptEnable();
