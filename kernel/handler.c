@@ -10,7 +10,7 @@ void HandlerInit( struct HANDLER_OBJECT * handler)
 
 void HandlerCompetion(
                 struct HANDLER_OBJECT * handler,
-                HANDLER_FUNCTION * foo)
+                HANDLER_COMPLETE_FUNCTION * foo)
 {
         ASSERT( handler->State == HANDLER_READY );
         ASSERT( !handler->CompleteFunction );
@@ -31,7 +31,7 @@ void HandlerRun(struct HANDLER_OBJECT * handler )
 
 void HandlerFinish( struct HANDLER_OBJECT * handler )
 {
-        HANDLER_FUNCTION * foo = handler->CompleteFunction;
+        HANDLER_COMPLETE_FUNCTION * foo = handler->CompleteFunction;
         ASSERT( handler->State == HANDLER_RUNNING );
         handler->State = HANDLER_READY;
 

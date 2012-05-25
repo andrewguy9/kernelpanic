@@ -62,6 +62,9 @@ struct HANDLER_OBJECT;
 //to mark them as completed. If false is retured then ownership has transitioned to a
 //new component and the structure should no longer be touched.
 typedef BOOL (HANDLER_FUNCTION)( struct HANDLER_OBJECT * HandlerObj );
+//Handler Complete Functions are executed syncronously when a handler moves into the
+//finished state.
+typedef void (HANDLER_COMPLETE_FUNCTION)( struct HANDLER_OBJECT * HandlerObj );
 
 struct HANDLER_OBJECT
 {
@@ -69,7 +72,7 @@ struct HANDLER_OBJECT
         HANDLER_FUNCTION * Function;
         void * Context;
 
-        HANDLER_FUNCTION * CompleteFunction;
+        HANDLER_COMPLETE_FUNCTION * CompleteFunction;
 
         enum HANDLER_STATE State;
 };
@@ -79,7 +82,7 @@ void HandlerInit( struct HANDLER_OBJECT * handler);
 //Should be called after HandlerInit.
 void HandlerCompetion(
                 struct HANDLER_OBJECT * handler,
-                HANDLER_FUNCTION * foo);
+                HANDLER_COMPLETE_FUNCTION * foo);
 //Should be called by the owning component when a handler has been queued.
 void HandlerRegister( struct HANDLER_OBJECT * handler );
 //Should be called by the owning component when a handler has been selected to run.

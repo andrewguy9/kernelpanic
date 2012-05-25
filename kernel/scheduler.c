@@ -72,7 +72,7 @@ volatile TIME QuantumStartTime;
 struct HANDLER_OBJECT SchedulerCritObject;
 struct MUTEX SchedulerMutex;
 
-BOOL PostCritHandler(struct HANDLER_OBJECT * obj )
+void PostCritHandler(struct HANDLER_OBJECT * obj )
 {
         ASSERT(obj == &SchedulerCritObject);
 
