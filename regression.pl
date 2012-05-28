@@ -27,13 +27,18 @@ local $| = 1;
 
 my %cores = (); # Key is test, value is pid.
 
-#Get regression tests to run.
-open(REGRESSION_TESTS, "regression.txt");
-
 my @tests = ();
-while( my $test = <REGRESSION_TESTS> ) {
-        chomp( $test );
-        unshift @tests, $test;
+if (@ARGV) {
+        push @tests, @ARGV;
+} else {
+        print "Sourcing tests from regression.txt\n";
+        print "ARGV was @ARGV\n";
+        open(REGRESSION_TESTS, "regression.txt");
+
+        while( my $test = <REGRESSION_TESTS> ) {
+                chomp( $test );
+                unshift @tests, $test;
+        }
 }
 
 for (my $i=0; $i<$runs; $i++) {
