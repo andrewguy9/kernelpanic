@@ -9,15 +9,18 @@ use Getopt::Long;
 #Get options
 my $timeout = 60;
 my $batchsize = 1;
+my $runs = 1;
 
 # Getopt::Long::Configure ('bundling_override');
 GetOptions (
+        'runs=i' => \$runs,
         'batch=i' => \$batchsize,
         'time=i' => \$timeout,
 );
 
 print "Timeout $timeout\n";
 print "BatchSize $batchsize\n";
+print "Runs $runs\n";
 
 #Set STDOUT to flush right away
 local $| = 1;
@@ -31,6 +34,10 @@ my @tests = ();
 while( my $test = <REGRESSION_TESTS> ) {
         chomp( $test );
         unshift @tests, $test;
+}
+
+for (my $i=0; $i<$runs; $i++) {
+        push @tests, @tests;
 }
 
 # Run tests
