@@ -62,7 +62,7 @@ void Sleep( COUNT time )
         HandlerInit( &timer );
 
         //Register the timer.
-        TimerRegister( &timer, time, SleepTimerHandler, thread );
+        TimerRegister( &timer, time, SleepTimerHandler, thread );//TODO TIMER REGISTER SHOULD HAPPEN AFTER WE BLOCKED.
 
         //Sleep the current thread.
         SchedulerBlockThread();
