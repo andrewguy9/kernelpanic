@@ -56,12 +56,10 @@ while (@tests || $running > 0)
                 if ($pid == 0) {
                         runtest($test);
                 } else {
-                        print "Starting $test on $pid\n";
                         $running++;
                 }
         } else {
                 my $pid = wait;
-                print "Reaped $pid with status $?\n";
                 $running--;
         }
 }
@@ -71,7 +69,9 @@ print "done\n";
 sub get_stack {
         my ($program, $core) = @_;
 
-        my $stack = "gdb $program $core\n";
+        my $stack = "-" x 80;
+        $stack .= "\n";
+        $stack .= "gdb $program $core\n";
 
         open GDB_OUTPUT, "gdb --command ./get_stack.gdb $program $core |"
                 or die "Could not execute: $!";
@@ -82,6 +82,9 @@ sub get_stack {
                 }
         }
         close GDB_OUTPUT;
+        
+        $stack .= "-" x 80;
+        $stack .= "\n";
 
         return $stack;
 }
@@ -108,14 +111,19 @@ sub runtest
                 die "failed to start $test_name\n";
         }
 
+        my $status = 0;
+        my $msg = "Success";
+
         my $dead = wait;
-        if($test_passed) {
-                exit(0);
-        } else {
+        if(! $test_passed) {
+                $status = 1;
+                $msg = "FAILED!!!";
                 my $core = "./$test_name.$test_pid.core";
                 move("/cores/core.$test_pid", "$core");
                 print "Core left at $core\n";
                 print get_stack($test_name, $core);
-                exit(1);
         }
+
+        print "Test $test_name($test_pid)... $msg\n";
+        exit($status);
 }
