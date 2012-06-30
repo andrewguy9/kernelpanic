@@ -124,6 +124,6 @@ sub runtest
                 print get_stack($test_name, $core);
         }
 
-        print "Test $test_name($test_pid)... $msg\n";
+        print "Test $test_name($test_pid)... $msg\n" if $status;
         exit($status);
 }
