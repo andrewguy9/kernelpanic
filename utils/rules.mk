@@ -16,6 +16,8 @@ utils/$(TARGET)_types.o: utils/types.c utils/types.h
 
 utils/$(TARGET)_atomiclist.o: utils/atomiclist.c utils/atomiclist.h
 
+utils/$(TARGET)_counter.o: utils/counter.c utils/counter.h
+
 ###################
 #tests
 utils/$(TARGET)_linktest.o: utils/linktest.c 

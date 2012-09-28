@@ -1,4 +1,5 @@
 #include"../utils/bitmap.h"
+#include"../utils/counter.h"
 
 #ifdef DARWIN
 #define HAL_MIN_STACK_SIZE MINSIGSTKSZ
@@ -77,8 +78,8 @@ struct MACHINE_CONTEXT
         jmp_buf Registers;//Buffer to hold register state in context switches.
 
 #ifdef DEBUG
-        volatile COUNT TimesRun;
-        volatile COUNT TimesSwitched;
+        struct COUNTER TimesRun;
+        struct COUNTER TimesSwitched;
         volatile TIME LastRanTime;
         volatile TIME LastSelectedTime;
         //Pointers to the top and bottom of the stack. Used to detect stack overflow.

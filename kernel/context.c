@@ -58,8 +58,8 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
                 HalGetInitialStackFrame( MachineState );
 
 #ifdef DEBUG
-                MachineState->TimesRun = 0;
-                MachineState->TimesSwitched = 0;
+                CounterInit(&MachineState->TimesRun);
+                CounterInit(&MachineState->TimesSwitched);
                 MachineState->LastRanTime = 0;
                 MachineState->LastSelectedTime = 0;
 
@@ -81,8 +81,8 @@ void ContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * n
         if( oldStack != newStack ) {
                 //The NextStack is set, so we need to context switch.
 #ifdef DEBUG
-                newStack->TimesSwitched++;
-                newStack->TimesRun++;
+                CounterAdd(&newStack->TimesSwitched, 1);
+                CounterAdd(&newStack->TimesRun, 1);
                 newStack->LastRanTime = time;
                 newStack->LastSelectedTime = time;
 #endif
@@ -100,7 +100,7 @@ void ContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * n
                 //we are critical but the thread was the same,
                 //so dont bother doing context switch.
 #ifdef DEBUG
-                newStack->TimesRun++;
+                CounterAdd(&newStack->TimesRun, 1);
                 newStack->LastRanTime = time;
 #endif
         }
