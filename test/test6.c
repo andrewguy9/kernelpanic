@@ -34,10 +34,10 @@ struct HANDLER_OBJECT WorkTimer;
 
 //Prototypes
 
-BOOL WorkTimerHandler( struct HANDLER_OBJECT * timer );
-enum WORKER_RETURN WorkerConsumerTask( struct WORKER_ITEM * item );
-enum WORKER_RETURN WorkerProducerTask( struct WORKER_ITEM * item );
-BOOL WorkCritHandler( struct HANDLER_OBJECT * timer );
+HANDLER_FUNCTION WorkTimerHandler;
+WORKER_FUNCTION WorkerConsumerTask;
+WORKER_FUNCTION WorkerProducerTask;
+HANDLER_FUNCTION WorkCritHandler;
 
 //Handlers
 

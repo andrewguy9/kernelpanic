@@ -22,7 +22,7 @@ struct MACHINE_CONTEXT;
 
 //ISR_HANDLER is the prototype all kernel interrupt handlers should use.
 //they will be invoked either directly by hardware, or hal wrapper functionality.
-typedef void (*ISR_HANDLER)();
+typedef void ISR_HANDLER();
 
 enum IRQ_LEVEL {
     IRQ_LEVEL_NONE,

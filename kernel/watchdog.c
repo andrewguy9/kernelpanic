@@ -29,7 +29,7 @@
 //Prototypes
 //
 
-void WatchdogInterrupt();
+ISR_HANDLER WatchdogInterrupt;
 
 //
 //Globals

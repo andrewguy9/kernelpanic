@@ -27,6 +27,7 @@ struct HANDLER_OBJECT Timer;
 COUNT TimerCycles;//Times we have run the test.
 
 //Crit Function
+HANDLER_FUNCTION CritHandler;
 BOOL CritHandler( struct HANDLER_OBJECT * handler )
 {
 	ASSERT( SchedulerIsCritical() );
@@ -38,6 +39,7 @@ BOOL CritHandler( struct HANDLER_OBJECT * handler )
 }
 
 //Timer Function
+HANDLER_FUNCTION TimerHandler;
 BOOL TimerHandler( struct HANDLER_OBJECT * handler )
 {
 	CritInterruptRegisterHandler(
@@ -49,7 +51,8 @@ BOOL TimerHandler( struct HANDLER_OBJECT * handler )
 }
 
 //Thread Main
-void SleeperMain()
+THREAD_MAIN SleeperMain;
+void SleeperMain(void * unused)
 {
 	INDEX cur=0;
 	while(1)

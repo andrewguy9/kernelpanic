@@ -24,7 +24,7 @@
 //  Prototypes
 //
 
-void TimerInterrupt(void);
+ISR_HANDLER TimerInterrupt;
 void TimerInner(TIME time);
 void QueueTimers(TIME time, struct HEAP * heap);
 void TimerSetNextTimer(TIME time);
@@ -165,7 +165,7 @@ TIME TimerGetTime()
         return HalGetTime();
 }
 
-void TimerInterrupt(void)
+void TimerInterrupt()
 {
         //update interrupt level to represent that we are in inerrupt
         TimerIncrement();

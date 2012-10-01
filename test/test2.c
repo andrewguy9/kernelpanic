@@ -42,7 +42,8 @@ struct THREAD Consumer2;
 struct THREAD Consumer3;
 
 //Functions for test.
-void ProducerMain()
+THREAD_MAIN ProducerMain;
+void ProducerMain(void * unused)
 {
 	while(1)
 	{
@@ -50,7 +51,8 @@ void ProducerMain()
 	}
 }
 
-void ConsumerMain()
+THREAD_MAIN ConsumerMain;
+void ConsumerMain(void * unused)
 {
 	char buff[MESSAGE_LENGTH];
 

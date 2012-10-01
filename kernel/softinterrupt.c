@@ -22,7 +22,7 @@
 //Prototypes
 //
 
-void SoftInterrupt();
+ISR_HANDLER SoftInterrupt;
 
 //
 //SoftInterrupt Variables

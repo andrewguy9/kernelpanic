@@ -23,6 +23,7 @@ struct RESOURCE BufferLock;
 COUNT TimesWritten;
 COUNT TimesRead;
 
+THREAD_MAIN Writer;
 void Writer( void * arg )
 {
 	struct LOCKING_CONTEXT block;
@@ -56,6 +57,7 @@ void Writer( void * arg )
 	}
 }
 
+THREAD_MAIN Reader;
 void Reader( void * arg )
 {
 	INDEX index;

@@ -31,6 +31,7 @@ struct THREAD_CONTEXT
 //Main routine for threads.
 //
 
+THREAD_MAIN TestThreadMain;
 void TestThreadMain( void * arg )
 {
         struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;

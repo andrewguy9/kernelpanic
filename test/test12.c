@@ -44,7 +44,8 @@ volatile BOOL Respond2;
 //Mains
 //
 
-void ManagerMain()
+THREAD_MAIN ManagerMain;
+void ManagerMain(void * unused)
 {
 	while(1)
 	{
@@ -70,7 +71,8 @@ void ManagerMain()
 	}
 }
 
-void WaiterBlockingMain()
+THREAD_MAIN WaiterBlockingMain;
+void WaiterBlockingMain(void * unused)
 {
 	while(1)
 	{
@@ -87,7 +89,8 @@ void WaiterBlockingMain()
 	}
 }
 
-void WaiterNonBlockingMain()
+THREAD_MAIN WaiterNonBlockingMain;
+void WaiterNonBlockingMain(void * unused)
 {
 	struct LOCKING_CONTEXT context;
 

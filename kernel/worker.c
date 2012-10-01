@@ -110,6 +110,7 @@ void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
 //Thread Main for worker threads
 //
 
+THREAD_MAIN WorkerThreadMain;
 void WorkerThreadMain( void * arg )
 {
         struct WORKER_QUEUE * queue;

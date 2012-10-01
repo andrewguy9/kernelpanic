@@ -54,7 +54,7 @@ struct sigaction HalIrqTable[IRQ_LEVEL_COUNT];
 /*
  * HalIsrHandler uses this table to call the user specified handler.
  */
-ISR_HANDLER HalIsrJumpTable[IRQ_LEVEL_COUNT];
+ISR_HANDLER * HalIsrJumpTable[IRQ_LEVEL_COUNT];
 
 /*
  * HalIsrHandler uses this table to go from a signal to an IRQ.

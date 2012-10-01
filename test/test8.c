@@ -34,6 +34,7 @@ volatile int TotalStall;
 //Main routine for threads.
 //
 
+THREAD_MAIN DeathThreadMain;
 void DeathThreadMain( void * arg )
 {
 	if( DeathCount != 0 )
@@ -45,6 +46,7 @@ void DeathThreadMain( void * arg )
 	TotalDeath++;
 }
 
+THREAD_MAIN StallThreadMain;
 void StallThreadMain( void * arg )
 {
 	while(TRUE)
@@ -65,6 +67,7 @@ void StallThreadMain( void * arg )
 	KernelPanic();
 }
 
+THREAD_MAIN RestartThreadMain;
 void RestartThreadMain( void * arg )
 {
         while(TRUE)

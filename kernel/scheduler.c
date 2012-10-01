@@ -42,10 +42,11 @@
  */
 
 void Schedule();
-BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler );
-BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler );
+HANDLER_FUNCTION SchedulerTimerHandler;
+HANDLER_FUNCTION SchedulerCritHandler;
 void SchedulerNeedsSwitch();
-void SchedulerThreadStartup( void );
+STACK_INIT_ROUTINE SchedulerThreadStartup;
+HANDLER_COMPLETE_FUNCTION PostCritHandler;
 
 //NOTE: ActiveThread, NextThread, RunQueue are protected by IRQ_LEVEL_CRIT.
 //NOTE: QuantumStartTime is used by the SchedulerTimer, so update to him need to be IRQ_LEVEL_SOFT (Timers run at soft, not IRQ_LEVEL_TIMER).
@@ -78,8 +79,6 @@ void PostCritHandler(struct HANDLER_OBJECT * obj )
 
         ASSERT(MutexIsLocked(&SchedulerMutex));
         MutexUnlock(&SchedulerMutex);
-
-        return TRUE;
 }
 
 //Thread for idle loop ( the start up thread too )

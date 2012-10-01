@@ -13,6 +13,7 @@
 //Main routine for threads.
 //
 
+THREAD_MAIN Test1ThreadMain;
 void Test1ThreadMain( void * arg )
 {
 	COUNT * var = (COUNT *) arg;

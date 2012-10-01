@@ -21,7 +21,7 @@
 //Prototypes
 //
 
-void CritInterrupt();
+ISR_HANDLER CritInterrupt;
 
 //
 //Crit Interrupt Variables

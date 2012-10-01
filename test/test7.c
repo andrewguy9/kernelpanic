@@ -75,6 +75,7 @@ void ValidateState(BOOL * transitionArray)
 //Blocking main
 //
 
+THREAD_MAIN BlockingMain;
 void BlockingMain(void * arg)
 {
 	INDEX index = (INDEX) arg;
@@ -91,6 +92,7 @@ void BlockingMain(void * arg)
 //Waiting Main
 //
 
+THREAD_MAIN WaitMain;
 void WaitMain(void * arg)
 {
 	INDEX index = (INDEX) arg;
@@ -117,6 +119,7 @@ void WaitMain(void * arg)
 //Spinning Main
 //
 
+THREAD_MAIN SpinMain;
 void SpinMain(void * arg)
 {
 	INDEX index = (INDEX) arg;
@@ -140,6 +143,7 @@ void SpinMain(void * arg)
 //Validate Main
 //
 
+THREAD_MAIN ValidateMain;
 void ValidateMain(void * arg)
 {
 	INDEX index = (INDEX) arg;

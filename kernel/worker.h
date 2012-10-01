@@ -8,7 +8,7 @@ struct WORKER_ITEM;
 
 enum WORKER_RETURN { WORKER_PENDED, WORKER_BLOCKED, WORKER_FINISHED };
 
-typedef enum WORKER_RETURN (* WORKER_FUNCTION) ( struct WORKER_ITEM * item );
+typedef enum WORKER_RETURN (WORKER_FUNCTION) ( struct WORKER_ITEM * item );
 
 struct WORKER_QUEUE
 {
@@ -26,7 +26,7 @@ struct WORKER_ITEM
 {
         union LINK Link;
         struct WORKER_QUEUE * Queue;
-        WORKER_FUNCTION Foo;
+        WORKER_FUNCTION * Foo;
         struct LOCKING_CONTEXT LockingContext;
         void * Context;
         BOOL Finished;//TODO IT WOULD BE NICE TO MOVE TO A DIFFERENT FINISHED MECHANISM, SAY READY LIKE THE HANDLERS?

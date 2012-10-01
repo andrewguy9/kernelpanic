@@ -45,7 +45,8 @@ COUNT NonBlocking;
 //Mains
 //
 
-void ProducerMain()
+THREAD_MAIN ProducerMain;
+void ProducerMain(void * unused)
 {
 	while(1)
 	{
@@ -56,7 +57,8 @@ void ProducerMain()
 	}
 }
 
-void ConsumerBlockingMain()
+THREAD_MAIN ConsumerBlockingMain;
+void ConsumerBlockingMain(void * unused)
 {
 	while(1)
 	{
@@ -65,7 +67,8 @@ void ConsumerBlockingMain()
 	}
 }
 
-void ConsumerNonBlockingMain()
+THREAD_MAIN ConsumerNonBlockingMain;
+void ConsumerNonBlockingMain(void * unused)
 {
 	struct LOCKING_CONTEXT context;
 	LockingInit( & context, LockingBlockNonBlocking, LockingWakeNonBlocking ); 

@@ -13,6 +13,7 @@
 
 #define BUF_SIZE 512
 
+THREAD_MAIN TestThreadMain;
 void TestThreadMain( void * arg )
 {
         char buf[BUF_SIZE];

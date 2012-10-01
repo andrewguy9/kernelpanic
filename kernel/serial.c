@@ -17,6 +17,9 @@ COUNT ReadGenerationCount;
 struct HANDLER_OBJECT ReadGenerationCritObject;
 struct GENERATION_CONTEXT ReadGenerationContext;
 
+ISR_HANDLER SendBytesInterrupt;
+ISR_HANDLER GetBytesInterrupt;
+
 void SendBytesInterrupt(void)
 {
         IsrIncrement(IRQ_LEVEL_SERIAL_WRITE);

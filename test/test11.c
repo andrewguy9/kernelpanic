@@ -54,6 +54,7 @@ struct THREAD Consumer3;
 volatile COUNT ProducerCount;
 volatile COUNT ConsumerCount;
 
+THREAD_MAIN ProducerMain;
 void ProducerMain( void * arg )
 {
 	struct SOCKET * MySock = ( struct SOCKET *) arg;
@@ -96,6 +97,7 @@ void ProducerMain( void * arg )
 	}
 }
 
+THREAD_MAIN ConsumerMain;
 void ConsumerMain( void * arg )
 {
 	struct SOCKET * MySock = ( struct SOCKET *) arg;

@@ -8,6 +8,7 @@
  * its time to wake a thread. This function runs in
  * a critical section so it can wake a thread.
  */
+HANDLER_FUNCTION SleepCritHandler;
 BOOL SleepCritHandler( struct HANDLER_OBJECT * handler )
 {
         struct THREAD * thread = handler->Context;
@@ -25,6 +26,7 @@ BOOL SleepCritHandler( struct HANDLER_OBJECT * handler )
  *
  * We will schedule a critical handler which can wake threads.
  */
+HANDLER_FUNCTION SleepTimerHandler;
 BOOL SleepTimerHandler( struct HANDLER_OBJECT * timer )
 {
         CritInterruptRegisterHandler(
