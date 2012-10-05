@@ -36,8 +36,7 @@ BOOL MutexLock( struct MUTEX * lock )
  */
 void MutexUnlock( struct MUTEX * lock )
 {
-        ATOMIC wasLocked = AtomicGetAndClear(&lock->Locked);
-        ASSERT( wasLocked );
+        ASSUME(AtomicGetAndClear(&lock->Locked), TRUE);
 }
 
 #ifdef DEBUG
