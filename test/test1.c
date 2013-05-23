@@ -1,6 +1,6 @@
-#include"../kernel/startup.h"
-#include"../kernel/scheduler.h"
-#include"../kernel/hal.h"
+#include"kernel/startup.h"
+#include"kernel/scheduler.h"
+#include"kernel/hal.h"
 
 /*
  * Starts three threads each with different quantums.

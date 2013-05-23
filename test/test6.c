@@ -1,10 +1,10 @@
-#include"../kernel/startup.h"
-#include"../kernel/scheduler.h"
-#include"../kernel/worker.h"
-#include"../kernel/critinterrupt.h"
-#include"../kernel/semaphore.h"
-#include"../kernel/panic.h"
-#include"../kernel/timer.h"
+#include"kernel/startup.h"
+#include"kernel/scheduler.h"
+#include"kernel/worker.h"
+#include"kernel/critinterrupt.h"
+#include"kernel/semaphore.h"
+#include"kernel/panic.h"
+#include"kernel/timer.h"
 
 #define STACK_SIZE HAL_MIN_STACK_SIZE
 

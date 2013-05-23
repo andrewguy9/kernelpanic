@@ -1,6 +1,6 @@
 #include"map.h"
-#include"../utils/bitmap.h"
-#include"../utils/utils.h"
+#include"utils/bitmap.h"
+#include"utils/utils.h"
 
 /*
  * Exposes a map concept for the mouse.

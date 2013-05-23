@@ -1,6 +1,6 @@
-#include"../kernel/startup.h"
-#include"../kernel/scheduler.h"
-#include"../kernel/panic.h"
+#include"kernel/startup.h"
+#include"kernel/scheduler.h"
+#include"kernel/panic.h"
 
 /*
  * Demonstrates how to start and stop a thread.

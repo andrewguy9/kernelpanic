@@ -1,7 +1,7 @@
 #ifndef HAL_H
 #define HAL_H
 
-#include"../utils/utils.h"
+#include"utils/utils.h"
 
 /*
  * Hal.h defines all of the interfaces that the rest of the kernel will 
@@ -9,8 +9,8 @@
  */
 
 //Includes for all builds
-//#include"../utils/utils.h"
-//#include"../utils/flags.h"
+//#include"utils/utils.h"
+//#include"utils/flags.h"
 
 //STACK_INIT_ROUTINE is a routine which will be called to create a new
 //stack entry in a new stack frame.

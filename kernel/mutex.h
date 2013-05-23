@@ -1,7 +1,7 @@
 #ifndef MUTEX_H
 #define MUTEX_H
 
-#include"../utils/utils.h"
+#include"utils/utils.h"
 
 struct MUTEX
 {

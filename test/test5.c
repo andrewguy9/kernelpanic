@@ -1,7 +1,7 @@
-#include"../kernel/startup.h"
-#include"../kernel/scheduler.h"
-#include"../kernel/semaphore.h"
-#include"../kernel/panic.h"
+#include"kernel/startup.h"
+#include"kernel/scheduler.h"
+#include"kernel/semaphore.h"
+#include"kernel/panic.h"
 
 /*
  * Tests the semaphore unit, both blocking and non blocking unit.

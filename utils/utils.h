@@ -50,7 +50,7 @@
 #ifdef KERNEL_BUILD
 
 //This is a kernel build. Asserts result in a kernel panic.
-#include"../kernel/panic.h"
+#include"kernel/panic.h"
 #define ASSERT( condition ) \
 	if( ! (condition) ) \
 		Panic( __FILE__, __LINE__ )

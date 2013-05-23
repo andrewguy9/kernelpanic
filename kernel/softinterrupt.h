@@ -2,7 +2,7 @@
 #define SOFT_INTERRUPT_H
 
 #include"isr.h"
-#include"../utils/utils.h"
+#include"utils/utils.h"
 #include"handler.h"
 
 //

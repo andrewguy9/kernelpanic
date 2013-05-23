@@ -1,7 +1,7 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
-#include"../utils/types.h"
+#include"utils/types.h"
 
 void SerialStartup();
 COUNT SerialWrite(char * buf, COUNT len);

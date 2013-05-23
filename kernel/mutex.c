@@ -1,5 +1,5 @@
 #include"mutex.h"
-#include"../utils/types.h"
+#include"utils/types.h"
 
 /*
  * MUTEX UNIT DESCRIPTION

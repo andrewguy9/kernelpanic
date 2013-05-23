@@ -1,8 +1,8 @@
 #ifndef SEMAPHORE_H
 #define SEMAPHORE_H
 
-#include"../utils/utils.h"
-#include"../utils/linkedlist.h"
+#include"utils/utils.h"
+#include"utils/linkedlist.h"
 #include"locking.h"
 
 struct SEMAPHORE

@@ -1,8 +1,8 @@
 #ifndef SIGNAL_H
 #define SIGNAL_H
 
-#include"../utils/utils.h"
-#include"../utils/linkedlist.h"
+#include"utils/utils.h"
+#include"utils/linkedlist.h"
 #include"locking.h"
 
 struct SIGNAL

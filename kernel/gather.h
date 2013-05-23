@@ -2,8 +2,8 @@
 #define GATHER_H
 
 #include"locking.h"
-#include"../utils/utils.h"
-#include"../utils/linkedlist.h"
+#include"utils/utils.h"
+#include"utils/linkedlist.h"
 
 struct GATHER
 {

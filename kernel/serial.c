@@ -1,7 +1,7 @@
 #include"serial.h"
 #include"hal.h"
 #include"critinterrupt.h"
-#include"../utils/ringbuffer.h"
+#include"utils/ringbuffer.h"
 #include"generation.h"
 
 #define BUFFER_SIZE 32

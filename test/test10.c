@@ -1,7 +1,7 @@
-#include"../kernel/startup.h"
-#include"../kernel/scheduler.h"
-#include"../kernel/hal.h"
-#include"../kernel/serial.h"
+#include"kernel/startup.h"
+#include"kernel/scheduler.h"
+#include"kernel/hal.h"
+#include"kernel/serial.h"
 
 /*
  * Reads from STDIN and prints the results to STDOUT.

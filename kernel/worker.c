@@ -1,5 +1,5 @@
 #include"worker.h"
-#include"../utils/linkedlist.h"
+#include"utils/linkedlist.h"
 #include"isr.h"
 #include"softinterrupt.h"
 #include"critinterrupt.h"

@@ -1,7 +1,7 @@
 #ifndef RESOURCE_H
 #define RESOURCE_H
 
-#include"../utils/linkedlist.h"
+#include"utils/linkedlist.h"
 #include"locking.h"
 
 struct RESOURCE

@@ -1,6 +1,6 @@
-#include"../utils/ringbuffer.h"
+#include"utils/ringbuffer.h"
 #include"semaphore.h"
-#include"../utils/utils.h"
+#include"utils/utils.h"
 
 #ifndef PIPE_H
 #define PIPE_H

@@ -1,5 +1,5 @@
-#include"../kernel/hal.h"
-#include"../kernel/thread.h"
+#include"kernel/hal.h"
+#include"kernel/thread.h"
 
 #include<sys/time.h>
 #include<string.h>

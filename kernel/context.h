@@ -1,7 +1,7 @@
 #ifndef CONTEXT_H
 #define CONTEXT_H
 
-#include"../utils/utils.h"
+#include"utils/utils.h"
 #include"hal.h"
 
 void ContextInit( struct MACHINE_CONTEXT * context, char * pointer, COUNT Size, STACK_INIT_ROUTINE Foo );

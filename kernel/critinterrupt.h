@@ -1,7 +1,7 @@
 #ifndef CRIT_INTERRUPT_H
 #define CRIT_INTERRUPT_H
 
-#include"../utils/utils.h"
+#include"utils/utils.h"
 #include"handler.h"
 #include"isr.h"
 

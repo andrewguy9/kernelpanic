@@ -1,8 +1,8 @@
 #ifndef HANDLER_H
 #define HANDLER_H
 
-#include"../utils/link.h"
-#include"../utils/utils.h"
+#include"utils/link.h"
+#include"utils/utils.h"
 /*
  * Handlers are a generic tool for managing callbacks.
  * They use a generic link so they can be used in any kernel

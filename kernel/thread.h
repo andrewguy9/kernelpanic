@@ -1,7 +1,7 @@
 #ifndef THREAD_H
 #define THREAD_H
 
-#include"../utils/utils.h"
+#include"utils/utils.h"
 #include"locking.h"
 #include"hal.h"
 

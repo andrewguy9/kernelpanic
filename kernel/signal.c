@@ -1,6 +1,6 @@
 #include"signal.h"
-#include"../utils/linkedlist.h"
-#include"../utils/utils.h"
+#include"utils/linkedlist.h"
+#include"utils/utils.h"
 
 /*
  * Signal Unit Description

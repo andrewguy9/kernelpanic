@@ -1,6 +1,6 @@
 #include"scheduler.h"
-#include"../utils/utils.h"
-#include"../utils/linkedlist.h"
+#include"utils/utils.h"
+#include"utils/linkedlist.h"
 #include"timer.h"
 #include"softinterrupt.h"
 #include"context.h"

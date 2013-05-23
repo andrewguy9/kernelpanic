@@ -1,10 +1,10 @@
-#include"../kernel/sleep.h"
-#include"../kernel/scheduler.h"
-#include"../kernel/timer.h"
-#include"../utils/utils.h"
-#include"../kernel/startup.h"
-#include"../kernel/panic.h"
-#include"../kernel/critinterrupt.h"
+#include"kernel/sleep.h"
+#include"kernel/scheduler.h"
+#include"kernel/timer.h"
+#include"utils/utils.h"
+#include"kernel/startup.h"
+#include"kernel/panic.h"
+#include"kernel/critinterrupt.h"
 
 /*
  * Tests the sleep unit, should panic on failure.

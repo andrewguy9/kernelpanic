@@ -1,7 +1,7 @@
-#include"../kernel/startup.h"
-#include"../kernel/scheduler.h"
-#include"../kernel/socket.h"
-#include"../kernel/panic.h"
+#include"kernel/startup.h"
+#include"kernel/scheduler.h"
+#include"kernel/socket.h"
+#include"kernel/panic.h"
 
 /*
  * Tests the socket unit, and by extension the resource and ringbuffer units.

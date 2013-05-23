@@ -1,7 +1,7 @@
 #ifndef FLOOD_FILL_H
 #define FLOOD_FILL_H
 
-#include"../utils/bitmap.h"
+#include"utils/bitmap.h"
 #include"map.h"
 
 #define FLOOD_MAP_ITEMS_NEEDED( WIDTH, HEIGHT ) ((WIDTH)*(HEIGHT))

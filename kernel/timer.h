@@ -1,8 +1,8 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include"../utils/link.h"
-#include"../utils/utils.h"
+#include"utils/link.h"
+#include"utils/utils.h"
 #include"handler.h"
 
 //

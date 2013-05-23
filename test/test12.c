@@ -1,7 +1,7 @@
-#include"../kernel/startup.h"
-#include"../kernel/scheduler.h"
-#include"../kernel/signal.h"
-#include"../kernel/panic.h"
+#include"kernel/startup.h"
+#include"kernel/scheduler.h"
+#include"kernel/signal.h"
+#include"kernel/panic.h"
 
 //#include<stdio.h>
 

@@ -2,8 +2,8 @@
 #define SCHEDULER_H
 
 #include"critinterrupt.h"
-#include"../utils/link.h"
-#include"../utils/utils.h"
+#include"utils/link.h"
+#include"utils/utils.h"
 #include"thread.h"
 
 #define SchedulerStartCritical() (CritInterruptDisable())

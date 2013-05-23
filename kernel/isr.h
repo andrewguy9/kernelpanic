@@ -1,7 +1,7 @@
 #ifndef ISR_H
 #define ISR_H
 
-#include"../utils/utils.h"
+#include"utils/utils.h"
 #include"hal.h"
 
 //

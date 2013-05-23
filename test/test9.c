@@ -1,8 +1,8 @@
-#include"../kernel/startup.h"
-#include"../kernel/scheduler.h"
-#include"../kernel/hal.h"
-#include"../kernel/watchdog.h"
-#include"../kernel/sleep.h"
+#include"kernel/startup.h"
+#include"kernel/scheduler.h"
+#include"kernel/hal.h"
+#include"kernel/watchdog.h"
+#include"kernel/sleep.h"
 
 /*
  * Tests the watchdog.

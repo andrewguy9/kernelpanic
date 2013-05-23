@@ -1,5 +1,5 @@
 #include"semaphore.h"
-#include"../utils/linkedlist.h"
+#include"utils/linkedlist.h"
 
 /*
  * Semaphore Unit Description

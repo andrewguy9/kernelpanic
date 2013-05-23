@@ -1,8 +1,8 @@
 #ifndef LOCKING_H
 #define LOCKING_H
 
-#include"../utils/link.h"
-#include"../utils/utils.h"
+#include"utils/link.h"
+#include"utils/utils.h"
 #include"blockingcontext.h"
 
 /*

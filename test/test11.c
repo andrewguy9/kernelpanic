@@ -1,8 +1,8 @@
-#include"../kernel/startup.h"
-#include"../kernel/scheduler.h"
-#include"../kernel/pipe.h"
-#include"../kernel/panic.h"
-#include"../kernel/socket.h"
+#include"kernel/startup.h"
+#include"kernel/scheduler.h"
+#include"kernel/pipe.h"
+#include"kernel/panic.h"
+#include"kernel/socket.h"
 #include<stdio.h>
 
 /*

@@ -1,5 +1,5 @@
-#include"../utils/bitmap.h"
-#include"../utils/counter.h"
+#include"utils/bitmap.h"
+#include"utils/counter.h"
 
 #ifdef DARWIN
 #define HAL_MIN_STACK_SIZE MINSIGSTKSZ

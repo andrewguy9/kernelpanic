@@ -1,9 +1,9 @@
-#include"../umouse/map.h"
-#include"../umouse/floodfill.h"
-#include"../umouse/map.h"
-#include"../umouse/positionlog.h"
+#include"umouse/map.h"
+#include"umouse/floodfill.h"
+#include"umouse/map.h"
+#include"umouse/positionlog.h"
 
-#include"../kernel/thread.h"
+#include"kernel/thread.h"
 
 #define WIDTH 16
 #define HEIGHT 16

@@ -1,8 +1,8 @@
 #ifndef POSITION_LOG_H
 #define POSITION_LOG_H
 
-#include"../utils/bitmap.h"
-#include"../utils/utils.h"
+#include"utils/bitmap.h"
+#include"utils/utils.h"
 
 #define SCAN_LOG_SIZE(width,height) (BitmapSize((width)*(height)))
 

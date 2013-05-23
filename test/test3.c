@@ -1,8 +1,8 @@
-#include"../kernel/startup.h"
-#include"../kernel/scheduler.h"
-#include"../kernel/resource.h"
-#include"../kernel/hal.h"
-#include"../kernel/panic.h"
+#include"kernel/startup.h"
+#include"kernel/scheduler.h"
+#include"kernel/resource.h"
+#include"kernel/hal.h"
+#include"kernel/panic.h"
 
 /*
  * Test of the resource unit and the non blocking code path.

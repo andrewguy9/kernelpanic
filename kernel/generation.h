@@ -3,7 +3,7 @@
 
 #include"locking.h"
 #include"handler.h"
-#include"../utils/linkedlist.h"
+#include"utils/linkedlist.h"
 
 struct GENERATION
 {

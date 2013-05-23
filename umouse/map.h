@@ -1,8 +1,8 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include"../utils/utils.h"
-#include"../utils/bitmap.h"
+#include"utils/utils.h"
+#include"utils/bitmap.h"
 #include"compass.h"
 
 //

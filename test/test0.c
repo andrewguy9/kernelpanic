@@ -1,5 +1,5 @@
-#include"../kernel/startup.h"
-#include"../kernel/timer.h"
+#include"kernel/startup.h"
+#include"kernel/timer.h"
 
 //
 //Tests of the Timer subsystem.
