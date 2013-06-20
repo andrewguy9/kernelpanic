@@ -3,6 +3,7 @@
 #include"panic.h"
 #include"isr.h"
 #include"utils/flags.h"
+#include"time.h"
 
 /*
  * Watchdog System:
@@ -84,7 +85,7 @@ void WatchdogNotify( INDEX index )
         ASSERT(FlagGet(flag, WatchdogDesiredMask));
 
 #ifdef DEBUG
-        time = TimerGetTime();
+        time = TimeGet();
         WatchdogLastUpdatedTime = time;
 #endif
         FlagOn( WatchdogCurMask, flag );

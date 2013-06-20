@@ -1,7 +1,7 @@
 #include"context.h"
 #include"isr.h"
 #include"watchdog.h"
-#include"timer.h"
+#include"time.h"
 
 /*
  * Context Unit:
@@ -75,7 +75,7 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
 void ContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack)
 {
 #ifdef DEBUG
-        TIME time = TimerGetTime();
+        TIME time = TimeGet();
 #endif
 
         if( oldStack != newStack ) {

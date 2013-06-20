@@ -15,8 +15,6 @@ void TimerStartup( );
 //Unit Servces
 //
 
-TIME TimerGetTime();
-
 void TimerRegister(
                 struct HANDLER_OBJECT * newTimer,
                 TIME wait,

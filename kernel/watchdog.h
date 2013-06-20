@@ -1,7 +1,7 @@
 #ifndef WATCHDOG_H
 #define WATCHDOG_H
 
-#include"timer.h"
+#include"utils/types.h"
 
 void WatchdogStartup();
 void WatchdogEnable( TIME timeout );

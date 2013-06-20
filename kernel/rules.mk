@@ -4,6 +4,8 @@ kernel/$(TARGET)_startup.o: kernel/startup.c kernel/startup.h
 
 kernel/$(TARGET)_timer.o: kernel/timer.c kernel/timer.h
 
+kernel/$(TARGET)_time.o: kernel/time.c kernel/time.h
+
 kernel/$(TARGET)_hal.o: kernel/hal.c kernel/hal.h hal/avr_hal.c hal/avr_hal.h hal/unix_hal.c hal/unix_hal.h
 
 kernel/$(TARGET)_scheduler.o: kernel/scheduler.c kernel/scheduler.h

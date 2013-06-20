@@ -1,6 +1,7 @@
 #include"scheduler.h"
 #include"utils/utils.h"
 #include"utils/linkedlist.h"
+#include"time.h"
 #include"timer.h"
 #include"softinterrupt.h"
 #include"context.h"
@@ -301,7 +302,7 @@ void SchedulerNeedsSwitch()
  */
 BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
 {
-        TIME currentTime = TimerGetTime();
+        TIME currentTime = TimeGet();
 
         //Only the global SchedulerTimer should invoke this callback.
         ASSERT( handler == &SchedulerTimer );
@@ -346,7 +347,7 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
         //and you would be right, but this doesn't matter because the timer will fail to acquire
         //the SchedulerMutex. Worst case we will let a thread run 1 ms. too long.
         SoftInterruptDisable();
-        QuantumStartTime = TimerGetTime();
+        QuantumStartTime = TimeGet();
         SoftInterruptEnable();
 
         //Switch away from the current thread to another.
@@ -374,7 +375,7 @@ void SchedulerStartup()
         //Initialize the crit handler
         MutexInit( &SchedulerMutex, FALSE );
 
-        QuantumStartTime = TimerGetTime();
+        QuantumStartTime = TimeGet();
 
         //Create a thread for idle loop.
         SchedulerCreateThread( &IdleThread, //Thread

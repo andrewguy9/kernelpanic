@@ -1,4 +1,5 @@
 #include"timer.h"
+#include"time.h"
 #include"utils/utils.h"
 #include"utils/heap.h"
 #include"thread.h"
@@ -8,17 +9,13 @@
 
 /*
  * Timer Unit Description:
- * The timer unit keeps time for the kernel. The current time can be queried
- * by calling TimerGetTime().
+ * The timer unit allows us to schedule functions to run in the future.
  *
  * Timers can be registered with the system by calling TimerRegister().
  * When the timer fires, the function and argument provided to TimerRegister()
  * are called as a post interrupt handler. (So interrupts will be ENABLED).
  * Its perfectly safe to have a timer re-register itself.
  */
-
-//TODO WE SHOULD REFACTOR TIME INTO A TIME UNIT, AND HAVE TIMERS
-//BE IN THIS UNIT.
 
 //
 //  Prototypes
@@ -116,7 +113,7 @@ void TimerSetNextTimer(TIME time)
 void TimerStartup( )
 {
         HalInitClock();
-        TimerLastTime = HalGetTime();
+        TimerLastTime = TimeGet();
 
         HeapInit( &TimerHeap1 );
         HeapInit( &TimerHeap2 );
@@ -134,7 +131,7 @@ void TimerRegister(
                 HANDLER_FUNCTION * handler,
                 void * context )
 {
-        TIME time = HalGetTime();
+        TIME time = TimeGet();
         TIME timerTime = time + wait;
 
         IsrDisable(IRQ_LEVEL_MAX);
@@ -160,11 +157,6 @@ void TimerRegister(
 
 }
 
-TIME TimerGetTime()
-{
-        return HalGetTime();
-}
-
 void TimerInterrupt()
 {
         //update interrupt level to represent that we are in inerrupt
@@ -174,7 +166,7 @@ void TimerInterrupt()
         HalResetClock();
 
         //Queue Timers to run as Post Handlers.
-        TimerInner( HalGetTime() );
+        TimerInner( TimeGet() );
 
         //Restore the interrupt level,
         TimerDecrement();
