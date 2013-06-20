@@ -2,7 +2,7 @@
 #include"hal.h"
 #include"panic.h"
 #include"isr.h"
-#include"utils/bitfield.h"
+#include"utils/flags.h"
 
 /*
  * Watchdog System:
@@ -35,8 +35,8 @@ ISR_HANDLER WatchdogInterrupt;
 //Globals
 //
 
-BITFIELD WatchdogDesiredMask;
-BITFIELD WatchdogCurMask;
+FLAG WatchdogDesiredMask; 
+FLAG WatchdogCurMask;
 TIME Timeout;
 
 #ifdef DEBUG
@@ -67,7 +67,7 @@ void WatchdogEnable( TIME timeout )
  */
 void WatchdogNotify( INDEX index )
 {
-        BITMAP_WORD flag;
+        FLAG flag;
 #ifdef DEBUG
         TIME time;
 #endif
@@ -106,7 +106,7 @@ void WatchdogNotify( INDEX index )
 
 void WatchdogAddFlag( INDEX index )
 {
-        BITFIELD flag = FLAG_NONE;
+        FLAG flag = FLAG_NONE;
 
         ASSERT( index <= FLAG_MAX_INDEX );
 
