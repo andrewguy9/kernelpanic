@@ -18,7 +18,7 @@ void TimerStartup( );
 void TimerRegister(
                 struct HANDLER_OBJECT * newTimer,
                 TIME wait,
-                HANDLER_FUNCTION * handler,
+                HANDLER_FUNCTION handler,
                 void * argument );
 //
 //Handle Atomic Sections
