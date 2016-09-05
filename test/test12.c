@@ -100,7 +100,8 @@ void WaiterNonBlockingMain(void * unused)
 		Respond2 = FALSE;
 		//printf("going to spin\n");
 		SignalWaitForSignal( &Signal, &context );
-		while( !LockingIsAcquired( &context ) );
+		while( !LockingIsAcquired( &context ) )
+                  ;
 		ASSERT( Flair );
 
 		Respond2 = TRUE;

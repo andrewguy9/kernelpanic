@@ -78,8 +78,6 @@ struct WEIGHTED_LINK * HeapSmallest( struct WEIGHTED_LINK *n1, struct WEIGHTED_L
 	else
 		w3 = -1;
 
-	if( ((w1 == w2) == w3) == -1 )
-		return NULL;
 	if( w1 <= w2 && w1 <= w3 )
 		return n1;
 	if( w2 <= w1 && w2 <= w3 )

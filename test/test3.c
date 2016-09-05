@@ -36,7 +36,8 @@ void Writer( void * arg )
 	{
 		ResourceLockExclusive( &BufferLock, &block);
 
-		while( !LockingIsAcquired( &block ) );
+		while( !LockingIsAcquired( &block ) )
+                  ;
 	
 		//resource should be exlusive
 		ASSERT( BufferLock.State == RESOURCE_EXCLUSIVE );
