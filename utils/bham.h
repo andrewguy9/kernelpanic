@@ -1,5 +1,5 @@
 #ifndef B_HAM_H
-#define B_HEM_H
+#define B_HAM_H
 
 #include"utils.h"
 
