@@ -30,7 +30,7 @@ OS  = "BSD"
 endif
 
 ifeq ($(shell uname), Linux)
-PC_CFLAGS  = "-g -Wall -Werror"
+PC_CFLAGS  = "-g -Wall -Werror -I $(PWD)"
 AVR_CFLAGS = "-Wall -Werror -mmcu=atmega128 -gdwarf-2"
 OS = "LINUX"
 endif
