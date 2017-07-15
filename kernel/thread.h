@@ -12,7 +12,7 @@ typedef void THREAD_MAIN(void * arg );
 struct THREAD
 {
         union LINK Link;
-        unsigned char Priority;
+        COUNT Priority;
         enum THREAD_STATE State;//Running or blocked state of thread.
         struct LOCKING_CONTEXT LockingContext;//Info on why the thread is blocked.
         struct MACHINE_CONTEXT MachineContext;//Info on registers/stack for thread.
