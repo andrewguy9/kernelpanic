@@ -433,8 +433,8 @@ TIME HalTimeDelta(struct timeval *time1, struct timeval *time2)
                 time_diff.tv_sec = time2->tv_sec - time1->tv_sec;
                 time_diff.tv_usec = time2->tv_usec - time1->tv_usec;
 
-                delta += (time2->tv_sec  - time1->tv_sec)  * 1000; // Seconds * 1000 = Milliseconds
-                delta += (time2->tv_usec - time1->tv_usec) / 1000; // Microseconds / 1000 = Milliseconds
+                delta += time_diff.tv_sec * 1000; // Seconds * 1000 = Milliseconds
+                delta += time_diff.tv_usec / 1000; // Microseconds / 1000 = Milliseconds
 
                 return delta;
         }
