@@ -503,6 +503,8 @@ BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
 
         HalUpdateIsrDebugInfo();
 
+	//TODO This will not work on ARM Linux, I violated the safty rules outlined here: https://www.gnu.org/software/libc/manual/html_node/Signal-Sets.html.
+	//TODO Rewrite this in terms of and and or oparations defined here: https://www.systutorials.com/docs/linux/man/3-sigaddset/
         return !((HalIrqTable[level].sa_mask ^ curSet) & HalIrqTable[level].sa_mask);
 }
 #endif //DEBUG
