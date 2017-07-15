@@ -6,7 +6,7 @@
 #endif
 
 #ifdef LINUX
-#define HAL_MIN_STACK_SIZE 32768
+#define HAL_MIN_STACK_SIZE SIGSTKSZ
 #endif
 
 #ifdef BSD
