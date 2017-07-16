@@ -1,9 +1,7 @@
 #include"kernel/hal.h"
 #include"kernel/thread.h"
-
 #include<sys/time.h>
 #include<string.h>
-#include<signal.h>
 #include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>
@@ -507,12 +505,12 @@ BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
         //TODO This will not work on ARM Linux, I violated the safty rules outlined here: https://www.gnu.org/software/libc/manual/html_node/Signal-Sets.html.
         //TODO Rewrite this in terms of and and or oparations defined here: https://www.systutorials.com/docs/linux/man/3-sigaddset/
         sigset_t curPlusLevel;
-        status = sigorset(&curAndLevel, &HalIrqTable[level].sa_mask, &curSet);
+        status = sigorset(&curPlusLevel, &HalIrqTable[level].sa_mask, &curSet);
         ASSERT(status == 0);
         sigset_t intersection;
         status = sigandset(&intersection, &curPlusLevel, &HalIrqTable[level].sa_mask);
         ASSERT(status == 0);
-        return sigisemptyset(&intersection)
+        return sigisemptyset(&intersection);
 #else
         return !((HalIrqTable[level].sa_mask ^ curSet) & HalIrqTable[level].sa_mask);
 #endif //LINUX
@@ -620,14 +618,18 @@ void HalStartSerial()
         serialSettings.c_cc[VINTR] = serialSettingsOld.c_cc[VINTR];
         serialSettings.c_cc[VQUIT] = serialSettingsOld.c_cc[VQUIT];
         serialSettings.c_cc[VSUSP] = serialSettingsOld.c_cc[VSUSP];
+#ifdef DARWIN
         serialSettings.c_cc[VDSUSP] = serialSettingsOld.c_cc[VDSUSP];
+#endif //DARWIN
         serialSettings.c_cc[VSTART] = serialSettingsOld.c_cc[VSTART];
         serialSettings.c_cc[VSTOP] = serialSettingsOld.c_cc[VSTOP];
         serialSettings.c_cc[VLNEXT] = serialSettingsOld.c_cc[VLNEXT];
         serialSettings.c_cc[VDISCARD] = serialSettingsOld.c_cc[VDISCARD];
         serialSettings.c_cc[VMIN] = serialSettingsOld.c_cc[VMIN];
         serialSettings.c_cc[VTIME] = serialSettingsOld.c_cc[VTIME];
+#ifdef DARWIN
         serialSettings.c_cc[VSTATUS] = serialSettingsOld.c_cc[VSTATUS];
+#endif // DARWIN
 
         serialSettings.c_ispeed = serialSettingsOld.c_ispeed;
         serialSettings.c_ospeed = serialSettingsOld.c_ospeed;

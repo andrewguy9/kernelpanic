@@ -16,7 +16,9 @@
 
 #include<setjmp.h>
 #include<stdlib.h>
+#define __USE_GNU
 #include<signal.h>
+#undef __USE_GNU
 
 //
 //Define signal to kernel interrupt mappings.
