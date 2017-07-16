@@ -114,8 +114,6 @@ THREAD_MAIN WorkerThreadMain;
 void WorkerThreadMain( void * arg )
 {
         struct WORKER_QUEUE * queue;
-        struct THREAD * thread;
-        struct SEMAPHORE * lock;
         struct LINKED_LIST * list;
 
         struct WORKER_ITEM * item;
@@ -123,8 +121,6 @@ void WorkerThreadMain( void * arg )
 
         //Get the Work Thread Context
         queue = arg;
-        thread = & queue->Thread;
-        lock = & queue->Lock;
         list = & queue->List;
 
         //Loop consuming work items.
