@@ -31,7 +31,7 @@ void SchedulerStartup( );
 void
 SchedulerCreateThread(
                 struct THREAD * thread,
-                unsigned char priority,
+                COUNT priority,
                 char * stack,
                 COUNT stackSize,
                 THREAD_MAIN main,

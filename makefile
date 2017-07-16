@@ -12,10 +12,10 @@ avr_fre:
 	$(MAKE_PROG) $(AVR_FRE_STRING) -f makefile.main umouse
 pc:
 	$(MAKE_PROG) $(PC_STRING) -f makefile.main umouse
-pc_fre: 
+pc_fre:
 	$(MAKE_PROG) $(PC_FRE_STRING) -f makefile.main umouse
 
-clean: 
+clean:
 	$(MAKE_PROG) -e DIR=. cleandir
 	$(MAKE_PROG) -e DIR=utils cleandir
 	$(MAKE_PROG) -e DIR=kernel cleandir

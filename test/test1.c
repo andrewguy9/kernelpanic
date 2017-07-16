@@ -13,15 +13,15 @@
 //Main routine for threads.
 //
 
-THREAD_MAIN Test1ThreadMain;
+static THREAD_MAIN Test1ThreadMain;
 void Test1ThreadMain( void * arg )
 {
 	COUNT * var = (COUNT *) arg;
-	volatile unsigned char a = 0;
-	while( 1 )
+	volatile int a;
+	while( TRUE )
 	{
 		(*var)++;
-		for(a=1;a>0;a++);
+		for(a= 1;a>0;a++);
 
 	}
 }
@@ -30,9 +30,9 @@ void Test1ThreadMain( void * arg )
 //Vars 
 //
 
-COUNT Value1 = 0;
-COUNT Value2 = 0;
-COUNT Value3 = 0;
+static COUNT Value1 = 0;
+static COUNT Value2 = 0;
+static COUNT Value3 = 0;
 
 //
 //Thread structures
@@ -40,14 +40,14 @@ COUNT Value3 = 0;
 
 #define STACK_SIZE HAL_MIN_STACK_SIZE
 
-struct THREAD TestThread1;
-char TestThread1Stack[STACK_SIZE];
+static struct THREAD TestThread1;
+static char TestThread1Stack[STACK_SIZE];
 
-struct THREAD TestThread2;
-char TestThread2Stack[STACK_SIZE];
+static struct THREAD TestThread2;
+static char TestThread2Stack[STACK_SIZE];
 
-struct THREAD TestThread3;
-char TestThread3Stack[STACK_SIZE];
+static struct THREAD TestThread3;
+static char TestThread3Stack[STACK_SIZE];
 
 //
 //Main

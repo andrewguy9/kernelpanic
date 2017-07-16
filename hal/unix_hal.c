@@ -133,7 +133,7 @@ void HalBlockSignal( void * which );
 //
 
 /*
- * sigaltstack will cause this fuction to be called on an alternate stack.
+ * sigaltstack will cause this function to be called on an alternate stack.
  * This allows us to bootstrap new threads.
  */
 void HalStackTrampoline( int SignalNumber )

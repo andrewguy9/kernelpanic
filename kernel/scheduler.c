@@ -53,26 +53,26 @@ HANDLER_COMPLETE_FUNCTION PostCritHandler;
 //NOTE: QuantumStartTime is used by the SchedulerTimer, so update to him need to be IRQ_LEVEL_SOFT (Timers run at soft, not IRQ_LEVEL_TIMER).
 
 //Pointers to the currnet and next thread.
-struct THREAD * ActiveThread;
-struct THREAD * NextThread;
+static struct THREAD * ActiveThread;
+static struct THREAD * NextThread;
 
 //List of threads which are eligable to run.
-struct LINKED_LIST RunQueue;
+static struct LINKED_LIST RunQueue;
 
 //HANDLER used as a timer for the thread eviction process.
-struct HANDLER_OBJECT SchedulerTimer;
+static struct HANDLER_OBJECT SchedulerTimer;
 
 //The Time at which ActiveThread was selected to run.
 //QuantimStartTime should be protected at the SoftInterrupt IRQ
 //so that the timer can evaluate it.
-volatile TIME QuantumStartTime;
+static volatile TIME QuantumStartTime;
 
 //HANDLER used to perform thread scheduling.
 //SchedulerMutex is used to restrict access to SchedulerCritObject,
 //because it can be queued by a thread calling yield or the
 //periodic thread eviction process.
-struct HANDLER_OBJECT SchedulerCritObject;
-struct MUTEX SchedulerMutex;
+static struct HANDLER_OBJECT SchedulerCritObject;
+static struct MUTEX SchedulerMutex;
 
 void PostCritHandler(struct HANDLER_OBJECT * obj )
 {
@@ -83,7 +83,7 @@ void PostCritHandler(struct HANDLER_OBJECT * obj )
 }
 
 //Thread for idle loop ( the start up thread too )
-struct THREAD IdleThread;
+static struct THREAD IdleThread;
 
 //
 //Private Helper Functions
@@ -449,7 +449,7 @@ void SchedulerThreadStartup( void )
 
 void SchedulerCreateThread(
                 struct THREAD * thread,
-                unsigned char priority,
+                COUNT priority,
                 char * stack,
                 COUNT stackSize,
                 THREAD_MAIN main,

@@ -2,6 +2,7 @@
 #include"kernel/scheduler.h"
 #include"kernel/hal.h"
 #include"kernel/serial.h"
+#include"kernel/sleep.h"
 
 /*
  * Reads from STDIN and prints the results to STDOUT.
@@ -26,6 +27,7 @@ void TestThreadMain( void * arg )
                 if(read > 0) {
                         SerialWrite(buf, read);
                 }
+                Sleep(1);
         }
 }
 

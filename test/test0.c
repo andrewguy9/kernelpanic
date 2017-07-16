@@ -8,12 +8,12 @@
 //Time should be greather than both.
 //
 
-COUNT FrequentCount;
-COUNT SeldomCount;
+static COUNT FrequentCount;
+static COUNT SeldomCount;
 
-struct HANDLER_OBJECT FrequentTimer;
-HANDLER_FUNCTION FrequentHandler;
-BOOL FrequentHandler( struct HANDLER_OBJECT * timer )
+static struct HANDLER_OBJECT FrequentTimer;
+static HANDLER_FUNCTION FrequentHandler;
+static BOOL FrequentHandler( struct HANDLER_OBJECT * timer )
 {
 	int * count = timer->Context;
 
@@ -29,9 +29,9 @@ BOOL FrequentHandler( struct HANDLER_OBJECT * timer )
 	return FALSE;
 }
 
-struct HANDLER_OBJECT SeldomTimer;
-HANDLER_FUNCTION SeldomHandler;
-BOOL SeldomHandler( struct HANDLER_OBJECT * timer )
+static struct HANDLER_OBJECT SeldomTimer;
+static HANDLER_FUNCTION SeldomHandler;
+static BOOL SeldomHandler( struct HANDLER_OBJECT * timer )
 {
 	int * count = timer->Context;
 
