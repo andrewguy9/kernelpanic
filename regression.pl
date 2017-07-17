@@ -69,20 +69,20 @@ print "done\n";
 sub get_stack {
         my ($program, $core) = @_;
 
+        my $program = "lldb --core $core --source ./get_stack.gdb";
+
         my $stack = "-" x 80;
         $stack .= "\n";
-        $stack .= "gdb $program $core\n";
+        $stack .= "$program\n";
 
-        open GDB_OUTPUT, "gdb --command ./get_stack.gdb $program $core |"
+        open GDB_OUTPUT, "$program |"
                 or die "Could not execute: $!";
         while(<GDB_OUTPUT>) {
                 chomp $_;
-                if($_ =~ /^#\d*\s*0x([0-9]|[a-f])* in .* at .*:\d*$/) {
-                        $stack .= "$_\n";
-                }
+                $stack .= "$_\n";
         }
         close GDB_OUTPUT;
-        
+
         $stack .= "-" x 80;
         $stack .= "\n";
 
