@@ -10,12 +10,14 @@ use Getopt::Long;
 my $timeout = 60;
 my $batchsize = 1;
 my $runs = 1;
+my $debugger = 'gdb';
 
 # Getopt::Long::Configure ('bundling_override');
 GetOptions (
         'runs=i' => \$runs,
         'batch=i' => \$batchsize,
         'time=i' => \$timeout,
+        'debugger=s' => \$debugger,
 );
 
 print "Timeout $timeout\n";
@@ -69,19 +71,26 @@ print "done\n";
 sub get_stack {
         my ($program, $core) = @_;
 
-        my $program = "lldb --core $core --source ./get_stack.gdb";
+        my $debug_cmd;
+        if($debugger eq "gdb") {
+          $debug_cmd = "gdb --command ./get_stack.gdb $program $core";
+        } elsif($debugger eq "lldb") {
+          $debug_cmd = "lldb --core $core --source ./get_stack.gdb";
+        } else {
+          die("Unrecognized debugger");
+        }
 
         my $stack = "-" x 80;
         $stack .= "\n";
-        $stack .= "$program\n";
+        $stack .= "$debug_cmd\n";
 
-        open GDB_OUTPUT, "$program |"
+        open DBG_OUTPUT, "$debug_cmd |"
                 or die "Could not execute: $!";
-        while(<GDB_OUTPUT>) {
+        while(<DBG_OUTPUT>) {
                 chomp $_;
                 $stack .= "$_\n";
         }
-        close GDB_OUTPUT;
+        close DBG_OUTPUT;
 
         $stack .= "-" x 80;
         $stack .= "\n";
