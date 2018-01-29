@@ -1,4 +1,17 @@
 #!/bin/bash
 
+which gdb >/dev/null
+if [ $? -eq 0 ]; then
+  debugger="gdb"
+else
+  which lldb > /dev/null
+  if [ $? -eq 0 ]; then
+    debugger="lldb"
+  else
+    >&2 echo "Could not find debugger"
+    exit 1
+  fi
+fi
+
 ulimit -c unlimited
-./regression.pl $*
+./regression.pl --debugger $debugger $*
