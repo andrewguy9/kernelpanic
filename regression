@@ -13,5 +13,12 @@ else
   fi
 fi
 
+os=$(uname)
+if [ $os == "Darwin" ]; then
+  coredir="/cores"
+else
+  coredir="."
+fi
+
 ulimit -c unlimited
-./regression.pl --debugger $debugger $*
+./regression.pl --debugger $debugger --coredir $coredir $*
