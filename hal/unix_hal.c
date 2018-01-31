@@ -259,7 +259,7 @@ void HalBlockSignal( void * which )
 
 void HalPanic(char file[], int line)
 {
-        printf("PANIC: %s:%d\n",file,line);
+        printf("PANIC: %s:%d, errno %d\n", file, line, errno);
         abort();
 }
 
@@ -620,10 +620,10 @@ void HalStartSerial()
 
         // Open the term for reading and writing.
         if( (serialInFd = open(SERIAL_INPUT_DEVICE, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0 ) {
-                HalPanic("failed to open input fd", errno);
+                HalPanic("failed to open input fd", errno); //TODO fix
         }
         if( (serialOutFd = open(SERIAL_OUTPUT_DEVICE, O_WRONLY | O_NOCTTY | O_NONBLOCK) ) < 0 ) {
-                HalPanic("failed to open output fd", errno);
+                HalPanic("failed to open output fd", errno); //TODO fix
         }
 
         //Get the term settings
@@ -705,6 +705,6 @@ void HalSerialWriteChar(char data)
         } else if(writelen == 0) {
                 HalPanic("Wrote 0 to STDOUT\n", 0);
         } else {
-                HalPanic("Failed to write to STDOUT", errno);
+                HalPanic("Failed to write to STDOUT", errno); //TODO fix
         }
 }
