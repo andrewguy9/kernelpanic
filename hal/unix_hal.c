@@ -3,7 +3,6 @@
 
 #include<sys/time.h>
 #include<string.h>
-#include<signal.h>
 #include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>
@@ -499,10 +498,10 @@ sigset_t sigset_xor(sigset_t a, sigset_t b) {
 sigset_t sigset_and(sigset_t a, sigset_t b) {
 	int status;
 	sigset_t result;
-	result = sigemptyset(&result);
-	ASSUME(result, 0);
-	result = sigandset(&result, &a, &b);
-	ASSUME(result, 0);
+	status = sigemptyset(&result);
+	ASSUME(status, 0);
+	status = sigandset(&result, &a, &b);
+	ASSUME(status, 0);
 	return result;
 }
 
