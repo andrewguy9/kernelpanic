@@ -4,6 +4,7 @@
 #include<sys/time.h>
 #include<string.h>
 #include<signal.h>
+
 #include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>
@@ -282,8 +283,6 @@ void HalStartup()
 
 void HalPetWatchdog( TIME when )
 {
-        int status;
-
         //NOTE: ITIMER_VIRUTAL will decrement when the process is running.
         //This means that on unix the watchdog will not catch cases where
         //the process is idle or sparse.
@@ -295,8 +294,7 @@ void HalPetWatchdog( TIME when )
         WatchdogInterval.it_interval.tv_usec = 0;
         WatchdogInterval.it_value.tv_sec = 0;
         WatchdogInterval.it_value.tv_usec = when * 1000;
-        status = setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL );
-        ASSERT(status == 0 );
+        ASSUME(setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL ), 0);
 }
 
 //
@@ -314,7 +312,6 @@ void HalCreateStackFrame(
                 STACK_INIT_ROUTINE foo,
                 COUNT stackSize)
 {
-        int status;
         char * cstack = stack;
         stack_t newStack;
         sigset_t oldSet;
@@ -349,9 +346,7 @@ void HalCreateStackFrame(
         newStack.ss_sp = cstack;
         newStack.ss_size = stackSize;
         newStack.ss_flags = 0;
-        status = sigaltstack( &newStack, NULL );
-        ASSERT( status == 0 );
-
+        ASSUME(sigaltstack( &newStack, NULL ), 0);
 
         //At this point we know that we are atomic.
         //All signal types are blocked.
@@ -421,7 +416,6 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT 
  */
 TIME HalTimeDelta(struct timeval *time1, struct timeval *time2)
 {
-        struct timeval time_diff;
         TIME delta = 0;
 
         if(time2->tv_sec < time1->tv_sec) {
@@ -429,10 +423,6 @@ TIME HalTimeDelta(struct timeval *time1, struct timeval *time2)
         } else if(time2->tv_sec == time1->tv_sec && time2->tv_usec < time1->tv_usec) {
                 return 0;
         } else {
-
-                time_diff.tv_sec = time2->tv_sec - time1->tv_sec;
-                time_diff.tv_usec = time2->tv_usec - time1->tv_usec;
-
                 delta += (time2->tv_sec  - time1->tv_sec)  * 1000; // Seconds * 1000 = Milliseconds
                 delta += (time2->tv_usec - time1->tv_usec) / 1000; // Microseconds / 1000 = Milliseconds
 
@@ -489,7 +479,48 @@ TIME HalGetTime()
 //IRQ Management
 //
 
+#define HACK 1
+
 #ifdef DEBUG
+#if HACK
+#ifdef LINUX
+sigset_t sigset_xor(sigset_t a, sigset_t b) {
+	sigset_t result;
+	for (int i = 0; i < _SIGSET_NWORDS; i++) {
+		result.__val[i] = a.__val[i] ^ b.__val[i];
+	}
+	return result;
+}
+
+sigset_t sigset_and(sigset_t a, sigset_t b) {
+	sigset_t result;
+	for (int i = 0; i< _SIGSET_NWORDS; i++) {
+		result.__val[i] = a.__val[i] & b.__val[i];
+	}
+	return result;
+}
+
+BOOL sigset_empty(sigset_t a) {
+	for (int i = 0; i< _SIGSET_NWORDS; i++) {
+		if (a.__val[i] != 0) {
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+#else
+sigset_t sigset_xor(sigset_t a, sigset_t b) {
+	return a ^ b;
+}
+sigset_t sigset_and(sigset_t a, sigset_t b) {
+	return a & b;
+}
+
+BOOL sigset_empty(sigset_t a) {
+	return !a;
+}
+#endif
+#endif //HACK
 /*
  * Returns true if the system is running at at least IRQ level.
  */
@@ -502,8 +533,14 @@ BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
         ASSERT(status == 0);
 
         HalUpdateIsrDebugInfo();
-
-        return !((HalIrqTable[level].sa_mask ^ curSet) & HalIrqTable[level].sa_mask);
+	
+	// empty -> 0, !0 -> true
+	// not empty -> !0, !!0 -> false
+#if HACK
+        return sigset_empty(sigset_and(sigset_xor(HalIrqTable[level].sa_mask,curSet), HalIrqTable[level].sa_mask));
+#else
+	return !((HalIrqTable[level].sa_mask ^ curSet) & HalIrqTable[level].sa_mask);
+#endif
 }
 #endif //DEBUG
 
@@ -608,14 +645,18 @@ void HalStartSerial()
         serialSettings.c_cc[VINTR] = serialSettingsOld.c_cc[VINTR];
         serialSettings.c_cc[VQUIT] = serialSettingsOld.c_cc[VQUIT];
         serialSettings.c_cc[VSUSP] = serialSettingsOld.c_cc[VSUSP];
-        serialSettings.c_cc[VDSUSP] = serialSettingsOld.c_cc[VDSUSP];
+#ifndef LINUX
+	serialSettings.c_cc[VDSUSP] = serialSettingsOld.c_cc[VDSUSP];
+#endif
         serialSettings.c_cc[VSTART] = serialSettingsOld.c_cc[VSTART];
         serialSettings.c_cc[VSTOP] = serialSettingsOld.c_cc[VSTOP];
         serialSettings.c_cc[VLNEXT] = serialSettingsOld.c_cc[VLNEXT];
         serialSettings.c_cc[VDISCARD] = serialSettingsOld.c_cc[VDISCARD];
         serialSettings.c_cc[VMIN] = serialSettingsOld.c_cc[VMIN];
         serialSettings.c_cc[VTIME] = serialSettingsOld.c_cc[VTIME];
-        serialSettings.c_cc[VSTATUS] = serialSettingsOld.c_cc[VSTATUS];
+#ifndef LINUX
+	serialSettings.c_cc[VSTATUS] = serialSettingsOld.c_cc[VSTATUS];
+#endif
 
         serialSettings.c_ispeed = serialSettingsOld.c_ispeed;
         serialSettings.c_ospeed = serialSettingsOld.c_ospeed;
