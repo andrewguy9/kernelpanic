@@ -485,8 +485,11 @@ TIME HalGetTime()
 //IRQ Management
 //
 
+#undef SIGNAL_HACK
+
 #ifdef DEBUG
 #ifdef LINUX
+#ifdef SIGNAL_HACK // Use function which touch linux struct internals.
 sigset_t sigset_xor(sigset_t a, sigset_t b) {
 	sigset_t result;
 	for (int i = 0; i < _SIGSET_NWORDS; i++) {
@@ -494,6 +497,36 @@ sigset_t sigset_xor(sigset_t a, sigset_t b) {
 	}
 	return result;
 }
+#else // Use linux singal interface only.
+sigset_t sigset_not(sigset_t a) {
+	int status;
+	sigset_t result;
+	status = sigemptyset(&result);
+	ASSUME(status, 0);
+        for (i=1; i <= __SIGRTMAX; i++) {
+                status = sigismember(&a, i);
+                if (status == 0) {
+                  //Not set, so set in result.
+                  status = sigaddset(&result, i);
+                  ASSUME(status, 0);
+                } else if (status == 1) {
+                  //Set, so unset.
+                  status = sigdelset(&result, i);
+                  ASSUME(status, 0);
+                } else if (status == -1) {
+                  HalPanicErrno("Failed to test signal membership.");
+                }
+        }
+        return result;
+}
+
+sigset_t sigset_xor(sigset_t a, sigset_t b) {
+        //TODO (and (not (and a b)) (or a b))
+        sigset_t result;
+        result = sigset_and( sigset_not( sigset_and(a, b)), sigset_or(a, b));
+        return result;
+}
+#endif // SIGNAL_HACK
 
 sigset_t sigset_and(sigset_t a, sigset_t b) {
 	int status;
@@ -501,6 +534,16 @@ sigset_t sigset_and(sigset_t a, sigset_t b) {
 	status = sigemptyset(&result);
 	ASSUME(status, 0);
 	status = sigandset(&result, &a, &b);
+	ASSUME(status, 0);
+	return result;
+}
+
+sigset_t sigset_or(sigset_t a, sigset_t b) {
+	int status;
+	sigset_t result;
+	status = sigemptyset(&result);
+	ASSUME(status, 0);
+	status = sigorset(&result, &a, &b);
 	ASSUME(status, 0);
 	return result;
 }
