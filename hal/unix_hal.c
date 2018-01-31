@@ -486,10 +486,7 @@ TIME HalGetTime()
 //IRQ Management
 //
 
-#define HACK 1
-
 #ifdef DEBUG
-#if HACK
 #ifdef LINUX
 sigset_t sigset_xor(sigset_t a, sigset_t b) {
 	sigset_t result;
@@ -500,22 +497,19 @@ sigset_t sigset_xor(sigset_t a, sigset_t b) {
 }
 
 sigset_t sigset_and(sigset_t a, sigset_t b) {
+	int status;
 	sigset_t result;
-	for (int i = 0; i< _SIGSET_NWORDS; i++) {
-		result.__val[i] = a.__val[i] & b.__val[i];
-	}
+	result = sigemptyset(&result);
+	ASSUME(result, 0);
+	result = sigandset(&result, &a, &b);
+	ASSUME(result, 0);
 	return result;
 }
 
 BOOL sigset_empty(sigset_t a) {
-	for (int i = 0; i< _SIGSET_NWORDS; i++) {
-		if (a.__val[i] != 0) {
-			return FALSE;
-		}
-	}
-	return TRUE;
+	return sigisemptyset(&a);
 }
-#else
+#else // OSX
 sigset_t sigset_xor(sigset_t a, sigset_t b) {
 	return a ^ b;
 }
@@ -526,8 +520,7 @@ sigset_t sigset_and(sigset_t a, sigset_t b) {
 BOOL sigset_empty(sigset_t a) {
 	return !a;
 }
-#endif
-#endif //HACK
+#endif // LINUX
 /*
  * Returns true if the system is running at at least IRQ level.
  */
@@ -543,11 +536,7 @@ BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
 	
 	// empty -> 0, !0 -> true
 	// not empty -> !0, !!0 -> false
-#if HACK
         return sigset_empty(sigset_and(sigset_xor(HalIrqTable[level].sa_mask,curSet), HalIrqTable[level].sa_mask));
-#else
-	return !((HalIrqTable[level].sa_mask ^ curSet) & HalIrqTable[level].sa_mask);
-#endif
 }
 #endif //DEBUG
 
