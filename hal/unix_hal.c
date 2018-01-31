@@ -485,23 +485,26 @@ TIME HalGetTime()
 #if HACK
 #ifdef LINUX
 sigset_t sigset_xor(sigset_t a, sigset_t b) {
+	int i;
 	sigset_t result;
-	for (int i = 0; i < _SIGSET_NWORDS; i++) {
+	for (i = 0; i < _SIGSET_NWORDS; i++) {
 		result.__val[i] = a.__val[i] ^ b.__val[i];
 	}
 	return result;
 }
 
 sigset_t sigset_and(sigset_t a, sigset_t b) {
+	int i;
 	sigset_t result;
-	for (int i = 0; i< _SIGSET_NWORDS; i++) {
+	for (i = 0; i< _SIGSET_NWORDS; i++) {
 		result.__val[i] = a.__val[i] & b.__val[i];
 	}
 	return result;
 }
 
 BOOL sigset_empty(sigset_t a) {
-	for (int i = 0; i< _SIGSET_NWORDS; i++) {
+	int i;
+	for (i = 0; i< _SIGSET_NWORDS; i++) {
 		if (a.__val[i] != 0) {
 			return FALSE;
 		}
