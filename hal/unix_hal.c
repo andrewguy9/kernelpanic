@@ -489,6 +489,29 @@ TIME HalGetTime()
 
 #ifdef DEBUG
 #ifdef LINUX
+sigset_t sigset_and(sigset_t a, sigset_t b) {
+	int status;
+	sigset_t result;
+	status = sigemptyset(&result);
+	ASSUME(status, 0);
+	status = sigandset(&result, &a, &b);
+	ASSUME(status, 0);
+	return result;
+}
+
+sigset_t sigset_or(sigset_t a, sigset_t b) {
+	int status;
+	sigset_t result;
+	status = sigemptyset(&result);
+	ASSUME(status, 0);
+	status = sigorset(&result, &a, &b);
+	ASSUME(status, 0);
+	return result;
+}
+
+BOOL sigset_empty(sigset_t a) {
+	return sigisemptyset(&a);
+}
 #ifdef SIGNAL_HACK // Use function which touch linux struct internals.
 sigset_t sigset_xor(sigset_t a, sigset_t b) {
 	sigset_t result;
@@ -499,6 +522,7 @@ sigset_t sigset_xor(sigset_t a, sigset_t b) {
 }
 #else // Use linux singal interface only.
 sigset_t sigset_not(sigset_t a) {
+	int i;
 	int status;
 	sigset_t result;
 	status = sigemptyset(&result);
@@ -528,29 +552,6 @@ sigset_t sigset_xor(sigset_t a, sigset_t b) {
 }
 #endif // SIGNAL_HACK
 
-sigset_t sigset_and(sigset_t a, sigset_t b) {
-	int status;
-	sigset_t result;
-	status = sigemptyset(&result);
-	ASSUME(status, 0);
-	status = sigandset(&result, &a, &b);
-	ASSUME(status, 0);
-	return result;
-}
-
-sigset_t sigset_or(sigset_t a, sigset_t b) {
-	int status;
-	sigset_t result;
-	status = sigemptyset(&result);
-	ASSUME(status, 0);
-	status = sigorset(&result, &a, &b);
-	ASSUME(status, 0);
-	return result;
-}
-
-BOOL sigset_empty(sigset_t a) {
-	return sigisemptyset(&a);
-}
 #else // OSX
 sigset_t sigset_xor(sigset_t a, sigset_t b) {
 	return a ^ b;
