@@ -77,7 +77,6 @@ struct MACHINE_CONTEXT
 {
         STACK_INIT_ROUTINE * Foo;//Pointer to the first function the thread calls.
         jmp_buf Registers;//Buffer to hold register state in context switches.
-        //TODO Do we need more fields for stack disable?
 
 #ifdef DEBUG
         struct COUNTER TimesRun;

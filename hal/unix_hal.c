@@ -189,7 +189,6 @@ void HalIsrHandler( int SignalNumber )
                 if( HalIrqToSignal[index] == SignalNumber ) {
                         //We found it, call the appropriate ISR.
                         irq = index;
-                        printf("Recieved signal %d, IRQ %d, stack around %p\n", SignalNumber, irq, (void*) &index);
                         HalIsrJumpTable[irq]();
 #ifdef DEBUG
                         //We are about to return into an unknown frame.
@@ -334,7 +333,6 @@ void HalCreateStackFrame(
         //Set up the stack boundry.
         Context->High = (char *) (cstack + stackSize);
         Context->Low = cstack;
-        printf("Created stack between %p %p\n", Context->High, Context->Low);
 #endif
 
         Context->Foo = foo;
@@ -356,7 +354,11 @@ void HalCreateStackFrame(
         newStack.ss_sp = cstack;
         newStack.ss_size = stackSize;
         newStack.ss_flags = 0;
-        ASSUME(sigaltstack( &newStack, NULL ), 0);
+        status = sigaltstack( &newStack, NULL );
+	if (status != 0) {
+		HalPanicErrno("Failed to turn on sigaltstack.");
+	}
+
 
         //At this point we know that we are atomic.
         //All signal types are blocked.
@@ -364,53 +366,23 @@ void HalCreateStackFrame(
         //sure that it was delivered.
         ASSUME(sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL ), 0);
 
-        raise( HAL_ISR_TRAMPOLINE ); //XXX SHOULDN'T WE RAISE BEFORE WE UNBLOCK?
+        //XXX SHOULDN'T WE RAISE BEFORE WE UNBLOCK?
+        raise( HAL_ISR_TRAMPOLINE );
 
-        while( ! halTempContextProcessed ); //TODO THIS LOOKS LIKE A HACK.
+        //TODO THIS LOOKS LIKE A HACK.
+        while( ! halTempContextProcessed );
 
 	//Now that trampoline has fired, we can get back to the thread with longjump.
 	//Lets turn off sigaltstack.
         newStack.ss_flags = SS_DISABLE;
         status = sigaltstack( &newStack, NULL );
 	if (status != 0) {
-		HalPanicErrno("Failed to turn off stack");
+		HalPanicErrno("Failed to turn off sigaltstack.");
 	}
 
         //Now that we have bootstrapped the new thread, lets restore the old mask.
         ASSUME(sigprocmask(SIG_SETMASK, &oldSet, NULL), 0);
 }
-
-#if 0
-void HalDestroyStack(struct MACHINE_CONTEXT * Context)
-{
-	int status;
-        stack_t stack;
-        sigset_t oldSet;
-
-        ASSUME(sigemptyset(&oldSet), 0);
-        //We are about to bootstrap the new thread. Because we have to modify global
-        //state here, we must make sure no interrupts occur until after we are bootstrapped.
-        //We do all of this under the nose of the Isr unit.
-        sigprocmask(SIG_BLOCK, &HalIrqTable[IRQ_LEVEL_MAX].sa_mask, &oldSet);
-
-	#if 0
-        printf("Turning off sigaltstack for %p to %p\n", Context->Low, Context->High);
-	#endif
-
-        /// XXX These are temp values. Will need to change MACHINE_CONTEXT?
-        //  XXX Does sigaltstack need ss_sp and ss_size when disabling?
-        stack.ss_sp = Context->Low;
-        stack.ss_size = Context->High - Context->Low;
-        stack.ss_flags = SS_DISABLE;
-        status = sigaltstack( &stack, NULL );
-	if (status != 0) {
-		HalPanicErrno("Failed to turn off stack");
-	}
-
-        //Now that we have killed the old stack, lets restore the old mask.
-        ASSUME(sigprocmask(SIG_SETMASK, &oldSet, NULL), 0);
-}
-#endif
 
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
@@ -438,7 +410,6 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT 
 {
         int status;
         ASSERT( HalIsIrqAtomic(IRQ_LEVEL_MAX) );
-        printf("Switched from %p to %p\n", oldStack, newStack);
 
         //Save the stack state into old context.
         status = _setjmp( oldStack->Registers );
@@ -621,9 +592,7 @@ BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
         ASSERT(status == 0);
 
         HalUpdateIsrDebugInfo();
-	
-	// empty -> 0, !0 -> true
-	// not empty -> !0, !!0 -> false
+
         return sigset_empty(sigset_and(sigset_xor(HalIrqTable[level].sa_mask,curSet), HalIrqTable[level].sa_mask));
 }
 #endif //DEBUG
@@ -644,9 +613,6 @@ void HalRaiseInterrupt(enum IRQ_LEVEL level)
 
 void HalIsrInit()
 {
-        int a = 5;
-        printf("Root stack around %p\n", (void*) &a);
-
         HalClearSignals();
 
         //Unix Hal requires uses HAL_ISR_TRAMPOLINE to bootstrap new

@@ -54,7 +54,6 @@ void HalPetWatchdog( );
 void HalStartInterrupt();
 void HalEndInterrupt();
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize);
-void HalDestroyStack( struct MACHINE_CONTEXT * Context);
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context );
 void HalPanic(char file[], int line);
 void HalSleepProcessor();
