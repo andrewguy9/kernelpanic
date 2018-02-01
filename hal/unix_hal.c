@@ -189,6 +189,7 @@ void HalIsrHandler( int SignalNumber )
                 if( HalIrqToSignal[index] == SignalNumber ) {
                         //We found it, call the appropriate ISR.
                         irq = index;
+                        printf("Recieved signal %d, IRQ %d, stack around %p\n", SignalNumber, irq, (void*) &index);
                         HalIsrJumpTable[irq]();
 #ifdef DEBUG
                         //We are about to return into an unknown frame.
@@ -331,6 +332,7 @@ void HalCreateStackFrame(
         //Set up the stack boundry.
         Context->High = (char *) (cstack + stackSize);
         Context->Low = cstack;
+        printf("Created stack between %p %p\n", Context->High, Context->Low);
 #endif
 
         Context->Foo = foo;
@@ -394,6 +396,7 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT 
 {
         int status;
         ASSERT( HalIsIrqAtomic(IRQ_LEVEL_MAX) );
+        printf("Switched from %p to %p\n", oldStack, newStack);
 
         //Save the stack state into old context.
         status = _setjmp( oldStack->Registers );
@@ -599,6 +602,9 @@ void HalRaiseInterrupt(enum IRQ_LEVEL level)
 
 void HalIsrInit()
 {
+        int a = 5;
+        printf("Root stack around %p\n", (void*) &a);
+
         HalClearSignals();
 
         //Unix Hal requires uses HAL_ISR_TRAMPOLINE to bootstrap new
