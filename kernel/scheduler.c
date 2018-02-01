@@ -464,6 +464,11 @@ void SchedulerCreateThread(
         thread->Main = main;
         thread->Argument = Argument;
 
+        //tear down stack if previously used.
+        //XXX do we need a cleanup join function to get thread state out and do cleanup?
+        if (thread->State == THREAD_STATE_DONE) {
+          ContextDestroy( &thread->MachineContext);
+        }
         //initialize stack
         ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup );
 

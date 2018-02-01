@@ -371,6 +371,30 @@ void HalCreateStackFrame(
         ASSUME(sigprocmask(SIG_SETMASK, &oldSet, NULL), 0);
 }
 
+void HalDestroyStack(struct MACHINE_CONTEXT * Context)
+{
+        stack_t stack;
+        sigset_t oldSet;
+
+        ASSUME(sigemptyset(&oldSet), 0);
+        //We are about to bootstrap the new thread. Because we have to modify global
+        //state here, we must make sure no interrupts occur until after we are bootstrapped.
+        //We do all of this under the nose of the Isr unit.
+        sigprocmask(SIG_BLOCK, &HalIrqTable[IRQ_LEVEL_MAX].sa_mask, &oldSet);
+
+        printf("Turning off sigaltstack for %p to %p\n", Context->Low, Context->High);
+
+        /// XXX These are temp values. Will need to change MACHINE_CONTEXT?
+        //  XXX Does sigaltstack need ss_sp and ss_size when disabling?
+        stack.ss_sp = Context->Low;
+        stack.ss_size = Context->High - Context->Low;
+        stack.ss_flags = SS_DISABLE;
+        ASSUME(sigaltstack( &stack, NULL ), 0);
+
+        //Now that we have killed the old stack, lets restore the old mask.
+        ASSUME(sigprocmask(SIG_SETMASK, &oldSet, NULL), 0);
+}
+
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
 #ifdef DEBUG
