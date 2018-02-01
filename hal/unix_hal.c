@@ -3,7 +3,6 @@
 
 #include<sys/time.h>
 #include<string.h>
-#include<signal.h>
 #include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>
@@ -262,6 +261,14 @@ void HalPanic(char file[], int line)
         abort();
 }
 
+#define HalPanicErrno(msg) HalPanicErrnoFn(__FILE__, __LINE__, msg)
+
+void HalPanicErrnoFn(char file[], int line, char msg[])
+{
+        printf("PANIC: %s:%d errno %s: %s\n", file, line, strerror(errno), msg);
+        abort();
+}
+
 void HalSleepProcessor()
 {
         ASSERT( !HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
@@ -282,8 +289,6 @@ void HalStartup()
 
 void HalPetWatchdog( TIME when )
 {
-        int status;
-
         //NOTE: ITIMER_VIRUTAL will decrement when the process is running.
         //This means that on unix the watchdog will not catch cases where
         //the process is idle or sparse.
@@ -295,8 +300,7 @@ void HalPetWatchdog( TIME when )
         WatchdogInterval.it_interval.tv_usec = 0;
         WatchdogInterval.it_value.tv_sec = 0;
         WatchdogInterval.it_value.tv_usec = when * 1000;
-        status = setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL );
-        ASSERT(status == 0 );
+        ASSUME(setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL ), 0);
 }
 
 //
@@ -314,15 +318,16 @@ void HalCreateStackFrame(
                 STACK_INIT_ROUTINE foo,
                 COUNT stackSize)
 {
-        int status;
+	int status;
         char * cstack = stack;
         stack_t newStack;
         sigset_t oldSet;
         sigset_t trampolineMask;
         struct sigaction switchStackAction;
 
-        sigemptyset( &trampolineMask );
-        sigaddset( &trampolineMask, HAL_ISR_TRAMPOLINE );
+        ASSUME(sigemptyset( &oldSet ), 0);
+        ASSUME(sigemptyset( &trampolineMask ), 0);
+        ASSUME(sigaddset( &trampolineMask, HAL_ISR_TRAMPOLINE ), 0);
 
 #ifdef DEBUG
         //Set up the stack boundry.
@@ -350,21 +355,33 @@ void HalCreateStackFrame(
         newStack.ss_size = stackSize;
         newStack.ss_flags = 0;
         status = sigaltstack( &newStack, NULL );
-        ASSERT( status == 0 );
+	if (status != 0) {
+		HalPanicErrno("Failed to turn on sigaltstack.");
+	}
 
 
         //At this point we know that we are atomic.
         //All signal types are blocked.
         //We will unblock the Trampoine signal, and make
         //sure that it was delivered.
-        sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL );
+        ASSUME(sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL ), 0);
 
+        //XXX SHOULDN'T WE RAISE BEFORE WE UNBLOCK?
         raise( HAL_ISR_TRAMPOLINE );
 
+        //TODO THIS LOOKS LIKE A HACK.
         while( ! halTempContextProcessed );
 
+	//Now that trampoline has fired, we can get back to the thread with longjump.
+	//Lets turn off sigaltstack.
+        newStack.ss_flags = SS_DISABLE;
+        status = sigaltstack( &newStack, NULL );
+	if (status != 0) {
+		HalPanicErrno("Failed to turn off sigaltstack.");
+	}
+
         //Now that we have bootstrapped the new thread, lets restore the old mask.
-        sigprocmask(SIG_SETMASK, &oldSet, NULL);
+        ASSUME(sigprocmask(SIG_SETMASK, &oldSet, NULL), 0);
 }
 
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
@@ -421,7 +438,6 @@ void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT 
  */
 TIME HalTimeDelta(struct timeval *time1, struct timeval *time2)
 {
-        struct timeval time_diff;
         TIME delta = 0;
 
         if(time2->tv_sec < time1->tv_sec) {
@@ -429,10 +445,6 @@ TIME HalTimeDelta(struct timeval *time1, struct timeval *time2)
         } else if(time2->tv_sec == time1->tv_sec && time2->tv_usec < time1->tv_usec) {
                 return 0;
         } else {
-
-                time_diff.tv_sec = time2->tv_sec - time1->tv_sec;
-                time_diff.tv_usec = time2->tv_usec - time1->tv_usec;
-
                 delta += (time2->tv_sec  - time1->tv_sec)  * 1000; // Seconds * 1000 = Milliseconds
                 delta += (time2->tv_usec - time1->tv_usec) / 1000; // Microseconds / 1000 = Milliseconds
 
@@ -489,7 +501,85 @@ TIME HalGetTime()
 //IRQ Management
 //
 
+#undef SIGNAL_HACK
+
 #ifdef DEBUG
+#ifdef LINUX
+sigset_t sigset_and(sigset_t a, sigset_t b) {
+	int status;
+	sigset_t result;
+	status = sigemptyset(&result);
+	ASSUME(status, 0);
+	status = sigandset(&result, &a, &b);
+	ASSUME(status, 0);
+	return result;
+}
+
+sigset_t sigset_or(sigset_t a, sigset_t b) {
+	int status;
+	sigset_t result;
+	status = sigemptyset(&result);
+	ASSUME(status, 0);
+	status = sigorset(&result, &a, &b);
+	ASSUME(status, 0);
+	return result;
+}
+
+BOOL sigset_empty(sigset_t a) {
+	return sigisemptyset(&a);
+}
+#ifdef SIGNAL_HACK // Use function which touch linux struct internals.
+sigset_t sigset_xor(sigset_t a, sigset_t b) {
+	sigset_t result;
+	for (int i = 0; i < _SIGSET_NWORDS; i++) {
+		result.__val[i] = a.__val[i] ^ b.__val[i];
+	}
+	return result;
+}
+#else // Use linux singal interface only.
+sigset_t sigset_not(sigset_t a) {
+	int i;
+	int status;
+	sigset_t result;
+	status = sigemptyset(&result);
+	ASSUME(status, 0);
+        for (i=1; i <= __SIGRTMAX; i++) {
+                status = sigismember(&a, i);
+                if (status == 0) {
+                  //Not set, so set in result.
+                  status = sigaddset(&result, i);
+                  ASSUME(status, 0);
+                } else if (status == 1) {
+                  //Set, so unset.
+                  status = sigdelset(&result, i);
+                  ASSUME(status, 0);
+                } else if (status == -1) {
+                  HalPanicErrno("Failed to test signal membership.");
+                }
+        }
+        return result;
+}
+
+sigset_t sigset_xor(sigset_t a, sigset_t b) {
+        //TODO (and (not (and a b)) (or a b))
+        sigset_t result;
+        result = sigset_and( sigset_not( sigset_and(a, b)), sigset_or(a, b));
+        return result;
+}
+#endif // SIGNAL_HACK
+
+#else // OSX
+sigset_t sigset_xor(sigset_t a, sigset_t b) {
+	return a ^ b;
+}
+sigset_t sigset_and(sigset_t a, sigset_t b) {
+	return a & b;
+}
+
+BOOL sigset_empty(sigset_t a) {
+	return !a;
+}
+#endif // LINUX
 /*
  * Returns true if the system is running at at least IRQ level.
  */
@@ -503,7 +593,7 @@ BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
 
         HalUpdateIsrDebugInfo();
 
-        return !((HalIrqTable[level].sa_mask ^ curSet) & HalIrqTable[level].sa_mask);
+        return sigset_empty(sigset_and(sigset_xor(HalIrqTable[level].sa_mask,curSet), HalIrqTable[level].sa_mask));
 }
 #endif //DEBUG
 
@@ -583,10 +673,10 @@ void HalStartSerial()
 
         // Open the term for reading and writing.
         if( (serialInFd = open(SERIAL_INPUT_DEVICE, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0 ) {
-                HalPanic("failed to open input fd", errno);
+                HalPanicErrno("failed to open input fd");
         }
         if( (serialOutFd = open(SERIAL_OUTPUT_DEVICE, O_WRONLY | O_NOCTTY | O_NONBLOCK) ) < 0 ) {
-                HalPanic("failed to open output fd", errno);
+                HalPanicErrno("failed to open output fd");
         }
 
         //Get the term settings
@@ -608,14 +698,18 @@ void HalStartSerial()
         serialSettings.c_cc[VINTR] = serialSettingsOld.c_cc[VINTR];
         serialSettings.c_cc[VQUIT] = serialSettingsOld.c_cc[VQUIT];
         serialSettings.c_cc[VSUSP] = serialSettingsOld.c_cc[VSUSP];
-        serialSettings.c_cc[VDSUSP] = serialSettingsOld.c_cc[VDSUSP];
+#ifndef LINUX
+	serialSettings.c_cc[VDSUSP] = serialSettingsOld.c_cc[VDSUSP];
+#endif
         serialSettings.c_cc[VSTART] = serialSettingsOld.c_cc[VSTART];
         serialSettings.c_cc[VSTOP] = serialSettingsOld.c_cc[VSTOP];
         serialSettings.c_cc[VLNEXT] = serialSettingsOld.c_cc[VLNEXT];
         serialSettings.c_cc[VDISCARD] = serialSettingsOld.c_cc[VDISCARD];
         serialSettings.c_cc[VMIN] = serialSettingsOld.c_cc[VMIN];
         serialSettings.c_cc[VTIME] = serialSettingsOld.c_cc[VTIME];
-        serialSettings.c_cc[VSTATUS] = serialSettingsOld.c_cc[VSTATUS];
+#ifndef LINUX
+	serialSettings.c_cc[VSTATUS] = serialSettingsOld.c_cc[VSTATUS];
+#endif
 
         serialSettings.c_ispeed = serialSettingsOld.c_ispeed;
         serialSettings.c_ospeed = serialSettingsOld.c_ospeed;
@@ -664,6 +758,6 @@ void HalSerialWriteChar(char data)
         } else if(writelen == 0) {
                 HalPanic("Wrote 0 to STDOUT\n", 0);
         } else {
-                HalPanic("Failed to write to STDOUT", errno);
+                HalPanicErrno("Failed to write to STDOUT");
         }
 }
