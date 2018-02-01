@@ -69,6 +69,7 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
         }
 }
 
+#if 0
 /*
  * Tears down machine context for a dead thread.
  */
@@ -76,6 +77,7 @@ void ContextDestroy( struct MACHINE_CONTEXT * MachineState)
 {
         HalDestroyStack(MachineState);
 }
+#endif
 
 /*
  * Performs a context switch from one MACHINE_CONTEXT (thread) to another.

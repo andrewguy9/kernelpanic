@@ -319,6 +319,7 @@ void HalCreateStackFrame(
                 STACK_INIT_ROUTINE foo,
                 COUNT stackSize)
 {
+	int status;
         char * cstack = stack;
         stack_t newStack;
         sigset_t oldSet;
@@ -367,10 +368,19 @@ void HalCreateStackFrame(
 
         while( ! halTempContextProcessed ); //TODO THIS LOOKS LIKE A HACK.
 
+	//Now that trampoline has fired, we can get back to the thread with longjump.
+	//Lets turn off sigaltstack.
+        newStack.ss_flags = SS_DISABLE;
+        status = sigaltstack( &newStack, NULL );
+	if (status != 0) {
+		HalPanicErrno("Failed to turn off stack");
+	}
+
         //Now that we have bootstrapped the new thread, lets restore the old mask.
         ASSUME(sigprocmask(SIG_SETMASK, &oldSet, NULL), 0);
 }
 
+#if 0
 void HalDestroyStack(struct MACHINE_CONTEXT * Context)
 {
 	int status;
@@ -383,7 +393,9 @@ void HalDestroyStack(struct MACHINE_CONTEXT * Context)
         //We do all of this under the nose of the Isr unit.
         sigprocmask(SIG_BLOCK, &HalIrqTable[IRQ_LEVEL_MAX].sa_mask, &oldSet);
 
+	#if 0
         printf("Turning off sigaltstack for %p to %p\n", Context->Low, Context->High);
+	#endif
 
         /// XXX These are temp values. Will need to change MACHINE_CONTEXT?
         //  XXX Does sigaltstack need ss_sp and ss_size when disabling?
@@ -398,6 +410,7 @@ void HalDestroyStack(struct MACHINE_CONTEXT * Context)
         //Now that we have killed the old stack, lets restore the old mask.
         ASSUME(sigprocmask(SIG_SETMASK, &oldSet, NULL), 0);
 }
+#endif
 
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
 {
