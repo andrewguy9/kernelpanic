@@ -363,9 +363,9 @@ void HalCreateStackFrame(
         //sure that it was delivered.
         ASSUME(sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL ), 0);
 
-        raise( HAL_ISR_TRAMPOLINE );
+        raise( HAL_ISR_TRAMPOLINE ); //XXX SHOULDN'T WE RAISE BEFORE WE UNBLOCK?
 
-        while( ! halTempContextProcessed );
+        while( ! halTempContextProcessed ); //TODO THIS LOOKS LIKE A HACK.
 
         //Now that we have bootstrapped the new thread, lets restore the old mask.
         ASSUME(sigprocmask(SIG_SETMASK, &oldSet, NULL), 0);
