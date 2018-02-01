@@ -373,6 +373,7 @@ void HalCreateStackFrame(
 
 void HalDestroyStack(struct MACHINE_CONTEXT * Context)
 {
+	int status;
         stack_t stack;
         sigset_t oldSet;
 
@@ -389,7 +390,10 @@ void HalDestroyStack(struct MACHINE_CONTEXT * Context)
         stack.ss_sp = Context->Low;
         stack.ss_size = Context->High - Context->Low;
         stack.ss_flags = SS_DISABLE;
-        ASSUME(sigaltstack( &stack, NULL ), 0);
+        status = sigaltstack( &stack, NULL );
+	if (status != 0) {
+		HalPanicErrno("Failed to turn off stack");
+	}
 
         //Now that we have killed the old stack, lets restore the old mask.
         ASSUME(sigprocmask(SIG_SETMASK, &oldSet, NULL), 0);
