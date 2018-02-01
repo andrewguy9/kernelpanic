@@ -325,8 +325,9 @@ void HalCreateStackFrame(
         sigset_t trampolineMask;
         struct sigaction switchStackAction;
 
-        sigemptyset( &trampolineMask );
-        sigaddset( &trampolineMask, HAL_ISR_TRAMPOLINE );
+        ASSUME(sigemptyset( &oldSet ), 0);
+        ASSUME(sigemptyset( &trampolineMask ), 0);
+        ASSUME(sigaddset( &trampolineMask, HAL_ISR_TRAMPOLINE ), 0);
 
 #ifdef DEBUG
         //Set up the stack boundry.
@@ -360,14 +361,14 @@ void HalCreateStackFrame(
         //All signal types are blocked.
         //We will unblock the Trampoine signal, and make
         //sure that it was delivered.
-        sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL );
+        ASSUME(sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL ), 0);
 
         raise( HAL_ISR_TRAMPOLINE );
 
         while( ! halTempContextProcessed );
 
         //Now that we have bootstrapped the new thread, lets restore the old mask.
-        sigprocmask(SIG_SETMASK, &oldSet, NULL);
+        ASSUME(sigprocmask(SIG_SETMASK, &oldSet, NULL), 0);
 }
 
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
