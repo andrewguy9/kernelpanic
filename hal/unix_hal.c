@@ -266,7 +266,7 @@ void HalPanic(char file[], int line)
 
 void HalPanicErrnoFn(char file[], int line, char msg[])
 {
-        printf("PANIC: %s:%d errno %d: %s\n", file, line, errno, msg);
+        printf("PANIC: %s:%d errno %s: %s\n", file, line, strerror(errno), msg);
         abort();
 }
 
