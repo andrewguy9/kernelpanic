@@ -367,7 +367,10 @@ void HalCreateStackFrame(
         ASSUME(sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL ), 0);
 
         //XXX SHOULDN'T WE RAISE BEFORE WE UNBLOCK?
-        raise( HAL_ISR_TRAMPOLINE );
+        status = raise( HAL_ISR_TRAMPOLINE );
+        if (status != 0) {
+          HalPanicErrno("Failed raise stack bootstrap signal");
+        }
 
         //TODO THIS LOOKS LIKE A HACK.
         while( ! halTempContextProcessed );
