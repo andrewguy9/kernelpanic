@@ -158,7 +158,7 @@ void HalStackTrampoline( int SignalNumber )
 
                 //Returning from a function which was invoked by siglongjmp is not
                 //supported. Foo should never retrun.
-                HalPanic("Tried to return from StackInitRoutine!\n", 0 );
+                HalPanic("Tried to return from StackInitRoutine!");
                 return;
         }
 }
@@ -199,7 +199,7 @@ void HalIsrHandler( int SignalNumber )
                 }
         }
 
-        HalPanic("Signal delivered for which no Irq was registered", SignalNumber);
+        HalPanic("Signal delivered for which no Irq was registered");
 }
 
 #ifdef DEBUG
@@ -255,9 +255,11 @@ void HalBlockSignal( void * which )
 //Hal Utilities
 //
 
-void HalPanic(char file[], int line)
+#define HalPanic(msg) HalPanicFn(__FILE__, __LINE__, msg)
+
+void HalPanicFn(char file[], int line, char msg[])
 {
-        printf("PANIC: %s:%d\n",file,line);
+        printf("PANIC: %s:%d %s\n",file,line, msg);
         abort();
 }
 
@@ -360,17 +362,21 @@ void HalCreateStackFrame(
 	}
 
 
-        //At this point we know that we are atomic.
-        //All signal types are blocked.
-        //We will unblock the Trampoine signal, and make
-        //sure that it was delivered.
+        status = raise( HAL_ISR_TRAMPOLINE );
+        if (status != 0) {
+                HalPanicErrno("Failed raise stack bootstrap signal");
+        }
+
+        //At this point we know that we can't be interrupted.
+        //The trampoline signal has been triggered.
+        //All signals are blocked.
+        //We will unblock the Trampoine signal so it gets delivered.
         ASSUME(sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL ), 0);
 
-        //XXX SHOULDN'T WE RAISE BEFORE WE UNBLOCK?
-        raise( HAL_ISR_TRAMPOLINE );
-
-        //TODO THIS LOOKS LIKE A HACK.
-        while( ! halTempContextProcessed );
+        //Make sure that the signal was delivered.
+        if (!halTempContextProcessed) {
+                HalPanic("Failed to bootstrap new stack via signal");
+        }
 
 	//Now that trampoline has fired, we can get back to the thread with longjump.
 	//Lets turn off sigaltstack.
@@ -561,7 +567,6 @@ sigset_t sigset_not(sigset_t a) {
 }
 
 sigset_t sigset_xor(sigset_t a, sigset_t b) {
-        //TODO (and (not (and a b)) (or a b))
         sigset_t result;
         result = sigset_and( sigset_not( sigset_and(a, b)), sigset_or(a, b));
         return result;
@@ -743,7 +748,7 @@ BOOL HalSerialGetChar(char * out)
                 } else if(errno == EWOULDBLOCK) {
                         return FALSE;
                 } else {
-                        HalPanic("Recieved error from STDIN!\n", errno );
+                        HalPanicErrno("Recieved error from STDIN!");
                         return FALSE;
                 }
         }
@@ -756,7 +761,7 @@ void HalSerialWriteChar(char data)
         if( writelen > 0 ) {
 
         } else if(writelen == 0) {
-                HalPanic("Wrote 0 to STDOUT\n", 0);
+                HalPanic("Wrote 0 to STDOUT");
         } else {
                 HalPanicErrno("Failed to write to STDOUT");
         }
