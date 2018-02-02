@@ -158,7 +158,7 @@ void HalStackTrampoline( int SignalNumber )
 
                 //Returning from a function which was invoked by siglongjmp is not
                 //supported. Foo should never retrun.
-                HalPanic("Tried to return from StackInitRoutine!\n", 0 );
+                HalPanic("Tried to return from StackInitRoutine!");
                 return;
         }
 }
@@ -199,7 +199,7 @@ void HalIsrHandler( int SignalNumber )
                 }
         }
 
-        HalPanic("Signal delivered for which no Irq was registered", SignalNumber);
+        HalPanic("Signal delivered for which no Irq was registered");
 }
 
 #ifdef DEBUG
@@ -255,9 +255,11 @@ void HalBlockSignal( void * which )
 //Hal Utilities
 //
 
-void HalPanic(char file[], int line)
+#define HalPanic(msg) HalPanicFn(__FILE__, __LINE__, msg)
+
+void HalPanicFn(char file[], int line, char msg[])
 {
-        printf("PANIC: %s:%d\n",file,line);
+        printf("PANIC: %s:%d %s\n",file,line, msg);
         abort();
 }
 
@@ -369,7 +371,7 @@ void HalCreateStackFrame(
         //XXX SHOULDN'T WE RAISE BEFORE WE UNBLOCK?
         status = raise( HAL_ISR_TRAMPOLINE );
         if (status != 0) {
-          HalPanicErrno("Failed raise stack bootstrap signal");
+                HalPanicErrno("Failed raise stack bootstrap signal");
         }
 
         //TODO THIS LOOKS LIKE A HACK.
@@ -746,7 +748,7 @@ BOOL HalSerialGetChar(char * out)
                 } else if(errno == EWOULDBLOCK) {
                         return FALSE;
                 } else {
-                        HalPanic("Recieved error from STDIN!\n", errno );
+                        HalPanicErrno("Recieved error from STDIN!");
                         return FALSE;
                 }
         }
@@ -759,7 +761,7 @@ void HalSerialWriteChar(char data)
         if( writelen > 0 ) {
 
         } else if(writelen == 0) {
-                HalPanic("Wrote 0 to STDOUT\n", 0);
+                HalPanic("Wrote 0 to STDOUT");
         } else {
                 HalPanicErrno("Failed to write to STDOUT");
         }

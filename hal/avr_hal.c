@@ -220,7 +220,7 @@ void HalContextSwitch( )
 	HAL_RESTORE_STATE
 }
 
-void HalPanic(char file[], int line)
+void HalPanicFn(char file[], int line, char msg[])
 {
 	BOOL failed = TRUE;
 
