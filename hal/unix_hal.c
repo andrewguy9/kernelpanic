@@ -567,7 +567,6 @@ sigset_t sigset_not(sigset_t a) {
 }
 
 sigset_t sigset_xor(sigset_t a, sigset_t b) {
-        //TODO (and (not (and a b)) (or a b))
         sigset_t result;
         result = sigset_and( sigset_not( sigset_and(a, b)), sigset_or(a, b));
         return result;
