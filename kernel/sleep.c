@@ -63,11 +63,11 @@ void Sleep( COUNT time )
         //Zero out timer.
         HandlerInit( &timer );
 
-        //Register the timer.
-        TimerRegister( &timer, time, SleepTimerHandler, thread );//TODO TIMER REGISTER SHOULD HAPPEN AFTER WE BLOCKED.
-
         //Sleep the current thread.
         SchedulerBlockThread();
+
+        //Register the timer.
+        TimerRegister( &timer, time, SleepTimerHandler, thread );
 
         //Force the switch.
         SchedulerForceSwitch();
