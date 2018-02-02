@@ -362,20 +362,21 @@ void HalCreateStackFrame(
 	}
 
 
-        //At this point we know that we are atomic.
-        //All signal types are blocked.
-        //We will unblock the Trampoine signal, and make
-        //sure that it was delivered.
-        ASSUME(sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL ), 0);
-
-        //XXX SHOULDN'T WE RAISE BEFORE WE UNBLOCK?
         status = raise( HAL_ISR_TRAMPOLINE );
         if (status != 0) {
                 HalPanicErrno("Failed raise stack bootstrap signal");
         }
 
-        //TODO THIS LOOKS LIKE A HACK.
-        while( ! halTempContextProcessed );
+        //At this point we know that we can't be interrupted.
+        //The trampoline signal has been triggered.
+        //All signals are blocked.
+        //We will unblock the Trampoine signal so it gets delivered.
+        ASSUME(sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL ), 0);
+
+        //Make sure that the signal was delivered.
+        if (!halTempContextProcessed) {
+                HalPanic("Failed to bootstrap new stack via signal");
+        }
 
 	//Now that trampoline has fired, we can get back to the thread with longjump.
 	//Lets turn off sigaltstack.
