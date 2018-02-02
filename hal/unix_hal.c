@@ -9,6 +9,7 @@
 #include<fcntl.h>
 #include<errno.h>
 #include<termios.h>
+#include<sys/mman.h>
 
 //-----------------------------------------------------------------------------
 //-------------------------- GLOBALS ------------------------------------------
@@ -765,4 +766,35 @@ void HalSerialWriteChar(char data)
         } else {
                 HalPanicErrno("Failed to write to STDOUT");
         }
+}
+
+void * HalMap(char * tag, void * addr, COUNT len)
+{
+	void * ptr;
+	int status;
+	int fd = open(tag, O_CREAT|O_RDWR, 0666);
+	if (fd == -1) {
+		HalPanicErrno("Failed to open file");
+	}
+	status = ftruncate(fd, len);
+	if (status != 0) {
+		HalPanicErrno("Failed to truncate file");
+	}
+	ptr = mmap(
+			addr,
+			len,
+			PROT_READ|PROT_WRITE|PROT_EXEC,
+			MAP_FILE|MAP_SHARED, // MAP_HASSEMAPHORE?
+			fd,
+			0
+		  );
+	if (ptr == MAP_FAILED) {
+		HalPanicErrno("Failed to create mapping");
+	}
+
+	status = close(fd);
+	if (status != 0) {
+		HalPanicErrno("Failed to close file");
+	}
+	return ptr;
 }
