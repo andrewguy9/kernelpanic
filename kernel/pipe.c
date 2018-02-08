@@ -55,6 +55,8 @@ COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
 
         //Perform the read.
         read = RingBufferRead( buff, size, & pipe->Ring );
+        // Ring is protected by a read lock which should prevent zero length reads.
+        ASSERT( read > 0 );
 
         //See if the ring buffer is empty.
         //If it is then we need to leak the reader lock.
@@ -116,6 +118,8 @@ COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
 
         //Perform the write.
         write = RingBufferWrite( buff, size, & pipe->Ring );
+        // Ring is protected by a write lock which should prevent zero length writes.
+        ASSERT( write > 0 );
 
         //See if the ring buffer is empty.
         //If it is then we need to leak the reader lock.
