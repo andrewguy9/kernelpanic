@@ -3,6 +3,7 @@
 #include"kernel/socket.h"
 #include"kernel/panic.h"
 #include"kernel/hal.h"
+#include"kernel/watchdog.h"
 
 /*
  * Tests the socket unit, and by extension the resource and ringbuffer units.
@@ -42,19 +43,40 @@ struct THREAD Consumer1;
 struct THREAD Consumer2;
 struct THREAD Consumer3;
 
+#define QUANTUM 1
+#define TIMEOUT (2*QUANTUM*5)
+
+struct THREAD_CONTEXT
+{
+        INDEX WatchdogId;
+};
+
+struct THREAD_CONTEXT ProducerContext1 = {1};
+struct THREAD_CONTEXT ProducerContext2 = {2};
+struct THREAD_CONTEXT ConsumerContext1 = {3};
+struct THREAD_CONTEXT ConsumerContext2 = {4};
+struct THREAD_CONTEXT ConsumerContext3 = {5};
+
 //Functions for test.
 THREAD_MAIN ProducerMain;
-void ProducerMain(void * unused)
+void ProducerMain(void * arg)
 {
+        struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
+
+        WatchdogAddFlag(context->WatchdogId);
+
 	while(1)
 	{
 		SocketWriteStruct( Message, MESSAGE_LENGTH, &Socket );
+                WatchdogNotify(context->WatchdogId);
 	}
 }
 
 THREAD_MAIN ConsumerMain;
-void ConsumerMain(void * unused)
+void ConsumerMain(void * arg)
 {
+        struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
+        WatchdogAddFlag(context->WatchdogId);
 	char buff[MESSAGE_LENGTH];
 
 	COUNT index;
@@ -72,6 +94,7 @@ void ConsumerMain(void * unused)
 			if( Message[index] != buff[index] )
 				KernelPanic( );
 		}
+                WatchdogNotify(context->WatchdogId);
 	}
 }
 
@@ -95,45 +118,46 @@ int main()
         //Initialize Threads
         SchedulerCreateThread(
                         &Producer1,
-                        1,
+                        QUANTUM,
                         ProducerStack1,
                         STACK_SIZE,
                         ProducerMain,
-                        NULL,
+                        & ProducerContext1,
                         TRUE);
         SchedulerCreateThread(
                         &Producer2,
-                        1,
+                        QUANTUM,
                         ProducerStack2,
                         STACK_SIZE,
                         ProducerMain,
-                        NULL,
+                        & ProducerContext2,
                         TRUE);
         SchedulerCreateThread(
                         &Consumer1,
-                        1,
+                        QUANTUM,
                         ConsumerStack1,
                         STACK_SIZE,
                         ConsumerMain,
-                        NULL,
+                        & ConsumerContext1,
                         TRUE);
         SchedulerCreateThread(
                         &Consumer2,
-                        1,
+                        QUANTUM,
                         ConsumerStack2,
                         STACK_SIZE,
                         ConsumerMain,
-                        NULL,
+                        & ConsumerContext2,
                         TRUE);
 
         SchedulerCreateThread(
                         &Consumer3,
-                        1,
+                        QUANTUM,
                         ConsumerStack3,
                         STACK_SIZE,
                         ConsumerMain,
-                        NULL,
+                        & ConsumerContext3,
                         TRUE);
+        WatchdogEnable( TIMEOUT );
         //Kick off the kernel.
         KernelStart();
         return 0;
