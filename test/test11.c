@@ -3,6 +3,7 @@
 #include"kernel/pipe.h"
 #include"kernel/panic.h"
 #include"kernel/socket.h"
+#include"kernel/watchdog.h"
 #include<stdio.h>
 
 /*
@@ -51,13 +52,29 @@ struct THREAD Consumer1;
 struct THREAD Consumer2;
 struct THREAD Consumer3;
 
+struct THREAD_CONTEXT
+{
+        INDEX WatchdogId;
+        struct SOCKET * Socket;
+};
+
+struct THREAD_CONTEXT ProducerContext1 = {1, &Socket1};
+struct THREAD_CONTEXT ProducerContext2 = {2, &Socket2};
+struct THREAD_CONTEXT ProducerContext3 = {3, &Socket3};
+struct THREAD_CONTEXT ConsumerContext1 = {4, &Socket1};
+struct THREAD_CONTEXT ConsumerContext2 = {5, &Socket2};
+struct THREAD_CONTEXT ConsumerContext3 = {6, &Socket3};
+
+#define QUANTUM 1
+#define TIMEOUT (2*QUANTUM*6)
 volatile COUNT ProducerCount;
 volatile COUNT ConsumerCount;
 
 THREAD_MAIN ProducerMain;
 void ProducerMain( void * arg )
 {
-	struct SOCKET * MySock = ( struct SOCKET *) arg;
+        struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
+	struct SOCKET * MySock = context->Socket;
 	INDEX timeIndex;
 	INDEX bufferIndex;
 	COUNT length;
@@ -66,6 +83,8 @@ void ProducerMain( void * arg )
 	BOOL assending;
 
 	char * curBuffer;
+
+        WatchdogAddFlag(context->WatchdogId);
 
 	for( bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++ )
 	{
@@ -86,7 +105,7 @@ void ProducerMain( void * arg )
 			curBuffer = DecendingBuffer;
 
 		//Perform write
-		SocketWriteStruct( 
+		SocketWriteStruct(
 				curBuffer,
 				length,
 				MySock );
@@ -94,22 +113,26 @@ void ProducerMain( void * arg )
 		//Setup next value.
 		timeIndex = (timeIndex + 1) % RANDOM_VALUES_SIZE;
 		assending = !assending;
+                WatchdogNotify(context->WatchdogId);
 	}
 }
 
 THREAD_MAIN ConsumerMain;
 void ConsumerMain( void * arg )
 {
-	struct SOCKET * MySock = ( struct SOCKET *) arg;
+        struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
+	struct SOCKET * MySock = context->Socket;
 	INDEX timeIndex;
 	COUNT bufferIndex;
 	char myBuffer[RANDOM_VALUES_SIZE];
 	BOOL assending;
 	COUNT length;
-   
+
 	timeIndex = 0;
 	assending = TRUE;
 	
+        WatchdogAddFlag(context->WatchdogId);
+
 	while(1)
 	{
 		//Set Buffer up with values which will fail if a bug occurs.
@@ -147,6 +170,7 @@ void ConsumerMain( void * arg )
 		//Setup next value.
 		timeIndex = ( timeIndex + 1 ) % RANDOM_VALUES_SIZE;
 		assending = !assending;
+                WatchdogNotify(context->WatchdogId);
 	}
 }
 
@@ -170,53 +194,54 @@ int main()
 
         SchedulerCreateThread(
                         &Producer1,
-                        1,
+                        QUANTUM,
                         ProducerStack1,
                         STACK_SIZE,
                         ProducerMain,
-                        (void*) &Socket1,
+                        & ProducerContext1,
                         TRUE );
         SchedulerCreateThread(
                         &Producer2,
-                        1,
+                        QUANTUM,
                         ProducerStack2,
                         STACK_SIZE,
                         ProducerMain,
-                        (void*) &Socket2,
+                        & ProducerContext2,
                         TRUE );
         SchedulerCreateThread(
                         &Producer3,
-                        1,
+                        QUANTUM,
                         ProducerStack3,
                         STACK_SIZE,
                         ProducerMain,
-                        (void*) &Socket3,
+                        & ProducerContext3,
                         TRUE );
         SchedulerCreateThread(
                         &Consumer1,
-                        1,
+                        QUANTUM,
                         ConsumerStack1,
                         STACK_SIZE,
                         ConsumerMain,
-                        &Socket1,
+                        & ConsumerContext1,
                         TRUE );
         SchedulerCreateThread(
                         &Consumer2,
-                        1,
+                        QUANTUM,
                         ConsumerStack2,
                         STACK_SIZE,
                         ConsumerMain,
-                        &Socket2,
+                        & ConsumerContext2,
                         TRUE );
         SchedulerCreateThread(
                         &Consumer3,
-                        1,
+                        QUANTUM,
                         ConsumerStack3,
                         STACK_SIZE,
                         ConsumerMain,
-                        &Socket3,
+                        & ConsumerContext3,
                         TRUE );
 
+        WatchdogEnable( TIMEOUT );
         KernelStart();
         return 0;
 }
