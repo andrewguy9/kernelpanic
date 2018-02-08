@@ -16,7 +16,7 @@
 void PipeInit( char * buff, COUNT size, struct PIPE * pipe )
 {
         SemaphoreInit( & pipe->Mutex, 1 );
-        SemaphoreInit( & pipe->ReaderLock, 0 ); //Buffer starts empty, to it is not readable. Semaphore starts locked
+        SemaphoreInit( & pipe->ReaderLock, 0 ); //Buffer starts empty, so it is not readable. Semaphore starts locked
         SemaphoreInit( & pipe->WriterLock, 1 );//Buffer starts empty, so it is writable. Semaphore started unlocked.
         RingBufferInit( buff, size, & pipe->Ring );
 }
