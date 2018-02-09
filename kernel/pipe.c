@@ -18,6 +18,8 @@ void PipeInit( char * buff, COUNT size, struct PIPE * pipe )
         SemaphoreInit( & pipe->Mutex, 1 );
         SemaphoreInit( & pipe->EmptyLock, 0 ); //Buffer starts empty, block reads.
         SemaphoreInit( & pipe->FullLock, 1 );//Buffer starts empty, allow writes.
+        SemaphoreInit( & pipe->ReadLock, 1 );
+        SemaphoreInit( & pipe->WriteLock, 1 );
         RingBufferInit( buff, size, & pipe->Ring );
 }
 
@@ -39,6 +41,8 @@ COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
         BOOL wasFull;
         BOOL dataLeft;
         COUNT read;
+
+        SemaphoreDown( & pipe->ReadLock, NULL );
 
         //Acquire EmptyLock - No readers can progress until there is data.
         SemaphoreDown( & pipe->EmptyLock, NULL );
@@ -81,6 +85,8 @@ COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
                 SemaphoreUp( & pipe->EmptyLock );
         }
 
+        SemaphoreUp( & pipe->ReadLock);
+
         return read;
 }
 
@@ -102,6 +108,8 @@ COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
         BOOL wasEmpty;
         BOOL spaceLeft;
         COUNT write;
+
+        SemaphoreDown( & pipe->WriteLock, NULL );
 
         //Acquire FullLock - No writers can progress until we are done.
         SemaphoreDown( & pipe->FullLock, NULL );
@@ -143,6 +151,8 @@ COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
         if( spaceLeft ) {
                 SemaphoreUp( & pipe->FullLock );
         }
+
+        SemaphoreUp( & pipe->WriteLock);
 
         return write;
 }

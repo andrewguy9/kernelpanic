@@ -11,6 +11,8 @@ struct PIPE
         struct SEMAPHORE Mutex;
         struct SEMAPHORE EmptyLock;
         struct SEMAPHORE FullLock;
+        struct SEMAPHORE ReadLock;
+        struct SEMAPHORE WriteLock;
 };
 
 void PipeInit( char * buff, COUNT size, struct PIPE * pipe );
