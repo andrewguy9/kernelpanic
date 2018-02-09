@@ -1,18 +1,14 @@
 #include"kernel/startup.h"
 #include"kernel/scheduler.h"
-#include"kernel/socket.h"
 #include"kernel/panic.h"
 #include"kernel/hal.h"
 #include"kernel/watchdog.h"
+#include"kernel/pipe.h"
 
 /*
- * Tests the socket unit, and by extension the resource and ringbuffer units.
+ * Tests the pipe unit, and by extension ringbuffer and semaphore units.
  * Will panic if reader encouners invalid read.
  */
-
-//
-//Tests the Producer consumer model for the socket system. 
-//
 
 #define MESSAGE_LENGTH 20
 char Message[MESSAGE_LENGTH] = "Thread text message";
@@ -24,8 +20,6 @@ char Message[MESSAGE_LENGTH] = "Thread text message";
 struct PIPE Pipe;
 PIPE_READ PipeReader;
 PIPE_WRITE PipeWriter;
-
-struct SOCKET Socket;
 
 //Allocation for workers. 
 
@@ -69,7 +63,7 @@ void ProducerMain(void * arg)
 
 	while(1)
 	{
-		SocketWriteStruct( Message, MESSAGE_LENGTH, &Socket );
+		PipeWriteStruct( Message, MESSAGE_LENGTH, &Pipe);
                 WatchdogNotify(context->WatchdogId);
 	}
 }
@@ -89,7 +83,7 @@ void ConsumerMain(void * arg)
 			buff[index] = 0;
 		}
 
-		SocketReadStruct( buff, MESSAGE_LENGTH, &Socket );
+		PipeReadStruct( buff, MESSAGE_LENGTH, &Pipe);
 		
 		for( index = 0; index < MESSAGE_LENGTH; index++ )
 		{
@@ -113,9 +107,6 @@ int main()
 
         //Initialize Pipes.
         PipeInit( RingBuff, RING_SIZE, &Pipe, &PipeReader, &PipeWriter );
-
-        //Initialize Socket
-        SocketInit( PipeReader, PipeWriter, & Socket );
 
         //Initialize Threads
         SchedulerCreateThread(

@@ -2,7 +2,6 @@
 #include"kernel/scheduler.h"
 #include"kernel/pipe.h"
 #include"kernel/panic.h"
-#include"kernel/socket.h"
 #include"kernel/watchdog.h"
 #include<stdio.h>
 
@@ -30,10 +29,6 @@ struct PIPE Pipe1;
 struct PIPE Pipe2;
 struct PIPE Pipe3;
 
-struct SOCKET Socket1;
-struct SOCKET Socket2;
-struct SOCKET Socket3;
-
 #define STACK_SIZE HAL_MIN_STACK_SIZE
 
 char ProducerStack1[STACK_SIZE];
@@ -52,199 +47,205 @@ struct THREAD Consumer1;
 struct THREAD Consumer2;
 struct THREAD Consumer3;
 
-struct THREAD_CONTEXT
+struct PRODUCER_CONTEXT
 {
         INDEX WatchdogId;
-        struct SOCKET * Socket;
+        PIPE_WRITE Writer;
+};
+struct CONSUMER_CONTEXT
+{
+        INDEX WatchdogId;
+        PIPE_READ Reader;
 };
 
-struct THREAD_CONTEXT ProducerContext1 = {1, &Socket1};
-struct THREAD_CONTEXT ProducerContext2 = {2, &Socket2};
-struct THREAD_CONTEXT ProducerContext3 = {3, &Socket3};
-struct THREAD_CONTEXT ConsumerContext1 = {4, &Socket1};
-struct THREAD_CONTEXT ConsumerContext2 = {5, &Socket2};
-struct THREAD_CONTEXT ConsumerContext3 = {6, &Socket3};
+struct PRODUCER_CONTEXT ProducerContext1;
+struct PRODUCER_CONTEXT ProducerContext2;
+struct PRODUCER_CONTEXT ProducerContext3;
+struct CONSUMER_CONTEXT ConsumerContext1;
+struct CONSUMER_CONTEXT ConsumerContext2;
+struct CONSUMER_CONTEXT ConsumerContext3;
+
+void SetupPipe(
+    char * buff,
+    struct PIPE * pipe,
+    struct PRODUCER_CONTEXT * pc,
+    struct CONSUMER_CONTEXT * cc,
+    INDEX producer_watchdog,
+    INDEX consumer_watchdog) {
+  PIPE_READ reader;
+  PIPE_WRITE writer;
+  PipeInit( buff, BUFFER_LENGTH, pipe, &reader, &writer );
+  pc->WatchdogId = producer_watchdog;
+  pc->Writer = writer;
+  cc->WatchdogId = consumer_watchdog;
+  cc->Reader = reader;
+}
 
 #define QUANTUM 1
 #define TIMEOUT (2*QUANTUM*6)
-volatile COUNT ProducerCount;
-volatile COUNT ConsumerCount;
 
 THREAD_MAIN ProducerMain;
 void ProducerMain( void * arg )
 {
-        struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
-	struct SOCKET * MySock = context->Socket;
-	INDEX timeIndex;
-	INDEX bufferIndex;
-	COUNT length;
-	char AssendingBuffer[RANDOM_VALUES_SIZE];
-	char DecendingBuffer[RANDOM_VALUES_SIZE];
-	BOOL assending;
+  struct PRODUCER_CONTEXT * context = (struct PRODUCER_CONTEXT *) arg;
+  PIPE_WRITE writer = context->Writer;
+  INDEX timeIndex;
+  INDEX bufferIndex;
+  COUNT length;
+  char AssendingBuffer[RANDOM_VALUES_SIZE];
+  char DecendingBuffer[RANDOM_VALUES_SIZE];
+  BOOL assending;
 
-	char * curBuffer;
+  char * curBuffer;
 
-        WatchdogAddFlag(context->WatchdogId);
+  WatchdogAddFlag(context->WatchdogId);
 
-	for( bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++ )
-	{
-		AssendingBuffer[ bufferIndex ] = bufferIndex;
-		DecendingBuffer[ bufferIndex ] = RANDOM_VALUES_SIZE - bufferIndex;
-	}
+  for( bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++ )
+  {
+    AssendingBuffer[ bufferIndex ] = bufferIndex;
+    DecendingBuffer[ bufferIndex ] = RANDOM_VALUES_SIZE - bufferIndex;
+  }
 
-	timeIndex = 0;
-	assending = TRUE;
+  timeIndex = 0;
+  assending = TRUE;
 
-	while(1)
-	{
-		length = RandomNumbers[timeIndex];
+  while(1)
+  {
+    length = RandomNumbers[timeIndex];
 
-		if( assending )
-			curBuffer = AssendingBuffer;
-		else
-			curBuffer = DecendingBuffer;
+    if( assending )
+      curBuffer = AssendingBuffer;
+    else
+      curBuffer = DecendingBuffer;
 
-		//Perform write
-		SocketWriteStruct(
-				curBuffer,
-				length,
-				MySock );
+    //Perform write
+    PipeWriteStruct(
+        curBuffer,
+        length,
+        writer);
 
-		//Setup next value.
-		timeIndex = (timeIndex + 1) % RANDOM_VALUES_SIZE;
-		assending = !assending;
-                WatchdogNotify(context->WatchdogId);
-	}
+    //Setup next value.
+    timeIndex = (timeIndex + 1) % RANDOM_VALUES_SIZE;
+    assending = !assending;
+    WatchdogNotify(context->WatchdogId);
+  }
 }
 
 THREAD_MAIN ConsumerMain;
 void ConsumerMain( void * arg )
 {
-        struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
-	struct SOCKET * MySock = context->Socket;
-	INDEX timeIndex;
-	COUNT bufferIndex;
-	char myBuffer[RANDOM_VALUES_SIZE];
-	BOOL assending;
-	COUNT length;
+  struct CONSUMER_CONTEXT * context = (struct CONSUMER_CONTEXT *) arg;
+  PIPE_READ reader = context->Reader;
+  INDEX timeIndex;
+  COUNT bufferIndex;
+  char myBuffer[RANDOM_VALUES_SIZE];
+  BOOL assending;
+  COUNT length;
 
-	timeIndex = 0;
-	assending = TRUE;
+  timeIndex = 0;
+  assending = TRUE;
 
-        WatchdogAddFlag(context->WatchdogId);
+  WatchdogAddFlag(context->WatchdogId);
 
-	while(1)
-	{
-		//Set Buffer up with values which will fail if a bug occurs.
-		for( bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++ )
-		{
-			if( assending )
-				myBuffer[bufferIndex] = 0;
-			else
-				myBuffer[bufferIndex] = RANDOM_VALUES_SIZE;
-		}
+  while(1)
+  {
+    //Set Buffer up with values which will fail if a bug occurs.
+    for( bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++ )
+    {
+      if( assending )
+        myBuffer[bufferIndex] = 0;
+      else
+        myBuffer[bufferIndex] = RANDOM_VALUES_SIZE;
+    }
 
-		length = RandomNumbers[timeIndex];
+    length = RandomNumbers[timeIndex];
 
-		//Perform read
-		SocketReadStruct(
-				myBuffer,
-				length,
-				MySock);
+    //Perform read
+    PipeReadStruct(
+        myBuffer,
+        length,
+        reader);
 
-		//validate direction of buffer.
-		for( bufferIndex = 0; bufferIndex+1 < length; bufferIndex++)
-		{
-			if( assending )
-			{
-				if( myBuffer[bufferIndex] >= myBuffer[bufferIndex+1] )
-					KernelPanic();
-			}
-			else
-			{
-				if( myBuffer[bufferIndex] <= myBuffer[bufferIndex+1] )
-					KernelPanic();
-			}
-		}
+    //validate direction of buffer.
+    for( bufferIndex = 0; bufferIndex+1 < length; bufferIndex++)
+    {
+      if( assending )
+      {
+        if( myBuffer[bufferIndex] >= myBuffer[bufferIndex+1] )
+          KernelPanic();
+      }
+      else
+      {
+        if( myBuffer[bufferIndex] <= myBuffer[bufferIndex+1] )
+          KernelPanic();
+      }
+    }
 
-		//Setup next value.
-		timeIndex = ( timeIndex + 1 ) % RANDOM_VALUES_SIZE;
-		assending = !assending;
-                WatchdogNotify(context->WatchdogId);
-	}
-}
-
-void SetupSocket(char * buff, struct PIPE * pipe, struct SOCKET * socket) {
-        PIPE_READ reader;
-        PIPE_WRITE writer;
-
-        PipeInit( buff, BUFFER_LENGTH, pipe, &reader, &writer );
-        SocketInit( reader, writer, socket);
+    //Setup next value.
+    timeIndex = ( timeIndex + 1 ) % RANDOM_VALUES_SIZE;
+    assending = !assending;
+    WatchdogNotify(context->WatchdogId);
+  }
 }
 
 int main()
 {
-        KernelInit();
+  KernelInit();
+  SchedulerStartup();
+  SetupPipe(MessageBuffer1, &Pipe1, &ProducerContext1, &ConsumerContext1, 1, 2);
+  SetupPipe(MessageBuffer2, &Pipe2, &ProducerContext2, &ConsumerContext2, 3, 4);
+  SetupPipe(MessageBuffer3, &Pipe3, &ProducerContext3, &ConsumerContext3, 5, 6);
 
-        SchedulerStartup();
+  SchedulerCreateThread(
+      &Producer1,
+      QUANTUM,
+      ProducerStack1,
+      STACK_SIZE,
+      ProducerMain,
+      & ProducerContext1,
+      TRUE );
+  SchedulerCreateThread(
+      &Producer2,
+      QUANTUM,
+      ProducerStack2,
+      STACK_SIZE,
+      ProducerMain,
+      & ProducerContext2,
+      TRUE );
+  SchedulerCreateThread(
+      &Producer3,
+      QUANTUM,
+      ProducerStack3,
+      STACK_SIZE,
+      ProducerMain,
+      & ProducerContext3,
+      TRUE );
+  SchedulerCreateThread(
+      &Consumer1,
+      QUANTUM,
+      ConsumerStack1,
+      STACK_SIZE,
+      ConsumerMain,
+      & ConsumerContext1,
+      TRUE );
+  SchedulerCreateThread(
+      &Consumer2,
+      QUANTUM,
+      ConsumerStack2,
+      STACK_SIZE,
+      ConsumerMain,
+      & ConsumerContext2,
+      TRUE );
+  SchedulerCreateThread(
+      &Consumer3,
+      QUANTUM,
+      ConsumerStack3,
+      STACK_SIZE,
+      ConsumerMain,
+      & ConsumerContext3,
+      TRUE );
 
-        ConsumerCount = 0;
-        ProducerCount = 0;
-
-        SetupSocket(MessageBuffer1, &Pipe1, &Socket1);
-        SetupSocket(MessageBuffer2, &Pipe2, &Socket2);
-        SetupSocket(MessageBuffer3, &Pipe3, &Socket3);
-
-        SchedulerCreateThread(
-                        &Producer1,
-                        QUANTUM,
-                        ProducerStack1,
-                        STACK_SIZE,
-                        ProducerMain,
-                        & ProducerContext1,
-                        TRUE );
-        SchedulerCreateThread(
-                        &Producer2,
-                        QUANTUM,
-                        ProducerStack2,
-                        STACK_SIZE,
-                        ProducerMain,
-                        & ProducerContext2,
-                        TRUE );
-        SchedulerCreateThread(
-                        &Producer3,
-                        QUANTUM,
-                        ProducerStack3,
-                        STACK_SIZE,
-                        ProducerMain,
-                        & ProducerContext3,
-                        TRUE );
-        SchedulerCreateThread(
-                        &Consumer1,
-                        QUANTUM,
-                        ConsumerStack1,
-                        STACK_SIZE,
-                        ConsumerMain,
-                        & ConsumerContext1,
-                        TRUE );
-        SchedulerCreateThread(
-                        &Consumer2,
-                        QUANTUM,
-                        ConsumerStack2,
-                        STACK_SIZE,
-                        ConsumerMain,
-                        & ConsumerContext2,
-                        TRUE );
-        SchedulerCreateThread(
-                        &Consumer3,
-                        QUANTUM,
-                        ConsumerStack3,
-                        STACK_SIZE,
-                        ConsumerMain,
-                        & ConsumerContext3,
-                        TRUE );
-
-        WatchdogEnable( TIMEOUT );
-        KernelStart();
-        return 0;
+  WatchdogEnable( TIMEOUT );
+  KernelStart();
+  return 0;
 }

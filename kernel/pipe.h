@@ -17,7 +17,12 @@ struct PIPE
 
 typedef struct PIPE * PIPE_READ;
 typedef struct PIPE * PIPE_WRITE;
-void PipeInit( char * buff, COUNT size, struct PIPE * pipe, PIPE_READ * pr, PIPE_WRITE * pw );
+void PipeInit(
+    char * buff,
+    COUNT size,
+    struct PIPE * pipe,
+    PIPE_READ * pr,
+    PIPE_WRITE * pw );
 
 COUNT PipeRead( char * buff, COUNT size, PIPE_READ pipe );
 void PipeReadStruct( char * buff, COUNT size, PIPE_READ pipe );

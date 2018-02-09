@@ -21,41 +21,26 @@ int Max = 1000000;
 char Buff1[BUFF_SIZE];
 char Buff2[BUFF_SIZE];
 
-struct PIPE Pipe1;
-struct PIPE Pipe2;
-struct SOCKET Socket1;
-struct SOCKET Socket2;
+struct SOCKET Socket;
+struct SOCKET_HANDLE H1;
+struct SOCKET_HANDLE H2;
 
 #include<stdio.h>
 THREAD_MAIN CountMain;
 void CountMain(void * context) {
-  struct SOCKET * socket = /*(struct socket *)*/ context;
+  struct SOCKET_HANDLE * socket = (struct SOCKET_HANDLE*) context;
   int v;
-  printf("%p started\n", context);
-  if (socket == &Socket1) {
-    printf("%p kickstarted\n", context);
-    v = 0;
-    SocketWriteStruct((char*) &v, sizeof(v), socket);
-  }
+  //TODO MAKE ONLY HAPPEN ONCE.
+  SocketWriteStruct((char*) &v, sizeof(v), socket);
 
   while (1) {
-    printf("%p reading\n", context);
     SocketReadStruct((char*) &v, sizeof(v), socket);
     if (v>Max) {
-      return;
+      GeneralPanic();
     }
     v++;
-    printf("%p writing %d\n", context, v);
     SocketWriteStruct((char*) &v, sizeof(v), socket);
   }
-}
-
-void SetupSocket(char * buff, struct PIPE * pipe, struct SOCKET * socket) {
-        PIPE_READ reader;
-        PIPE_WRITE writer;
-
-        PipeInit( buff, BUFF_SIZE, pipe, &reader, &writer );
-        SocketInit( reader, writer, socket);
 }
 
 int main(int argc, char ** argv)
@@ -63,16 +48,21 @@ int main(int argc, char ** argv)
   KernelInit();
   SchedulerStartup();
 
-  SetupSocket(Buff1, &Pipe1, &Socket1);
-  SetupSocket(Buff2, &Pipe2, &Socket2);
-
+  SocketInit(
+      Buff1,
+      BUFF_SIZE,
+      Buff2,
+      BUFF_SIZE,
+      & Socket,
+      & H1,
+      & H2);
   SchedulerCreateThread(
       &CountThread1,
       100,
       CountStack1,
       STACK_SIZE,
       CountMain,
-      &Socket1,
+      &H1,
       TRUE);
 
   SchedulerCreateThread(
@@ -81,7 +71,7 @@ int main(int argc, char ** argv)
       CountStack2,
       STACK_SIZE,
       CountMain,
-      &Socket2,
+      &H2,
       TRUE);
 
   KernelStart();
