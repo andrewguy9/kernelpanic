@@ -18,6 +18,9 @@ utils/$(TARGET)_atomiclist.o: utils/atomiclist.c utils/atomiclist.h
 
 utils/$(TARGET)_counter.o: utils/counter.c utils/counter.h
 
+utils/$(TARGET)_counter.o: utils/counter.c utils/counter.h
+
+utils/$(TARGET)_primes.o: utils/primes.c utils/primes.h
 ###################
 #tests
 utils/$(TARGET)_linktest.o: utils/linktest.c 
@@ -29,3 +32,5 @@ utils/$(TARGET)_ringtest.o: utils/ringtest.c
 utils/$(TARGET)_bitmaptest.o: utils/bitmaptest.c
 
 utils/$(TARGET)_bhamtest.o: utils/bhamtest.c
+
+utils/$(TARGET)_primestest.o: utils/primestest.c

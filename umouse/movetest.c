@@ -144,12 +144,9 @@ void PrintMapScan( struct MAP * map, struct SCAN_LOG * scan, INDEX mouseX, INDEX
 
 void MakeLines(INDEX x, INDEX y, COUNT dist, enum DIRECTION moveDir, enum DIRECTION wallDir, struct MAP * map )
 {
-	for(; dist > 0; dist-- )
-	{
+	for (; dist > 0; dist--) {
 		MapSetWall( x, y, wallDir, TRUE, map );
-
 		SubMoveTranslate( &x, &y, moveDir, 1 );
-
 	}
 }
 
@@ -363,23 +360,23 @@ int main()
 	
 
 	//Populate the world map with sample maze
-	MakeLines( 0,2,6, RIGHT,SOUTH, &WorldMap);
-	MakeLines( 6,3,4, NORTH, WEST, &WorldMap);
-	MakeLines( 1,5,6, RIGHT, NORTH, &WorldMap );
-	MakeLines( 4,3,2, NORTH, WEST, &WorldMap );
-	MakeLines( 4,2,2, RIGHT, NORTH, &WorldMap );
-	MakeLines( 0,5,4, RIGHT, SOUTH, &WorldMap );
-	MapSetWall( 1, 6, EAST, TRUE, &WorldMap );
-	MakeLines( 3, 3, 2, NORTH, WEST, &WorldMap );
+	MakeLines(0, 2, 6, EAST,  SOUTH, &WorldMap);
+	MakeLines(6, 3, 4, NORTH, WEST,  &WorldMap);
+	MakeLines(1, 5, 6, EAST,  NORTH, &WorldMap );
+	MakeLines(4, 3, 2, NORTH, WEST,  &WorldMap );
+	MakeLines(4, 2, 2, EAST,  NORTH, &WorldMap );
+	MakeLines(0, 5, 4, EAST,  SOUTH, &WorldMap );
+	MapSetWall(1, 6, EAST, TRUE,     &WorldMap );
+	MakeLines(3, 3, 2, NORTH, WEST, &WorldMap );
 	//Set up flood fill.
-	FloodFillInit( 
-			WIDTH, 
-			HEIGHT, 
-			FloodMapBuff, 
-			FloodEventBuff, 
-			&FloodMap );
+	FloodFillInit(
+			WIDTH,
+			HEIGHT,
+			FloodMapBuff,
+			FloodEventBuff,
+			&FloodMap);
 
-	INDEX x=0,y=0;
+	INDEX x=0, y=0;
 	enum DIRECTION dir=NORTH;
 	RunMoves( &x,&y,&dir, WIDTH/2, HEIGHT/2 );
 

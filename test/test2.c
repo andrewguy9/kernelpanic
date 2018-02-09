@@ -2,6 +2,7 @@
 #include"kernel/scheduler.h"
 #include"kernel/socket.h"
 #include"kernel/panic.h"
+#include"kernel/hal.h"
 
 /*
  * Tests the socket unit, and by extension the resource and ringbuffer units.
@@ -16,8 +17,8 @@
 char Message[MESSAGE_LENGTH] = "Thread text message";
 
 //Allocation for buffers.
-#define RING_SIZE 512
-char RingBuff[RING_SIZE];
+#define RING_SIZE 1024
+#define RING_TAG "test2_ring_buffer.map"
 
 struct PIPE Pipe;
 
@@ -77,9 +78,13 @@ void ConsumerMain(void * unused)
 //main
 int main()
 {
+	void * RingBuff;
         KernelInit();
 
         SchedulerStartup();
+
+	// Access external memory for buffer.
+	RingBuff = HalMap(RING_TAG, NULL, RING_SIZE);
 
         //Initialize Pipes.
         PipeInit( RingBuff, RING_SIZE, &Pipe );
