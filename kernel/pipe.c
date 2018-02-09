@@ -16,8 +16,8 @@
 void PipeInit( char * buff, COUNT size, struct PIPE * pipe )
 {
         SemaphoreInit( & pipe->Mutex, 1 );
-        SemaphoreInit( & pipe->ReaderLock, 0 ); //Buffer starts empty, so it is not readable. Semaphore starts locked
-        SemaphoreInit( & pipe->WriterLock, 1 );//Buffer starts empty, so it is writable. Semaphore started unlocked.
+        SemaphoreInit( & pipe->EmptyLock, 0 ); //Buffer starts empty, block reads.
+        SemaphoreInit( & pipe->FullLock, 1 );//Buffer starts empty, allow writes.
         RingBufferInit( buff, size, & pipe->Ring );
 }
 
@@ -40,18 +40,18 @@ COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
         BOOL dataLeft;
         COUNT read;
 
-        //Acquire ReaderLock - No readers can progress until we are done.
-        SemaphoreDown( & pipe->ReaderLock, NULL );
+        //Acquire EmptyLock - No readers can progress until there is data.
+        SemaphoreDown( & pipe->EmptyLock, NULL );
 
         //Acqure mutex lock - No one can do any io until
         //we leave the buffer.
         SemaphoreDown( & pipe->Mutex, NULL );
 
-        //Check and see if the buffer if full.
-        //If it is, then the writer lock should
+        //Check and see if the buffer is full.
+        //If it is, then the FullLock should
         //have been leaked, and writers should be blocking.
         wasFull = RingBufferIsFull( & pipe->Ring );
-        ASSERT( wasFull ? (pipe->WriterLock.Count == 0) : TRUE );
+        ASSERT( wasFull ? (pipe->FullLock.Count == 0) : TRUE );
 
         //Perform the read.
         read = RingBufferRead( buff, size, & pipe->Ring );
@@ -70,7 +70,7 @@ COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
         //and we  freed up some space then we should release
         //the writer lock so writers can go.
         if( wasFull && read > 0 ) {
-                SemaphoreUp( & pipe->WriterLock );
+                SemaphoreUp( & pipe->FullLock );
         }
 
         //If there is data left in the buffer, release the
@@ -78,7 +78,7 @@ COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
         //If there is no data in the buffer, we cant let
         //readers progress, so we leak the lock.
         if( dataLeft ) {
-                SemaphoreUp( & pipe->ReaderLock );
+                SemaphoreUp( & pipe->EmptyLock );
         }
 
         return read;
@@ -103,18 +103,18 @@ COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
         BOOL spaceLeft;
         COUNT write;
 
-        //Acquire WriterLock - No readers can progress until we are done.
-        SemaphoreDown( & pipe->WriterLock, NULL );
+        //Acquire FullLock - No writers can progress until we are done.
+        SemaphoreDown( & pipe->FullLock, NULL );
 
         //Acqure mutex lock - No one can do any io until
         //we leave the buffer.
         SemaphoreDown( & pipe->Mutex, NULL );
 
-        //Check and see if the buffer if full.
-        //If it is, then the writer lock should
-        //have been leaked, and writers should be blocking.
+        //Check and see if the buffer is empty.
+        //If it is, then the EmptyLock should
+        //have been leaked, and readers should be blocking.
         wasEmpty = RingBufferIsEmpty( & pipe->Ring );
-        ASSERT( wasEmpty ? (pipe->ReaderLock.Count == 0) : TRUE );
+        ASSERT( wasEmpty ? (pipe->EmptyLock.Count == 0) : TRUE );
 
         //Perform the write.
         write = RingBufferWrite( buff, size, & pipe->Ring );
@@ -131,17 +131,17 @@ COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
 
         //If the ring was empty while we have exclusive access,
         //and we wrote some data, then we should release
-        //the reader lock so readers can go.
+        //the EmptyLock so readers can go.
         if( wasEmpty && write > 0 ) {
-                SemaphoreUp( & pipe->ReaderLock );
+                SemaphoreUp( & pipe->EmptyLock );
         }
 
         //If there is space left in the buffer, release the
-        //writer lock so that other writers can go.
+        //FullLock so that other writers can go.
         //If there is no space in the buffer, we cant let
         //writers progress, so we leak the lock.
         if( spaceLeft ) {
-                SemaphoreUp( & pipe->WriterLock );
+                SemaphoreUp( & pipe->FullLock );
         }
 
         return write;

@@ -9,8 +9,8 @@ struct PIPE
 {
         struct RING_BUFFER Ring;
         struct SEMAPHORE Mutex;
-        struct SEMAPHORE ReaderLock;
-        struct SEMAPHORE WriterLock;
+        struct SEMAPHORE EmptyLock;
+        struct SEMAPHORE FullLock;
 };
 
 void PipeInit( char * buff, COUNT size, struct PIPE * pipe );
