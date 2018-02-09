@@ -18,7 +18,7 @@ char Message[MESSAGE_LENGTH] = "Thread text message";
 
 //Allocation for buffers.
 #define RING_SIZE 1024
-#define RING_TAG "test2_ring_buffer"
+#define RING_TAG "test2_ring_buffer.map"
 
 struct PIPE Pipe;
 

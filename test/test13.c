@@ -5,8 +5,8 @@
 #include"kernel/panic.h"
 #include"kernel/gather.h"
 
-#define PRIME_TAG1 "test13_primes1"
-#define PRIME_TAG2 "test13_primes2"
+#define PRIME_TAG1 "test13_primes1.map"
+#define PRIME_TAG2 "test13_primes2.map"
 
 #define STACK_SIZE HAL_MIN_STACK_SIZE
 
