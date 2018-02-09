@@ -10,49 +10,24 @@ void SocketInit( struct PIPE * readPipe, struct PIPE * writePipe, struct SOCKET 
 {
         socket->ReadPipe = readPipe;
         socket->WritePipe = writePipe;
-        SemaphoreInit( & socket->ReadLock, 1 );
-        SemaphoreInit( & socket->WriteLock, 1 );
 }
 
 COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET * socket )
 {
-        COUNT read;
-        SemaphoreDown( & socket->ReadLock, NULL );
-        read = PipeRead( buff, size, socket->ReadPipe );
-        SemaphoreUp( & socket->WriteLock );
-        return read;
+        return PipeRead( buff, size, socket->ReadPipe );
 }
 
 void SocketReadStruct( char * buff, COUNT size, struct SOCKET * socket )
 {
-        COUNT read = 0;
-        SemaphoreDown( & socket->ReadLock , NULL );
-        while( read < size ) {
-                read += PipeRead( buff+read, size-read, socket->ReadPipe );
-        }
-        SemaphoreUp( & socket->ReadLock );
-
-        ASSERT( read == size );
+        PipeReadStruct( buff, size, socket->ReadPipe );
 }
 
 COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET * socket )
 {
-        COUNT write = 0;
-        SemaphoreDown( & socket->WriteLock, NULL );
-        write = PipeWrite( buff+write, size-write, socket->WritePipe );
-        SemaphoreUp( & socket->WriteLock );
-
-        return write;
+        return PipeWrite( buff, size, socket->WritePipe );
 }
 
 void SocketWriteStruct( char * buff, COUNT size, struct SOCKET * socket )
 {
-        COUNT write=0;
-        SemaphoreDown( & socket->WriteLock, NULL );
-        while( write < size ) {
-                write += PipeWrite( buff+write, size-write, socket->WritePipe );
-        }
-        SemaphoreUp( & socket->WriteLock );
-
-        ASSERT( write == size );
+        PipeWriteStruct( buff, size, socket->WritePipe );
 }
