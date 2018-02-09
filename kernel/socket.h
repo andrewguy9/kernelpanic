@@ -7,8 +7,8 @@
 
 struct SOCKET
 {
-        struct PIPE * ReadPipe;
-        struct PIPE * WritePipe;
+        PIPE_READ ReadPipe;
+        PIPE_WRITE WritePipe;
 };
 
 void SocketInit( struct PIPE * readPipe, struct PIPE * writePipe, struct SOCKET * socket );

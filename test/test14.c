@@ -50,15 +50,21 @@ void CountMain(void * context) {
   }
 }
 
+void SetupSocket(char * buff, struct PIPE * pipe, struct SOCKET * socket) {
+        PIPE_READ reader;
+        PIPE_WRITE writer;
+
+        PipeInit( buff, BUFF_SIZE, pipe, &reader, &writer );
+        SocketInit( reader, writer, socket);
+}
+
 int main(int argc, char ** argv)
 {
   KernelInit();
   SchedulerStartup();
 
-  PipeInit( Buff1, BUFF_SIZE, &Pipe1 );
-  PipeInit( Buff2, BUFF_SIZE, &Pipe1 );
-  SocketInit( &Pipe1, &Pipe2, &Socket1 );
-  SocketInit( &Pipe2, &Pipe1, &Socket2 );
+  SetupSocket(Buff1, &Pipe1, &Socket1);
+  SetupSocket(Buff2, &Pipe2, &Socket2);
 
   SchedulerCreateThread(
       &CountThread1,

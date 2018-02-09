@@ -13,7 +13,7 @@
 /*
  * Initializes a pipe
  */
-void PipeInit( char * buff, COUNT size, struct PIPE * pipe )
+void PipeInit( char * buff, COUNT size, struct PIPE * pipe, PIPE_READ * pr, PIPE_WRITE * pw )
 {
         SemaphoreInit( & pipe->Mutex, 1 );
         SemaphoreInit( & pipe->EmptyLock, 0 ); //Buffer starts empty, block reads.
@@ -21,9 +21,11 @@ void PipeInit( char * buff, COUNT size, struct PIPE * pipe )
         SemaphoreInit( & pipe->ReadLock, 1 );
         SemaphoreInit( & pipe->WriteLock, 1 );
         RingBufferInit( buff, size, & pipe->Ring );
+        * pr = pipe;
+        * pw = pipe;
 }
 
-COUNT PipeReadInner( char * buff, COUNT size, struct PIPE * pipe ) {
+COUNT PipeReadInner( char * buff, COUNT size, PIPE_READ pipe ) {
         BOOL wasFull;
         BOOL dataLeft;
         COUNT read;
@@ -83,7 +85,7 @@ COUNT PipeReadInner( char * buff, COUNT size, struct PIPE * pipe ) {
  *
  * The size of the read data will be min( data in pipe, size)
  */
-COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
+COUNT PipeRead( char * buff, COUNT size, PIPE_READ pipe )
 {
         COUNT read;
         SemaphoreDown( & pipe->ReadLock, NULL );
@@ -92,7 +94,7 @@ COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
         return read;
 }
 
-void PipeReadStruct( char * buff, COUNT size, struct PIPE * pipe )
+void PipeReadStruct( char * buff, COUNT size, PIPE_READ pipe )
 {
         COUNT read = 0;
         SemaphoreDown( & pipe->ReadLock, NULL );
@@ -103,7 +105,7 @@ void PipeReadStruct( char * buff, COUNT size, struct PIPE * pipe )
         ASSERT(read == size);
 }
 
-COUNT PipeWriteInner( char * buff, COUNT size, struct PIPE * pipe ) {
+COUNT PipeWriteInner( char * buff, COUNT size, PIPE_WRITE pipe ) {
         BOOL wasEmpty;
         BOOL spaceLeft;
         COUNT write;
@@ -164,7 +166,7 @@ COUNT PipeWriteInner( char * buff, COUNT size, struct PIPE * pipe ) {
  *
  * The size of the written data will be min( space left in pipe, size)
  */
-COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
+COUNT PipeWrite( char * buff, COUNT size, PIPE_WRITE pipe )
 {
         COUNT write;
         SemaphoreDown( & pipe->WriteLock, NULL );
@@ -173,7 +175,7 @@ COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
         return write;
 }
 
-void PipeWriteStruct( char * buff, COUNT size, struct PIPE * pipe )
+void PipeWriteStruct( char * buff, COUNT size, PIPE_WRITE pipe )
 {
         COUNT write = 0;
         SemaphoreDown( & pipe->WriteLock, NULL );

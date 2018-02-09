@@ -7,7 +7,7 @@
 #include<stdio.h>
 
 /*
- * Tests the pipe unit. 
+ * Tests the pipe unit.
  */
 
 #define BUFFER_LENGTH 10
@@ -17,10 +17,10 @@ char MessageBuffer2[BUFFER_LENGTH];
 char MessageBuffer3[BUFFER_LENGTH];
 
 #define RANDOM_VALUES_SIZE 15
-char RandomNumbers [RANDOM_VALUES_SIZE] = 
+char RandomNumbers [RANDOM_VALUES_SIZE] =
 {
-	0xf, 0x1, 0x2, 
-	0x3, 0x0, 0x5, 
+	0xf, 0x1, 0x2,
+	0x3, 0x0, 0x5,
 	0x6, 0x7, 0x8,
    	0x9, 0xa, 0x0,
 	0xc, 0xd, 0xe
@@ -109,7 +109,7 @@ void ProducerMain( void * arg )
 				curBuffer,
 				length,
 				MySock );
-		
+
 		//Setup next value.
 		timeIndex = (timeIndex + 1) % RANDOM_VALUES_SIZE;
 		assending = !assending;
@@ -130,7 +130,7 @@ void ConsumerMain( void * arg )
 
 	timeIndex = 0;
 	assending = TRUE;
-	
+
         WatchdogAddFlag(context->WatchdogId);
 
 	while(1)
@@ -174,6 +174,13 @@ void ConsumerMain( void * arg )
 	}
 }
 
+void SetupSocket(char * buff, struct PIPE * pipe, struct SOCKET * socket) {
+        PIPE_READ reader;
+        PIPE_WRITE writer;
+
+        PipeInit( buff, BUFFER_LENGTH, pipe, &reader, &writer );
+        SocketInit( reader, writer, socket);
+}
 
 int main()
 {
@@ -184,13 +191,9 @@ int main()
         ConsumerCount = 0;
         ProducerCount = 0;
 
-        PipeInit( MessageBuffer1, BUFFER_LENGTH, &Pipe1 );
-        PipeInit( MessageBuffer2, BUFFER_LENGTH, &Pipe2 );
-        PipeInit( MessageBuffer3, BUFFER_LENGTH, &Pipe3 );
-
-        SocketInit( &Pipe1, &Pipe1, &Socket1 );
-        SocketInit( &Pipe2, &Pipe2, &Socket2 );
-        SocketInit( &Pipe3, &Pipe3, &Socket3 );
+        SetupSocket(MessageBuffer1, &Pipe1, &Socket1);
+        SetupSocket(MessageBuffer2, &Pipe2, &Socket2);
+        SetupSocket(MessageBuffer3, &Pipe3, &Socket3);
 
         SchedulerCreateThread(
                         &Producer1,

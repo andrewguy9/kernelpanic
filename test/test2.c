@@ -22,6 +22,8 @@ char Message[MESSAGE_LENGTH] = "Thread text message";
 #define RING_TAG "test2_ring_buffer.map"
 
 struct PIPE Pipe;
+PIPE_READ PipeReader;
+PIPE_WRITE PipeWriter;
 
 struct SOCKET Socket;
 
@@ -110,10 +112,10 @@ int main()
 	RingBuff = HalMap(RING_TAG, NULL, RING_SIZE);
 
         //Initialize Pipes.
-        PipeInit( RingBuff, RING_SIZE, &Pipe );
+        PipeInit( RingBuff, RING_SIZE, &Pipe, &PipeReader, &PipeWriter );
 
         //Initialize Socket
-        SocketInit( & Pipe, & Pipe, & Socket );
+        SocketInit( PipeReader, PipeWriter, & Socket );
 
         //Initialize Threads
         SchedulerCreateThread(

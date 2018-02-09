@@ -6,7 +6,7 @@
  * Sockets are like pipes except that they are bi-directional.
  */
 
-void SocketInit( struct PIPE * readPipe, struct PIPE * writePipe, struct SOCKET * socket )
+void SocketInit( PIPE_READ readPipe, PIPE_WRITE writePipe, struct SOCKET * socket )
 {
         socket->ReadPipe = readPipe;
         socket->WritePipe = writePipe;
