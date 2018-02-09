@@ -23,26 +23,10 @@ void PipeInit( char * buff, COUNT size, struct PIPE * pipe )
         RingBufferInit( buff, size, & pipe->Ring );
 }
 
-/*
- * Reads data from a pipe.
- *
- * Arguments:
- * buff - destination buffer
- * size - maximum length that will be read.
- * pipe - pipe we will read from
- *
- * Returns
- * The length of data we read.
- *
- * The size of the read data will be min( data in pipe, size)
- */
-COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
-{
+COUNT PipeReadInner( char * buff, COUNT size, struct PIPE * pipe ) {
         BOOL wasFull;
         BOOL dataLeft;
         COUNT read;
-
-        SemaphoreDown( & pipe->ReadLock, NULL );
 
         //Acquire EmptyLock - No readers can progress until there is data.
         SemaphoreDown( & pipe->EmptyLock, NULL );
@@ -84,32 +68,34 @@ COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
         if( dataLeft ) {
                 SemaphoreUp( & pipe->EmptyLock );
         }
-
+        return read;
+}
+/*
+ * Reads data from a pipe.
+ *
+ * Arguments:
+ * buff - destination buffer
+ * size - maximum length that will be read.
+ * pipe - pipe we will read from
+ *
+ * Returns
+ * The length of data we read.
+ *
+ * The size of the read data will be min( data in pipe, size)
+ */
+COUNT PipeRead( char * buff, COUNT size, struct PIPE * pipe )
+{
+        COUNT read;
+        SemaphoreDown( & pipe->ReadLock, NULL );
+        read = PipeReadInner(buff, size, pipe);
         SemaphoreUp( & pipe->ReadLock);
-
         return read;
 }
 
-/*
- * Writes data to a pipe.
- *
- * Arguments
- * buff - buffer we will read from
- * size - the maximum distance we will read from.
- * pipe - the pipe we will copy data to.
- *
- * Returns
- * The length of data we read from buff.
- *
- * The size of the written data will be min( space left in pipe, size)
- */
-COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
-{
+COUNT PipeWriteInner( char * buff, COUNT size, struct PIPE * pipe ) {
         BOOL wasEmpty;
         BOOL spaceLeft;
         COUNT write;
-
-        SemaphoreDown( & pipe->WriteLock, NULL );
 
         //Acquire FullLock - No writers can progress until we are done.
         SemaphoreDown( & pipe->FullLock, NULL );
@@ -151,9 +137,28 @@ COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
         if( spaceLeft ) {
                 SemaphoreUp( & pipe->FullLock );
         }
+        return write;
+}
 
+/*
+ * Writes data to a pipe.
+ *
+ * Arguments
+ * buff - buffer we will read from
+ * size - the maximum distance we will read from.
+ * pipe - the pipe we will copy data to.
+ *
+ * Returns
+ * The length of data we read from buff.
+ *
+ * The size of the written data will be min( space left in pipe, size)
+ */
+COUNT PipeWrite( char * buff, COUNT size, struct PIPE * pipe )
+{
+        COUNT write;
+        SemaphoreDown( & pipe->WriteLock, NULL );
+        write = PipeWriteInner(buff, size, pipe);
         SemaphoreUp( & pipe->WriteLock);
-
         return write;
 }
 
