@@ -18,3 +18,17 @@ enum RANGE_STATUS RangeNext(struct RANGE * range, INDEX * output) {
   }
 }
 
+struct RANGE_RESULT RangeGlobal(BOOL reset, INDEX low, INDEX high, COUNT step) {
+  struct RANGE_RESULT result;
+  static struct RANGE range;
+
+  if (reset) {
+    Range_Init(low, high, step, &range);
+    result.State = RANGE_MORE;
+    result.Last = low;
+    return result;
+  }
+
+  result.State = RangeNext(&range, &result.Last);
+  return result;
+}

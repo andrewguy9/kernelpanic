@@ -11,16 +11,11 @@
 THREAD_MAIN ThreadMain;
 void ThreadMain(void * arg ) {
 
-  struct RANGE range;
-  enum RANGE_STATUS status;
-  INDEX cur;
-
-  Range_Init(0, 1000000, 1, &range);
-
-  for (status = RangeNext(&range, &cur);
-      status!=RANGE_DONE;
-      status = RangeNext(&range, &cur)) {
-    printf("cur: %lu\n", cur);
+  struct RANGE_RESULT result;
+  result = RangeGlobal(TRUE, 0, 1000000, 1);
+  while(result.State != RANGE_DONE) {
+    printf("Cur: %lu\n", result.Last);
+  result = RangeGlobal(FALSE, 0, 1000000, 1);
   }
   GeneralPanic();
 }
