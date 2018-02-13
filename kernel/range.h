@@ -1,6 +1,8 @@
 #ifndef RANGE_H
 #define RANGE_H
 
+#include"kernel/hal.h"
+
 struct RANGE {
   INDEX Low;
   INDEX High;
@@ -22,5 +24,15 @@ struct RANGE_RESULT {
 };
 
 struct RANGE_RESULT RangeGlobal(BOOL reset, INDEX low, INDEX high, COUNT step);
+
+struct RANGE_COROUTINE {
+  struct MACHINE_CONTEXT CallerState;
+  struct MACHINE_CONTEXT RoutineState;
+  struct RANGE_RESULT Result;
+  // TODO We need a stack stub area to hold our frame.
+};
+
+void RangeRoutineInit(INDEX low, INDEX high, COUNT step, struct RANGE_COROUTINE * range);
+struct RANGE_RESULT RangeRoutineNext(struct RANGE_COROUTINE * range);
 
 #endif // RANGE_H
