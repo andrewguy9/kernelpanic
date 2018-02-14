@@ -26,11 +26,6 @@ void ContextBootstrap()
         ContextHandoff();
 }
 
-//TODO KILL FUNCTION
-void ContextStartup() {
-        HalContextStartup();
-}
-
 /*
  * Sets up a machine context for a future thread.
  */

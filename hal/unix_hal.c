@@ -311,11 +311,6 @@ void HalPetWatchdog( TIME when )
 //Stack Management
 //
 
-void HalContextStartup()
-{
-  /*TODO KILL FUNCTION*/
-}
-
 void HalCreateStackFrame(
                 struct MACHINE_CONTEXT * Context,
                 void * stack,

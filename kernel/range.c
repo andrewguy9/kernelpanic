@@ -67,7 +67,6 @@ void RangeRoutineInit(INDEX low, INDEX high, COUNT step, struct RANGE_COROUTINE 
   range->Params.Step = step;
   range->Params.Last = low;
   RangeBootstrapGlobal = range; //TODO THIS ISN'T PROTECTED.
-  ContextStartup(RangeRoutineInner); //TODO This is a hack to work around a problem in context unit. Context assumes that we are bootstarpping a thread.
   ContextInit(&range->RoutineState, range->Stack, HAL_MIN_STACK_SIZE, RangeRoutineInner);
 
 }
