@@ -50,7 +50,7 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
                         Pointer[cur] = 0xaa;
 #endif
                 //Populate regular stack
-                HalCreateStackFrame( MachineState, Pointer, ContextBootstrap, Size );
+                HalCreateStackFrame( MachineState, Pointer, Size, ContextBootstrap );
         }
         else
         {

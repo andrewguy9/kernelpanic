@@ -53,7 +53,7 @@ void HalStartup();
 void HalPetWatchdog( );
 void HalStartInterrupt();
 void HalEndInterrupt();
-void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize);
+void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, COUNT stackSize, STACK_INIT_ROUTINE foo);
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context );
 #define HalPanic(msg) HalPanicFn(__FILE__, __LINE__, msg)
 void HalPanicFn(char file[], int line, char msg[]);

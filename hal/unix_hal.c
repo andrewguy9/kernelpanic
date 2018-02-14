@@ -318,8 +318,8 @@ void HalContextStartup( STACK_INIT_ROUTINE * stackInitRoutine )
 void HalCreateStackFrame(
                 struct MACHINE_CONTEXT * Context,
                 void * stack,
-                STACK_INIT_ROUTINE foo,
-                COUNT stackSize)
+                COUNT stackSize,
+                STACK_INIT_ROUTINE foo)
 {
 	int status;
         char * cstack = stack;
