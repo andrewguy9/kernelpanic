@@ -1,6 +1,8 @@
 #include"utils/utils.h"
 
 #include"kernel/range.h"
+#include"kernel/panic.h"
+
 void Range_Init(INDEX low, INDEX high, COUNT step, struct RANGE * range) {
   range->Low = low;
   range->High = high;
@@ -35,41 +37,49 @@ struct RANGE_RESULT RangeGlobal(BOOL reset, INDEX low, INDEX high, COUNT step) {
 
 void RangeRoutineInit(INDEX low, INDEX high, COUNT step, struct RANGE_COROUTINE * range) {
   int status;
-
-  range->Result.State = RANGE_MORE;
-  range->Result.Last = low;
-
-  while (range->Result.Last < high) {
-    status = _setjmp(range->RoutineState.Registers); //save state, so we can get back
+  INDEX cur = low;
+  status = _setjmp(range->RoutineState.Registers);
+  if (status == 0) {
+    // We have saved initial conditions for first call to next.
+    // Return to the caller.
+    return; //TODO THIS DESTROYS THE STACK FRAME!
+    // TODO WE NEED TO REWORK THIS SO WE LONGJMP HERE.
+  }
+  // We have woken up due to a call to next.
+  while (cur < high) {
+    //Copy the last iteration to output.
+    range->Result.State = RANGE_MORE;
+    range->Result.Last = cur;
+    //Save current routine state.
+    status = _setjmp(range->RoutineState.Registers);
     if (status == 0) {
-      // We just called setjmp.
-      // Either this is a natural call to Init, or the co-routine has been invoked vai _longjmp.
-      return;
-    } else {
-      // The co-routine was invoked via _longjmp.
-      // Jump back
+      // We have done work, and copied it to output.
+      // Return control to the caller.
       _longjmp(range->CallerState.Registers, 1);
     }
-    //update local counters
-    range->Result.State = RANGE_MORE;
-    range->Result.Last += step;
+    // The co-routine was invoked via next.
+    // Lets do more work.
+    cur += step;
   }
+  // We have hit exit condition.
+  // Save that we got here, in case he checks muliple times.
+  status = _setjmp(range->RoutineState.Registers);
+  //TODO CHECK STATUS FOR ERRORS.
   //tell them to not come back, jump to caller.
   range->Result.State = RANGE_DONE;
   _longjmp(range->RoutineState.Registers, 1);
+  KernelPanic();
 }
 
 struct RANGE_RESULT RangeRoutineNext(struct RANGE_COROUTINE * range) {
   int status;
   status = _setjmp(range->CallerState.Registers);
   if (status == 0) {
-    //This was the saving call.
-    //Lets jump to the coroutine.
+    // We just saved our context, so that we can call the co-routine.
+    // Call it via jump.
     _longjmp(range->RoutineState.Registers, 1);
-  } else {
-    //This was the restore call from the co-routine.
-    // result now has the co-routine state.
   }
-  // Jump to the co-routine.
+  // The co-routine has woken us up.
+  // Lets return the results.
   return range->Result;
 }
