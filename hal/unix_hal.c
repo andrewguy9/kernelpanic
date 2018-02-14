@@ -153,7 +153,7 @@ void HalStackTrampoline( int SignalNumber )
         } else {
                 //If we get here, then someone has jumped into a newly created thread.
                 //Test to make sure we are atomic
-                ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
+                ASSERT( HalIsIrqAtomic(IRQ_LEVEL_MAX) );
 
                 StackInitRoutine();
 
