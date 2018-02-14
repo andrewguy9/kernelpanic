@@ -25,8 +25,6 @@ struct itimerval WatchdogInterval;
 //Stack Management
 //
 
-STACK_INIT_ROUTINE * StackInitRoutine;
-
 struct MACHINE_CONTEXT * halTempContext;
 volatile BOOL halTempContextProcessed;
 
@@ -141,6 +139,9 @@ void HalBlockSignal( void * which );
 void HalStackTrampoline( int SignalNumber )
 {
         int status;
+        //Save stack startup state before releaseing the tempContext.
+        STACK_INIT_ROUTINE * foo = halTempContext->Foo;
+
         status = _setjmp( halTempContext->Registers );
 
         if( status == 0 ) {
@@ -155,11 +156,11 @@ void HalStackTrampoline( int SignalNumber )
                 //Test to make sure we are atomic
                 ASSERT( HalIsIrqAtomic(IRQ_LEVEL_MAX) );
 
-                StackInitRoutine();
+                foo();
 
                 //Returning from a function which was invoked by siglongjmp is not
                 //supported. Foo should never retrun.
-                HalPanic("Tried to return from StackInitRoutine!");
+                HalPanic("Tried to return from trampoline!");
                 return;
         }
 }
@@ -310,9 +311,9 @@ void HalPetWatchdog( TIME when )
 //Stack Management
 //
 
-void HalContextStartup( STACK_INIT_ROUTINE * stackInitRoutine )
+void HalContextStartup()
 {
-        StackInitRoutine = stackInitRoutine;
+  /*TODO KILL FUNCTION*/
 }
 
 void HalCreateStackFrame(

@@ -10,7 +10,7 @@
 
 //This variable is used to hold the function to call when a new context has been switched into
 //for the first time.
-STACK_INIT_ROUTINE * ContextHandoff;
+STACK_INIT_ROUTINE * ContextHandoff;//XXX this is not guarded.
 
 /*
  * When a thread is first started, this funciton is called.
@@ -26,9 +26,9 @@ void ContextBootstrap()
         ContextHandoff();
 }
 
-void ContextStartup(STACK_INIT_ROUTINE * foo) {
-        ContextHandoff = foo;
-        HalContextStartup(ContextBootstrap);
+//TODO KILL FUNCTION
+void ContextStartup() {
+        HalContextStartup();
 }
 
 /*
@@ -50,6 +50,7 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
                         Pointer[cur] = 0xaa;
 #endif
                 //Populate regular stack
+                ContextHandoff = Foo;
                 HalCreateStackFrame( MachineState, Pointer, Size, ContextBootstrap );
         }
         else

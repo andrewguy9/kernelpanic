@@ -360,7 +360,7 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 void SchedulerStartup()
 {
         //Setup the hal to use the scheduler.
-        ContextStartup( SchedulerThreadStartup );
+        ContextStartup();
 
         //Initialize queues
         LinkedListInit( &RunQueue );
