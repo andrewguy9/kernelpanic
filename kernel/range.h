@@ -29,7 +29,8 @@ struct RANGE_COROUTINE {
   struct MACHINE_CONTEXT CallerState;
   struct MACHINE_CONTEXT RoutineState;
   struct RANGE_RESULT Result;
-  // TODO We need a stack stub area to hold our frame.
+  struct RANGE Params;
+  char Stack[HAL_MIN_STACK_SIZE];
 };
 
 void RangeRoutineInit(INDEX low, INDEX high, COUNT step, struct RANGE_COROUTINE * range);
