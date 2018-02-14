@@ -40,37 +40,24 @@ struct RANGE_COROUTINE * RangeBootstrapGlobal; //TOD CAN WE GET RID OF THIS?
 STACK_INIT_ROUTINE RangeRoutineInner;
 void RangeRoutineInner() {
   struct RANGE_COROUTINE * range = RangeBootstrapGlobal;
-  int status;
   INDEX cur = range->Params.Low;
-  status = _setjmp(range->RoutineState.Registers);
-  if (status == 0) {
-    // We have saved initial conditions for first call to next.
-    // Return to the caller.
-    _longjmp(range->CallerState.Registers, 1);
-  }
   // We have woken up due to a call to next.
   while (cur < range->Params.High) {
     //Copy the last iteration to output.
     range->Result.State = RANGE_MORE;
     range->Result.Last = cur;
     //Save current routine state.
-    status = _setjmp(range->RoutineState.Registers);
-    if (status == 0) {
-      // We have done work, and copied it to output.
-      // Return control to the caller.
-      _longjmp(range->CallerState.Registers, 1);
-    }
+    ContextSwitch(&range->RoutineState, &range->CallerState);
     // The co-routine was invoked via next.
     // Lets do more work.
     cur += range->Params.Step;
   }
   // We have hit exit condition.
-  // Save that we got here, in case he checks muliple times.
-  status = _setjmp(range->RoutineState.Registers);
-  //TODO CHECK STATUS FOR ERRORS.
-  //tell them to not come back, jump to caller.
-  range->Result.State = RANGE_DONE;
-  _longjmp(range->CallerState.Registers, 1);
+  while (TRUE) {
+    //tell them to not come back, jump to caller.
+    range->Result.State = RANGE_DONE;
+    ContextSwitch(&range->RoutineState, &range->CallerState);
+  }
   KernelPanic();
 }
 
@@ -80,18 +67,13 @@ void RangeRoutineInit(INDEX low, INDEX high, COUNT step, struct RANGE_COROUTINE 
   range->Params.Step = step;
   range->Params.Last = low;
   RangeBootstrapGlobal = range; //TODO THIS ISN'T PROTECTED.
+  ContextStartup(RangeRoutineInner); //TODO This is a hack to work around a problem in context unit. Context assumes that we are bootstarpping a thread.
   ContextInit(&range->RoutineState, range->Stack, HAL_MIN_STACK_SIZE, RangeRoutineInner);
 
 }
 
 struct RANGE_RESULT RangeRoutineNext(struct RANGE_COROUTINE * range) {
-  int status;
-  status = _setjmp(range->CallerState.Registers);
-  if (status == 0) {
-    // We just saved our context, so that we can call the co-routine.
-    // Call it via jump.
-    _longjmp(range->RoutineState.Registers, 1);
-  }
+  ContextSwitch(&range->CallerState, &range->RoutineState);
   // The co-routine has woken us up.
   // Lets return the results.
   return range->Result;
