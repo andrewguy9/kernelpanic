@@ -36,7 +36,7 @@ struct RANGE_RESULT RangeGlobal(BOOL reset, INDEX low, INDEX high, COUNT step) {
   return result;
 }
 
-struct RANGE_COROUTINE * RangeBootstrapGlobal; //TOD CAN WE GET RID OF THIS?
+struct RANGE_COROUTINE * RangeBootstrapGlobal; //TODO CAN WE GET RID OF THIS?
 STACK_INIT_ROUTINE RangeRoutineInner;
 void RangeRoutineInner() {
   struct RANGE_COROUTINE * range = RangeBootstrapGlobal;
