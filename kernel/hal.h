@@ -14,7 +14,7 @@
 
 //STACK_INIT_ROUTINE is a routine which will be called to create a new
 //stack entry in a new stack frame.
-typedef void (STACK_INIT_ROUTINE) (void);
+typedef void (STACK_INIT_ROUTINE) (void * arg);
 
 //MACHINE_CONTEXT is a structure which will be used to hold thead state
 //between context switches. This context will be machine specific.
@@ -52,7 +52,7 @@ void HalStartup();
 void HalPetWatchdog( );
 void HalStartInterrupt();
 void HalEndInterrupt();
-void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, COUNT stackSize, STACK_INIT_ROUTINE foo);
+void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, COUNT stackSize, STACK_INIT_ROUTINE foo, void * arg);
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context );
 #define HalPanic(msg) HalPanicFn(__FILE__, __LINE__, msg)
 void HalPanicFn(char file[], int line, char msg[]);

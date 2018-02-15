@@ -76,6 +76,7 @@
 struct MACHINE_CONTEXT
 {
         STACK_INIT_ROUTINE * Foo;//Pointer to the first function the thread calls.
+        void * Arg;
         jmp_buf Registers;//Buffer to hold register state in context switches.
 
 #ifdef DEBUG

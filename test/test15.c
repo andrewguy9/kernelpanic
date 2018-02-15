@@ -2,6 +2,7 @@
 #include"kernel/scheduler.h"
 #include"kernel/hal.h"
 #include"kernel/range.h"
+#include"kernel/panic.h"
 
 //
 //Main routine for threads.
@@ -23,7 +24,7 @@ void ThreadMain(void * arg ) {
     result = RangeRoutineNext(&Range);
   }
   printf("done\n");
-  GeneralPanic();
+  GeneralPanic( );
 }
 
 //

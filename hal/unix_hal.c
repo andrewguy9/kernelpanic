@@ -141,6 +141,7 @@ void HalStackTrampoline( int SignalNumber )
         int status;
         //Save stack startup state before releaseing the tempContext.
         STACK_INIT_ROUTINE * foo = halTempContext->Foo;
+        void * arg = halTempContext->Foo;
 
         status = _setjmp( halTempContext->Registers );
 
@@ -156,7 +157,7 @@ void HalStackTrampoline( int SignalNumber )
                 //Test to make sure we are atomic
                 ASSERT( HalIsIrqAtomic(IRQ_LEVEL_MAX) );
 
-                foo();
+                foo(arg);
 
                 //Returning from a function which was invoked by siglongjmp is not
                 //supported. Foo should never retrun.
@@ -315,7 +316,8 @@ void HalCreateStackFrame(
                 struct MACHINE_CONTEXT * Context,
                 void * stack,
                 COUNT stackSize,
-                STACK_INIT_ROUTINE foo)
+                STACK_INIT_ROUTINE foo,
+                void * arg)
 {
 	int status;
         char * cstack = stack;
@@ -335,6 +337,7 @@ void HalCreateStackFrame(
 #endif
 
         Context->Foo = foo;
+        Context->Arg = arg;
 
         //We are about to bootstrap the new thread. Because we have to modify global
         //state here, we must make sure no interrupts occur until after we are bootstrapped.

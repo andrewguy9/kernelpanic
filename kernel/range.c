@@ -36,10 +36,9 @@ struct RANGE_RESULT RangeGlobal(BOOL reset, INDEX low, INDEX high, COUNT step) {
   return result;
 }
 
-struct RANGE_COROUTINE * RangeBootstrapGlobal; //TODO CAN WE GET RID OF THIS?
 STACK_INIT_ROUTINE RangeRoutineInner;
-void RangeRoutineInner() {
-  struct RANGE_COROUTINE * range = RangeBootstrapGlobal;
+void RangeRoutineInner(void * arg) {
+  struct RANGE_COROUTINE * range = arg;
   INDEX cur = range->Params.Low;
   // We have woken up due to a call to next.
   while (cur < range->Params.High) {
@@ -66,8 +65,7 @@ void RangeRoutineInit(INDEX low, INDEX high, COUNT step, struct RANGE_COROUTINE 
   range->Params.High = high;
   range->Params.Step = step;
   range->Params.Last = low;
-  RangeBootstrapGlobal = range; //TODO THIS ISN'T PROTECTED.
-  ContextInit(&range->RoutineState, range->Stack, HAL_MIN_STACK_SIZE, RangeRoutineInner);
+  ContextInit(&range->RoutineState, range->Stack, HAL_MIN_STACK_SIZE, RangeRoutineInner, range);
 
 }
 

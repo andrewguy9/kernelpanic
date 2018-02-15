@@ -11,6 +11,7 @@
 //This variable is used to hold the function to call when a new context has been switched into
 //for the first time.
 STACK_INIT_ROUTINE * ContextHandoff;//XXX this is not guarded.
+void * ContextHandoffArg;//XXX this is not guarded.
 
 /*
  * When a thread is first started, this funciton is called.
@@ -23,13 +24,13 @@ void ContextBootstrap()
         //i.e. this is the same state as the line after HalContextSwitch.
         IsrEnable(IRQ_LEVEL_MAX);
 
-        ContextHandoff();
+        ContextHandoff(ContextHandoffArg);
 }
 
 /*
  * Sets up a machine context for a future thread.
  */
-void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo)
+void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo, void * Arg)
 {
 #ifdef DEBUG
         int cur;
@@ -46,7 +47,8 @@ void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT S
 #endif
                 //Populate regular stack
                 ContextHandoff = Foo;
-                HalCreateStackFrame( MachineState, Pointer, Size, ContextBootstrap );
+                ContextHandoffArg = Arg;
+                HalCreateStackFrame( MachineState, Pointer, Size, ContextBootstrap, NULL); //NOTE WE ARE NOT USING AVAILABLE ARG.
         }
         else
         {

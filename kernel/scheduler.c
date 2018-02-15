@@ -399,7 +399,7 @@ struct LOCKING_CONTEXT * SchedulerGetLockingContext()
         return &ActiveThread->LockingContext;
 }
 
-void SchedulerThreadStartup( void )
+void SchedulerThreadStartup( void * arg )
 {
         struct THREAD * thread;
 
@@ -413,6 +413,7 @@ void SchedulerThreadStartup( void )
 
         //Get the thread (set before the context switch)
         thread = SchedulerGetActiveThread();
+        // ASSERT (arg == thread); //TODO this wasn't true, not sure why.
 
         //We should be in a critical section because we context switched here,
         //leaking the raise.
@@ -462,7 +463,7 @@ void SchedulerCreateThread(
         thread->Argument = Argument;
 
         //initialize stack
-        ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup );
+        ContextInit( &thread->MachineContext, stack, stackSize, SchedulerThreadStartup, thread );
 
         //Add thread to queue.
         if ( start ) {
