@@ -413,7 +413,7 @@ void SchedulerThreadStartup( void * arg )
 
         //Get the thread (set before the context switch)
         thread = SchedulerGetActiveThread();
-        // ASSERT (arg == thread); //TODO this wasn't true, not sure why.
+        ASSERT (arg == thread); //TODO this wasn't true, not sure why.
 
         //We should be in a critical section because we context switched here,
         //leaking the raise.
