@@ -411,9 +411,9 @@ void SchedulerThreadStartup( void * arg )
         //which were held across the context switch,
         //namely the SchedulerCritObject, and the SchedulerMutex.
 
-        //Get the thread (set before the context switch)
-        thread = SchedulerGetActiveThread();
-        ASSERT (arg == thread); //TODO this wasn't true, not sure why.
+        thread = arg;
+
+        ASSERT (SchedulerGetActiveThread() == thread);
 
         //We should be in a critical section because we context switched here,
         //leaking the raise.
