@@ -11,13 +11,13 @@ struct RANGE {
   INDEX Last;
 };
 
-enum RANGE_STATUS {
-  RANGE_MORE,
-  RANGE_DONE
+enum CO_ROUTINE_STATUS {
+  CO_ROUTINE_MORE,
+  CO_ROUTINE_DONE
 };
 
 struct RANGE_RESULT {
-  enum RANGE_STATUS State;
+  enum CO_ROUTINE_STATUS State;
   INDEX Last;
 };
 

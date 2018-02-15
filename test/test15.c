@@ -19,7 +19,7 @@ void ThreadMain(void * arg ) {
   RangeRoutineInit(1, 1000000, 1, &Range);
   printf("routine ready\n");
   result = RangeRoutineNext(&Range);
-  while(result.State != RANGE_DONE) {
+  while(result.State != CO_ROUTINE_DONE) {
     printf("Cur: %lu\n", result.Last);
     result = RangeRoutineNext(&Range);
   }

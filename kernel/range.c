@@ -11,7 +11,7 @@ void RangeRoutineInner(void * arg) {
   // We have woken up due to a call to next.
   while (cur < range->Params.High) {
     //Copy the last iteration to output.
-    range->Result.State = RANGE_MORE;
+    range->Result.State = CO_ROUTINE_MORE;
     range->Result.Last = cur;
     //Save current routine state.
     ContextSwitch(&range->RoutineState, &range->CallerState);
@@ -22,7 +22,7 @@ void RangeRoutineInner(void * arg) {
   // We have hit exit condition.
   while (TRUE) {
     //tell them to not come back, jump to caller.
-    range->Result.State = RANGE_DONE;
+    range->Result.State = CO_ROUTINE_DONE;
     ContextSwitch(&range->RoutineState, &range->CallerState);
   }
   KernelPanic();
