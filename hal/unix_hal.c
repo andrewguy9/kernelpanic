@@ -319,7 +319,7 @@ void HalCreateStackFrame(
                 STACK_INIT_ROUTINE foo,
                 void * arg)
 {
-	int status;
+        int status;
         char * cstack = stack;
         stack_t newStack;
         sigset_t oldSet;
