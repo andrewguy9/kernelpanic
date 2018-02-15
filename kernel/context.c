@@ -2,75 +2,80 @@
 #include"isr.h"
 #include"watchdog.h"
 #include"time.h"
+#include"panic.h"
 
 /*
  * Context Unit:
  * The context unit helps deal with thread context (i.e. stacks).
  */
 
-//This variable is used to hold the function to call when a new context has been switched into
-//for the first time.
-STACK_INIT_ROUTINE * ContextHandoff;//XXX this is not guarded.
-void * ContextHandoffArg;//XXX this is not guarded.
-
 /*
  * When a thread is first started, this funciton is called.
  */
 STACK_INIT_ROUTINE ContextBootstrap;
-void ContextBootstrap()
+void ContextBootstrap(void * arg)
 {
+        struct CONTEXT * context = arg;
 
         //Here is where we end up if the kernel context switches to a new thread.
         //i.e. this is the same state as the line after HalContextSwitch.
         IsrEnable(IRQ_LEVEL_MAX);
 
-        ContextHandoff(ContextHandoffArg);
+        context->Main(context->MainArg);
+        //Should never return.
+        KernelPanic();
 }
 
 /*
- * Sets up a machine context for a future thread.
+ * Sets up a context for a future thread or co-routine.
  */
-void ContextInit( struct MACHINE_CONTEXT * MachineState, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo, void * Arg)
+void ContextInit( struct CONTEXT * context, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo, void * Arg)
 {
 #ifdef DEBUG
         int cur;
+#endif
+
+#ifdef DEBUG
+        //Set up the stack boundry.
+        CounterInit(&context->TimesRun);
+        CounterInit(&context->TimesSwitched);
+        context->LastRanTime = 0;
+        context->LastSelectedTime = 0;
+
 #endif
 
         //initialize stack
         if( Size != 0 )
         {
 #ifdef DEBUG
+                context->High = (char *) (Pointer + Size);
+                context->Low = Pointer;
                 //Write pattern over stack so we can expose
                 //variable initialization errors.
                 for(cur=0; cur<Size; cur++)
                         Pointer[cur] = 0xaa;
 #endif
                 //Populate regular stack
-                ContextHandoff = Foo;
-                ContextHandoffArg = Arg;
-                HalCreateStackFrame( MachineState, Pointer, Size, ContextBootstrap, NULL); //NOTE WE ARE NOT USING AVAILABLE ARG.
+                context->Main = Foo;
+                context->MainArg = Arg;
+                HalCreateStackFrame( &context->MachineState, Pointer, Size, ContextBootstrap, context);
         }
         else
         {
-                //Populate stack for idle thread (machine's start thread).
-                HalGetInitialStackFrame( MachineState );
-
 #ifdef DEBUG
-                CounterInit(&MachineState->TimesRun);
-                CounterInit(&MachineState->TimesSwitched);
-                MachineState->LastRanTime = 0;
-                MachineState->LastSelectedTime = 0;
-
-                MachineState->High = (char*) -1;
-                MachineState->Low = 0;
+                context->High = (char*) -1;
+                context->Low = 0;
 #endif
+                //Populate stack for idle thread (machine's start thread).
+                HalGetInitialStackFrame( &context->MachineState );
+
         }
 }
 
 /*
  * Performs a context switch from one MACHINE_CONTEXT (thread) to another.
  */
-void ContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack)
+void ContextSwitch(struct CONTEXT * oldStack, struct CONTEXT * newStack)
 {
 #ifdef DEBUG
         TIME time = TimeGet();
@@ -91,7 +96,7 @@ void ContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * n
                 //now that the system looks like the switch has
                 //happened, go ahead and do the switch.
                 //NOTE: If you change anything below here, you have to update ContextBootstrap.
-                HalContextSwitch(oldStack, newStack);
+                HalContextSwitch(&oldStack->MachineState, &newStack->MachineState);
 
                 IsrEnable(IRQ_LEVEL_MAX);
         } else {

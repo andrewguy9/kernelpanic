@@ -239,7 +239,7 @@ void SchedulerSwitch()
         ActiveThread = NextThread;
         NextThread = NULL;
 
-        ContextSwitch(&oldThread->MachineContext, &newThread->MachineContext);
+        ContextSwitch(&oldThread->Stack, &newThread->Stack);
 
         ASSERT( ! TimerIsAtomic() );
         ASSERT( CritInterruptIsAtomic() );//TODO SEE NOTE ABOVE.
@@ -463,7 +463,7 @@ void SchedulerCreateThread(
         thread->Argument = Argument;
 
         //initialize stack
-        ContextInit( &thread->MachineContext, stack, stackSize, SchedulerThreadStartup, thread );
+        ContextInit( &thread->Stack, stack, stackSize, SchedulerThreadStartup, thread );
 
         //Add thread to queue.
         if ( start ) {

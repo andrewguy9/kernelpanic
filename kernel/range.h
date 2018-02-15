@@ -2,6 +2,7 @@
 #define RANGE_H
 
 #include"kernel/hal.h"
+#include"kernel/context.h"
 
 struct RANGE {
   INDEX Low;
@@ -26,8 +27,8 @@ struct RANGE_RESULT {
 struct RANGE_RESULT RangeGlobal(BOOL reset, INDEX low, INDEX high, COUNT step);
 
 struct RANGE_COROUTINE {
-  struct MACHINE_CONTEXT CallerState;
-  struct MACHINE_CONTEXT RoutineState;
+  struct CONTEXT CallerState;
+  struct CONTEXT RoutineState;
   struct RANGE_RESULT Result;
   struct RANGE Params;
   char Stack[HAL_MIN_STACK_SIZE];

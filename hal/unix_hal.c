@@ -141,7 +141,7 @@ void HalStackTrampoline( int SignalNumber )
         int status;
         //Save stack startup state before releaseing the tempContext.
         STACK_INIT_ROUTINE * foo = halTempContext->Foo;
-        void * arg = halTempContext->Foo;
+        void * arg = halTempContext->Arg;
 
         status = _setjmp( halTempContext->Registers );
 
@@ -330,12 +330,6 @@ void HalCreateStackFrame(
         ASSUME(sigemptyset( &trampolineMask ), 0);
         ASSUME(sigaddset( &trampolineMask, HAL_ISR_TRAMPOLINE ), 0);
 
-#ifdef DEBUG
-        //Set up the stack boundry.
-        Context->High = (char *) (cstack + stackSize);
-        Context->Low = cstack;
-#endif
-
         Context->Foo = foo;
         Context->Arg = arg;
 
@@ -397,12 +391,6 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
         ASSERT( status == 0 );//We should never wake here.
 #else
         _setjmp( Context->Registers );
-#endif
-
-#ifdef DEBUG
-        //The stack bounderies are infinite for the initial stack.
-        Context->High = (char *) -1;
-        Context->Low = (char *) 0;
 #endif
 }
 

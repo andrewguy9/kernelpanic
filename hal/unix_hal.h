@@ -78,16 +78,6 @@ struct MACHINE_CONTEXT
         STACK_INIT_ROUTINE * Foo;//Pointer to the first function the thread calls.
         void * Arg;
         jmp_buf Registers;//Buffer to hold register state in context switches.
-
-#ifdef DEBUG
-        struct COUNTER TimesRun;
-        struct COUNTER TimesSwitched;
-        volatile TIME LastRanTime;
-        volatile TIME LastSelectedTime;
-        //Pointers to the top and bottom of the stack. Used to detect stack overflow.
-        char * High;
-        char * Low;
-#endif
 };
 
 #ifdef DEBUG
