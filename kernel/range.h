@@ -16,15 +16,10 @@ enum RANGE_STATUS {
   RANGE_DONE
 };
 
-void Range_Init(INDEX low, INDEX high, COUNT step, struct RANGE * range);
-enum RANGE_STATUS RangeNext(struct RANGE * range, INDEX * output);
-
 struct RANGE_RESULT {
   enum RANGE_STATUS State;
   INDEX Last;
 };
-
-struct RANGE_RESULT RangeGlobal(BOOL reset, INDEX low, INDEX high, COUNT step);
 
 struct RANGE_COROUTINE {
   struct CONTEXT CallerState;
