@@ -51,7 +51,6 @@ void RangeRoutine(
 //Main routine for threads.
 //
 
-#include<stdio.h>
 struct COROUTINE Range;
 
 THREAD_MAIN ThreadMain;
@@ -69,9 +68,7 @@ void ThreadMain(void * arg ) {
   for(status = CoroutineNext(&Range);
       status != COROUTINE_DONE;
       status = CoroutineNext(&Range)) {
-    printf("Cur: %lu\n", result.Last);
   }
-  printf("done\n");
   GeneralPanic( );
 }
 
