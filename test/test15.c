@@ -59,8 +59,6 @@ void ThreadMain(void * arg ) {
   struct RANGE_PARAMS params = {0,1000000,1};
   struct RANGE_RESULT result;
   enum COROUTINE_STATUS status;
-
-  printf("Setting up routine\n");
   CoroutineInit(
       RangeRoutine,
       &params,
@@ -68,11 +66,10 @@ void ThreadMain(void * arg ) {
       RangeStack,
       STACK_SIZE,
       &Range);
-  printf("routine ready\n");
-  status = CoroutineNext(&Range);
-  while(status != COROUTINE_DONE) {
+  for(status = CoroutineNext(&Range);
+      status != COROUTINE_DONE;
+      status = CoroutineNext(&Range)) {
     printf("Cur: %lu\n", result.Last);
-    status = CoroutineNext(&Range);
   }
   printf("done\n");
   GeneralPanic( );
