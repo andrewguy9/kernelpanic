@@ -1,5 +1,5 @@
-#ifndef RANGE_H
-#define RANGE_H
+#ifndef COROUTINE_H
+#define COROUTINE_H
 
 #include"kernel/hal.h"
 #include"kernel/context.h"
@@ -35,4 +35,4 @@ void CoroutineYield(struct CO_ROUTINE_CONTEXT * yield);
 
 enum CO_ROUTINE_STATUS CoroutineNext(struct CO_ROUTINE * routine);
 
-#endif // RANGE_H
+#endif // COROUTINE_H
