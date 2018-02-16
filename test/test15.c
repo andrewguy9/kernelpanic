@@ -1,27 +1,65 @@
 #include"kernel/startup.h"
 #include"kernel/scheduler.h"
 #include"kernel/hal.h"
-#include"kernel/range.h"
+#include"kernel/coroutine.h"
 #include"kernel/panic.h"
+
+//
+// Range Coroutine.
+//
+
+struct RANGE_PARAMS {
+  INDEX Low;
+  INDEX High;
+  COUNT Step;
+};
+struct RANGE_RESULT {
+  INDEX Last;
+};
+
+CO_ROUTINE_FUNCTION RangeRoutine;
+void RangeRoutine(
+    void * params,
+    void * result,
+    struct CO_ROUTINE_CONTEXT * yield) {
+  struct RANGE_PARAMS * rparams = params;
+  struct RANGE_RESULT * rresult = result;
+
+  INDEX cur = rparams->Low;
+  while (cur < rparams->High) {
+    //Copy the last iteration to output.
+    rresult->Last = cur;
+    CoroutineYield(yield);
+    // The co-routine was invoked via next.
+    // Lets do more work.
+    cur += rparams->Step;
+  }
+}
 
 //
 //Main routine for threads.
 //
 
 #include<stdio.h>
-struct RANGE_COROUTINE Range;
+struct CO_ROUTINE Range;
 
 THREAD_MAIN ThreadMain;
 void ThreadMain(void * arg ) {
+  struct RANGE_PARAMS params = {0,1000000,1};
   struct RANGE_RESULT result;
+  enum CO_ROUTINE_STATUS status;
 
   printf("Setting up routine\n");
-  RangeRoutineInit(1, 1000000, 1, &Range);
+  CoroutineInit(
+      RangeRoutine,
+      &params,
+      &result,
+      &Range);
   printf("routine ready\n");
-  result = RangeRoutineNext(&Range);
-  while(result.State != CO_ROUTINE_DONE) {
+  status = CoroutineNext(&Range);
+  while(status != CO_ROUTINE_DONE) {
     printf("Cur: %lu\n", result.Last);
-    result = RangeRoutineNext(&Range);
+    status = CoroutineNext(&Range);
   }
   printf("done\n");
   GeneralPanic( );
