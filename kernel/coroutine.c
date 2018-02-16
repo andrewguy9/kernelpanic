@@ -24,13 +24,16 @@ void CoroutineInit(
     void * stack,
     COUNT size,
     struct COROUTINE * coroutine) {
+  struct COROUTINE_CONTEXT *yield;
+
   coroutine->Foo = foo;
   coroutine->Params = params;
   coroutine->Result = output;
-  coroutine->YieldContext.Status = COROUTINE_MORE; //XXX Needed?
-  //XXX didn't initialize coroutine->YieldContext.CallerState
+  yield = &coroutine->YieldContext;
+  //Dont initialize yield->Status, because its done by next.
+  //Dont initialize coroutine->YieldContext.CallerState, because its done when switching away from function.
   ContextInit(
-      &coroutine->YieldContext.RoutineState,
+      &yield->RoutineState,
       stack,
       size,
       CoRoutineWrapper,
