@@ -17,11 +17,12 @@ void CoRoutineWrapper (void * arg) {
   KernelPanic();
 }
 
-//TODO MAYBE STACK SHOULD BE EXTERNALLY SET.
 void CoroutineInit(
     COROUTINE_FUNCTION foo,
     void * params,
     void * output,
+    void * stack,
+    COUNT size,
     struct COROUTINE * coroutine) {
   coroutine->Foo = foo;
   coroutine->Params = params;
@@ -30,8 +31,8 @@ void CoroutineInit(
   //XXX didn't initialize coroutine->YieldContext.CallerState
   ContextInit(
       &coroutine->YieldContext.RoutineState,
-      coroutine->Stack,
-      HAL_MIN_STACK_SIZE,
+      stack,
+      size,
       CoRoutineWrapper,
       coroutine);
 }

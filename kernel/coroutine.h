@@ -22,13 +22,14 @@ struct COROUTINE {
   void * Params;
   void * Result;
   struct COROUTINE_CONTEXT YieldContext;
-  char Stack[HAL_MIN_STACK_SIZE];
 };
 
 void CoroutineInit(
     COROUTINE_FUNCTION foo,
     void * params,
     void * output,
+    void * stack,
+    COUNT size,
     struct COROUTINE * coroutine);
 
 void CoroutineYield(struct COROUTINE_CONTEXT * yield);

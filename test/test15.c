@@ -5,6 +5,17 @@
 #include"kernel/panic.h"
 
 //
+//Thread structures
+//
+
+#define STACK_SIZE HAL_MIN_STACK_SIZE
+
+struct THREAD Thread1;
+char Thread1Stack[STACK_SIZE];
+
+char RangeStack[STACK_SIZE];
+
+//
 // Range Coroutine.
 //
 
@@ -54,6 +65,8 @@ void ThreadMain(void * arg ) {
       RangeRoutine,
       &params,
       &result,
+      RangeStack,
+      STACK_SIZE,
       &Range);
   printf("routine ready\n");
   status = CoroutineNext(&Range);
@@ -68,15 +81,6 @@ void ThreadMain(void * arg ) {
 //
 //Vars
 //
-
-//
-//Thread structures
-//
-
-#define STACK_SIZE HAL_MIN_STACK_SIZE
-
-struct THREAD Thread1;
-char Thread1Stack[STACK_SIZE];
 
 //
 //Main
