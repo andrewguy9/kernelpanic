@@ -4,35 +4,35 @@
 #include"kernel/hal.h"
 #include"kernel/context.h"
 
-enum CO_ROUTINE_STATUS {
-  CO_ROUTINE_MORE,
-  CO_ROUTINE_DONE
+enum COROUTINE_STATUS {
+  COROUTINE_MORE,
+  COROUTINE_DONE
 };
 
-struct CO_ROUTINE_CONTEXT {
-  enum CO_ROUTINE_STATUS Status;
+struct COROUTINE_CONTEXT {
+  enum COROUTINE_STATUS Status;
   struct CONTEXT CallerState;
   struct CONTEXT RoutineState;
 };
 
-typedef void (CO_ROUTINE_FUNCTION) (void * params, void * result, struct CO_ROUTINE_CONTEXT * yield);
+typedef void (COROUTINE_FUNCTION) (void * params, void * result, struct COROUTINE_CONTEXT * yield);
 
-struct CO_ROUTINE {
-  CO_ROUTINE_FUNCTION * Foo;
+struct COROUTINE {
+  COROUTINE_FUNCTION * Foo;
   void * Params;
   void * Result;
-  struct CO_ROUTINE_CONTEXT YieldContext;
+  struct COROUTINE_CONTEXT YieldContext;
   char Stack[HAL_MIN_STACK_SIZE];
 };
 
 void CoroutineInit(
-    CO_ROUTINE_FUNCTION foo,
+    COROUTINE_FUNCTION foo,
     void * params,
     void * output,
-    struct CO_ROUTINE * coroutine);
+    struct COROUTINE * coroutine);
 
-void CoroutineYield(struct CO_ROUTINE_CONTEXT * yield);
+void CoroutineYield(struct COROUTINE_CONTEXT * yield);
 
-enum CO_ROUTINE_STATUS CoroutineNext(struct CO_ROUTINE * routine);
+enum COROUTINE_STATUS CoroutineNext(struct COROUTINE * routine);
 
 #endif // COROUTINE_H

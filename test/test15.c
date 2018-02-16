@@ -17,11 +17,11 @@ struct RANGE_RESULT {
   INDEX Last;
 };
 
-CO_ROUTINE_FUNCTION RangeRoutine;
+COROUTINE_FUNCTION RangeRoutine;
 void RangeRoutine(
     void * params,
     void * result,
-    struct CO_ROUTINE_CONTEXT * yield) {
+    struct COROUTINE_CONTEXT * yield) {
   struct RANGE_PARAMS * rparams = params;
   struct RANGE_RESULT * rresult = result;
 
@@ -41,13 +41,13 @@ void RangeRoutine(
 //
 
 #include<stdio.h>
-struct CO_ROUTINE Range;
+struct COROUTINE Range;
 
 THREAD_MAIN ThreadMain;
 void ThreadMain(void * arg ) {
   struct RANGE_PARAMS params = {0,1000000,1};
   struct RANGE_RESULT result;
-  enum CO_ROUTINE_STATUS status;
+  enum COROUTINE_STATUS status;
 
   printf("Setting up routine\n");
   CoroutineInit(
@@ -57,7 +57,7 @@ void ThreadMain(void * arg ) {
       &Range);
   printf("routine ready\n");
   status = CoroutineNext(&Range);
-  while(status != CO_ROUTINE_DONE) {
+  while(status != COROUTINE_DONE) {
     printf("Cur: %lu\n", result.Last);
     status = CoroutineNext(&Range);
   }
