@@ -104,3 +104,8 @@ AVR_FRE_STRING = -e TARGET="$(AVR_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CFLAGS=
 ctags: 
 	ctags --exclude=avr_hal.h --exclude=avr_hal.c --fields=+S -R .
 #########################################
+###########################
+# splint
+splint:
+	splint -I. */*.c */*.h
+#########################################
