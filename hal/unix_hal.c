@@ -274,6 +274,10 @@ void HalPanicErrnoFn(char file[], int line, char msg[])
         abort();
 }
 
+void HalShutdownNow() {
+  exit(0);
+}
+
 void HalSleepProcessor()
 {
         ASSERT( !HalIsIrqAtomic(IRQ_LEVEL_TIMER) );

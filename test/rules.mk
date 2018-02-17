@@ -26,4 +26,6 @@ test/$(TARGET)_test12.o: test/test12.c
 
 test/$(TARGET)_test13.o: test/test13.c
 
+test/$(TARGET)_test14.o: test/test14.c
+
 test/$(TARGET)_test15.o: test/test15.c

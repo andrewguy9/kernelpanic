@@ -56,6 +56,7 @@ void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, COUNT 
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context );
 #define HalPanic(msg) HalPanicFn(__FILE__, __LINE__, msg)
 void HalPanicFn(char file[], int line, char msg[]);
+void HalShutdownNow();
 void HalSleepProcessor();
 void HalRaiseInterrupt(enum IRQ_LEVEL level);
 void HalSetIrq(enum IRQ_LEVEL irq);

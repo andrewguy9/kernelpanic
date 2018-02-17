@@ -74,6 +74,14 @@ volatile TIME QuantumStartTime;
 struct HANDLER_OBJECT SchedulerCritObject;
 struct MUTEX SchedulerMutex;
 
+//Count of the threads which have not returned.
+//Used for shutdown tracking.
+
+COUNT RunningThreads;
+
+//Track if we are shutting down.
+BOOL Shutdown;
+
 void PostCritHandler(struct HANDLER_OBJECT * obj )
 {
         ASSERT(obj == &SchedulerCritObject);
@@ -374,6 +382,9 @@ void SchedulerStartup()
 
         QuantumStartTime = TimeGet();
 
+        RunningThreads = 0;
+        Shutdown = FALSE;
+
         //Create a thread for idle loop.
         SchedulerCreateThread( &IdleThread, //Thread
                         1, //Priority
@@ -385,6 +396,19 @@ void SchedulerStartup()
 
         //Initialize context unit.
         ActiveThread = &IdleThread;
+}
+
+void SchedulerShutdown( ) {
+        SchedulerStartCritical();
+        Shutdown = TRUE;
+        SchedulerEndCritical();
+}
+
+BOOL SchedulerIsShuttingDown( ) {
+        SchedulerStartCritical();
+        BOOL result = Shutdown;
+        SchedulerEndCritical();
+        return result;
 }
 
 /*
@@ -431,13 +455,20 @@ void SchedulerThreadStartup( void * arg )
         //run the thread.
         thread->Main( thread->Argument );
 
-        //The new thread's main returned. We must ensure that
-        //we do not return from the trampoline, so force the
-        //kernel to switch to another thread. Also move the
-        //thread into THREAD_STATE_DONE so that he is never
-        //rescheduled.
+        //The new thread's main returned!
         SchedulerStartCritical();
         thread->State = THREAD_STATE_DONE;
+
+        //Check to see if we have shutdown the last active thread.
+        RunningThreads--;
+        if (Shutdown && RunningThreads == 1) {
+          //Shutting down and only idle thread left.
+          HalShutdownNow();
+        }
+
+        //We must ensure that we do not return from the trampoline,
+        //so force the kernel to switch to another thread. Also move the
+        //thread into THREAD_STATE_DONE so that he is never rescheduled.
         SchedulerForceSwitch();
 
         //We should never get here.
@@ -455,6 +486,8 @@ void SchedulerCreateThread(
                 BOOL start)
 {
         ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
+
+        RunningThreads++;
 
         //Populate thread struct
         thread->Priority = priority;

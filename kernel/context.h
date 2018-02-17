@@ -18,8 +18,8 @@ struct CONTEXT {
         volatile TIME LastRanTime;
         volatile TIME LastSelectedTime;
         //Pointers to the top and bottom of the stack. Used to detect stack overflow.
-        char * High;
-        char * Low;
+        void * High;
+        void * Low;
 #endif
 };
 
