@@ -107,5 +107,5 @@ ctags:
 ###########################
 # splint
 splint:
-	splint -I. */*.c */*.h
+	splint -I $(PWD) -DPC_BUILD -DDEBUG -DKERNEL_BUILD -DDARWIN +posixstrictlib -booltype BOOL hal/unix_hal.c
 #########################################
