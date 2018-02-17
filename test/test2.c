@@ -1,27 +1,25 @@
 #include"kernel/startup.h"
 #include"kernel/scheduler.h"
-#include"kernel/socket.h"
 #include"kernel/panic.h"
+#include"kernel/hal.h"
+#include"kernel/watchdog.h"
+#include"kernel/pipe.h"
 
 /*
- * Tests the socket unit, and by extension the resource and ringbuffer units.
+ * Tests the pipe unit, and by extension ringbuffer and semaphore units.
  * Will panic if reader encouners invalid read.
  */
-
-//
-//Tests the Producer consumer model for the socket system. 
-//
 
 #define MESSAGE_LENGTH 20
 char Message[MESSAGE_LENGTH] = "Thread text message";
 
 //Allocation for buffers.
-#define RING_SIZE 512
-char RingBuff[RING_SIZE];
+#define RING_SIZE 1024
+#define RING_TAG "test2_ring_buffer.map"
 
 struct PIPE Pipe;
-
-struct SOCKET Socket;
+PIPE_READ PipeReader;
+PIPE_WRITE PipeWriter;
 
 //Allocation for workers. 
 
@@ -41,19 +39,40 @@ struct THREAD Consumer1;
 struct THREAD Consumer2;
 struct THREAD Consumer3;
 
+#define QUANTUM 1
+#define TIMEOUT (2*QUANTUM*5)
+
+struct THREAD_CONTEXT
+{
+        INDEX WatchdogId;
+};
+
+struct THREAD_CONTEXT ProducerContext1 = {1};
+struct THREAD_CONTEXT ProducerContext2 = {2};
+struct THREAD_CONTEXT ConsumerContext1 = {3};
+struct THREAD_CONTEXT ConsumerContext2 = {4};
+struct THREAD_CONTEXT ConsumerContext3 = {5};
+
 //Functions for test.
 THREAD_MAIN ProducerMain;
-void ProducerMain(void * unused)
+void ProducerMain(void * arg)
 {
+        struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
+
+        WatchdogAddFlag(context->WatchdogId);
+
 	while(1)
 	{
-		SocketWriteStruct( Message, MESSAGE_LENGTH, &Socket );
+		PipeWriteStruct( Message, MESSAGE_LENGTH, &Pipe);
+                WatchdogNotify(context->WatchdogId);
 	}
 }
 
 THREAD_MAIN ConsumerMain;
-void ConsumerMain(void * unused)
+void ConsumerMain(void * arg)
 {
+        struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
+        WatchdogAddFlag(context->WatchdogId);
 	char buff[MESSAGE_LENGTH];
 
 	COUNT index;
@@ -64,71 +83,74 @@ void ConsumerMain(void * unused)
 			buff[index] = 0;
 		}
 
-		SocketReadStruct( buff, MESSAGE_LENGTH, &Socket );
+		PipeReadStruct( buff, MESSAGE_LENGTH, &Pipe);
 		
 		for( index = 0; index < MESSAGE_LENGTH; index++ )
 		{
 			if( Message[index] != buff[index] )
 				KernelPanic( );
 		}
+                WatchdogNotify(context->WatchdogId);
 	}
 }
 
 //main
 int main()
 {
+	void * RingBuff;
         KernelInit();
 
         SchedulerStartup();
 
-        //Initialize Pipes.
-        PipeInit( RingBuff, RING_SIZE, &Pipe );
+	// Access external memory for buffer.
+	RingBuff = HalMap(RING_TAG, NULL, RING_SIZE);
 
-        //Initialize Socket
-        SocketInit( & Pipe, & Pipe, & Socket );
+        //Initialize Pipes.
+        PipeInit( RingBuff, RING_SIZE, &Pipe, &PipeReader, &PipeWriter );
 
         //Initialize Threads
         SchedulerCreateThread(
                         &Producer1,
-                        1,
+                        QUANTUM,
                         ProducerStack1,
                         STACK_SIZE,
                         ProducerMain,
-                        NULL,
+                        & ProducerContext1,
                         TRUE);
         SchedulerCreateThread(
                         &Producer2,
-                        1,
+                        QUANTUM,
                         ProducerStack2,
                         STACK_SIZE,
                         ProducerMain,
-                        NULL,
+                        & ProducerContext2,
                         TRUE);
         SchedulerCreateThread(
                         &Consumer1,
-                        1,
+                        QUANTUM,
                         ConsumerStack1,
                         STACK_SIZE,
                         ConsumerMain,
-                        NULL,
+                        & ConsumerContext1,
                         TRUE);
         SchedulerCreateThread(
                         &Consumer2,
-                        1,
+                        QUANTUM,
                         ConsumerStack2,
                         STACK_SIZE,
                         ConsumerMain,
-                        NULL,
+                        & ConsumerContext2,
                         TRUE);
 
         SchedulerCreateThread(
                         &Consumer3,
-                        1,
+                        QUANTUM,
                         ConsumerStack3,
                         STACK_SIZE,
                         ConsumerMain,
-                        NULL,
+                        & ConsumerContext3,
                         TRUE);
+        WatchdogEnable( TIMEOUT );
         //Kick off the kernel.
         KernelStart();
         return 0;

@@ -17,5 +17,5 @@
  */
 void Panic( char file[], int line )
 {
-        HalPanic(file,line);
+        HalPanicFn(file,line, "");
 }

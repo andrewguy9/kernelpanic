@@ -5,17 +5,22 @@ use strict;
 use File::Copy;
 use List::Util qw[min max];
 use Getopt::Long;
+use File::Basename;
 
 #Get options
 my $timeout = 60;
 my $batchsize = 1;
 my $runs = 1;
+my $debugger = 'gdb';
+my $coredir = '.';
 
 # Getopt::Long::Configure ('bundling_override');
 GetOptions (
         'runs=i' => \$runs,
         'batch=i' => \$batchsize,
         'time=i' => \$timeout,
+        'debugger=s' => \$debugger,
+	'coredir=s' => \$coredir,
 );
 
 print "Timeout $timeout\n";
@@ -65,23 +70,42 @@ while (@tests || $running > 0)
 }
 print "done\n";
 
+sub find_core {
+        my ($pid) = @_;
+	opendir (DIR, $coredir) or die $!;
+	while (my $file = readdir(DIR)) {
+		if ($file =~ m/$pid/) {
+			closedir(DIR);
+			return "$coredir/$file";
+		}
+	}
+	closedir(DIR);
+	return "";
+}
 
 sub get_stack {
         my ($program, $core) = @_;
 
-        my $program = "lldb --core $core --source ./get_stack.gdb";
+        my $debug_cmd;
+        if($debugger eq "gdb") {
+          $debug_cmd = "gdb --command ./get_stack.gdb $program $core";
+        } elsif($debugger eq "lldb") {
+          $debug_cmd = "lldb --core $core --source ./get_stack.gdb";
+        } else {
+          die("Unrecognized debugger");
+        }
 
         my $stack = "-" x 80;
         $stack .= "\n";
-        $stack .= "$program\n";
+        $stack .= "$debug_cmd\n";
 
-        open GDB_OUTPUT, "$program |"
+        open DBG_OUTPUT, "$debug_cmd |"
                 or die "Could not execute: $!";
-        while(<GDB_OUTPUT>) {
+        while(<DBG_OUTPUT>) {
                 chomp $_;
                 $stack .= "$_\n";
         }
-        close GDB_OUTPUT;
+        close DBG_OUTPUT;
 
         $stack .= "-" x 80;
         $stack .= "\n";
@@ -118,10 +142,16 @@ sub runtest
         if(! $test_passed) {
                 $status = 1;
                 $msg = "FAILED!!!";
-                my $core = "./$test_name.$test_pid.core";
-                move("/cores/core.$test_pid", "$core");
-                print "Core left at $core\n";
-                print get_stack($test_name, $core);
+                my $dst_core = "./$test_name.$test_pid.core";
+		my $src_core = find_core($test_pid);
+		if ($src_core ne "") {
+			print "Found core: $src_core\n";
+			if ($src_core ne $dst_core) {
+				move($src_core, "$dst_core");
+				print "Core moved from $src_core -> $dst_core\n";
+			}
+			print get_stack($test_name, $dst_core);
+		}
         }
 
         print "Test $test_name($test_pid)... $msg\n" if $status;

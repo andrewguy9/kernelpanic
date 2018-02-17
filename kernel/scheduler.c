@@ -74,6 +74,14 @@ static volatile TIME QuantumStartTime;
 static struct HANDLER_OBJECT SchedulerCritObject;
 static struct MUTEX SchedulerMutex;
 
+//Count of the threads which have not returned.
+//Used for shutdown tracking.
+
+COUNT RunningThreads;
+
+//Track if we are shutting down.
+BOOL Shutdown;
+
 void PostCritHandler(struct HANDLER_OBJECT * obj )
 {
         ASSERT(obj == &SchedulerCritObject);
@@ -239,7 +247,7 @@ void SchedulerSwitch()
         ActiveThread = NextThread;
         NextThread = NULL;
 
-        ContextSwitch(&oldThread->MachineContext, &newThread->MachineContext);
+        ContextSwitch(&oldThread->Stack, &newThread->Stack);
 
         ASSERT( ! TimerIsAtomic() );
         ASSERT( CritInterruptIsAtomic() );//TODO SEE NOTE ABOVE.
@@ -359,9 +367,6 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 
 void SchedulerStartup()
 {
-        //Setup the hal to use the scheduler.
-        ContextStartup( SchedulerThreadStartup );
-
         //Initialize queues
         LinkedListInit( &RunQueue );
 
@@ -377,6 +382,9 @@ void SchedulerStartup()
 
         QuantumStartTime = TimeGet();
 
+        RunningThreads = 0;
+        Shutdown = FALSE;
+
         //Create a thread for idle loop.
         SchedulerCreateThread( &IdleThread, //Thread
                         1, //Priority
@@ -388,6 +396,19 @@ void SchedulerStartup()
 
         //Initialize context unit.
         ActiveThread = &IdleThread;
+}
+
+void SchedulerShutdown( ) {
+        SchedulerStartCritical();
+        Shutdown = TRUE;
+        SchedulerEndCritical();
+}
+
+BOOL SchedulerIsShuttingDown( ) {
+        SchedulerStartCritical();
+        BOOL result = Shutdown;
+        SchedulerEndCritical();
+        return result;
 }
 
 /*
@@ -402,7 +423,7 @@ struct LOCKING_CONTEXT * SchedulerGetLockingContext()
         return &ActiveThread->LockingContext;
 }
 
-void SchedulerThreadStartup( void )
+void SchedulerThreadStartup( void * arg )
 {
         struct THREAD * thread;
 
@@ -414,8 +435,9 @@ void SchedulerThreadStartup( void )
         //which were held across the context switch,
         //namely the SchedulerCritObject, and the SchedulerMutex.
 
-        //Get the thread (set before the context switch)
-        thread = SchedulerGetActiveThread();
+        thread = arg;
+
+        ASSERT (SchedulerGetActiveThread() == thread);
 
         //We should be in a critical section because we context switched here,
         //leaking the raise.
@@ -433,13 +455,20 @@ void SchedulerThreadStartup( void )
         //run the thread.
         thread->Main( thread->Argument );
 
-        //The new thread's main returned. We must ensure that
-        //we do not return from the trampoline, so force the
-        //kernel to switch to another thread. Also move the
-        //thread into THREAD_STATE_DONE so that he is never
-        //rescheduled.
+        //The new thread's main returned!
         SchedulerStartCritical();
         thread->State = THREAD_STATE_DONE;
+
+        //Check to see if we have shutdown the last active thread.
+        RunningThreads--;
+        if (Shutdown && RunningThreads == 1) {
+          //Shutting down and only idle thread left.
+          HalShutdownNow();
+        }
+
+        //We must ensure that we do not return from the trampoline,
+        //so force the kernel to switch to another thread. Also move the
+        //thread into THREAD_STATE_DONE so that he is never rescheduled.
         SchedulerForceSwitch();
 
         //We should never get here.
@@ -458,6 +487,8 @@ void SchedulerCreateThread(
 {
         ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
 
+        RunningThreads++;
+
         //Populate thread struct
         thread->Priority = priority;
         LockingInit( & thread->LockingContext, SchedulerBlockOnLock, SchedulerWakeOnLock );
@@ -465,7 +496,7 @@ void SchedulerCreateThread(
         thread->Argument = Argument;
 
         //initialize stack
-        ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup );
+        ContextInit( &thread->Stack, stack, stackSize, SchedulerThreadStartup, thread );
 
         //Add thread to queue.
         if ( start ) {

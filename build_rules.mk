@@ -98,8 +98,9 @@ AVR_FRE_STRING = -e TARGET="$(AVR_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CFLAGS=
 	rm -f $(DIR)/*.elf
 	rm -f $(DIR)/*.aws
 	rm -f $(DIR)/*.core
+	rm -f $(DIR)/*.map
 ###########################
 # tags 
 ctags: 
-	ctags --fields=+S -R .
+	ctags --exclude=avr_hal.h --exclude=avr_hal.c --fields=+S -R .
 #########################################

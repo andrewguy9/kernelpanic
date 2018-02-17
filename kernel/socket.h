@@ -7,15 +7,28 @@
 
 struct SOCKET
 {
-        struct PIPE * ReadPipe;
-        struct PIPE * WritePipe;
-        struct SEMAPHORE ReadLock;
-        struct SEMAPHORE WriteLock;
+  struct PIPE Pipe1;
+  struct PIPE Pipe2;
 };
 
-void SocketInit( struct PIPE * readPipe, struct PIPE * writePipe, struct SOCKET * socket );
-COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET * socket );
-void SocketReadStruct( char * buff, COUNT size, struct SOCKET * socket );
-COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET * socket );
-void SocketWriteStruct( char * buff, COUNT size, struct SOCKET * socket );
+struct SOCKET_HANDLE {
+  PIPE_READ Read;
+  PIPE_WRITE Write;
+};
+
+void SocketInit(
+    char * buff1,
+    COUNT buff1_size,
+    char * buff2,
+    COUNT buff2_size,
+    struct SOCKET * socket,
+    struct SOCKET_HANDLE * h1,
+    struct SOCKET_HANDLE * h2
+    );
+
+COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET_HANDLE * socket );
+void SocketReadStruct( char * buff, COUNT size, struct SOCKET_HANDLE * socket );
+COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET_HANDLE * socket );
+void SocketWriteStruct( char * buff, COUNT size, struct SOCKET_HANDLE * socket );
+
 #endif

@@ -6,7 +6,8 @@
 #endif
 
 #ifdef LINUX
-#define HAL_MIN_STACK_SIZE SIGSTKSZ
+#define HAL_MIN_STACK_SIZE 32768
+#define _GNU_SOURCE // Enable access to linux specific sigset operations.
 #endif
 
 #ifdef BSD
@@ -77,17 +78,8 @@
 struct MACHINE_CONTEXT
 {
         STACK_INIT_ROUTINE * Foo;//Pointer to the first function the thread calls.
+        void * Arg;
         jmp_buf Registers;//Buffer to hold register state in context switches.
-
-#ifdef DEBUG
-        struct COUNTER TimesRun;
-        struct COUNTER TimesSwitched;
-        volatile TIME LastRanTime;
-        volatile TIME LastSelectedTime;
-        //Pointers to the top and bottom of the stack. Used to detect stack overflow.
-        char * High;
-        char * Low;
-#endif
 };
 
 #ifdef DEBUG
