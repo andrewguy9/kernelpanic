@@ -36,7 +36,8 @@ void CountMain(void * context) {
   while (1) {
     SocketReadStruct((char*) &v, sizeof(v), socket);
     if (v>Max) {
-      GeneralPanic();
+      SchedulerShutdown();
+      return;
     }
     v++;
     SocketWriteStruct((char*) &v, sizeof(v), socket);
