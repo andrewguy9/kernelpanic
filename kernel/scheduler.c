@@ -247,7 +247,7 @@ void SchedulerSwitch()
         ActiveThread = NextThread;
         NextThread = NULL;
 
-        ContextSwitch(&oldThread->MachineContext, &newThread->MachineContext);
+        ContextSwitch(&oldThread->Stack, &newThread->Stack);
 
         ASSERT( ! TimerIsAtomic() );
         ASSERT( CritInterruptIsAtomic() );//TODO SEE NOTE ABOVE.
@@ -367,9 +367,6 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 
 void SchedulerStartup()
 {
-        //Setup the hal to use the scheduler.
-        ContextStartup( SchedulerThreadStartup );
-
         //Initialize queues
         LinkedListInit( &RunQueue );
 
@@ -426,7 +423,7 @@ struct LOCKING_CONTEXT * SchedulerGetLockingContext()
         return &ActiveThread->LockingContext;
 }
 
-void SchedulerThreadStartup( void )
+void SchedulerThreadStartup( void * arg )
 {
         struct THREAD * thread;
 
@@ -438,8 +435,9 @@ void SchedulerThreadStartup( void )
         //which were held across the context switch,
         //namely the SchedulerCritObject, and the SchedulerMutex.
 
-        //Get the thread (set before the context switch)
-        thread = SchedulerGetActiveThread();
+        thread = arg;
+
+        ASSERT (SchedulerGetActiveThread() == thread);
 
         //We should be in a critical section because we context switched here,
         //leaking the raise.
@@ -498,7 +496,7 @@ void SchedulerCreateThread(
         thread->Argument = Argument;
 
         //initialize stack
-        ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup );
+        ContextInit( &thread->Stack, stack, stackSize, SchedulerThreadStartup, thread );
 
         //Add thread to queue.
         if ( start ) {

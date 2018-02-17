@@ -25,8 +25,6 @@ struct itimerval WatchdogInterval;
 //Stack Management
 //
 
-STACK_INIT_ROUTINE * StackInitRoutine;
-
 struct MACHINE_CONTEXT * halTempContext;
 volatile BOOL halTempContextProcessed;
 
@@ -141,6 +139,10 @@ void HalBlockSignal( void * which );
 void HalStackTrampoline( int SignalNumber )
 {
         int status;
+        //Save stack startup state before releaseing the tempContext.
+        STACK_INIT_ROUTINE * foo = halTempContext->Foo;
+        void * arg = halTempContext->Arg;
+
         status = _setjmp( halTempContext->Registers );
 
         if( status == 0 ) {
@@ -153,13 +155,13 @@ void HalStackTrampoline( int SignalNumber )
         } else {
                 //If we get here, then someone has jumped into a newly created thread.
                 //Test to make sure we are atomic
-                ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
+                ASSERT( HalIsIrqAtomic(IRQ_LEVEL_MAX) );
 
-                StackInitRoutine();
+                foo(arg);
 
                 //Returning from a function which was invoked by siglongjmp is not
                 //supported. Foo should never retrun.
-                HalPanic("Tried to return from StackInitRoutine!");
+                HalPanic("Tried to return from trampoline!");
                 return;
         }
 }
@@ -314,18 +316,14 @@ void HalPetWatchdog( TIME when )
 //Stack Management
 //
 
-void HalContextStartup( STACK_INIT_ROUTINE * stackInitRoutine )
-{
-        StackInitRoutine = stackInitRoutine;
-}
-
 void HalCreateStackFrame(
                 struct MACHINE_CONTEXT * Context,
                 void * stack,
+                COUNT stackSize,
                 STACK_INIT_ROUTINE foo,
-                COUNT stackSize)
+                void * arg)
 {
-	int status;
+        int status;
         char * cstack = stack;
         stack_t newStack;
         sigset_t oldSet;
@@ -336,13 +334,8 @@ void HalCreateStackFrame(
         ASSUME(sigemptyset( &trampolineMask ), 0);
         ASSUME(sigaddset( &trampolineMask, HAL_ISR_TRAMPOLINE ), 0);
 
-#ifdef DEBUG
-        //Set up the stack boundry.
-        Context->High = (char *) (cstack + stackSize);
-        Context->Low = cstack;
-#endif
-
         Context->Foo = foo;
+        Context->Arg = arg;
 
         //We are about to bootstrap the new thread. Because we have to modify global
         //state here, we must make sure no interrupts occur until after we are bootstrapped.
@@ -402,12 +395,6 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
         ASSERT( status == 0 );//We should never wake here.
 #else
         _setjmp( Context->Registers );
-#endif
-
-#ifdef DEBUG
-        //The stack bounderies are infinite for the initial stack.
-        Context->High = (char *) -1;
-        Context->Low = (char *) 0;
 #endif
 }
 
