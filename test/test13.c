@@ -27,7 +27,8 @@ void PrimesMain(void * context) {
   enum PRIMES_STATUS status = findPrimes(max, primes_buffer, buffer_size);
   if (status == PRIMES_OK) {
     GatherSync( &PrimesGather, NULL);
-    GeneralPanic(); //TODO SOME KIND OF SIGNAL THAT WE SUCCEEDED.
+    SchedulerShutdown();
+    return;
   } else {
     KernelPanic();
   }
