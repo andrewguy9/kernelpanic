@@ -6,7 +6,7 @@
 BOOL isPrime(int v)
 {
   int i;
-  for (i=0; i<v; i++) {
+  for (i=2; i<v; i++) {
     if (v % i == 0) {
       return FALSE;
     }
