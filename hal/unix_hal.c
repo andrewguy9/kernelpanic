@@ -263,6 +263,7 @@ void HalPanicFn(char file[], int line, char msg[])
 {
         printf("PANIC: %s:%d %s\n",file,line, msg);
         abort();
+        __builtin_unreachable();
 }
 
 #define HalPanicErrno(msg) HalPanicErrnoFn(__FILE__, __LINE__, msg)

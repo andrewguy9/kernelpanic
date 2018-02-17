@@ -18,4 +18,5 @@
 void Panic( char file[], int line )
 {
         HalPanicFn(file,line, "");
+        __builtin_unreachable();
 }
