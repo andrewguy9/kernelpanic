@@ -6,53 +6,44 @@
  * Sockets are like pipes except that they are bi-directional.
  */
 
-void SocketInit( struct PIPE * readPipe, struct PIPE * writePipe, struct SOCKET * socket )
-{
-        socket->ReadPipe = readPipe;
-        socket->WritePipe = writePipe;
-        SemaphoreInit( & socket->ReadLock, 1 );
-        SemaphoreInit( & socket->WriteLock, 1 );
+void SocketInit(
+    char * buff1,
+    COUNT buff1_size,
+    char * buff2,
+    COUNT buff2_size,
+    struct SOCKET * socket,
+    struct SOCKET_HANDLE * h1,
+    struct SOCKET_HANDLE * h2
+    ) {
+  PIPE_READ p1_read;
+  PIPE_WRITE p1_write;
+  PIPE_READ p2_read;
+  PIPE_WRITE p2_write;
+
+  PipeInit(buff1, buff1_size, &socket->Pipe1, &p1_read, &p1_write);
+  PipeInit(buff2, buff2_size, &socket->Pipe2, &p2_read, &p2_write);
+  h1->Read = p1_read;
+  h1->Write = p2_write;
+  h2->Read = p2_read;
+  h2->Write = p1_write;
 }
 
-COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET * socket )
+COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET_HANDLE * socket )
 {
-        COUNT read;
-        SemaphoreDown( & socket->ReadLock, NULL );
-        read = PipeRead( buff, size, socket->ReadPipe );
-        SemaphoreUp( & socket->WriteLock );
-        return read;
+  return PipeRead( buff, size, socket->Read);
 }
 
-void SocketReadStruct( char * buff, COUNT size, struct SOCKET * socket )
+void SocketReadStruct( char * buff, COUNT size, struct SOCKET_HANDLE * socket )
 {
-        COUNT read = 0;
-        SemaphoreDown( & socket->ReadLock , NULL );
-        while( read < size ) {
-                read += PipeRead( buff+read, size-read, socket->ReadPipe );
-        }
-        SemaphoreUp( & socket->ReadLock );
-
-        ASSERT( read == size );
+  PipeReadStruct( buff, size, socket->Read);
 }
 
-COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET * socket )
+COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET_HANDLE * socket )
 {
-        COUNT write = 0;
-        SemaphoreDown( & socket->WriteLock, NULL );
-        write = PipeWrite( buff+write, size-write, socket->WritePipe );
-        SemaphoreUp( & socket->WriteLock );
-
-        return write;
+  return PipeWrite( buff, size, socket->Write);
 }
 
-void SocketWriteStruct( char * buff, COUNT size, struct SOCKET * socket )
+void SocketWriteStruct( char * buff, COUNT size, struct SOCKET_HANDLE * socket )
 {
-        COUNT write=0;
-        SemaphoreDown( & socket->WriteLock, NULL );
-        while( write < size ) {
-                write += PipeWrite( buff+write, size-write, socket->WritePipe );
-        }
-        SemaphoreUp( & socket->WriteLock );
-
-        ASSERT( write == size );
+  PipeWriteStruct( buff, size, socket->Write);
 }
