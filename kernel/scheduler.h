@@ -28,8 +28,10 @@ struct THREAD * SchedulerGetActiveThread();
 
 void SchedulerStartup( );
 
-void
-SchedulerCreateThread(
+void SchedulerShutdown( );
+BOOL SchedulerIsShuttingDown( );
+
+void SchedulerCreateThread(
                 struct THREAD * thread,
                 unsigned char priority,
                 char * stack,
