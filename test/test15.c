@@ -69,7 +69,7 @@ void ThreadMain(void * arg ) {
       status != COROUTINE_DONE;
       status = CoroutineNext(&Range)) {
   }
-  GeneralPanic( );
+  SchedulerShutdown();
 }
 
 //
