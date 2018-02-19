@@ -3,3 +3,4 @@
 *.core
 tags
 *.map
+.DS_Store
