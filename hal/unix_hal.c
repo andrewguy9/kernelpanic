@@ -55,6 +55,11 @@ struct sigaction HalIrqToSigaction[IRQ_LEVEL_COUNT];
 HAL_ISR_HANDLER * HalIrqToHandler[IRQ_LEVEL_COUNT];
 
 /*
+ * HalSignalToHandler goes from unix signal to HAL_ISR_HANDLER.
+ */
+HAL_ISR_HANDLER * HalSignalToHandler[NSIG];
+
+/*
  * HalIsrHandler uses this table to go from a signal to an IRQ.
  *
  * Key - IRQ level.
@@ -182,17 +187,21 @@ void HalIsrHandler( int SignalNumber )
 {
         INDEX index;
         enum IRQ_LEVEL irq;
+        HAL_ISR_HANDLER * handler;
 
 #ifdef DEBUG
         HalUpdateIsrDebugInfo();
 #endif
 
+        //TODO ADD A LOOKUP TABLE.
         //We dont know which irq is associated with SignalNumber, so lets find it.
         for(index = 0; index < IRQ_LEVEL_COUNT; index++) {
                 if( HalIrqToSignal[index] == SignalNumber ) {
                         //We found it, call the appropriate ISR.
                         irq = index;
-                        HalIrqToHandler[irq](irq);
+                        handler = HalIrqToHandler[irq];
+                        ASSERT (handler == HalSignalToHandler[SignalNumber]);
+                        handler(irq);
 #ifdef DEBUG
                         //We are about to return into an unknown frame.
                         //I can't predict what the irq will be there.
@@ -643,6 +652,7 @@ void HalRegisterIsrHandler( HAL_ISR_HANDLER handler, void * which, enum IRQ_LEVE
 
         HalIrqToSignal[level] = signum;
         HalIrqToHandler[level] = handler;
+        HalSignalToHandler[signum] = handler;
         HalIrqToSigaction[level].sa_handler = HalIsrHandler;
 
         HalIsrFinalize();
