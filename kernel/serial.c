@@ -22,6 +22,7 @@ ISR_HANDLER GetBytesInterrupt;
 
 void SendBytesInterrupt(void)
 {
+        //TODO REMOVE
         IsrIncrement(IRQ_LEVEL_SERIAL_WRITE);
 
         ASSERT(IsrIsAtomic(IRQ_LEVEL_SERIAL_WRITE));
@@ -31,11 +32,13 @@ void SendBytesInterrupt(void)
                 HalSerialWriteChar(data);
         }
 
+        //TODO REMOVE
         IsrDecrement(IRQ_LEVEL_SERIAL_WRITE);
 }
 
 void GetBytesInterrupt(void)
 {
+        //TODO REMOVE
         IsrIncrement(IRQ_LEVEL_SERIAL_READ);
 
         while (!RingBufferIsFull(&SerialInputRing)) {
@@ -55,6 +58,7 @@ void GetBytesInterrupt(void)
                                 &ReadGenerationCritObject);
         }
 
+        //TODO REMOVE
         IsrDecrement(IRQ_LEVEL_SERIAL_READ);
 }
 
@@ -67,7 +71,9 @@ void SerialStartup()
         GenerationInit(&ReadGeneration, ReadGenerationCount);
         HandlerInit(&ReadGenerationCritObject);
 
+        //TODO CALL IsrRegisterHandler
         HalRegisterIsrHandler( SendBytesInterrupt, (void *) HAL_ISR_SERIAL_WRITE, IRQ_LEVEL_SERIAL_WRITE);
+        //TODO CALL IsrRegisterHandler
         HalRegisterIsrHandler( GetBytesInterrupt, (void *) HAL_ISR_SERIAL_READ, IRQ_LEVEL_SERIAL_READ);
 
         HalStartSerial();

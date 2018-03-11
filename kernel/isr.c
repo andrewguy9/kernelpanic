@@ -41,6 +41,7 @@ void IsrStartup()
 
 void IsrRegisterHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
 {
+        // TODO We could wrap handler in a function which does the increment/decrement automatically.
         HalRegisterIsrHandler( handler, which, level );
 }
 
