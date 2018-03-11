@@ -14,6 +14,8 @@ void IsrStartup();
 //Register new ISR
 //
 
+//ISR_HANDLER is the prototype all kernel interrupt handlers should use.
+typedef void ISR_HANDLER();
 void IsrRegisterHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level );
 
 //

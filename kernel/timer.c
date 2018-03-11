@@ -121,8 +121,7 @@ void TimerStartup( )
         Timers = &TimerHeap1;
         TimersOverflow = &TimerHeap2;
 
-        //TODO CALL IsrRegisterHandler
-        HalRegisterIsrHandler( TimerInterrupt, (void *) HAL_ISR_TIMER, IRQ_LEVEL_TIMER );
+        IsrRegisterHandler( TimerInterrupt, (void *) HAL_ISR_TIMER, IRQ_LEVEL_TIMER );
         TimerSetNextTimer(TimerLastTime);
 }
 
@@ -160,18 +159,10 @@ void TimerRegister(
 
 void TimerInterrupt()
 {
-        //update interrupt level to represent that we are in inerrupt
-        //TODO REMOVE
-        TimerIncrement();
-
         //reset the clock
         HalResetClock();
 
         //Queue Timers to run as Post Handlers.
         TimerInner( TimeGet() );
-
-        //Restore the interrupt level,
-        //TODO REMOVE
-        TimerDecrement();
 }
 

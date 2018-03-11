@@ -52,7 +52,7 @@ struct sigaction HalIrqTable[IRQ_LEVEL_COUNT];
 /*
  * HalIsrHandler uses this table to call the user specified handler.
  */
-ISR_HANDLER * HalIsrJumpTable[IRQ_LEVEL_COUNT];
+HAL_ISR_HANDLER * HalIsrJumpTable[IRQ_LEVEL_COUNT];
 
 /*
  * HalIsrHandler uses this table to go from a signal to an IRQ.
@@ -192,7 +192,7 @@ void HalIsrHandler( int SignalNumber )
                 if( HalIrqToSignal[index] == SignalNumber ) {
                         //We found it, call the appropriate ISR.
                         irq = index;
-                        HalIsrJumpTable[irq]();
+                        HalIsrJumpTable[irq](irq);
 #ifdef DEBUG
                         //We are about to return into an unknown frame.
                         //I can't predict what the irq will be there.
@@ -629,7 +629,7 @@ void HalIsrInit()
  * which - the location which indicates what hardware event happed.
  * level - what irq to assign to the hardware event.
  */
-void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
+void HalRegisterIsrHandler( HAL_ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
 {
 
         INDEX i;

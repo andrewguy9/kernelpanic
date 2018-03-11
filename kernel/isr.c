@@ -21,6 +21,7 @@
 //
 
 volatile COUNT IsrDisabledCount[IRQ_LEVEL_COUNT];
+ISR_HANDLER* IsrHandlerTable[IRQ_LEVEL_COUNT];
 
 //
 //Unit Management
@@ -32,6 +33,7 @@ void IsrStartup()
         INDEX i;
         for(i = 0; i < IRQ_LEVEL_COUNT; i++) {
                 IsrDisabledCount[i] = 0;
+                IsrHandlerTable[i] = NULL;
         }
 }
 
@@ -39,10 +41,16 @@ void IsrStartup()
 //Register new ISR
 //
 
+void IsrHandlerWrapper(enum IRQ_LEVEL level) {
+        IsrDisable(level);
+        IsrHandlerTable[level]();
+        IsrEnable(level);
+}
+
 void IsrRegisterHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
 {
-        // TODO We could wrap handler in a function which does the increment/decrement automatically.
-        HalRegisterIsrHandler( handler, which, level );
+        IsrHandlerTable[level] = handler;
+        HalRegisterIsrHandler( IsrHandlerWrapper, which, level );
 }
 
 //

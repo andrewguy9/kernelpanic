@@ -20,10 +20,6 @@ typedef void (STACK_INIT_ROUTINE) (void * arg);
 //between context switches. This context will be machine specific.
 struct MACHINE_CONTEXT;
 
-//ISR_HANDLER is the prototype all kernel interrupt handlers should use.
-//they will be invoked either directly by hardware, or hal wrapper functionality.
-typedef void ISR_HANDLER();
-
 enum IRQ_LEVEL {
     IRQ_LEVEL_NONE,
     IRQ_LEVEL_CRIT,
@@ -37,6 +33,8 @@ enum IRQ_LEVEL {
     IRQ_LEVEL_MAX = IRQ_LEVEL_TIMER,//Value of the highest atomic IRQ.
 };
 
+typedef void HAL_ISR_HANDLER(enum IRQ_LEVEL);
+
 //
 //Prototypes
 //
@@ -45,7 +43,7 @@ void HalInitClock();
 void HalSetTimer(TIME delta);
 void HalWatchdogInit();
 void HalIsrInit();
-void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level );
+void HalRegisterIsrHandler( HAL_ISR_HANDLER handler, void * which, enum IRQ_LEVEL level );
 
 void HalStartup();
 
