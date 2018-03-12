@@ -48,28 +48,10 @@ void HalIsrFinalize();
  * sa_flags is used for special masking rules/alt stack settings.
  */
 struct sigaction HalIrqToSigaction[IRQ_LEVEL_COUNT];
-
-/*
- * HalIsrHandler uses this table to call the user specified handler.
- */
-HAL_ISR_HANDLER * HalIrqToHandler[IRQ_LEVEL_COUNT];
-
-/*
- * HalSignalToHandler goes from unix signal to HAL_ISR_HANDLER.
- */
-HAL_ISR_HANDLER * HalSignalToHandler[NSIG];
-
-/*
- * HalIsrHandler uses this table to go from a signal to an IRQ.
- *
- * Key - IRQ level.
- * Value - Signal Number.
- *
- * HalIsrHandler will scan from the start of the array to the end.
- * When it finds the same signal number, then that index is the index it should call
- * from the HalIrqToHandler.
- */
 INDEX HalIrqToSignal[IRQ_LEVEL_COUNT];
+
+HAL_ISR_HANDLER * HalSignalToHandler[NSIG];
+enum IRQ_LEVEL HalSignalToIrq[NSIG];
 
 //Create a mask for debugging
 #ifdef DEBUG
@@ -185,33 +167,24 @@ void HalStackTrampoline( int SignalNumber )
  */
 void HalIsrHandler( int SignalNumber )
 {
-        INDEX index;
-        enum IRQ_LEVEL irq;
-        HAL_ISR_HANDLER * handler;
+        enum IRQ_LEVEL irq = HalSignalToIrq[SignalNumber];
+        HAL_ISR_HANDLER * handler = HalSignalToHandler[SignalNumber];
 
+        ASSERT (SignalNumber >= 0 && SignalNumber < NSIG);
+        if (handler == NULL) {
+                HalPanic("Signal delivered for which no Irq was registered");
+        }
+        ASSERT (handler != NULL);
+        ASSERT (irq != IRQ_LEVEL_NONE);
 #ifdef DEBUG
         HalUpdateIsrDebugInfo();
 #endif
-
-        //TODO ADD A LOOKUP TABLE.
-        //We dont know which irq is associated with SignalNumber, so lets find it.
-        for(index = 0; index < IRQ_LEVEL_COUNT; index++) {
-                if( HalIrqToSignal[index] == SignalNumber ) {
-                        //We found it, call the appropriate ISR.
-                        irq = index;
-                        handler = HalIrqToHandler[irq];
-                        ASSERT (handler == HalSignalToHandler[SignalNumber]);
-                        handler(irq);
+        handler(irq);
 #ifdef DEBUG
-                        //We are about to return into an unknown frame.
-                        //I can't predict what the irq will be there.
-                        HalInvalidateIsrDebugInfo();
+        //We are about to return into an unknown frame.
+        //I can't predict what the irq will be there.
+        HalInvalidateIsrDebugInfo();
 #endif
-                        return;
-                }
-        }
-
-        HalPanic("Signal delivered for which no Irq was registered");
 }
 
 #ifdef DEBUG
@@ -237,9 +210,15 @@ void HalClearSignals()
         INDEX i;
 
         for(i=0; i < IRQ_LEVEL_COUNT; i++) {
+                HalIrqToSignal[i] = 0;
                 HalIrqToSigaction[i].sa_handler = NULL;
                 sigemptyset(&HalIrqToSigaction[i].sa_mask);
                 HalIrqToSigaction[i].sa_flags = 0;
+        }
+
+        for(i=0; i<NSIG; i++) {
+                HalSignalToHandler[i] = NULL;
+                HalSignalToIrq[i] = IRQ_LEVEL_NONE;
         }
 }
 
@@ -651,8 +630,8 @@ void HalRegisterIsrHandler( HAL_ISR_HANDLER handler, void * which, enum IRQ_LEVE
         }
 
         HalIrqToSignal[level] = signum;
-        HalIrqToHandler[level] = handler;
         HalSignalToHandler[signum] = handler;
+        HalSignalToIrq[signum] = level;
         HalIrqToSigaction[level].sa_handler = HalIsrHandler;
 
         HalIsrFinalize();
