@@ -1,6 +1,6 @@
 #!/bin/bash
 
-branch=$(git branch -v| awk '{if($1=="*"){print $2", "$3}}')
+branch=$(git branch -v| awk '{if($1=="*"){print $2","$3}}')
 
 jobid=$1
 prog=$2
