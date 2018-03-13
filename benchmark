@@ -4,7 +4,7 @@
 b1=$1
 b2=$2
 #TODO can we get these from options
-runs=20
+runs=3
 batch=1
 shift
 shift
