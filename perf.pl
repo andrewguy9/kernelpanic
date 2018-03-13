@@ -16,6 +16,7 @@ GetOptions (
 print "BatchSize $batchsize\n";
 print "Runs $runs\n";
 
+my $jobid = shift @ARGV;
 my @tests = ();
 push @tests, @ARGV;
 
@@ -57,7 +58,7 @@ sub runtest
 
         $test_pid = fork;
         if($test_pid == 0) {
-                exec "./perf.sh $test_name";
+                exec "./perf.sh $jobid $test_name";
                 die "failed to start $test_name\n";
         }
 
