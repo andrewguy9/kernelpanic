@@ -42,5 +42,6 @@ read -d '' sql <<- _EOM_
 	select b1.test,b2.rt-b1.rt, cast(100*(b2.rt-b1.rt)/b1.rt as int) from (select test,avg(real_time) as rt from perf where branch='${b1}' group by branch,test) as b1 inner join (select test,avg(real_time) as rt from perf where branch='${b2}' group by branch,test) as b2 on b1.test = b2.test;
 _EOM_
 
+#TODO could be nice to get stddev of tests.
 echo "$sql" | sqlite3
 
