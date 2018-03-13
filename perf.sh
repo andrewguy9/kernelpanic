@@ -7,6 +7,6 @@ prog=$2
 
 stats=$({ time $prog 2> /dev/null ; } 2>&1 | perl -ne '/^(\w+)\s+(\d+)m(\d+\.\d+)s$/ && print "" . ($2*60 + $3) .","' | perl -pe 's/(.*),$/$1/')
 #TODO We should not generate a report if the program crashed.
-dirty=$(git status --porcelain | perl -ne '/^ M (.*)/&& print "$1;"')
+dirty=$(git status --porcelain | perl -ne '/^ M (.*)/&& print "$1;"' | perl -pe 's/(.*);$/$1/')
 
 echo $jobid,$branch,$dirty,$prog,$stats | tee -a ./perf.csv
