@@ -4,3 +4,4 @@
 tags
 *.map
 .DS_Store
+perf.csv
