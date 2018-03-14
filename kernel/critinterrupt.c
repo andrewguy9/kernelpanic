@@ -37,7 +37,7 @@ struct ATOMIC_LIST CritInterruptHandlerList;
 void CritInterruptStartup()
 {
         AtomicListInit( & CritInterruptHandlerList );
-        HalRegisterIsrHandler( CritInterrupt, (void *) HAL_ISR_CRIT, IRQ_LEVEL_CRIT );
+        IsrRegisterHandler( CritInterrupt, (void *) HAL_ISR_CRIT, IRQ_LEVEL_CRIT );
 }
 
 void CritInterrupt()
@@ -46,8 +46,6 @@ void CritInterrupt()
         struct HANDLER_OBJECT * handler;
         BOOL isComplete;
         HANDLER_FUNCTION * func;
-
-        CritInterruptIncrement();
 
         //TODO TOO MUCH DUPLICATION
         while( (link = AtomicListPop(&CritInterruptHandlerList)) ) {
@@ -64,8 +62,6 @@ void CritInterrupt()
                         HandlerFinish( handler );
                 }
         }
-
-        CritInterruptDecrement();
 }
 
 void CritInterruptRegisterHandler(

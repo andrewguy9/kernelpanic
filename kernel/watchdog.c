@@ -56,6 +56,7 @@ void WatchdogEnable( TIME timeout )
         WatchdogLastClearedTime = 0;
 #endif
 
+        //TODO CALL IsrRegisterHandler
         HalRegisterIsrHandler( WatchdogInterrupt, (void *) HAL_ISR_WATCHDOG, IRQ_LEVEL_WATCHDOG );
 
         // Now that we have set up the handler, lets arm the watchdog.
@@ -120,5 +121,6 @@ void WatchdogAddFlag( INDEX index )
 
 void WatchdogInterrupt()
 {
+        //NOTICE THAT WE DON'T UPDATE ISR HERE.
         KernelPanic();
 }
