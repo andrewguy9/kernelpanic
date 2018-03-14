@@ -47,24 +47,11 @@ void HalIsrFinalize();
  * sa_mask is the mask to apply.
  * sa_flags is used for special masking rules/alt stack settings.
  */
-struct sigaction HalIrqTable[IRQ_LEVEL_COUNT];
-
-/*
- * HalIsrHandler uses this table to call the user specified handler.
- */
-ISR_HANDLER * HalIsrJumpTable[IRQ_LEVEL_COUNT];
-
-/*
- * HalIsrHandler uses this table to go from a signal to an IRQ.
- *
- * Key - IRQ level.
- * Value - Signal Number.
- *
- * HalIsrHandler will scan from the start of the array to the end.
- * When it finds the same signal number, then that index is the index it should call
- * from the HalIsrJumpTable.
- */
+struct sigaction HalIrqToSigaction[IRQ_LEVEL_COUNT];
 INDEX HalIrqToSignal[IRQ_LEVEL_COUNT];
+
+HAL_ISR_HANDLER * HalSignalToHandler[NSIG];
+enum IRQ_LEVEL HalSignalToIrq[NSIG];
 
 //Create a mask for debugging
 #ifdef DEBUG
@@ -180,29 +167,24 @@ void HalStackTrampoline( int SignalNumber )
  */
 void HalIsrHandler( int SignalNumber )
 {
-        INDEX index;
-        enum IRQ_LEVEL irq;
+        enum IRQ_LEVEL irq = HalSignalToIrq[SignalNumber];
+        HAL_ISR_HANDLER * handler = HalSignalToHandler[SignalNumber];
 
+        ASSERT (SignalNumber >= 0 && SignalNumber < NSIG);
+        if (handler == NULL) {
+                HalPanic("Signal delivered for which no Irq was registered");
+        }
+        ASSERT (handler != NULL);
+        ASSERT (irq != IRQ_LEVEL_NONE);
 #ifdef DEBUG
         HalUpdateIsrDebugInfo();
 #endif
-
-        //We dont know which irq is associated with SignalNumber, so lets find it.
-        for(index = 0; index < IRQ_LEVEL_COUNT; index++) {
-                if( HalIrqToSignal[index] == SignalNumber ) {
-                        //We found it, call the appropriate ISR.
-                        irq = index;
-                        HalIsrJumpTable[irq]();
+        handler(irq);
 #ifdef DEBUG
-                        //We are about to return into an unknown frame.
-                        //I can't predict what the irq will be there.
-                        HalInvalidateIsrDebugInfo();
+        //We are about to return into an unknown frame.
+        //I can't predict what the irq will be there.
+        HalInvalidateIsrDebugInfo();
 #endif
-                        return;
-                }
-        }
-
-        HalPanic("Signal delivered for which no Irq was registered");
 }
 
 #ifdef DEBUG
@@ -228,9 +210,15 @@ void HalClearSignals()
         INDEX i;
 
         for(i=0; i < IRQ_LEVEL_COUNT; i++) {
-                HalIrqTable[i].sa_handler = NULL;
-                sigemptyset(&HalIrqTable[i].sa_mask);
-                HalIrqTable[i].sa_flags = 0;
+                HalIrqToSignal[i] = 0;
+                HalIrqToSigaction[i].sa_handler = NULL;
+                sigemptyset(&HalIrqToSigaction[i].sa_mask);
+                HalIrqToSigaction[i].sa_flags = 0;
+        }
+
+        for(i=0; i<NSIG; i++) {
+                HalSignalToHandler[i] = NULL;
+                HalSignalToIrq[i] = IRQ_LEVEL_NONE;
         }
 }
 
@@ -246,7 +234,7 @@ void HalBlockSignal( void * which )
         INDEX signum = (INDEX) which;
 
         for(i=0; i < IRQ_LEVEL_COUNT; i++) {
-                sigaddset(&HalIrqTable[i].sa_mask, signum);
+                sigaddset(&HalIrqToSigaction[i].sa_mask, signum);
         }
 }
 
@@ -340,11 +328,11 @@ void HalCreateStackFrame(
         //We are about to bootstrap the new thread. Because we have to modify global
         //state here, we must make sure no interrupts occur until after we are bootstrapped.
         //We do all of this under the nose of the Isr unit.
-        sigprocmask(SIG_BLOCK, &HalIrqTable[IRQ_LEVEL_MAX].sa_mask, &oldSet);
+        sigprocmask(SIG_BLOCK, &HalIrqToSigaction[IRQ_LEVEL_MAX].sa_mask, &oldSet);
 
         //NOTE: We use the interrupt mask here, because we want to block all operations.
         switchStackAction.sa_handler = HalStackTrampoline;
-        switchStackAction.sa_mask = HalIrqTable[IRQ_LEVEL_MAX].sa_mask;
+        switchStackAction.sa_mask = HalIrqToSigaction[IRQ_LEVEL_MAX].sa_mask;
         switchStackAction.sa_flags = SA_ONSTACK;
         sigaction(HAL_ISR_TRAMPOLINE, &switchStackAction, NULL );
 
@@ -590,13 +578,13 @@ BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
 
         HalUpdateIsrDebugInfo();
 
-        return sigset_empty(sigset_and(sigset_xor(HalIrqTable[level].sa_mask,curSet), HalIrqTable[level].sa_mask));
+        return sigset_empty(sigset_and(sigset_xor(HalIrqToSigaction[level].sa_mask,curSet), HalIrqToSigaction[level].sa_mask));
 }
 #endif //DEBUG
 
 void HalSetIrq(enum IRQ_LEVEL irq)
 {
-        sigprocmask( SIG_SETMASK, &HalIrqTable[irq].sa_mask, NULL);
+        sigprocmask( SIG_SETMASK, &HalIrqToSigaction[irq].sa_mask, NULL);
 
 #ifdef DEBUG
         HalUpdateIsrDebugInfo();
@@ -629,7 +617,7 @@ void HalIsrInit()
  * which - the location which indicates what hardware event happed.
  * level - what irq to assign to the hardware event.
  */
-void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
+void HalRegisterIsrHandler( HAL_ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
 {
 
         INDEX i;
@@ -638,12 +626,13 @@ void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL le
         ASSERT(HalIsIrqAtomic(IRQ_LEVEL_MAX));
 
         for(i=level; i < IRQ_LEVEL_COUNT; i++) {
-                sigaddset(&HalIrqTable[i].sa_mask, signum);
+                sigaddset(&HalIrqToSigaction[i].sa_mask, signum);
         }
 
         HalIrqToSignal[level] = signum;
-        HalIsrJumpTable[level] = handler;
-        HalIrqTable[level].sa_handler = HalIsrHandler;
+        HalSignalToHandler[signum] = handler;
+        HalSignalToIrq[signum] = level;
+        HalIrqToSigaction[level].sa_handler = HalIsrHandler;
 
         HalIsrFinalize();
         HalSetIrq(IRQ_LEVEL_MAX);
@@ -655,7 +644,7 @@ void HalIsrFinalize()
 
         for(level = IRQ_LEVEL_NONE; level < IRQ_LEVEL_COUNT; level++) {
                 if(HalIrqToSignal[level] != 0) {
-                        ASSUME( sigaction(HalIrqToSignal[level], &HalIrqTable[level], NULL), 0 );
+                        ASSUME( sigaction(HalIrqToSignal[level], &HalIrqToSigaction[level], NULL), 0 );
                 }
         }
 }

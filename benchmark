@@ -1,0 +1,81 @@
+#!/bin/bash
+
+USAGE="$0 [-r=x] [-b=y] branch1 branch2 test [test ...]"
+
+OPTS=$(getopt r:b:h $*)
+
+if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+
+set -- $OPTS
+
+runs=3
+batch=1
+
+for i
+do
+    case "$i" in
+    -h)
+      echo "help: $USAGE"
+      exit 0
+      ;;
+    -r)
+      runs=$2
+      shift 2
+      ;;
+    -b)
+      batch=$2
+      shift 2
+      ;;
+    --)
+      shift
+      break
+      ;;
+    esac
+done
+
+if [ "$#" -le 2 ]; then
+    echo "illegal number of parameters"
+    echo "$USAGE"
+    exit 2
+fi
+
+b1=$1
+b2=$2
+shift
+shift
+
+jobid=$(uuidgen)
+
+dirty=$(git status --porcelain | perl -ne '/^ M (.*)/&& print "$1, "')
+if [ "$dirty" ]
+then
+  echo "Workspace not clean"
+  exit 1
+fi
+
+make clean
+
+git checkout "$b1"
+
+make pc pc_fre
+
+./perf.pl --batch "$batch" --runs "$runs" "$jobid" "$@"
+
+make clean
+
+git checkout "$b2"
+
+make pc pc_fre
+
+./perf.pl --batch "$batch" --runs "$runs" "$jobid" "$@"
+
+read -r -d '' sql <<- _EOM_
+	create table perf(job text, branch text, commit_hash text, dirty text, test text, real float, user float, sys float);
+	.separator ","
+	.import perf.csv perf
+	select b1.test,b2.rt-b1.rt, cast(100*(b2.rt-b1.rt)/b1.rt as int) from (select test,avg(real) as rt from perf where branch='${b1}' and job='${jobid}' group by branch,test) as b1 inner join (select test,avg(real) as rt from perf where branch='${b2}' and job='${jobid}' group by branch,test) as b2 on b1.test = b2.test;
+_EOM_
+
+#TODO could be nice to get stddev of tests.
+echo "$sql" | sqlite3
+
