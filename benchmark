@@ -46,8 +46,6 @@ shift
 
 jobid=$(uuidgen)
 
-#TODO can we put job id into db, so that we can limit results to just this run.
-
 dirty=$(git status --porcelain | perl -ne '/^ M (.*)/&& print "$1, "')
 if [ "$dirty" ]
 then
@@ -71,7 +69,6 @@ make pc pc_fre
 
 ./perf.pl --batch "$batch" --runs "$runs" "$jobid" "$@"
 
-#TODO we should not query on branch, use hash instead.
 read -r -d '' sql <<- _EOM_
 	create table perf(job text, branch text, commit_hash text, dirty text, test text, real float, user float, sys float);
 	.separator ","
