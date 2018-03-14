@@ -256,6 +256,7 @@ void HalPanicFn(char file[], int line, char msg[])
 
 #define HalPanicErrno(msg) HalPanicErrnoFn(__FILE__, __LINE__, msg)
 
+void HalPanicErrnoFn(char file[], int line, char msg[]) __attribute__((noreturn));
 void HalPanicErrnoFn(char file[], int line, char msg[])
 {
         printf("PANIC: %s:%d errno %s: %s\n", file, line, strerror(errno), msg);
