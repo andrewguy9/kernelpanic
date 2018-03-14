@@ -139,6 +139,7 @@ sub runtest
         my $msg = "Success";
 
         my $dead = wait;
+        #TODO CLEAN UP MESSAGES.
         if(! $test_passed) {
                 $status = 1;
                 $msg = "FAILED!!!";
