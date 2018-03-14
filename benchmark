@@ -1,21 +1,52 @@
 #!/bin/bash
 
-#TODO - should have a help
-b1=$1
-b2=$2
-#TODO can we get these from options
+USAGE="$0 [-r=x] [-b=y] branch1 branch2 test [test ...]"
+
+OPTS=$(getopt r:b:h "$*")
+
+if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+
+eval set -- "$OPTS"
+
 runs=3
 batch=1
+
+while true; do
+    case "$1" in
+    -h)
+      echo "$USAGE"
+      exit 0
+      ;;
+    -r)
+      runs=$2
+      shift 2
+      ;;
+    -b)
+      batch=$2
+      shift 2
+      ;;
+    --) shift; break ;;
+    *) echo "$USAGE"; exit 1; ;;
+    esac
+done
+
+if [ "$#" -le 2 ]; then
+    echo "illegal number of parameters"
+    echo "$USAGE"
+    exit 2
+fi
+
+b1=$1
+b2=$2
 shift
 shift
-tests=$@
 
 jobid=$(uuidgen)
 
 #TODO can we put job id into db, so that we can limit results to just this run.
 
 dirty=$(git status --porcelain | perl -ne '/^ M (.*)/&& print "$1, "')
-if [ $dirty ]
+if [ "$dirty" ]
 then
   echo "Workspace not clean"
   exit 1
@@ -23,22 +54,22 @@ fi
 
 make clean
 
-git checkout $b1
+git checkout "$b1"
 
 make pc pc_fre
 
-./perf.pl --batch $batch --runs $runs $jobid $tests
+./perf.pl --batch "$batch" --runs "$runs" "$jobid" "$@"
 
 make clean
 
-git checkout $b2
+git checkout "$b2"
 
 make pc pc_fre
 
-./perf.pl --batch $batch --runs $runs $jobid $tests
+./perf.pl --batch "$batch" --runs "$runs" "$jobid" "$@"
 
 #TODO we should not query on branch, use hash instead.
-read -d '' sql <<- _EOM_
+read -r -d '' sql <<- _EOM_
 	create table perf(job text, branch text, commit_hash text, dirty text, test text, real float, user float, sys float);
 	.separator ","
 	.import perf.csv perf
