@@ -62,12 +62,15 @@ sub runtest
                 die "failed to start $test_name\n";
         }
 
-        my $status = 0;
-        my $msg = "Success";
-
         my $dead = wait;
-        $status = $?;
+        my $status = $?;
+        my $msg;
+        if($status == 0) {
+          $msg = "Success";
+        } else {
+          $msg = "FAIL $status";
+        }
 
-        print "Test $test_name($test_pid)... $msg\n" if $status;
+        print "Test $test_name($test_pid)... $msg\n";
         exit($status);
 }
