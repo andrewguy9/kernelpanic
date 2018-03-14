@@ -65,7 +65,6 @@ sub runtest
         my $status = 0;
         my $msg = "Success";
 
-        #TODO time here.
         my $dead = wait;
         $status = $?;
 
