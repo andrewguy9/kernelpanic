@@ -745,7 +745,11 @@ void HalSerialWriteChar(char data)
         } else if(writelen == 0) {
                 HalPanic("Wrote 0 to STDOUT");
         } else {
-                HalPanicErrno("Failed to write to STDOUT");
+                if (errno == EAGAIN) {
+                        HalPanic("Serial didn't implement back-pressure");
+                } else {
+                        HalPanicErrno("Failed to write to STDOUT");
+                }
         }
 }
 

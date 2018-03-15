@@ -2,6 +2,7 @@
 #include"hal.h"
 #include"critinterrupt.h"
 #include"utils/ringbuffer.h"
+#include"utils/str.h"
 #include"generation.h"
 
 #define BUFFER_SIZE 32
@@ -76,6 +77,18 @@ COUNT SerialWrite(char * buf, COUNT len)
         HalRaiseInterrupt(IRQ_LEVEL_SERIAL_WRITE);
 
         return write;
+}
+
+void SerialSafeStrWrite(struct SAFE_STR * str, struct SAFE_STR * remstr) {
+  char * buff = str->Buff;
+  COUNT len = SafeStrLen(str, remstr);
+  COUNT write;
+
+  while (len > 0) {
+    write = SerialWrite(buff, len);
+    buff += write;
+    len -= write;
+  }
 }
 
 COUNT SerialRead(char * buf, COUNT len)
