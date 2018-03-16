@@ -736,17 +736,17 @@ BOOL HalSerialGetChar(char * out)
         }
 }
 
-void HalSerialWriteChar(char data)
+BOOL HalSerialWriteChar(char data)
 {
         int writelen = write(serialOutFd, &data, sizeof(char));
 
         if( writelen > 0 ) {
-
+                return TRUE;
         } else if(writelen == 0) {
                 HalPanic("Wrote 0 to STDOUT");
         } else {
                 if (errno == EAGAIN) {
-                        HalPanic("Serial didn't implement back-pressure");
+                        return FALSE;
                 } else {
                         HalPanicErrno("Failed to write to STDOUT");
                 }

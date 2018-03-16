@@ -21,13 +21,20 @@ struct GENERATION_CONTEXT ReadGenerationContext;
 ISR_HANDLER SendBytesInterrupt;
 ISR_HANDLER GetBytesInterrupt;
 
+char SendBytesBufferFull;
+char SendBytesBuffer;
 void SendBytesInterrupt(void)
 {
         ASSERT(IsrIsAtomic(IRQ_LEVEL_SERIAL_WRITE));
         while (!RingBufferIsEmpty(&SerialOutputRing)) {
-                char data;
-                ASSUME(RingBufferRead(&data, sizeof(data), &SerialOutputRing), 1);
-                HalSerialWriteChar(data);
+                if (!SendBytesBufferFull) {
+                        ASSUME(RingBufferRead(&SendBytesBuffer, sizeof(SendBytesBuffer), &SerialOutputRing), 1);
+                        SendBytesBufferFull = TRUE;
+                }
+                SendBytesBufferFull = !HalSerialWriteChar(SendBytesBuffer);
+                if (SendBytesBufferFull) {
+                  break; //Hal is putting back pressure on us.
+                }
         }
 }
 
@@ -53,6 +60,7 @@ void GetBytesInterrupt(void)
 
 void SerialStartup()
 {
+        SendBytesBufferFull = FALSE;
         RingBufferInit( SerialInputBuffer, BUFFER_SIZE, &SerialInputRing );
         RingBufferInit( SerialOutputBuffer, BUFFER_SIZE, &SerialOutputRing );
 
