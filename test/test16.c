@@ -3,7 +3,7 @@
 #include"kernel/hal.h"
 #include"kernel/coroutine.h"
 #include"kernel/panic.h"
-#include"utils/str.h"
+#include"utils/buffer.h"
 #include"kernel/serial.h"
 
 #define CHOOSE_N 100
@@ -44,14 +44,14 @@ void combinationsPrint(struct COMBOS_RESULT * result) {
   // IsrDisable(IRQ_LEVEL_MAX);
 #define BUFF_SIZE 512
   char buff[BUFF_SIZE];
-  struct SAFE_STR str = SafeStrInit(buff, BUFF_SIZE);
-  struct SAFE_STR remstr = str;
+  struct BUFF_CURSOR str = BuffCursorInit(buff, BUFF_SIZE);
+  struct BUFF_CURSOR remstr = str;
 
   for (i=CHOOSE_K-1; i>=0; i--) {
-    remstr = SafeRender(&remstr, "%d\t", result->Nums[i]);
+    remstr = BuffStrRender(&remstr, "%d\t", result->Nums[i]);
   }
-  remstr = SafeRender(&remstr, "\n");
-  ASSERT (! SafeStrFull(&remstr));
+  remstr = BuffStrRender(&remstr, "\n");
+  ASSERT (! BuffFull(&remstr));
 
   SerialSafeStrWrite(&str, &remstr);
 

@@ -22,7 +22,7 @@ utils/$(TARGET)_counter.o: utils/counter.c utils/counter.h
 
 utils/$(TARGET)_primes.o: utils/primes.c utils/primes.h
 
-utils/$(TARGET)_str.o: utils/str.c utils/str.h
+utils/$(TARGET)_buffer.o: utils/buffer.c utils/buffer.h
 ###################
 #tests
 utils/$(TARGET)_linktest.o: utils/linktest.c 

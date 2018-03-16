@@ -2,7 +2,7 @@
 #include"hal.h"
 #include"critinterrupt.h"
 #include"utils/ringbuffer.h"
-#include"utils/str.h"
+#include"utils/buffer.h"
 #include"generation.h"
 
 #define BUFFER_SIZE 32
@@ -87,9 +87,9 @@ COUNT SerialWrite(char * buf, COUNT len)
         return write;
 }
 
-void SerialSafeStrWrite(struct SAFE_STR * str, struct SAFE_STR * remstr) {
+void SerialSafeStrWrite(struct BUFF_CURSOR * str, struct BUFF_CURSOR * remstr) {
   char * buff = str->Buff;
-  COUNT len = SafeStrLen(str, remstr);
+  COUNT len = BuffSpace(str, remstr);
   COUNT write;
 
   while (len > 0) {
