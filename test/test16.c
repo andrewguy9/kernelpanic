@@ -34,7 +34,8 @@ struct COMBOS_RESULT {
 };
 
 void combinationsResultInit(struct COMBOS_RESULT * result) {
-  for (INDEX i=0; i<CHOOSE_K; i++) {
+  INDEX i;
+  for (i=0; i<CHOOSE_K; i++) {
     result->Nums[i] = 0;
   }
 }
