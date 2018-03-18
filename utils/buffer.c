@@ -39,7 +39,7 @@ struct BUFF_CURSOR BuffStrRender(struct BUFF_CURSOR * buf, char * format, ...)
     return full;
   } else if (status < 0) {
     //TODO capture errno.
-    KernelPanic();
+    FAIL("unhandled error from vsnprintf");
   } else {
     struct BUFF_CURSOR output = {buf->Buff + status, buf->Size - status};
     return output;
