@@ -32,17 +32,17 @@
 #ifdef APP_BUILD
 #include<stdio.h>
 #include<stdlib.h>
-#define FAIL( msg ) \
-  do { \
+#define FAIL( msg )                                           \
+  do {                                                        \
     printf(msg " in file %s, line %d\n", __FILE__, __LINE__); \
-    abort(); \
+    abort();                                                  \
   } while(0)
 #endif //APP_BUILD
 #ifdef KERNEL_BUILD
 #include"kernel/panic.h"
-#define FAIL( msg ) \
-  do { \
-    Panic( __FILE__, __LINE__ ); \
+#define FAIL( msg )               \
+  do {                            \
+    Panic( __FILE__, __LINE__ );  \
   } while (0)
 #endif //KERNEL_BUILD
 
@@ -50,22 +50,22 @@
  * Applies only on debug builds. Not evaluated on release builds.
  */
 #ifdef DEBUG
-#define ASSERT( condition ) \
-  do { \
-    if( !(condition) ) { \
-      FAIL("assert FAILED"); \
-    } \
+#define ASSERT( condition )   \
+  do {                        \
+    if( !(condition) ) {      \
+      FAIL("assert FAILED");  \
+    }                         \
   } while (0)
 #else // DEBUG
-#define ASSERT( condition ) 
+#define ASSERT( condition )
 #endif //DEBUG
 
 /* Assume: On debug, evalutes expression and asserts equality with result.
  * On release builds, evaulates expression, with no check of result.
  */
 #ifdef DEBUG
-#define ASSUME( expression, result ) \
-  do { \
+#define ASSUME( expression, result )    \
+  do {                                  \
     ASSERT( (expression) == (result) ); \
   } while (0)
 #else
