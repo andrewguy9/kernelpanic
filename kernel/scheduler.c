@@ -459,6 +459,9 @@ void SchedulerThreadStartup( void * arg )
         SchedulerStartCritical();
         thread->State = THREAD_STATE_DONE;
 
+        //Release threads waiting to join this thread.
+        SignalSet(&thread->WaitSignal);
+
         //Check to see if we have shutdown the last active thread.
         RunningThreads--;
         if (Shutdown && RunningThreads == 1) {
@@ -505,5 +508,7 @@ void SchedulerCreateThread(
         } else {
                 thread->State = THREAD_STATE_BLOCKED;
         }
+
+        SignalInit(& thread->WaitSignal, FALSE);
 }
 

@@ -3,6 +3,7 @@
 
 #include"utils/utils.h"
 #include"locking.h"
+#include"signal.h"
 #include"hal.h"
 #include"context.h"
 
@@ -17,6 +18,7 @@ struct THREAD
         struct CONTEXT Stack;//Info on registers/stack for thread.
         THREAD_MAIN * Main;//The thread's main function ptr.
         void * Argument;//The thread's arguments.
+        struct SIGNAL WaitSignal;
 };
 
 
