@@ -42,4 +42,6 @@ void SchedulerCreateThread(
 
 struct LOCKING_CONTEXT * SchedulerGetLockingContext();
 
+void SchedulerJoinThread(struct THREAD * thread, struct LOCKING_CONTEXT * context);
+
 #endif

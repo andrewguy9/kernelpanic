@@ -512,3 +512,6 @@ void SchedulerCreateThread(
         SignalInit(& thread->WaitSignal, FALSE);
 }
 
+void SchedulerJoinThread(struct THREAD * thread, struct LOCKING_CONTEXT * context) {
+        SignalWaitForSignal( & thread->WaitSignal, context);
+}
