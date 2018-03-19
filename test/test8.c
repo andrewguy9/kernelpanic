@@ -72,29 +72,23 @@ void RestartThreadMain( void * arg )
 {
         while(TRUE)
         {
+                SchedulerJoinThread(&DeathThread, NULL);
                 SchedulerStartCritical();
+                ASSERT( SchedulerIsThreadDead( &DeathThread ) );
+                SchedulerCreateThread(
+                    &DeathThread,
+                    1,
+                    DeathThreadStack,
+                    STACK_SIZE,
+                    DeathThreadMain,
+                    NULL,
+                    TRUE);
+                DeathCount--;
 
-                if( SchedulerIsThreadDead( &DeathThread ) )
-                {
-                        SchedulerCreateThread(
-                                        &DeathThread,
-                                        1,
-                                        DeathThreadStack,
-                                        STACK_SIZE,
-                                        DeathThreadMain,
-                                        NULL,
-                                        TRUE);
-
-                        DeathCount--;
-                }
-
-                if( SchedulerIsThreadBlocked( &StallThread ) )
-                {
+                if( SchedulerIsThreadBlocked( &StallThread ) ) {
                         SchedulerResumeThread( &StallThread );
-
                         StallCount--;
                 }
-
                 SchedulerEndCritical();
         }
 }
