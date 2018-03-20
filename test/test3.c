@@ -128,6 +128,8 @@ int main()
         TimesRead = 0;
         TimesWritten = 0;
 
+        ResourceInit(& BufferLock, RESOURCE_SHARED);
+
         SchedulerCreateThread(
                         & Reader1,
                         5,

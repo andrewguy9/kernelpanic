@@ -82,9 +82,9 @@ void ResourceWakeThreads( struct RESOURCE * lock )
 //Public Functions
 //
 
-void ResourceInit( struct RESOURCE * lock )
+void ResourceInit( struct RESOURCE * lock, enum RESOURCE_STATE state)
 {
-        lock->State = RESOURCE_SHARED;
+        lock->State = state;
         LinkedListInit( &lock->WaitingThreads );
         lock->NumShared = 0;
 }
