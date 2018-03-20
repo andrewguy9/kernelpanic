@@ -2,6 +2,7 @@
 #include"scheduler.h"
 #include"timer.h"
 #include"critinterrupt.h"
+#include"signal.h"
 
 /*
  * This function is called by the SleepTimerHandler when
@@ -11,10 +12,10 @@
 HANDLER_FUNCTION SleepCritHandler;
 BOOL SleepCritHandler( struct HANDLER_OBJECT * handler )
 {
-  struct THREAD * thread = handler->Context;
+  struct SIGNAL * sleepSignal = handler->Context;
 
   ASSERT( SchedulerIsCritical() );
-  SchedulerResumeThread( thread );
+  SignalSet(sleepSignal);
 
   return TRUE;
 }
@@ -49,28 +50,11 @@ BOOL SleepTimerHandler( struct HANDLER_OBJECT * timer )
  */
 void Sleep( COUNT time )
 {
+  struct SIGNAL sleepSignal;
   struct HANDLER_OBJECT timer;
-  struct THREAD * thread;
 
-  //The handler will have to know which thread to wake.
-  thread = SchedulerGetActiveThread();
-
-  //We have to enter a critical section because if the timer
-  //fires immediatly, we cannot let the worker try to wake the
-  //thread before it has gone to sleep.
-  SchedulerStartCritical();
-
-  //Zero out timer.
+  SignalInit(&sleepSignal, FALSE);
   HandlerInit( &timer );
-
-  //Sleep the current thread.
-  SchedulerBlockThread();
-
-  //Register the timer.
-  TimerRegister( &timer, time, SleepTimerHandler, thread );
-
-  //Force the switch.
-  SchedulerForceSwitch();
-
-  //If we reach this point, then we have been awakened!
+  TimerRegister( &timer, time, SleepTimerHandler, &sleepSignal);
+  SignalWaitForSignal(&sleepSignal, NULL);
 }
