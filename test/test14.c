@@ -27,7 +27,7 @@ struct SOCKET_HANDLE H2;
 
 #include<stdio.h>
 THREAD_MAIN CountMain;
-void CountMain(void * context) {
+void * CountMain(void * context) {
   struct SOCKET_HANDLE * socket = (struct SOCKET_HANDLE*) context;
   int v;
   //TODO MAKE ONLY HAPPEN ONCE.
@@ -37,11 +37,12 @@ void CountMain(void * context) {
     SocketReadStruct((char*) &v, sizeof(v), socket);
     if (v>Max) {
       SchedulerShutdown();
-      return;
+      return NULL;
     }
     v++;
     SocketWriteStruct((char*) &v, sizeof(v), socket);
   }
+  return NULL;
 }
 
 int main(int argc, char ** argv)

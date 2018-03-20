@@ -32,7 +32,7 @@ struct THREAD_CONTEXT
 //
 
 THREAD_MAIN TestThreadMain;
-void TestThreadMain( void * arg )
+void * TestThreadMain( void * arg )
 {
         struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
 
@@ -43,6 +43,7 @@ void TestThreadMain( void * arg )
                 context->Value++;
                 WatchdogNotify(context->WatchdogId);
         }
+        return NULL;
 }
 
 //

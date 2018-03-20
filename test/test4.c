@@ -52,7 +52,7 @@ BOOL TimerHandler( struct HANDLER_OBJECT * handler )
 
 //Thread Main
 THREAD_MAIN SleeperMain;
-void SleeperMain(void * unused)
+void * SleeperMain(void * unused)
 {
 	INDEX cur=0;
 	while(1)
@@ -81,6 +81,7 @@ void SleeperMain(void * unused)
 			TimerCycles++;
 		}
 	}
+        return NULL;
 }
 
 int main()

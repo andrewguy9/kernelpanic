@@ -4,7 +4,7 @@
 #include"utils/utils.h"
 #include"hal.h"
 
-typedef void THREAD_MAIN(void * arg ); //TODO CHANGE NAME.
+typedef void * THREAD_MAIN(void * arg ); //TODO CHANGE NAME.
 
 // AKA STACK
 struct CONTEXT {

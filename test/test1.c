@@ -14,7 +14,7 @@
 //
 
 THREAD_MAIN Test1ThreadMain;
-void Test1ThreadMain( void * arg )
+void * Test1ThreadMain( void * arg )
 {
 	COUNT * var = (COUNT *) arg;
 	volatile unsigned char a = 0;
@@ -24,6 +24,7 @@ void Test1ThreadMain( void * arg )
 		for(a=1;a>0;a++);
 
 	}
+        return NULL;
 }
 
 //
