@@ -1,0 +1,24 @@
+#!/bin/bash
+jobid=$1
+b1=$2
+b2=$3
+
+read -r -d '' sql <<- _EOM_
+	create table perf(job text, branch text, commit_hash text, dirty text, test text, real float, user float, sys float);
+	.separator ","
+	.headers on
+	.mode column
+	.import perf.csv perf
+	select
+          b1.test as test,
+          b1.rt as "${b1}_avg",
+          b2.rt as "${b2}_avg",
+          b2.rt-b1.rt as delta,
+          cast(100*(b2.rt-b1.rt)/b1.rt as int) as percent
+        from (select test,avg(real) as rt from perf where branch='${b1}' and job='${jobid}' group by branch,test) as b1
+        inner join (select test,avg(real) as rt from perf where branch='${b2}' and job='${jobid}' group by branch,test) as b2
+        on b1.test = b2.test;
+_EOM_
+
+#TODO could be nice to get stddev of tests.
+echo "$sql" | sqlite3
