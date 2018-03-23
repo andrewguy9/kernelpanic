@@ -155,6 +155,6 @@ sub runtest
 		}
         }
 
-        print "Test $test_name($test_pid)... $msg\n" if $status;
+        print "Test $test_name($test_pid)... $msg\n";
         exit($status);
 }
