@@ -1,0 +1,14 @@
+#!/bin/bash
+jobid=$1
+
+read -r -d '' sql <<- _EOM_
+	create table perf(job text, branch text, commit_hash text, dirty text, test text, real float, user float, sys float);
+	.separator ","
+	.headers on
+	.mode column
+	.import perf.csv perf
+        select test, branch ,real from perf where job='${jobid}' order by test, branch;
+_EOM_
+
+#TODO could be nice to get stddev of tests.
+echo "$sql" | sqlite3
