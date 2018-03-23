@@ -3,11 +3,14 @@
 #include"kernel/scheduler.h"
 #include"kernel/socket.h"
 #include"kernel/panic.h"
+#include"kernel/mutex.h"
 
 #define PRIME_TAG1 "test13_primes1"
 #define PRIME_TAG2 "test13_primes2"
 
 #define STACK_SIZE HAL_MIN_STACK_SIZE
+
+struct MUTEX Kicker;
 
 char CountStack1[STACK_SIZE];
 struct THREAD CountThread1;
@@ -30,8 +33,9 @@ THREAD_MAIN CountMain;
 void CountMain(void * context) {
   struct SOCKET_HANDLE * socket = (struct SOCKET_HANDLE*) context;
   int v;
-  //TODO MAKE ONLY HAPPEN ONCE.
-  SocketWriteStruct((char*) &v, sizeof(v), socket);
+  if (MutexLock(&Kicker)) {
+    SocketWriteStruct((char*) &v, sizeof(v), socket);
+  }
 
   while (1) {
     SocketReadStruct((char*) &v, sizeof(v), socket);
@@ -49,6 +53,7 @@ int main(int argc, char ** argv)
   KernelInit();
   SchedulerStartup();
 
+  MutexInit(&Kicker, FALSE);
   SocketInit(
       Buff1,
       BUFF_SIZE,
