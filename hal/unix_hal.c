@@ -747,6 +747,8 @@ BOOL HalSerialWriteChar(char data)
         } else {
                 if (errno == EAGAIN) {
                         return FALSE;
+                } else if (errno == EINTR) {
+                        return FALSE;
                 } else {
                         HalPanicErrno("Failed to write to STDOUT");
                 }
