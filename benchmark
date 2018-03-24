@@ -33,7 +33,7 @@ do
     esac
 done
 
-if [ "$#" -le 1 ]; then
+if [ "$#" -lt 1 ]; then
     echo "illegal number of parameters"
     echo "$USAGE"
     exit 2
@@ -58,8 +58,6 @@ git checkout "$b1"
 echo "building"
 make pc pc_fre > /dev/null
 ./perf.pl --batch "$batch" --runs "$runs" "$jobid" $(cat ./performance.txt)
-
-exit 1;
 
 for b2 in "$@";
 do
