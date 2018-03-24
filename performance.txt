@@ -1,6 +1,1 @@
-pc_dbg_kern__test13.out
-pc_fre_kern__test13.out
-pc_dbg_kern__test14.out
-pc_fre_kern__test14.out
-pc_dbg_kern__test15.out
-pc_fre_kern__test15.out
+pc_fre_kern__test16.out
