@@ -67,6 +67,6 @@ do
   echo "building"
   make pc pc_fre > /dev/null
   ./perf.pl --batch "$batch" --runs "$runs" "$jobid" $(cat ./performance.txt)
-  perf_report $jobid $b1 $b2
+  ./perf_report $jobid $b1 $b2
 done
 
