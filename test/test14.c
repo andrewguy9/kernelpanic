@@ -34,17 +34,18 @@ void CountMain(void * context) {
   struct SOCKET_HANDLE * socket = (struct SOCKET_HANDLE*) context;
   int v;
   if (MutexLock(&Kicker)) {
+    v = 0;
     SocketWriteStruct((char*) &v, sizeof(v), socket);
   }
 
   while (1) {
     SocketReadStruct((char*) &v, sizeof(v), socket);
+    v++;
+    SocketWriteStruct((char*) &v, sizeof(v), socket);
     if (v>Max) {
       SchedulerShutdown();
       return;
     }
-    v++;
-    SocketWriteStruct((char*) &v, sizeof(v), socket);
   }
 }
 
