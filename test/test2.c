@@ -55,7 +55,7 @@ struct THREAD_CONTEXT ConsumerContext3 = {5};
 
 //Functions for test.
 THREAD_MAIN ProducerMain;
-void ProducerMain(void * arg)
+void * ProducerMain(void * arg)
 {
         struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
 
@@ -66,10 +66,11 @@ void ProducerMain(void * arg)
 		PipeWriteStruct( Message, MESSAGE_LENGTH, &Pipe);
                 WatchdogNotify(context->WatchdogId);
 	}
+        return NULL;
 }
 
 THREAD_MAIN ConsumerMain;
-void ConsumerMain(void * arg)
+void * ConsumerMain(void * arg)
 {
         struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
         WatchdogAddFlag(context->WatchdogId);
@@ -92,6 +93,7 @@ void ConsumerMain(void * arg)
 		}
                 WatchdogNotify(context->WatchdogId);
 	}
+        return NULL;
 }
 
 //main

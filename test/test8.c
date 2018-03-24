@@ -35,7 +35,7 @@ volatile int TotalStall;
 //
 
 THREAD_MAIN DeathThreadMain;
-void DeathThreadMain( void * arg )
+void * DeathThreadMain( void * arg )
 {
 	if( DeathCount != 0 )
 	{
@@ -44,10 +44,11 @@ void DeathThreadMain( void * arg )
 
 	DeathCount++;
 	TotalDeath++;
+        return NULL;
 }
 
 THREAD_MAIN StallThreadMain;
-void StallThreadMain( void * arg )
+void * StallThreadMain( void * arg )
 {
 	while(TRUE)
 	{
@@ -65,38 +66,34 @@ void StallThreadMain( void * arg )
 
 	//We should never get here.
 	KernelPanic();
+        return NULL;
 }
 
 THREAD_MAIN RestartThreadMain;
-void RestartThreadMain( void * arg )
+void * RestartThreadMain( void * arg )
 {
         while(TRUE)
         {
+                SchedulerJoinThread(&DeathThread);
                 SchedulerStartCritical();
+                ASSERT( SchedulerIsThreadDead( &DeathThread ) );
+                SchedulerCreateThread(
+                    &DeathThread,
+                    1,
+                    DeathThreadStack,
+                    STACK_SIZE,
+                    DeathThreadMain,
+                    NULL,
+                    TRUE);
+                DeathCount--;
 
-                if( SchedulerIsThreadDead( &DeathThread ) )
-                {
-                        SchedulerCreateThread(
-                                        &DeathThread,
-                                        1,
-                                        DeathThreadStack,
-                                        STACK_SIZE,
-                                        DeathThreadMain,
-                                        NULL,
-                                        TRUE);
-
-                        DeathCount--;
-                }
-
-                if( SchedulerIsThreadBlocked( &StallThread ) )
-                {
+                if( SchedulerIsThreadBlocked( &StallThread ) ) {
                         SchedulerResumeThread( &StallThread );
-
                         StallCount--;
                 }
-
                 SchedulerEndCritical();
         }
+        return NULL;
 }
 
 //

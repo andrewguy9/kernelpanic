@@ -111,7 +111,7 @@ void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
 //
 
 THREAD_MAIN WorkerThreadMain;
-void WorkerThreadMain( void * arg )
+void * WorkerThreadMain( void * arg )
 {
         struct WORKER_QUEUE * queue;
         struct LINKED_LIST * list;
@@ -154,6 +154,7 @@ void WorkerThreadMain( void * arg )
                                 break;
                 }// end switch
         }// end while(TRUE).
+        return NULL;
 }
 
 //

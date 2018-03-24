@@ -76,7 +76,7 @@ void ValidateState(BOOL * transitionArray)
 //
 
 THREAD_MAIN BlockingMain;
-void BlockingMain(void * arg)
+void * BlockingMain(void * arg)
 {
 	INDEX index = (INDEX) arg;
 	BOOL * array = TransitionArray1;
@@ -86,6 +86,7 @@ void BlockingMain(void * arg)
 		array = DoTransition( index, array );
 		GatherSync( & Gather, NULL );
 	}
+        return NULL;
 }
 
 //
@@ -93,7 +94,7 @@ void BlockingMain(void * arg)
 //
 
 THREAD_MAIN WaitMain;
-void WaitMain(void * arg)
+void * WaitMain(void * arg)
 {
 	INDEX index = (INDEX) arg;
 	BOOL * array = TransitionArray1;
@@ -113,6 +114,7 @@ void WaitMain(void * arg)
 			SchedulerForceSwitch();
 		}
 	}
+        return NULL;
 }
 
 //
@@ -120,7 +122,7 @@ void WaitMain(void * arg)
 //
 
 THREAD_MAIN SpinMain;
-void SpinMain(void * arg)
+void * SpinMain(void * arg)
 {
 	INDEX index = (INDEX) arg;
 	BOOL * array = TransitionArray1;
@@ -137,6 +139,7 @@ void SpinMain(void * arg)
 		while( !LockingIsAcquired( & context ) );
 
 	}
+        return NULL;
 }
 
 //
@@ -144,7 +147,7 @@ void SpinMain(void * arg)
 //
 
 THREAD_MAIN ValidateMain;
-void ValidateMain(void * arg)
+void * ValidateMain(void * arg)
 {
 	INDEX index = (INDEX) arg;
 	BOOL * array = TransitionArray1;
@@ -159,6 +162,7 @@ void ValidateMain(void * arg)
 		
 		ValidateState( check );
 	}
+        return NULL;
 }
 
 int main()

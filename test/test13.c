@@ -19,7 +19,7 @@ struct THREAD PrimesThread2;
 struct GATHER PrimesGather;
 
 THREAD_MAIN PrimesMain;
-void PrimesMain(void * context) {
+void * PrimesMain(void * context) {
   char * tag = context;
   INDEX max = 1000000;
   COUNT buffer_size = 100000;
@@ -28,10 +28,11 @@ void PrimesMain(void * context) {
   if (status == PRIMES_OK) {
     GatherSync( &PrimesGather, NULL);
     SchedulerShutdown();
-    return;
+    return NULL;
   } else {
     KernelPanic();
   }
+  return NULL;
 }
 
 int main(int argc, char ** argv)

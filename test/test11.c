@@ -85,7 +85,7 @@ void SetupPipe(
 #define TIMEOUT (2*QUANTUM*6)
 
 THREAD_MAIN ProducerMain;
-void ProducerMain( void * arg )
+void * ProducerMain( void * arg )
 {
   struct PRODUCER_CONTEXT * context = (struct PRODUCER_CONTEXT *) arg;
   PIPE_WRITE writer = context->Writer;
@@ -129,10 +129,11 @@ void ProducerMain( void * arg )
     assending = !assending;
     WatchdogNotify(context->WatchdogId);
   }
+  return NULL;
 }
 
 THREAD_MAIN ConsumerMain;
-void ConsumerMain( void * arg )
+void * ConsumerMain( void * arg )
 {
   struct CONSUMER_CONTEXT * context = (struct CONSUMER_CONTEXT *) arg;
   PIPE_READ reader = context->Reader;
@@ -186,6 +187,7 @@ void ConsumerMain( void * arg )
     assending = !assending;
     WatchdogNotify(context->WatchdogId);
   }
+  return NULL;
 }
 
 int main()
