@@ -17,7 +17,8 @@ read -r -d '' sql <<- _EOM_
           cast(100*(b2.rt-b1.rt)/b1.rt as int) as percent
         from (select test,avg(real) as rt from perf where branch='${b1}' and job='${jobid}' group by branch,test) as b1
         inner join (select test,avg(real) as rt from perf where branch='${b2}' and job='${jobid}' group by branch,test) as b2
-        on b1.test = b2.test;
+        on b1.test = b2.test
+        order by test;
 _EOM_
 
 #TODO could be nice to get stddev of tests.

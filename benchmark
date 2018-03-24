@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USAGE="$0 [-r=x] [-b=y] branch1 branch2 test [test ...]"
+USAGE="$0 [-r=x] [-b=y] branch1 [branch2 ...]"
 
 OPTS=$(getopt r:b:h $*)
 
@@ -33,18 +33,14 @@ do
     esac
 done
 
-if [ "$#" -le 2 ]; then
+if [ "$#" -lt 1 ]; then
     echo "illegal number of parameters"
     echo "$USAGE"
     exit 2
 fi
 
-b1=$1
-b2=$2
-shift
-shift
-
 jobid=$(uuidgen)
+
 
 dirty=$(git status --porcelain | perl -ne '/^ M (.*)/&& print "$1, "')
 if [ "$dirty" ]
@@ -53,21 +49,24 @@ then
   exit 1
 fi
 
-make clean
+b1=$1
+shift
 
+echo "cleaning"
+make clean > /dev/null
 git checkout "$b1"
+echo "building"
+make pc pc_fre > /dev/null
+./perf.pl --batch "$batch" --runs "$runs" "$jobid" $(cat ./performance.txt)
 
-make pc pc_fre
-
-./perf.pl --batch "$batch" --runs "$runs" "$jobid" "$@"
-
-make clean
-
-git checkout "$b2"
-
-make pc pc_fre
-
-./perf.pl --batch "$batch" --runs "$runs" "$jobid" "$@"
-
-perf_report $jobid $b1 $b2
+for b2 in "$@";
+do
+  echo "cleaning"
+  make clean > /dev/null
+  git checkout "$b2"
+  echo "building"
+  make pc pc_fre > /dev/null
+  ./perf.pl --batch "$batch" --runs "$runs" "$jobid" $(cat ./performance.txt)
+  perf_report $jobid $b1 $b2
+done
 
