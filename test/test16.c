@@ -6,7 +6,7 @@
 #include"utils/buffer.h"
 #include"kernel/serial.h"
 
-#define CHOOSE_N 99
+#define CHOOSE_N 20
 #define CHOOSE_K 10
 
 //
