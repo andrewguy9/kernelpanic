@@ -103,8 +103,8 @@ void HalBlockSignal( void * which );
 //Serial Mangement
 //
 
-#define SERIAL_INPUT_DEVICE "/dev/tty"
-#define SERIAL_OUTPUT_DEVICE "/dev/tty"
+#define SERIAL_INPUT_DEVICE "/dev/stdin"
+#define SERIAL_OUTPUT_DEVICE "/dev/stdout"
 
 //-----------------------------------------------------------------------------
 //------------------------- HELPER FUNCTIONS ----------------------------------
