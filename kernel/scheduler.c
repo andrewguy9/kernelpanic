@@ -102,6 +102,7 @@ struct THREAD IdleThread;
  * Returns a pointer to the current thread. Should only
  * be called by a thread, never in interrupt.
  */
+//TODO CALLED ONLY FROM SLEEP UNIT, CAN THIS BE INTERNAL?
 struct THREAD * SchedulerGetActiveThread()
 {
         return ActiveThread;
@@ -179,6 +180,7 @@ void SchedulerForceSwitch()
 /*
  * Takes a blocked thread and adds it back into active circulation.
  */
+//TODO THIS IS USED FOR LOCKING WAKE. CAN IT BE INTERNAL FUNCTION?
 void SchedulerResumeThread( struct THREAD * thread )
 {
         ASSERT( CritInterruptIsAtomic() );
@@ -212,6 +214,7 @@ BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
  * Threads which call SchedulerBlockThread should have some
  * mechanism to wake the thread later.
  */
+//TODO USED IN SLEEP AND LOCK MANAGEMENT. COULD BE INTENRAL FUNCTION?
 void SchedulerBlockThread( )
 {
         ASSERT( CritInterruptIsAtomic() );
@@ -453,7 +456,13 @@ void SchedulerThreadStartup( void * arg )
         ASSERT( !CritInterruptIsAtomic() );
 
         //run the thread.
-        thread->Main( thread->Argument );
+        thread->Result = thread->Main( thread->Argument );
+
+        //Release threads waiting to join this thread.
+        ResourceUnlockExclusive(&thread->ResultLock);
+
+        //Re-acquire the result structure, so that thread can die.
+        ResourceLockExclusive(&thread->ResultLock, NULL);
 
         //The new thread's main returned!
         SchedulerStartCritical();
@@ -492,8 +501,10 @@ void SchedulerCreateThread(
         //Populate thread struct
         thread->Priority = priority;
         LockingInit( & thread->LockingContext, SchedulerBlockOnLock, SchedulerWakeOnLock );
+        ResourceInit(& thread->ResultLock, RESOURCE_EXCLUSIVE);
         thread->Main = main;
         thread->Argument = Argument;
+        thread->Result = NULL;
 
         //initialize stack
         ContextInit( &thread->Stack, stack, stackSize, SchedulerThreadStartup, thread );
@@ -507,3 +518,11 @@ void SchedulerCreateThread(
         }
 }
 
+void * SchedulerJoinThread(struct THREAD * thread) {
+  ResourceLockShared( & thread->ResultLock, NULL);
+  return thread->Result;
+}
+
+void SchedulerReleaseThread(struct THREAD * thread) {
+  ResourceUnlockShared( & thread->ResultLock);
+}

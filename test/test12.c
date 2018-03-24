@@ -45,7 +45,7 @@ volatile BOOL Respond2;
 //
 
 THREAD_MAIN ManagerMain;
-void ManagerMain(void * unused)
+void * ManagerMain(void * unused)
 {
 	while(1)
 	{
@@ -69,10 +69,11 @@ void ManagerMain(void * unused)
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 	}
+        return NULL;
 }
 
 THREAD_MAIN WaiterBlockingMain;
-void WaiterBlockingMain(void * unused)
+void * WaiterBlockingMain(void * unused)
 {
 	while(1)
 	{
@@ -87,10 +88,11 @@ void WaiterBlockingMain(void * unused)
 		Respond1 = TRUE;
 
 	}
+        return NULL;
 }
 
 THREAD_MAIN WaiterNonBlockingMain;
-void WaiterNonBlockingMain(void * unused)
+void * WaiterNonBlockingMain(void * unused)
 {
 	struct LOCKING_CONTEXT context;
 
@@ -110,6 +112,7 @@ void WaiterNonBlockingMain(void * unused)
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 	}
+        return NULL;
 }
 
 int main()
