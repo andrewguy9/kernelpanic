@@ -54,7 +54,7 @@ void RangeRoutine(
 struct COROUTINE Range;
 
 THREAD_MAIN ThreadMain;
-void ThreadMain(void * arg ) {
+void * ThreadMain(void * arg ) {
   struct RANGE_PARAMS params = {0,1000000,1};
   struct RANGE_RESULT result;
   enum COROUTINE_STATUS status;
@@ -70,6 +70,7 @@ void ThreadMain(void * arg ) {
       status = CoroutineNext(&Range)) {
   }
   SchedulerShutdown();
+  return NULL;
 }
 
 //

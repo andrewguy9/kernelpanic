@@ -11,7 +11,7 @@ struct RESOURCE
         volatile COUNT NumShared;
 };
 
-void ResourceInit( struct RESOURCE * lock );
+void ResourceInit( struct RESOURCE * lock, enum RESOURCE_STATE state);
 
 void ResourceLockShared( struct RESOURCE * lock, struct LOCKING_CONTEXT * context );
 

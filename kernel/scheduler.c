@@ -453,7 +453,13 @@ void SchedulerThreadStartup( void * arg )
         ASSERT( !CritInterruptIsAtomic() );
 
         //run the thread.
-        thread->Main( thread->Argument );
+        thread->Result = thread->Main( thread->Argument );
+
+        //Release threads waiting to join this thread.
+        ResourceUnlockExclusive(&thread->ResultLock);
+
+        //Re-acquire the result structure, so that thread can die.
+        ResourceLockExclusive(&thread->ResultLock, NULL);
 
         //The new thread's main returned!
         SchedulerStartCritical();
@@ -492,8 +498,10 @@ void SchedulerCreateThread(
         //Populate thread struct
         thread->Priority = priority;
         LockingInit( & thread->LockingContext, SchedulerBlockOnLock, SchedulerWakeOnLock );
+        ResourceInit(& thread->ResultLock, RESOURCE_EXCLUSIVE);
         thread->Main = main;
         thread->Argument = Argument;
+        thread->Result = NULL;
 
         //initialize stack
         ContextInit( &thread->Stack, stack, stackSize, SchedulerThreadStartup, thread );
@@ -507,3 +515,11 @@ void SchedulerCreateThread(
         }
 }
 
+void * SchedulerJoinThread(struct THREAD * thread) {
+  ResourceLockShared( & thread->ResultLock, NULL);
+  return thread->Result;
+}
+
+void SchedulerReleaseThread(struct THREAD * thread) {
+  ResourceUnlockShared( & thread->ResultLock);
+}

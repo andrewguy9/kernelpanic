@@ -42,4 +42,7 @@ void SchedulerCreateThread(
 
 struct LOCKING_CONTEXT * SchedulerGetLockingContext();
 
+void * SchedulerJoinThread(struct THREAD * thread);
+void SchedulerReleaseThread(struct THREAD * thread);
+
 #endif
