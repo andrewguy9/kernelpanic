@@ -102,6 +102,7 @@ struct THREAD IdleThread;
  * Returns a pointer to the current thread. Should only
  * be called by a thread, never in interrupt.
  */
+//TODO CALLED ONLY FROM SLEEP UNIT, CAN THIS BE INTERNAL?
 struct THREAD * SchedulerGetActiveThread()
 {
         return ActiveThread;
@@ -179,6 +180,7 @@ void SchedulerForceSwitch()
 /*
  * Takes a blocked thread and adds it back into active circulation.
  */
+//TODO THIS IS USED FOR LOCKING WAKE. CAN IT BE INTERNAL FUNCTION?
 void SchedulerResumeThread( struct THREAD * thread )
 {
         ASSERT( CritInterruptIsAtomic() );
@@ -212,6 +214,7 @@ BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
  * Threads which call SchedulerBlockThread should have some
  * mechanism to wake the thread later.
  */
+//TODO USED IN SLEEP AND LOCK MANAGEMENT. COULD BE INTENRAL FUNCTION?
 void SchedulerBlockThread( )
 {
         ASSERT( CritInterruptIsAtomic() );
