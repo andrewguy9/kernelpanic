@@ -108,7 +108,7 @@ void CombosRoutine(
 struct COROUTINE Combos;
 
 THREAD_MAIN ThreadMain;
-void ThreadMain(void * arg ) {
+void * ThreadMain(void * arg ) {
   struct COMBOS_PARAMS params = {CHOOSE_N, CHOOSE_K};
   struct COMBOS_RESULT result;
   enum COROUTINE_STATUS status;
@@ -127,6 +127,7 @@ void ThreadMain(void * arg ) {
     combinationsPrint(& result);
   }
   SchedulerShutdown();
+  return NULL;
 }
 
 //
