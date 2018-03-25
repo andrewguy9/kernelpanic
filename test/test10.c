@@ -20,6 +20,7 @@ void * TestThreadMain( void * arg )
   COUNT read;
 
   while (1) {
+    //TODO DOING PONITER MATH
     read = SerialRead(buf, BUF_SIZE);
     buf[read]= '\0';
     if(read > 0) {

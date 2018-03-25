@@ -100,6 +100,7 @@ void PipeReadStruct( char * buff, COUNT size, PIPE_READ pipe )
   COUNT read = 0;
   SemaphoreDown( & pipe->ReadLock, NULL );
   while (read < size) {
+    //TODO DOING POINTER MATH HERE.
     read += PipeReadInner(buff+read, size-read, pipe);
   }
   SemaphoreUp( & pipe->ReadLock);
@@ -180,6 +181,7 @@ void PipeWriteStruct( char * buff, COUNT size, PIPE_WRITE pipe )
   COUNT write = 0;
   SemaphoreDown( & pipe->WriteLock, NULL );
   while (write < size) {
+    //TODO DOING POINTER MATH HERE.
     write += PipeWriteInner(buff+write, size-write, pipe);
   }
   SemaphoreUp( & pipe->WriteLock);

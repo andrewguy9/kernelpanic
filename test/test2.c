@@ -77,12 +77,14 @@ void * ConsumerMain(void * arg)
   COUNT index;
   while (1) {
     for (index = 0; index < MESSAGE_LENGTH; index++) {
+      //TODO DOING POINTER MATH.
       buff[index] = 0;
     }
 
     PipeReadStruct( buff, MESSAGE_LENGTH, &Pipe);
 
     for (index = 0; index < MESSAGE_LENGTH; index++) {
+      //TODO DOING POINTER MATH
       if (Message[index] != buff[index]) {
         KernelPanic( );
       }

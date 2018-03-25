@@ -101,6 +101,7 @@ void * ProducerMain( void * arg )
   WatchdogAddFlag(context->WatchdogId);
 
   for (bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++) {
+    //TODO DOING POINTER MATH.
     AssendingBuffer[ bufferIndex ] = bufferIndex;
     DecendingBuffer[ bufferIndex ] = RANDOM_VALUES_SIZE - bufferIndex;
   }
@@ -150,6 +151,7 @@ void * ConsumerMain( void * arg )
   while (1) {
     //Set Buffer up with values which will fail if a bug occurs.
     for (bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++) {
+      //TODO DOING POINTER MATH.
       if( assending ) {
         myBuffer[bufferIndex] = 0;
       } else {
@@ -167,6 +169,7 @@ void * ConsumerMain( void * arg )
 
     //validate direction of buffer.
     for (bufferIndex = 0; bufferIndex+1 < length; bufferIndex++) {
+      //TODO DOING POINTER MATH.
       if (assending) {
         if( myBuffer[bufferIndex] >= myBuffer[bufferIndex+1] ) {
           KernelPanic();

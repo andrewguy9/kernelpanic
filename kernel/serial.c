@@ -93,6 +93,7 @@ void SerialSafeStrWrite(struct BUFF_CURSOR * str, struct BUFF_CURSOR * remstr) {
   COUNT write;
 
   while (len > 0) {
+    //TODO DOING POINTER MATH
     write = SerialWrite(buff, len);
     buff += write;
     len -= write;

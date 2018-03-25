@@ -42,6 +42,7 @@ void * Writer( void * arg )
     sequenceIndex%=SEQUENCE_LENGTH;
 
     for (index = 0; index < BUFFER_SIZE; index++) {
+      //TODO DOING POINTER MATH
       Buffer[index] = index + Sequence[ sequenceIndex ] ;
     }
 
@@ -78,6 +79,7 @@ void * Reader( void * arg )
     ASSERT( BufferLock.State == RESOURCE_SHARED );
 
     for (index=1 ; index < BUFFER_SIZE; index++) {
+      //TODO POINTER MATH
       first = Buffer[index-1];
       second = Buffer[index];
       if( (first +1) != second ) {
