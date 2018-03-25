@@ -18,11 +18,11 @@ char MessageBuffer3[BUFFER_LENGTH];
 #define RANDOM_VALUES_SIZE 15
 char RandomNumbers [RANDOM_VALUES_SIZE] =
 {
-	0xf, 0x1, 0x2,
-	0x3, 0x0, 0x5,
-	0x6, 0x7, 0x8,
-   	0x9, 0xa, 0x0,
-	0xc, 0xd, 0xe
+  0xf, 0x1, 0x2,
+  0x3, 0x0, 0x5,
+  0x6, 0x7, 0x8,
+  0x9, 0xa, 0x0,
+  0xc, 0xd, 0xe
 };
 
 struct PIPE Pipe1;
@@ -49,13 +49,13 @@ struct THREAD Consumer3;
 
 struct PRODUCER_CONTEXT
 {
-        INDEX WatchdogId;
-        PIPE_WRITE Writer;
+  INDEX WatchdogId;
+  PIPE_WRITE Writer;
 };
 struct CONSUMER_CONTEXT
 {
-        INDEX WatchdogId;
-        PIPE_READ Reader;
+  INDEX WatchdogId;
+  PIPE_READ Reader;
 };
 
 struct PRODUCER_CONTEXT ProducerContext1;
@@ -100,8 +100,7 @@ void * ProducerMain( void * arg )
 
   WatchdogAddFlag(context->WatchdogId);
 
-  for( bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++ )
-  {
+  for (bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++) {
     AssendingBuffer[ bufferIndex ] = bufferIndex;
     DecendingBuffer[ bufferIndex ] = RANDOM_VALUES_SIZE - bufferIndex;
   }
@@ -109,14 +108,14 @@ void * ProducerMain( void * arg )
   timeIndex = 0;
   assending = TRUE;
 
-  while(1)
-  {
+  while (1) {
     length = RandomNumbers[timeIndex];
 
-    if( assending )
+    if (assending) {
       curBuffer = AssendingBuffer;
-    else
+    } else {
       curBuffer = DecendingBuffer;
+    }
 
     //Perform write
     PipeWriteStruct(
@@ -148,15 +147,14 @@ void * ConsumerMain( void * arg )
 
   WatchdogAddFlag(context->WatchdogId);
 
-  while(1)
-  {
+  while (1) {
     //Set Buffer up with values which will fail if a bug occurs.
-    for( bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++ )
-    {
-      if( assending )
+    for (bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++) {
+      if( assending ) {
         myBuffer[bufferIndex] = 0;
-      else
+      } else {
         myBuffer[bufferIndex] = RANDOM_VALUES_SIZE;
+      }
     }
 
     length = RandomNumbers[timeIndex];
@@ -168,17 +166,15 @@ void * ConsumerMain( void * arg )
         reader);
 
     //validate direction of buffer.
-    for( bufferIndex = 0; bufferIndex+1 < length; bufferIndex++)
-    {
-      if( assending )
-      {
-        if( myBuffer[bufferIndex] >= myBuffer[bufferIndex+1] )
+    for (bufferIndex = 0; bufferIndex+1 < length; bufferIndex++) {
+      if (assending) {
+        if( myBuffer[bufferIndex] >= myBuffer[bufferIndex+1] ) {
           KernelPanic();
-      }
-      else
-      {
-        if( myBuffer[bufferIndex] <= myBuffer[bufferIndex+1] )
+        }
+      } else {
+        if (myBuffer[bufferIndex] <= myBuffer[bufferIndex+1]) {
           KernelPanic();
+        }
       }
     }
 
