@@ -4,11 +4,11 @@
 #include"utils.h"
 
 struct RING_BUFFER {
-	char * Buffer;
-	COUNT Size;
-	INDEX ReadIndex;
-	INDEX WriteIndex;
-	BOOL Empty;
+  char * Buffer;
+  COUNT Size;
+  INDEX ReadIndex;
+  INDEX WriteIndex;
+  BOOL Empty;
 };
 
 COUNT RingBufferRead( char * buff, COUNT size, struct RING_BUFFER * ring );
