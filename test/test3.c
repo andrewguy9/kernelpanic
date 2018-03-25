@@ -26,85 +26,72 @@ COUNT TimesRead;
 THREAD_MAIN Writer;
 void * Writer( void * arg )
 {
-	struct LOCKING_CONTEXT block;
-	INDEX sequenceIndex=0;
-	INDEX index;
+  struct LOCKING_CONTEXT block;
+  INDEX sequenceIndex=0;
+  INDEX index;
 
-	LockingInit( &block, LockingBlockNonBlocking, LockingWakeNonBlocking );
+  LockingInit( &block, LockingBlockNonBlocking, LockingWakeNonBlocking );
 
-	while(1)
-	{
-		ResourceLockExclusive( &BufferLock, &block);
+  while (1) {
+    ResourceLockExclusive( &BufferLock, &block);
+    while( !LockingIsAcquired( &block ) ) { }
+    //resource should be exlusive
+    ASSERT( BufferLock.State == RESOURCE_EXCLUSIVE );
 
-		while( !LockingIsAcquired( &block ) )
-                  ;
-	
-		//resource should be exlusive
-		ASSERT( BufferLock.State == RESOURCE_EXCLUSIVE );
+    sequenceIndex++;
+    sequenceIndex%=SEQUENCE_LENGTH;
 
-		sequenceIndex++;
-		sequenceIndex%=SEQUENCE_LENGTH;
+    for (index = 0; index < BUFFER_SIZE; index++) {
+      Buffer[index] = index + Sequence[ sequenceIndex ] ;
+    }
 
-		for( index = 0; index < BUFFER_SIZE; index++ )
-		{
-			Buffer[index] = index + Sequence[ sequenceIndex ] ;
-		}
-		
-		ResourceUnlockExclusive( &BufferLock );
-		
-		SchedulerStartCritical();
-		TimesWritten++;
-		SchedulerForceSwitch();
-	}
-        return NULL;
+    ResourceUnlockExclusive( &BufferLock );
+
+    SchedulerStartCritical();
+    TimesWritten++;
+    SchedulerForceSwitch();
+  }
+  return NULL;
 }
 
 THREAD_MAIN Reader;
 void * Reader( void * arg )
 {
-	INDEX index;
+  INDEX index;
+  int first,second;
+  BOOL ready = FALSE;
 
-	int first,second;
-	BOOL ready = FALSE;
+  while (! ready) {
+    SchedulerStartCritical();
+    if (TimesWritten > 0) {
+      ready = TRUE;
+      SchedulerEndCritical();
+    } else {
+      SchedulerForceSwitch();
+    }
+  }
 
-	while( ! ready )
-	{
-		SchedulerStartCritical();
-		if( TimesWritten > 0 )
-		{
-			ready = TRUE;
-			SchedulerEndCritical();
-		}
-		else
-		{
-			SchedulerForceSwitch();	
-		}
-	}
+  while (1) {
+    ResourceLockShared( &BufferLock, NULL );
 
-	while(1)
-	{
-		ResourceLockShared( &BufferLock, NULL );
+    //the resource should be shared
+    ASSERT( BufferLock.State == RESOURCE_SHARED );
 
-		//the resource should be shared
-		ASSERT( BufferLock.State == RESOURCE_SHARED );
+    for (index=1 ; index < BUFFER_SIZE; index++) {
+      first = Buffer[index-1];
+      second = Buffer[index];
+      if( (first +1) != second ) {
+        KernelPanic( );
+      }
+    }
 
-		for(index=1 ; index < BUFFER_SIZE; index++)
-		{
-			first = Buffer[index-1];
-			second = Buffer[index];
-			if( (first +1) != second )
-			{
-				KernelPanic( );
-			}
-		}
+    ResourceUnlockShared( &BufferLock );
 
-		ResourceUnlockShared( &BufferLock );
-
-		SchedulerStartCritical();
-		TimesRead++;
-		SchedulerForceSwitch();
-	}
-        return NULL;
+    SchedulerStartCritical();
+    TimesRead++;
+    SchedulerForceSwitch();
+  }
+  return NULL;
 }
 
 struct THREAD Writer1;
@@ -123,56 +110,56 @@ char Reader3Stack[STACK_SIZE];
 
 int main()
 {
-        KernelInit();
+  KernelInit();
 
-        SchedulerStartup();
+  SchedulerStartup();
 
-        TimesRead = 0;
-        TimesWritten = 0;
+  TimesRead = 0;
+  TimesWritten = 0;
 
-        ResourceInit(& BufferLock, RESOURCE_SHARED);
+  ResourceInit(& BufferLock, RESOURCE_SHARED);
 
-        SchedulerCreateThread(
-                        & Reader1,
-                        5,
-                        Reader1Stack,
-                        STACK_SIZE,
-                        Reader,
-                        NULL,
-                        TRUE);
-        SchedulerCreateThread(
-                        & Reader2,
-                        5,
-                        Reader2Stack,
-                        STACK_SIZE,
-                        Reader,
-                        NULL,
-                        TRUE);
-        SchedulerCreateThread(
-                        & Reader3,
-                        5,
-                        Reader3Stack,
-                        STACK_SIZE,
-                        Reader,
-                        NULL,
-                        TRUE);
-        SchedulerCreateThread(
-                        & Writer1,
-                        5,
-                        Writer1Stack,
-                        STACK_SIZE,
-                        Writer,
-                        NULL,
-                        TRUE);
-        SchedulerCreateThread(
-                        & Writer2,
-                        5,
-                        Writer2Stack,
-                        STACK_SIZE,
-                        Writer,
-                        NULL,
-                        TRUE);
+  SchedulerCreateThread(
+      & Reader1,
+      5,
+      Reader1Stack,
+      STACK_SIZE,
+      Reader,
+      NULL,
+      TRUE);
+  SchedulerCreateThread(
+      & Reader2,
+      5,
+      Reader2Stack,
+      STACK_SIZE,
+      Reader,
+      NULL,
+      TRUE);
+  SchedulerCreateThread(
+      & Reader3,
+      5,
+      Reader3Stack,
+      STACK_SIZE,
+      Reader,
+      NULL,
+      TRUE);
+  SchedulerCreateThread(
+      & Writer1,
+      5,
+      Writer1Stack,
+      STACK_SIZE,
+      Writer,
+      NULL,
+      TRUE);
+  SchedulerCreateThread(
+      & Writer2,
+      5,
+      Writer2Stack,
+      STACK_SIZE,
+      Writer,
+      NULL,
+      TRUE);
 
-        KernelStart();
-        return 0;
+  KernelStart();
+  return 0;
 }
