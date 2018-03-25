@@ -11,7 +11,7 @@ struct BUFF_CURSOR BuffCursorInit(char * buff, COUNT size)
 {
   ASSERT (size > 0);
   struct BUFF_CURSOR buf = {buff, size-1};
-  buff[0] = '\0';
+  buff[0] = '\0'; //TODO We are making the assumption that this is a string.
   return buf;
 }
 
