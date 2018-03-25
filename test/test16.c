@@ -42,7 +42,6 @@ void combinationsResultInit(struct COMBOS_RESULT * result) {
 
 void combinationsPrint(struct COMBOS_RESULT * result) {
   int i;
-  // IsrDisable(IRQ_LEVEL_MAX);
 #define BUFF_SIZE 512
   char buff[BUFF_SIZE];
   struct BUFF_CURSOR str = BuffCursorInit(buff, BUFF_SIZE);
@@ -55,8 +54,6 @@ void combinationsPrint(struct COMBOS_RESULT * result) {
   ASSERT (! BuffFull(&remstr));
 
   SerialSafeStrWrite(&str, &remstr);
-
-  // IsrEnable(IRQ_LEVEL_MAX);
 }
 
 void CombosRoutineInner(
