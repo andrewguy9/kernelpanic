@@ -7,12 +7,12 @@
 
 struct PIPE
 {
-        struct RING_BUFFER Ring;
-        struct SEMAPHORE Mutex;
-        struct SEMAPHORE EmptyLock;
-        struct SEMAPHORE FullLock;
-        struct SEMAPHORE ReadLock;
-        struct SEMAPHORE WriteLock;
+  struct RING_BUFFER Ring;
+  struct SEMAPHORE Mutex;
+  struct SEMAPHORE EmptyLock;
+  struct SEMAPHORE FullLock;
+  struct SEMAPHORE ReadLock;
+  struct SEMAPHORE WriteLock;
 };
 
 typedef struct PIPE * PIPE_READ;
