@@ -47,6 +47,12 @@ struct BUFF_CURSOR BuffStrRender(struct BUFF_CURSOR * buf, char * format, ...)
 }
 #endif //PC_BUILD
 
+struct BUFF_CURSOR BuffStructRender(struct BUFF_CURSOR * buf, char * obj, COUNT size)
+{
+  return *buf;
+  //TODO fill in.
+}
+
 COUNT BuffSpace(struct BUFF_CURSOR * base, struct BUFF_CURSOR * rem) {
   COUNT written = rem->Buff - base->Buff;
   ASSERT (written < base->Size);
