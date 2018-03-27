@@ -108,6 +108,14 @@ COUNT RingBufferRead( char * buff, COUNT size, struct RING_BUFFER * ring )
   return read;
 }
 
+void RingBufferReadBuffer(SPACE * buff, struct RING_BUFFER * ring)
+{
+  //TODO WE DO POINTER MATH HERE, BUT I'M OK WITH IT.
+  COUNT read = RingBufferRead(buff->Buff, buff->Length, ring);
+  buff->Buff += read;
+  buff->Length -= read;
+}
+
 COUNT RingBufferWrite( char * buff, COUNT size, struct RING_BUFFER * ring )
 {
   COUNT write = 0;
@@ -116,6 +124,13 @@ COUNT RingBufferWrite( char * buff, COUNT size, struct RING_BUFFER * ring )
     ring->Empty = FALSE;
   }
   return write;
+}
+
+void RingBufferWriteBuffer(DATA * buff, struct RING_BUFFER * ring)
+{
+  COUNT write = RingBufferWrite(buff->Buff, buff->Length, ring);
+  buff->Buff += write;
+  buff->Length -= write;
 }
 
 BOOL RingBufferIsEmpty( struct RING_BUFFER * ring )
