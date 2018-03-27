@@ -36,3 +36,5 @@ utils/$(TARGET)_bitmaptest.o: utils/bitmaptest.c
 utils/$(TARGET)_bhamtest.o: utils/bhamtest.c
 
 utils/$(TARGET)_primestest.o: utils/primestest.c
+
+utils/$(TARGET)_buffertest.o: utils/buffertest.c
