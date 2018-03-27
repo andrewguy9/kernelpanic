@@ -35,7 +35,7 @@ DATA BufferData(char * buff, SPACE * s)
   return d;
 }
 
-BOOL BufferSpaceFull(SPACE * s)
+BOOL BufferFull(SPACE * s)
 {
   return s->Length == 0;
 }
@@ -47,7 +47,7 @@ BOOL BufferSpaceFull(SPACE * s)
  * Buf will point at null terminator.
  * Length will be usable space left.
  */
-BOOL BuffStrRender(SPACE * s, char * format, ...)
+BOOL BufferPrint(SPACE * s, char * format, ...)
 {
   int status;
   va_list args;

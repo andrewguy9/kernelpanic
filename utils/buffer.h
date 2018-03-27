@@ -21,13 +21,13 @@ SPACE BufferSpace(char * buff, COUNT size);
 BOOL BufferCopy(DATA * d, SPACE * s);
 #endif //PC_BUILD
 
-#define BufferDataInit(obj) ((DATA) BufferSpace( (char*) (&(obj)), sizeof(obj)))
+#define BufferObj(obj) ((DATA) BufferSpace( (char*) (&(obj)), sizeof(obj)))
 
 DATA BufferData(char * buff, SPACE * s);
 
-BOOL BufferSpaceFull(SPACE * s);
+BOOL BufferFull(SPACE * s);
 
 #ifdef PC_BUILD
-BOOL BuffStrRender(SPACE * s, char * format, ...);
+BOOL BufferPrint(SPACE * s, char * format, ...);
 #endif //PC_BUILD
 #endif //BUFF_H
