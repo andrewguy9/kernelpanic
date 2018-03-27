@@ -44,16 +44,16 @@ void combinationsPrint(struct COMBOS_RESULT * result) {
   int i;
 #define BUFF_SIZE 512
   char buff[BUFF_SIZE];
-  struct BUFF_CURSOR str = BuffCursorInit(buff, BUFF_SIZE);
-  struct BUFF_CURSOR remstr = str;
+  SPACE space = BufferSpace(buff, sizeof(buff));
 
   for (i=CHOOSE_K-1; i>=0; i--) {
-    remstr = BuffStrRender(&remstr, "%d\t", result->Nums[i]);
+    BufferPrint(&space, "%d\t", result->Nums[i]);
   }
-  remstr = BuffStrRender(&remstr, "\n");
-  ASSERT (! BuffFull(&remstr));
+  BufferPrint(&space, "\n");
+  ASSERT (! BufferFull(&space));
 
-  SerialSafeStrWrite(&str, &remstr);
+  DATA str = BufferData(buff, &space);
+  SerialBufferWrite(&str);
 }
 
 void CombosRoutineInner(

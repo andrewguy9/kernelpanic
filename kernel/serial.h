@@ -6,8 +6,9 @@
 
 void SerialStartup();
 COUNT SerialWrite(char * buf, COUNT len);
-void SerialSafeStrWrite(struct BUFF_CURSOR * str, struct BUFF_CURSOR * remstr);
+void SerialBufferWrite(DATA * str);
 //TODO Do we need a flush?
 COUNT SerialRead(char * buf, COUNT len);
+void SerialBufferRead(SPACE * s);
 
 #endif

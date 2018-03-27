@@ -87,16 +87,14 @@ COUNT SerialWrite(char * buf, COUNT len)
   return write;
 }
 
-void SerialSafeStrWrite(struct BUFF_CURSOR * str, struct BUFF_CURSOR * remstr) {
-  char * buff = str->Buff;
-  COUNT len = BuffSpace(str, remstr);
+void SerialBufferWrite(DATA * str) {
   COUNT write;
 
-  while (len > 0) {
+  while (str->Length > 0) {
     //TODO DOING POINTER MATH
-    write = SerialWrite(buff, len);
-    buff += write;
-    len -= write;
+    write = SerialWrite(str->Buff, str->Length);
+    str->Buff += write;
+    str->Length -= write;
   }
 }
 
@@ -131,3 +129,9 @@ COUNT SerialRead(char * buf, COUNT len)
   return read;
 }
 
+void SerialBufferRead(SPACE * s)
+{
+  COUNT read = SerialRead(s->Buff, s->Length);
+  s->Buff += read;
+  s->Length -= read;
+}
