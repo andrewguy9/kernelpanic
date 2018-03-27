@@ -21,7 +21,6 @@ void * TestThreadMain( void * arg )
   while (1) {
     SPACE space = BufferSpace(buf, BUF_SIZE);
     SerialBufferRead(&space);
-    BufferPrint(&space, "");
     DATA data = BufferData(buf, &space);
     SerialBufferWrite(&data);
   }
