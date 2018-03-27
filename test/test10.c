@@ -11,21 +11,19 @@
 //Main routine for threads.
 //
 
-#define BUF_SIZE 512
+#define BUF_SIZE 32
 
 THREAD_MAIN TestThreadMain;
 void * TestThreadMain( void * arg )
 {
   char buf[BUF_SIZE];
-  COUNT read;
 
   while (1) {
-    //TODO DOING PONITER MATH
-    read = SerialRead(buf, BUF_SIZE);
-    buf[read]= '\0';
-    if(read > 0) {
-      SerialWrite(buf, read);
-    }
+    SPACE space = BufferSpace(buf, BUF_SIZE);
+    SerialBufferRead(&space);
+    BufferPrint(&space, "");
+    DATA data = BufferData(buf, &space);
+    SerialBufferWrite(&data);
   }
   return NULL;
 }
