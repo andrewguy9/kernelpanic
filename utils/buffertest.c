@@ -13,7 +13,7 @@ struct TEST_STRUCT {
 void test_struct()
 {
   char buff[STRUCT_SIZE];
-  SPACE s = BufferSpaceInit(buff, sizeof(buff));
+  SPACE s = BufferSpace(buff, sizeof(buff));
 
   ASSERT (s.Length == STRUCT_SIZE);
   ASSERT (s.Buff = buff);
@@ -34,7 +34,7 @@ void test_struct()
   ASSERT (s.Length == sizeof(buff) - sizeof(s1));
   ASSERT (s.Buff == buff + sizeof(s1));
 
-  SPACE empty = BufferSpaceInit(NULL, 0);
+  SPACE empty = BufferSpace(NULL, 0);
   ASSERT (BufferSpaceFull(&empty));
 
 }
@@ -43,21 +43,21 @@ void test_struct()
 void test_string()
 {
   char b1[4];
-  SPACE s1 = BufferSpaceInit(b1, sizeof(b1));
+  SPACE s1 = BufferSpace(b1, sizeof(b1));
   ASSERT (BuffStrRender(&s1, "%d", 123));
   ASSERT (strcmp("123", b1) == 0);
   ASSERT (s1.Buff == b1 + 3);
   ASSERT (s1.Length == 1);
 
   char b2[4];
-  SPACE s2 = BufferSpaceInit(b2, sizeof(b2));
+  SPACE s2 = BufferSpace(b2, sizeof(b2));
   ASSERT (!BuffStrRender(&s2, "%d", 1234));
   ASSERT (strcmp("123", b2) == 0);
   ASSERT (s2.Buff == b2 + sizeof(b2));
   ASSERT (BufferSpaceFull(&s2));
 
   char b3[8];
-  SPACE s3 = BufferSpaceInit(b3, sizeof(b3));
+  SPACE s3 = BufferSpace(b3, sizeof(b3));
   ASSERT (BuffStrRender(&s3, "%d", 123));
   ASSERT (strcmp("123", b3) == 0);
   ASSERT (s3.Length == sizeof(b3) - 3);

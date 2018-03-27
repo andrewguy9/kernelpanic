@@ -8,7 +8,7 @@
  * Makes a buffer which is safe to render into or write to serial
  * First byte is EOS sperator. Length is usable space left.
  */
-SPACE BufferSpaceInit(char * buff, COUNT size)
+SPACE BufferSpace(char * buff, COUNT size)
 {
   SPACE space = {buff, size};
   return space;

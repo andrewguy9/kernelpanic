@@ -15,13 +15,13 @@ typedef struct BUFFER DATA;
 typedef struct BUFFER SPACE;
 
 // Initialize empty buffer.
-SPACE BufferSpaceInit(char * buff, COUNT size);
+SPACE BufferSpace(char * buff, COUNT size);
 
 #ifdef PC_BUILD
 BOOL BufferCopy(DATA * d, SPACE * s);
 #endif //PC_BUILD
 
-#define BufferDataInit(obj) ((DATA) BufferSpaceInit( (char*) (&(obj)), sizeof(obj)))
+#define BufferDataInit(obj) ((DATA) BufferSpace( (char*) (&(obj)), sizeof(obj)))
 
 DATA BufferData(char * buff, SPACE * s);
 
