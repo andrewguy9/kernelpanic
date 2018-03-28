@@ -87,7 +87,7 @@ COUNT SerialWrite(char * buf, COUNT len)
   return write;
 }
 
-void SerialBufferWrite(DATA * str) {
+void SerialWriteBuffer(DATA * str) {
   COUNT write;
 
   while (str->Length > 0) {
@@ -129,7 +129,7 @@ COUNT SerialRead(char * buf, COUNT len)
   return read;
 }
 
-void SerialBufferRead(SPACE * s)
+void SerialReadBuffer(SPACE * s)
 {
   COUNT read = SerialRead(s->Buff, s->Length);
   s->Buff += read;

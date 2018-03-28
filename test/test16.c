@@ -53,7 +53,7 @@ void combinationsPrint(struct COMBOS_RESULT * result) {
   ASSERT (! BufferFull(&space));
 
   DATA str = BufferData(buff, &space);
-  SerialBufferWrite(&str);
+  SerialWriteBuffer(&str);
 }
 
 void CombosRoutineInner(
