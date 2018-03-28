@@ -21,7 +21,7 @@ SPACE BufferSpace(char * buff, COUNT size);
 BOOL BufferCopy(const DATA * d, SPACE * s);
 #endif //PC_BUILD
 
-#define BufferFromObj(obj) ((DATA) BufferSpace( (char*) (&(obj)), sizeof(obj)))
+#define BufferFromObj(obj) {(char*) &(obj), sizeof(obj)}
 #define BufferToObj(data, type) (*(type *) data.Buff)
 
 DATA BufferData(char * buff, const SPACE * s);

@@ -13,7 +13,7 @@
 
 #define MESSAGE_LENGTH 20
 char Message[MESSAGE_LENGTH] = "Thread text message";
-const DATA Data = {Message, MESSAGE_LENGTH}; //TODO make this better.
+const DATA Data = BufferFromObj(Message);
 
 //Allocation for buffers.
 #define RING_SIZE 1024
