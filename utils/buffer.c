@@ -19,6 +19,7 @@ SPACE BufferSpace(char * buff, COUNT size)
 BOOL BufferCopy(const DATA * d, SPACE * s)
 {
   if (d->Length > s->Length) {
+    //TODO NEED TO SET AN OVERFLOW FLAG.
     return FALSE;
   } else {
     memcpy(d->Buff, s->Buff, d->Length);
