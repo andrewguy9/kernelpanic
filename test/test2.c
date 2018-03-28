@@ -4,6 +4,7 @@
 #include"kernel/hal.h"
 #include"kernel/watchdog.h"
 #include"kernel/pipe.h"
+#include"utils/buffer.h"
 
 /*
  * Tests the pipe unit, and by extension ringbuffer and semaphore units.
@@ -12,6 +13,7 @@
 
 #define MESSAGE_LENGTH 20
 char Message[MESSAGE_LENGTH] = "Thread text message";
+const DATA Data = {Message, MESSAGE_LENGTH}; //TODO make this better.
 
 //Allocation for buffers.
 #define RING_SIZE 1024
@@ -61,7 +63,8 @@ void * ProducerMain(void * arg)
   WatchdogAddFlag(context->WatchdogId);
 
   while (1) {
-    PipeWriteStruct( Message, MESSAGE_LENGTH, &Pipe);
+    DATA write = Data;
+    PipeWriteStructBuff(&write, &Pipe);
     WatchdogNotify(context->WatchdogId);
   }
   return NULL;
@@ -72,26 +75,19 @@ void * ConsumerMain(void * arg)
 {
   struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
   WatchdogAddFlag(context->WatchdogId);
-  char buff[MESSAGE_LENGTH];
+  char buff[MESSAGE_LENGTH];//remove references.
 
-  COUNT index;
   while (1) {
-    for (index = 0; index < MESSAGE_LENGTH; index++) {
-      //TODO DOING POINTER MATH.
-      buff[index] = 0;
-    }
+    SPACE space = BufferSpace(buff, MESSAGE_LENGTH);
+    PipeReadStructBuff(&space , &Pipe);
+    DATA data = BufferData(buff, &space);
 
-    PipeReadStruct( buff, MESSAGE_LENGTH, &Pipe);
-
-    for (index = 0; index < MESSAGE_LENGTH; index++) {
-      //TODO DOING POINTER MATH
-      if (Message[index] != buff[index]) {
+    if (!BufferCompare(&data, &Data)) {
         KernelPanic( );
-      }
     }
     WatchdogNotify(context->WatchdogId);
   }
-    return NULL;
+  return NULL;
 }
 
 //main
