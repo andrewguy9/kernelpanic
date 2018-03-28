@@ -25,10 +25,9 @@ void PipeInit( char * buff, COUNT size, struct PIPE * pipe, PIPE_READ * pr, PIPE
   * pw = pipe;
 }
 
-COUNT PipeReadInner( char * buff, COUNT size, PIPE_READ pipe ) {
+void PipeReadInner(SPACE * space, PIPE_READ pipe) {
   BOOL wasFull;
   BOOL dataLeft;
-  COUNT read;
 
   // No readers can progress until there is data.
   SemaphoreDown( & pipe->EmptyLock, NULL );
@@ -44,9 +43,8 @@ COUNT PipeReadInner( char * buff, COUNT size, PIPE_READ pipe ) {
   ASSERT( wasFull ? (pipe->FullLock.Count == 0) : TRUE );
 
   //Perform the read.
-  read = RingBufferRead( buff, size, & pipe->Ring );
+  RingBufferReadBuffer(space, &pipe->Ring);
   // Ring is protected by a read lock which should prevent zero length reads.
-  ASSERT( read > 0 );
 
   //See if the ring buffer is empty.
   //If it is then we need to leak the reader lock.
@@ -59,7 +57,7 @@ COUNT PipeReadInner( char * buff, COUNT size, PIPE_READ pipe ) {
   //If the ring was full while we have exclusive access,
   //and we  freed up some space then we should release
   //the writer lock so writers can go.
-  if (wasFull && read > 0) {
+  if (wasFull > 0) {
     SemaphoreUp( & pipe->FullLock );
   }
 
@@ -70,7 +68,6 @@ COUNT PipeReadInner( char * buff, COUNT size, PIPE_READ pipe ) {
   if (dataLeft) {
     SemaphoreUp( & pipe->EmptyLock );
   }
-  return read;
 }
 
 /*
@@ -88,29 +85,39 @@ COUNT PipeReadInner( char * buff, COUNT size, PIPE_READ pipe ) {
  */
 COUNT PipeRead( char * buff, COUNT size, PIPE_READ pipe )
 {
-  COUNT read;
+  SPACE space = BufferSpace(buff, size);
+  PipeReadBuff(&space, pipe);
+  DATA data = BufferData(buff, &space);
+  return data.Length;
+}
+
+void PipeReadBuff( SPACE * space, PIPE_READ pipe)
+{
   SemaphoreDown( & pipe->ReadLock, NULL );
-  read = PipeReadInner(buff, size, pipe);
+  PipeReadInner(space, pipe);
   SemaphoreUp( & pipe->ReadLock);
-  return read;
 }
 
 void PipeReadStruct( char * buff, COUNT size, PIPE_READ pipe )
 {
-  COUNT read = 0;
-  SemaphoreDown( & pipe->ReadLock, NULL );
-  while (read < size) {
-    //TODO DOING POINTER MATH HERE.
-    read += PipeReadInner(buff+read, size-read, pipe);
-  }
-  SemaphoreUp( & pipe->ReadLock);
-  ASSERT(read == size);
+  SPACE space = BufferSpace(buff, size);
+  PipeReadStructBuff(&space, pipe);
 }
 
-COUNT PipeWriteInner( char * buff, COUNT size, PIPE_WRITE pipe ) {
+void PipeReadStructBuff( SPACE * space, PIPE_READ pipe)
+{
+  SemaphoreDown( & pipe->ReadLock, NULL );
+  while (! BufferEmpty(space)) {
+    PipeReadInner(space, pipe);
+  }
+  SemaphoreUp( & pipe->ReadLock);
+  ASSERT (BufferEmpty(space));
+}
+
+//TODO THIS COULD BE WRITTEN IN TERMS OF BUFFERS.
+void PipeWriteInner( DATA * data, PIPE_WRITE pipe ) {
   BOOL wasEmpty;
   BOOL spaceLeft;
-  COUNT write;
 
   //No writers can progress until we are done.
   SemaphoreDown( & pipe->FullLock, NULL );
@@ -125,9 +132,8 @@ COUNT PipeWriteInner( char * buff, COUNT size, PIPE_WRITE pipe ) {
   ASSERT( wasEmpty ? (pipe->EmptyLock.Count == 0) : TRUE );
 
   //Perform the write.
-  write = RingBufferWrite( buff, size, & pipe->Ring );
+  RingBufferWriteBuffer(data, &pipe->Ring );
   // Ring is protected by a write lock which should prevent zero length writes.
-  ASSERT( write > 0 );
 
   //See if the ring buffer is empty.
   //If it is then we need to leak the reader lock.
@@ -140,7 +146,7 @@ COUNT PipeWriteInner( char * buff, COUNT size, PIPE_WRITE pipe ) {
   //If the ring was empty while we have exclusive access,
   //and we wrote some data, then we should release
   //the EmptyLock so readers can go.
-  if( wasEmpty && write > 0 ) {
+  if (wasEmpty) {
     SemaphoreUp( & pipe->EmptyLock );
   }
 
@@ -149,9 +155,9 @@ COUNT PipeWriteInner( char * buff, COUNT size, PIPE_WRITE pipe ) {
   //If there is no space in the buffer, we cant let
   //writers progress, so we leak the lock.
   if( spaceLeft ) {
+    ASSERT (BufferEmpty(data));
     SemaphoreUp( & pipe->FullLock );
   }
-  return write;
 }
 
 /*
@@ -169,22 +175,31 @@ COUNT PipeWriteInner( char * buff, COUNT size, PIPE_WRITE pipe ) {
  */
 COUNT PipeWrite( char * buff, COUNT size, PIPE_WRITE pipe )
 {
-  COUNT write;
+  SPACE space = BufferSpace(buff, size);
+  PipeWriteBuff(&space, pipe);
+  DATA data = BufferData(buff, &space);
+  return data.Length;
+}
+
+void PipeWriteBuff(DATA * buff, PIPE_WRITE pipe)
+{
   SemaphoreDown( & pipe->WriteLock, NULL );
-  write = PipeWriteInner(buff, size, pipe);
+  PipeWriteInner(buff, pipe);
   SemaphoreUp( & pipe->WriteLock);
-  return write;
 }
 
 void PipeWriteStruct( char * buff, COUNT size, PIPE_WRITE pipe )
 {
-  COUNT write = 0;
-  SemaphoreDown( & pipe->WriteLock, NULL );
-  while (write < size) {
-    //TODO DOING POINTER MATH HERE.
-    write += PipeWriteInner(buff+write, size-write, pipe);
-  }
-  SemaphoreUp( & pipe->WriteLock);
-  ASSERT(write == size);
+  DATA d = BufferSpace(buff, size);
+  PipeWriteStructBuff(&d, pipe);
 }
 
+void PipeWriteStructBuff(DATA * data, PIPE_WRITE pipe)
+{
+  SemaphoreDown( & pipe->WriteLock, NULL );
+  while (! BufferEmpty(data)) {
+    PipeWriteInner(data, pipe);
+  }
+  SemaphoreUp( & pipe->WriteLock);
+  ASSERT (BufferEmpty(data));
+}
