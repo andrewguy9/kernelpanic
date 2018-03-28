@@ -16,7 +16,7 @@ SPACE BufferSpace(char * buff, COUNT size)
 
 #ifdef PC_BUILD
 #include<string.h>
-BOOL BufferCopy(DATA * d, SPACE * s)
+BOOL BufferCopy(const DATA * d, SPACE * s)
 {
   if (d->Length > s->Length) {
     return FALSE;
@@ -29,18 +29,18 @@ BOOL BufferCopy(DATA * d, SPACE * s)
 }
 #endif // PC_BUILD
 
-DATA BufferData(char * buff, SPACE * s)
+DATA BufferData(char * buff, const SPACE * s)
 {
   DATA d = {buff, s->Buff - buff};
   return d;
 }
 
-BOOL BufferFull(SPACE * s)
+BOOL BufferFull(const SPACE * s)
 {
   return s->Length == 0;
 }
 
-BOOL BufferEmpty(DATA * d)
+BOOL BufferEmpty(const DATA * d)
 {
   return d->Length == 0;
 }

@@ -18,16 +18,16 @@ typedef struct BUFFER SPACE;
 SPACE BufferSpace(char * buff, COUNT size);
 
 #ifdef PC_BUILD
-BOOL BufferCopy(DATA * d, SPACE * s);
+BOOL BufferCopy(const DATA * d, SPACE * s);
 #endif //PC_BUILD
 
 #define BufferFromObj(obj) ((DATA) BufferSpace( (char*) (&(obj)), sizeof(obj)))
 #define BufferToObj(data, type) (*(type *) data.Buff)
 
-DATA BufferData(char * buff, SPACE * s);
+DATA BufferData(char * buff, const SPACE * s);
 
-BOOL BufferFull(SPACE * s);
-BOOL BufferEmpty(DATA * d);
+BOOL BufferFull(const SPACE * s);
+BOOL BufferEmpty(const DATA * d);
 
 #ifdef PC_BUILD
 BOOL BufferPrint(SPACE * s, char * format, ...);
