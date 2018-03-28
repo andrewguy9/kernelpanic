@@ -32,4 +32,8 @@ BOOL BufferEmpty(DATA * d);
 #ifdef PC_BUILD
 BOOL BufferPrint(SPACE * s, char * format, ...);
 #endif //PC_BUILD
+
+#ifdef PC_BUILD
+BOOL BufferCompare(const DATA * d1, const DATA * d2);
+#endif //PC_BUILD
 #endif //BUFF_H

@@ -72,3 +72,18 @@ BOOL BufferPrint(SPACE * s, char * format, ...)
   }
 }
 #endif //PC_BUILD
+
+#ifdef PC_BUILD
+BOOL BufferCompare(const DATA * d1, const DATA * d2)
+{
+  if (d1->Length != d2->Length) {
+    return FALSE;
+  } else {
+    if (memcmp(d1->Buff, d2->Buff, d1->Length) == 0) {
+      return TRUE;
+    } else {
+      return FALSE;
+    }
+  }
+}
+#endif //PC_BUILD

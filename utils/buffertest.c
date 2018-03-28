@@ -18,21 +18,25 @@ void test_struct()
   ASSERT (s.Length == STRUCT_SIZE);
   ASSERT (s.Buff = buff);
 
-  struct TEST_STRUCT s1 = {5, TRUE};
-  DATA d1 = BufferFromObj(s1);
+  struct TEST_STRUCT obj1 = {5, TRUE};
+  const DATA d1 = BufferFromObj(obj1);
   ASSERT (BufferCopy(&d1, &s));
-  ASSERT (s.Length == sizeof(buff) - sizeof(s1));
-  ASSERT (s.Buff == buff + sizeof(s1));
+  ASSERT (s.Length == sizeof(buff) - sizeof(obj1));
+  ASSERT (s.Buff == buff + sizeof(obj1));
+  const DATA c1 = BufferData(buff, &s);
+  ASSERT (BufferCompare(&d1, &c1));
 
-  struct TEST_STRUCT s2 = BufferToObj(d1, struct TEST_STRUCT);
-  ASSERT(s1.Val1 == s2.Val1);
-  ASSERT(s1.Val2 == s2.Val2);
+  struct TEST_STRUCT obj2 = BufferToObj(d1, struct TEST_STRUCT);
+  ASSERT(obj1.Val1 == obj2.Val1);
+  ASSERT(obj1.Val2 == obj2.Val2);
 
-  struct TEST_STRUCT s3 = {10, TRUE};
-  DATA d2 = BufferFromObj(s3);
-  ASSERT (!BufferCopy(&d2, &s));
-  ASSERT (s.Length == sizeof(buff) - sizeof(s1));
-  ASSERT (s.Buff == buff + sizeof(s1));
+  struct TEST_STRUCT obj3 = {10, TRUE};
+  DATA d3 = BufferFromObj(obj3);
+  ASSERT (!BufferCopy(&d3, &s));
+  ASSERT (s.Length == sizeof(buff) - sizeof(obj1));
+  ASSERT (s.Buff == buff + sizeof(obj1));
+  const DATA c3 = BufferData(buff, &s);
+  ASSERT (!BufferCompare(&d3, &c3));
 
   SPACE empty = BufferSpace(NULL, 0);
   ASSERT (BufferFull(&empty));
@@ -69,7 +73,6 @@ void test_string()
   ASSERT (!BufferPrint(&s3, "%d", 456));
   ASSERT (BufferFull(&s3));
   ASSERT (strcmp("1239874", b3) == 0);
-
 }
 
 int main() {
