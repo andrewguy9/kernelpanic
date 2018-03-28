@@ -53,6 +53,7 @@ COUNT RingBufferReadSmall(
   return index;
 }
 
+//TODO MAKE A BUFFER IMPLEMENTATION.
 COUNT RingBufferWriteSmall( char *buff, COUNT size, struct RING_BUFFER * ring )
 {
   INDEX cur = ring->WriteIndex;
@@ -86,6 +87,7 @@ COUNT RingBufferWriteSmall( char *buff, COUNT size, struct RING_BUFFER * ring )
     }
   }
   //do copy
+  //TODO make this use the buffer.
   INDEX index = 0;
   for( ; cur != end; cur++ ) {
     ring->Buffer[cur] = buff[index++];
@@ -116,6 +118,7 @@ void RingBufferReadBuffer(SPACE * buff, struct RING_BUFFER * ring)
   buff->Length -= read;
 }
 
+//TODO IMPLEMENT THIS IN TERMS OF THE BUFFER IMPL.
 COUNT RingBufferWrite( char * buff, COUNT size, struct RING_BUFFER * ring )
 {
   COUNT write = 0;
@@ -126,6 +129,7 @@ COUNT RingBufferWrite( char * buff, COUNT size, struct RING_BUFFER * ring )
   return write;
 }
 
+//TODO MAKE THIS THE BASE IMPL.
 void RingBufferWriteBuffer(DATA * buff, struct RING_BUFFER * ring)
 {
   COUNT write = RingBufferWrite(buff->Buff, buff->Length, ring);
