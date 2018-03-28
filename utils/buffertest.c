@@ -19,17 +19,17 @@ void test_struct()
   ASSERT (s.Buff = buff);
 
   struct TEST_STRUCT s1 = {5, TRUE};
-  DATA d1 = BufferObj(s1);
+  DATA d1 = BufferFromObj(s1);
   ASSERT (BufferCopy(&d1, &s));
   ASSERT (s.Length == sizeof(buff) - sizeof(s1));
   ASSERT (s.Buff == buff + sizeof(s1));
 
-  struct TEST_STRUCT s2 = *(struct TEST_STRUCT *) d1.Buff;
+  struct TEST_STRUCT s2 = BufferToObj(d1, struct TEST_STRUCT);
   ASSERT(s1.Val1 == s2.Val1);
   ASSERT(s1.Val2 == s2.Val2);
 
   struct TEST_STRUCT s3 = {10, TRUE};
-  DATA d2 = BufferObj(s3);
+  DATA d2 = BufferFromObj(s3);
   ASSERT (!BufferCopy(&d2, &s));
   ASSERT (s.Length == sizeof(buff) - sizeof(s1));
   ASSERT (s.Buff == buff + sizeof(s1));
