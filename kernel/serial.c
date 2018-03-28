@@ -98,6 +98,7 @@ void SerialWriteBuffer(DATA * str) {
   }
 }
 
+//TODO SHOULD BE TRAILING IMPL.
 COUNT SerialRead(char * buf, COUNT len)
 {
   COUNT read = 0;
@@ -129,8 +130,10 @@ COUNT SerialRead(char * buf, COUNT len)
   return read;
 }
 
+//TODO SHOULD BE BASE IMPL.
 void SerialReadBuffer(SPACE * s)
 {
+  //TODO I'M DOING POINTER MATH, BUT I'M OK WITH IT.
   COUNT read = SerialRead(s->Buff, s->Length);
   s->Buff += read;
   s->Length -= read;
