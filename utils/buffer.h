@@ -26,6 +26,7 @@ BOOL BufferCopy(DATA * d, SPACE * s);
 DATA BufferData(char * buff, SPACE * s);
 
 BOOL BufferFull(SPACE * s);
+BOOL BufferEmpty(DATA * d);
 
 #ifdef PC_BUILD
 BOOL BufferPrint(SPACE * s, char * format, ...);

@@ -40,6 +40,11 @@ BOOL BufferFull(SPACE * s)
   return s->Length == 0;
 }
 
+BOOL BufferEmpty(DATA * d)
+{
+  return d->Length == 0;
+}
+
 #ifdef PC_BUILD
 /*
  * Render a string into buffer.
