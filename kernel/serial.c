@@ -90,8 +90,8 @@ COUNT SerialWrite(char * buf, COUNT len)
 void SerialWriteBuffer(DATA * str) {
   COUNT write;
 
-  while (str->Length > 0) {
-    //TODO DOING POINTER MATH
+  while (! BufferEmpty(str)) {
+    //TODO DOING POINTER MATH, BUT I'M OK WITH IT.
     write = SerialWrite(str->Buff, str->Length);
     str->Buff += write;
     str->Length -= write;
