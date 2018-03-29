@@ -85,17 +85,21 @@ void SetupPipe(
 #define QUANTUM 1
 #define TIMEOUT (2*QUANTUM*6)
 
-void SetupData(char * buff, COUNT len, char start, int diff) {
+DATA SetupData(char * buff, COUNT len, char start, int diff) {
   SPACE space = BufferSpace(buff, len);
   for (char val = start; !BufferFull(&space); val+=diff) {
-    DATA data = BufferFromObj(val);
-    BOOL result = BufferCopy(&data, &space);
+    DATA valData = BufferFromObj(val);
+    BOOL result = BufferCopy(&valData, &space);
     ASSERT (result);
   }
+  return BufferData(buff, &space);
 }
 
 char AssendingBuffer[RANDOM_VALUES_SIZE];
 char DecendingBuffer[RANDOM_VALUES_SIZE];
+
+DATA AssendingData;
+DATA DecendingData;
 
 THREAD_MAIN ProducerMain;
 void * ProducerMain( void * arg )
@@ -185,8 +189,8 @@ void * ConsumerMain( void * arg )
 
 int main()
 {
-  SetupData(AssendingBuffer, RANDOM_VALUES_SIZE, 'a', 1);
-  SetupData(DecendingBuffer, RANDOM_VALUES_SIZE, 'z', -1);
+  AssendingData = SetupData(AssendingBuffer, RANDOM_VALUES_SIZE, 'a', 1);
+  DecendingData = SetupData(DecendingBuffer, RANDOM_VALUES_SIZE, 'z', -1);
 
   KernelInit();
   SchedulerStartup();
