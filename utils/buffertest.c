@@ -2,6 +2,7 @@
 #include"types.h"
 #include"utils.h"
 #include<stdio.h>
+#include<string.h>
 
 struct TEST_STRUCT {
   COUNT Val1;
@@ -10,41 +11,62 @@ struct TEST_STRUCT {
 
 #define STRUCT_SIZE (sizeof(struct TEST_STRUCT))
 
-void test_struct()
-{
+void test_BufferSpace() {
   char buff[STRUCT_SIZE];
   SPACE s = BufferSpace(buff, sizeof(buff));
 
-  ASSERT (s.Length == STRUCT_SIZE);
+  ASSERT (s.Length == sizeof(buff));
   ASSERT (s.Buff = buff);
-
-  struct TEST_STRUCT obj1 = {5, 10};
-  const DATA d1 = BufferFromObj(obj1);
-  ASSERT (BufferCopy(&d1, &s));
-  ASSERT (s.Length == sizeof(buff) - sizeof(obj1));
-  ASSERT (s.Buff == buff + sizeof(obj1));
-  const DATA c1 = BufferData(buff, &s);
-  ASSERT (BufferCompare(&d1, &c1));
-
-  struct TEST_STRUCT obj2 = BufferToObj(d1, struct TEST_STRUCT);
-  ASSERT(obj1.Val1 == obj2.Val1);
-  ASSERT(obj2.Val1 == 5);
-  ASSERT(obj2.Val2 == 10);
-
-  struct TEST_STRUCT obj3 = {10, 20};
-  DATA d3 = BufferFromObj(obj3);
-  ASSERT (!BufferCopy(&d3, &s));
-  ASSERT (s.Length == sizeof(buff) - sizeof(obj1));
-  ASSERT (s.Buff == buff + sizeof(obj1));
-  const DATA c3 = BufferData(buff, &s);
-  ASSERT (!BufferCompare(&d3, &c3));
-
-  SPACE empty = BufferSpace(NULL, 0);
-  ASSERT (BufferFull(&empty));
-
 }
 
-#include<string.h>
+void test_BufferFromObj() {
+  struct TEST_STRUCT obj1 = {5, 10};
+  const DATA d1 = BufferFromObj(obj1);
+  ASSERT(d1.Buff == (char*) &obj1);
+  ASSERT(d1.Length == sizeof(d1));
+}
+
+void test_BufferData() {
+  char buff[5];
+  SPACE space = BufferFromObj(buff);
+  BufferPrint(&space, "test");
+  DATA data = BufferData(buff, &space);
+  ASSERT (data.Buff == buff);
+  ASSERT (data.Length = 5);
+  ASSERT (strcmp("test", data.Buff) == 0);
+}
+
+void test_BufferToObj() {
+  struct TEST_STRUCT obj1 = {5, 10};
+  DATA data = BufferFromObj(obj1);
+  struct TEST_STRUCT obj2 = BufferToObj(data, struct TEST_STRUCT);
+  ASSERT(obj2.Val1 == 5);
+  ASSERT(obj2.Val2 == 10);
+}
+
+void test_BufferCopy() {
+  struct TEST_STRUCT obj = {5,10};
+  DATA inData = BufferFromObj(obj);
+  char buff[sizeof(obj)];
+  SPACE space = BufferFromObj(buff);
+  BOOL result = BufferCopy(&inData, &space);
+  ASSERT (result);
+  DATA out_data = BufferData(buff, &space);
+  struct TEST_STRUCT copy = {0,0};
+  copy = BufferToObj(out_data, struct TEST_STRUCT);
+  ASSERT (copy.Val1 = 5);
+  ASSERT (copy.Val2 = 10);
+}
+
+void test_struct()
+{
+  test_BufferSpace();
+  test_BufferFromObj();
+  test_BufferData();
+  test_BufferToObj();
+  test_BufferCopy();
+}
+
 void test_string()
 {
   char b1[4];
