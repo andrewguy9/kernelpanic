@@ -86,16 +86,11 @@ void SetupPipe(
 #define TIMEOUT (2*QUANTUM*6)
 
 void SetupData(char * buff, COUNT len, char start, int diff) {
-  char val = start;
   SPACE space = BufferSpace(buff, len);
-  for (INDEX bufferIndex = 0; bufferIndex < len; bufferIndex++) {
+  for (char val = start; !BufferFull(&space); val+=diff) {
     DATA data = BufferFromObj(val);
-    ASSERT (data.Buff == &val);
-    ASSERT (data.Buff[0] == val);
     BOOL result = BufferCopy(&data, &space);
     ASSERT (result);
-    ASSERT (buff[bufferIndex] == val);
-    val += diff;
   }
 }
 
