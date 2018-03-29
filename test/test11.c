@@ -135,14 +135,10 @@ void * ConsumerMain( void * arg )
 {
   struct CONSUMER_CONTEXT * context = (struct CONSUMER_CONTEXT *) arg;
   PIPE_READ reader = context->Reader;
-  INDEX timeIndex;
+  INDEX timeIndex = 0;
   COUNT bufferIndex;
   char myBuffer[RANDOM_VALUES_SIZE];
-  BOOL assending;
-  COUNT length;
-
-  timeIndex = 0;
-  assending = TRUE;
+  BOOL assending = TRUE;
 
   WatchdogAddFlag(context->WatchdogId);
 
@@ -157,7 +153,7 @@ void * ConsumerMain( void * arg )
       }
     }
 
-    length = RandomNumbers[timeIndex];
+    COUNT length = RandomNumbers[timeIndex];
 
     //Perform read
     PipeReadStruct(
