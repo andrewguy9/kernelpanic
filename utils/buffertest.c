@@ -5,7 +5,7 @@
 
 struct TEST_STRUCT {
   COUNT Val1;
-  BOOL Val2;
+  COUNT Val2;
 };
 
 #define STRUCT_SIZE (sizeof(struct TEST_STRUCT))
@@ -18,7 +18,7 @@ void test_struct()
   ASSERT (s.Length == STRUCT_SIZE);
   ASSERT (s.Buff = buff);
 
-  struct TEST_STRUCT obj1 = {5, TRUE};
+  struct TEST_STRUCT obj1 = {5, 10};
   const DATA d1 = BufferFromObj(obj1);
   ASSERT (BufferCopy(&d1, &s));
   ASSERT (s.Length == sizeof(buff) - sizeof(obj1));
@@ -29,9 +29,9 @@ void test_struct()
   struct TEST_STRUCT obj2 = BufferToObj(d1, struct TEST_STRUCT);
   ASSERT(obj1.Val1 == obj2.Val1);
   ASSERT(obj2.Val1 == 5);
-  ASSERT(obj2.Val2 == TRUE);
+  ASSERT(obj2.Val2 == 10);
 
-  struct TEST_STRUCT obj3 = {10, TRUE};
+  struct TEST_STRUCT obj3 = {10, 20};
   DATA d3 = BufferFromObj(obj3);
   ASSERT (!BufferCopy(&d3, &s));
   ASSERT (s.Length == sizeof(buff) - sizeof(obj1));
