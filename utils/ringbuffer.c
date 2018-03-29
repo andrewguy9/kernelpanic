@@ -7,6 +7,12 @@
 //
 //Private Routines
 //
+void badCopy(char * src, char * dst, int len) {
+  for(int cur = 0; cur < len; cur++ )
+  {
+    dst[cur] = src[cur];
+  }
+}
 
 COUNT RingBufferReadSmall(
     char *buff,
@@ -44,13 +50,8 @@ COUNT RingBufferReadSmall(
       ring->ReadIndex = end;
     }
   }
-  //do copy
-  INDEX index = 0;
-  for( ; cur != end; cur++ )
-  {
-    buff[index++] = ring->Buffer[cur];
-  }
-  return index;
+  badCopy(ring->Buffer+cur, buff, end-cur);
+  return end-cur;
 }
 
 //TODO MAKE A BUFFER IMPLEMENTATION.
@@ -86,13 +87,8 @@ COUNT RingBufferWriteSmall( char *buff, COUNT size, struct RING_BUFFER * ring )
       ring->WriteIndex = end;
     }
   }
-  //do copy
-  //TODO make this use the buffer.
-  INDEX index = 0;
-  for( ; cur != end; cur++ ) {
-    ring->Buffer[cur] = buff[index++];
-  }
-  return index;
+  badCopy(buff, ring->Buffer+cur, end-cur);
+  return end-cur;
 }
 
 //
