@@ -16,15 +16,15 @@ SPACE BufferSpace(char * buff, COUNT size)
 
 #ifdef PC_BUILD
 #include<string.h>
-BOOL BufferCopy(const DATA * d, SPACE * s)
+BOOL BufferCopy(const DATA * data, SPACE * space)
 {
-  if (d->Length > s->Length) {
+  if (data->Length > space->Length) {
     //TODO NEED TO SET AN OVERFLOW FLAG.
     return FALSE;
   } else {
-    memcpy(d->Buff, s->Buff, d->Length);
-    s->Length -= d->Length;
-    s->Buff += d->Length;
+    memcpy(space->Buff, data->Buff, data->Length);
+    space->Length -= data->Length;
+    space->Buff += data->Length;
     return TRUE;
   }
 }

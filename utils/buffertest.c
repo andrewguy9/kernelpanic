@@ -28,7 +28,8 @@ void test_struct()
 
   struct TEST_STRUCT obj2 = BufferToObj(d1, struct TEST_STRUCT);
   ASSERT(obj1.Val1 == obj2.Val1);
-  ASSERT(obj1.Val2 == obj2.Val2);
+  ASSERT(obj2.Val1 == 5);
+  ASSERT(obj2.Val2 == TRUE);
 
   struct TEST_STRUCT obj3 = {10, TRUE};
   DATA d3 = BufferFromObj(obj3);
