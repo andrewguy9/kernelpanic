@@ -94,16 +94,14 @@ void SetupData(char * buff, COUNT len, char start, int diff) {
   }
 }
 
+char AssendingBuffer[RANDOM_VALUES_SIZE];
+char DecendingBuffer[RANDOM_VALUES_SIZE];
+
 THREAD_MAIN ProducerMain;
 void * ProducerMain( void * arg )
 {
   struct PRODUCER_CONTEXT * context = (struct PRODUCER_CONTEXT *) arg;
   WatchdogAddFlag(context->WatchdogId);
-
-  char AssendingBuffer[RANDOM_VALUES_SIZE];
-  SetupData(AssendingBuffer, RANDOM_VALUES_SIZE, 'a', 1);
-  char DecendingBuffer[RANDOM_VALUES_SIZE];
-  SetupData(DecendingBuffer, RANDOM_VALUES_SIZE, 'z', -1);
 
   INDEX timeIndex = 0;
   BOOL assending = TRUE;
@@ -191,6 +189,9 @@ void * ConsumerMain( void * arg )
 
 int main()
 {
+  SetupData(AssendingBuffer, RANDOM_VALUES_SIZE, 'a', 1);
+  SetupData(DecendingBuffer, RANDOM_VALUES_SIZE, 'z', -1);
+
   KernelInit();
   SchedulerStartup();
   SetupPipe(MessageBuffer1, &Pipe1, &ProducerContext1, &ConsumerContext1, 1, 2);
