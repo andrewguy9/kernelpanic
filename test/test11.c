@@ -85,6 +85,15 @@ void SetupPipe(
 #define QUANTUM 1
 #define TIMEOUT (2*QUANTUM*6)
 
+void SetupData(char * buff, COUNT len, char start, int diff) {
+  char val = start;
+  for (INDEX bufferIndex = 0; bufferIndex < len; bufferIndex++) {
+    //TODO DOING POINTER MATH.
+    buff[ bufferIndex ] = val;
+    val += diff;
+  }
+}
+
 THREAD_MAIN ProducerMain;
 void * ProducerMain( void * arg )
 {
@@ -92,12 +101,9 @@ void * ProducerMain( void * arg )
   WatchdogAddFlag(context->WatchdogId);
 
   char AssendingBuffer[RANDOM_VALUES_SIZE];
+  SetupData(AssendingBuffer, RANDOM_VALUES_SIZE, 'a', 1);
   char DecendingBuffer[RANDOM_VALUES_SIZE];
-  for (INDEX bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++) {
-    //TODO DOING POINTER MATH.
-    AssendingBuffer[ bufferIndex ] = bufferIndex;
-    DecendingBuffer[ bufferIndex ] = RANDOM_VALUES_SIZE - bufferIndex;
-  }
+  SetupData(DecendingBuffer, RANDOM_VALUES_SIZE, 'z', -1);
 
   INDEX timeIndex = 0;
   BOOL assending = TRUE;
