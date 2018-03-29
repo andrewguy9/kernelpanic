@@ -74,6 +74,7 @@ void SerialStartup()
   HalStartSerial();
 }
 
+//TODO SHOULD BE TRAILING IMPL.
 COUNT SerialWrite(char * buf, COUNT len)
 {
   COUNT write;
@@ -87,6 +88,7 @@ COUNT SerialWrite(char * buf, COUNT len)
   return write;
 }
 
+//TODO SHOULD BE BASE IMPL.
 void SerialWriteBuffer(DATA * str) {
   COUNT write;
 
