@@ -89,9 +89,9 @@ DATA SetupData(char * buff, COUNT len, char start, int diff) {
   SPACE space = BufferSpace(buff, len);
   for (char val = start; !BufferFull(&space); val+=diff) {
     DATA valData = BufferFromObj(val);
-    BOOL result = BufferCopy(&valData, &space);
-    ASSERT (result);
+    BufferCopy(&valData, &space);
   }
+  ASSERT (BufferFull(&space));
   return BufferData(buff, &space);
 }
 
