@@ -3,6 +3,7 @@
 #include"kernel/pipe.h"
 #include"kernel/panic.h"
 #include"kernel/watchdog.h"
+#include"utils/buffer.h"
 #include<stdio.h>
 
 /*
@@ -88,29 +89,22 @@ THREAD_MAIN ProducerMain;
 void * ProducerMain( void * arg )
 {
   struct PRODUCER_CONTEXT * context = (struct PRODUCER_CONTEXT *) arg;
-  PIPE_WRITE writer = context->Writer;
-  INDEX timeIndex;
-  INDEX bufferIndex;
-  COUNT length;
-  char AssendingBuffer[RANDOM_VALUES_SIZE];
-  char DecendingBuffer[RANDOM_VALUES_SIZE];
-  BOOL assending;
-
-  char * curBuffer;
-
   WatchdogAddFlag(context->WatchdogId);
 
-  for (bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++) {
+  char AssendingBuffer[RANDOM_VALUES_SIZE];
+  char DecendingBuffer[RANDOM_VALUES_SIZE];
+  for (INDEX bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++) {
     //TODO DOING POINTER MATH.
     AssendingBuffer[ bufferIndex ] = bufferIndex;
     DecendingBuffer[ bufferIndex ] = RANDOM_VALUES_SIZE - bufferIndex;
   }
 
-  timeIndex = 0;
-  assending = TRUE;
-
+  INDEX timeIndex = 0;
+  BOOL assending = TRUE;
+  char * curBuffer;
+  PIPE_WRITE writer = context->Writer;
   while (1) {
-    length = RandomNumbers[timeIndex];
+    COUNT length = RandomNumbers[timeIndex];
 
     if (assending) {
       curBuffer = AssendingBuffer;
