@@ -18,7 +18,7 @@ typedef struct BUFFER SPACE;
 SPACE BufferSpace(char * buff, COUNT size);
 
 #ifdef PC_BUILD
-BOOL BufferCopy(const DATA * d, SPACE * s);
+void BufferCopy(DATA * d, SPACE * s);
 #endif //PC_BUILD
 
 #define BufferFromObj(obj) {(char*) &(obj), sizeof(obj)}

@@ -49,8 +49,9 @@ void test_BufferCopy() {
   DATA inData = BufferFromObj(obj);
   char buff[sizeof(obj)];
   SPACE space = BufferFromObj(buff);
-  BOOL result = BufferCopy(&inData, &space);
-  ASSERT (result);
+  BufferCopy(&inData, &space);
+  ASSERT(BufferEmpty(&inData));
+  ASSERT(BufferEmpty(&space));
   DATA out_data = BufferData(buff, &space);
   struct TEST_STRUCT copy = {0,0};
   copy = BufferToObj(out_data, struct TEST_STRUCT);

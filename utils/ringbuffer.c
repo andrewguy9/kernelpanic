@@ -47,7 +47,7 @@ COUNT RingBufferReadSmall(
   COUNT len = end-start;
   DATA data = BufferSpace(ring->Buffer+start, len);
   SPACE space = BufferSpace(buff, len);
-  ASSUME(BufferCopy(&data, &space), TRUE);
+  BufferCopy(&data, &space);
   return end-start;
 }
 
@@ -87,7 +87,7 @@ COUNT RingBufferWriteSmall( char *buff, COUNT size, struct RING_BUFFER * ring )
   COUNT len = end-start;
   SPACE space = BufferSpace(ring->Buffer+start, len);
   DATA data = BufferSpace(buff, len);
-  ASSUME(BufferCopy(&data, &space), TRUE);
+  BufferCopy(&data, &space);
   return end-start;
 }
 

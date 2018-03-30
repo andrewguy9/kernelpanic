@@ -21,7 +21,7 @@ utils/$(TARGET)_linktest.out: utils/$(TARGET)_linktest.o utils/$(TARGET)_linkedl
 
 utils/$(TARGET)_treetest.out: utils/$(TARGET)_treetest.o utils/$(TARGET)_linkedlist.o utils/$(TARGET)_avl.o
 
-utils/$(TARGET)_ringtest.out: utils/$(TARGET)_ringtest.o utils/$(TARGET)_ringbuffer.o
+utils/$(TARGET)_ringtest.out: utils/$(TARGET)_ringtest.o utils/$(TARGET)_ringbuffer.o utils/$(TARGET)_buffer.o
 
 utils/$(TARGET)_bitmaptest.out: utils/$(TARGET)_bitmaptest.o utils/$(TARGET)_bitmap.o
 
