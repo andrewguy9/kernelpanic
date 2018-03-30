@@ -7,16 +7,13 @@
 //
 //Private Routines
 //
-void badCopy(DATA * data, SPACE * space) {
-  ASSUME(BufferCopy(data, space), TRUE);
-}
 
 COUNT RingBufferReadSmall(
     char *buff,
     COUNT size,
     struct RING_BUFFER * ring)
 {
-  INDEX cur = ring->ReadIndex;
+  INDEX start = ring->ReadIndex;
   INDEX end = ring->ReadIndex + size;
   //find where we stop
   if (ring->ReadIndex < ring->WriteIndex)
@@ -47,17 +44,17 @@ COUNT RingBufferReadSmall(
       ring->ReadIndex = end;
     }
   }
-  COUNT len = end-cur;
-  DATA data = BufferSpace(ring->Buffer+cur, len);
+  COUNT len = end-start;
+  DATA data = BufferSpace(ring->Buffer+start, len);
   SPACE space = BufferSpace(buff, len);
-  badCopy(&data, &space);
-  return end-cur;
+  ASSUME(BufferCopy(&data, &space), TRUE);
+  return end-start;
 }
 
 //TODO MAKE A BUFFER IMPLEMENTATION.
 COUNT RingBufferWriteSmall( char *buff, COUNT size, struct RING_BUFFER * ring )
 {
-  INDEX cur = ring->WriteIndex;
+  INDEX start = ring->WriteIndex;
   INDEX end = ring->WriteIndex + size;
   //find where we stop
   if (ring->WriteIndex < ring->ReadIndex) {
@@ -87,11 +84,11 @@ COUNT RingBufferWriteSmall( char *buff, COUNT size, struct RING_BUFFER * ring )
       ring->WriteIndex = end;
     }
   }
-  COUNT len = end-cur;
-  SPACE space = BufferSpace(ring->Buffer+cur, len);
+  COUNT len = end-start;
+  SPACE space = BufferSpace(ring->Buffer+start, len);
   DATA data = BufferSpace(buff, len);
-  badCopy(&data, &space);
-  return end-cur;
+  ASSUME(BufferCopy(&data, &space), TRUE);
+  return end-start;
 }
 
 //
