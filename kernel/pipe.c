@@ -115,9 +115,6 @@ void PipeReadStructBuff( SPACE * space, PIPE_READ pipe)
 }
 
 void PipeWriteInner( DATA * data, PIPE_WRITE pipe ) {
-  BOOL wasEmpty;
-  BOOL spaceLeft;
-
   //No writers can progress until we are done.
   SemaphoreDown( & pipe->FullLock, NULL );
 
@@ -127,7 +124,7 @@ void PipeWriteInner( DATA * data, PIPE_WRITE pipe ) {
   //Check and see if the buffer is empty.
   //If it is, then the EmptyLock should
   //have been leaked, and readers should be blocking.
-  wasEmpty = RingBufferIsEmpty( & pipe->Ring );
+  BOOL wasEmpty = RingBufferIsEmpty( & pipe->Ring );
   ASSERT( wasEmpty ? (pipe->EmptyLock.Count == 0) : TRUE );
 
   //Perform the write.
@@ -136,7 +133,7 @@ void PipeWriteInner( DATA * data, PIPE_WRITE pipe ) {
 
   //See if the ring buffer is empty.
   //If it is then we need to leak the reader lock.
-  spaceLeft = !RingBufferIsFull( & pipe->Ring );
+  BOOL spaceLeft = !RingBufferIsFull( & pipe->Ring );
 
   //We are out of the ring, so
   //let other IO go if its already passed.
