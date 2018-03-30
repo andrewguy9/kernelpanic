@@ -74,69 +74,55 @@ void SerialStartup()
   HalStartSerial();
 }
 
-//TODO SHOULD BE TRAILING IMPL.
 COUNT SerialWrite(char * buf, COUNT len)
 {
-  COUNT write;
-
-  IsrDisable(IRQ_LEVEL_SERIAL_WRITE);
-  write = RingBufferWrite(buf, len, &SerialOutputRing);
-  IsrEnable(IRQ_LEVEL_SERIAL_WRITE);
-
-  HalRaiseInterrupt(IRQ_LEVEL_SERIAL_WRITE);
-
-  return write;
+  DATA data = BufferSpace(buf, len);
+  SerialWriteBuffer(&data);
+  //XXX NOTE THAT data ALWAYS HAS LENGTH len
+  return data.Length;
 }
 
-//TODO SHOULD BE BASE IMPL.
-void SerialWriteBuffer(DATA * str) {
-  COUNT write;
+void SerialWriteBuffer(DATA * data) {
+  while (! BufferEmpty(data)) {
+    IsrDisable(IRQ_LEVEL_SERIAL_WRITE);
+    RingBufferWriteBuffer(data, &SerialOutputRing);
+    IsrEnable(IRQ_LEVEL_SERIAL_WRITE);
 
-  while (! BufferEmpty(str)) {
-    //TODO DOING POINTER MATH, BUT I'M OK WITH IT.
-    write = SerialWrite(str->Buff, str->Length);
-    str->Buff += write;
-    str->Length -= write;
+    HalRaiseInterrupt(IRQ_LEVEL_SERIAL_WRITE);
   }
 }
 
-//TODO SHOULD BE TRAILING IMPL.
 COUNT SerialRead(char * buf, COUNT len)
 {
-  COUNT read = 0;
-  COUNT readGeneration;
-  BOOL wasFull = FALSE;
+  SPACE space = BufferSpace(buf, len);
+  SerialReadBuffer(&space);
+  DATA data = BufferData(buf, &space);
+  return data.Length;
+}
 
+void SerialReadBuffer(SPACE * space)
+{
+  char * startBuff = space->Buff;
+  DATA readData;
   do {
     IsrDisable(IRQ_LEVEL_SERIAL_READ);
 
-    if (RingBufferIsFull( &SerialInputRing )) {
-      wasFull = TRUE;
-    }
+    BOOL wasFull = RingBufferIsFull(&SerialInputRing);
 
-    read = RingBufferRead(buf, len, &SerialInputRing);
-    readGeneration = ReadGenerationCount;
+    RingBufferReadBuffer(space, &SerialInputRing);
+    COUNT readGeneration = ReadGenerationCount;
 
     IsrEnable(IRQ_LEVEL_SERIAL_READ);
 
-    if (read == 0) {
+    readData = BufferData(startBuff, space);
+    //TODO NEED A GOOD WAY TO CALCULATE HOW MUCH WAS READ.
+    if (BufferEmpty(&readData)) {
       GenerationWait(&ReadGeneration, readGeneration, NULL);
     }
-  } while (read == 0);
-
-  // We were full, so lets make sure there wasn't any data buffered
-  // in the hal.
-  if ( wasFull ) {
-    HalRaiseInterrupt( IRQ_LEVEL_SERIAL_READ );
-  }
-  return read;
-}
-
-//TODO SHOULD BE BASE IMPL.
-void SerialReadBuffer(SPACE * s)
-{
-  //TODO I'M DOING POINTER MATH, BUT I'M OK WITH IT.
-  COUNT read = SerialRead(s->Buff, s->Length);
-  s->Buff += read;
-  s->Length -= read;
+    if ( wasFull ) {
+      // We were full, so lets make sure there wasn't any data buffered
+      // in the hal.
+      HalRaiseInterrupt( IRQ_LEVEL_SERIAL_READ );
+    }
+  } while (BufferEmpty(&readData));
 }
