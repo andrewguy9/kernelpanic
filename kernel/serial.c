@@ -115,7 +115,6 @@ void SerialReadBuffer(SPACE * space)
     IsrEnable(IRQ_LEVEL_SERIAL_READ);
 
     readData = BufferData(startBuff, space);
-    //TODO NEED A GOOD WAY TO CALCULATE HOW MUCH WAS READ.
     if (BufferEmpty(&readData)) {
       GenerationWait(&ReadGeneration, readGeneration, NULL);
     }
