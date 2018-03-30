@@ -8,47 +8,36 @@
 //Private Routines
 //
 
-COUNT RingBufferReadSmall(
-    char *buff,
-    COUNT size,
+void RingBufferReadSmall(
+    SPACE * space,
     struct RING_BUFFER * ring)
 {
   INDEX start = ring->ReadIndex;
-  INDEX end = ring->ReadIndex + size;
+  INDEX end;
   //find where we stop
   if (ring->ReadIndex < ring->WriteIndex)
   {
-    //We can read up to write index only 
-    //[     r-----------w???e  ]
-    if (end > ring->WriteIndex) {
-      //Make sure we don't go past WriteIndex
-      //[     r----------ew     ]
-      end = ring->WriteIndex;
-    }
-    //Update the ReadIndex to its future position.
-    //[     c++++++er----w     ]
-    ring->ReadIndex = end;
+    //We can read from ReadIndex to WriteIndex.
+    //[     r-----------w      ]
+    end = ring->WriteIndex;
   } else {
     //We can read to end of buffer
-    //[     w     r-----------]???e
-    if (end >= ring->Size) {
-      //Make sure we don't read past end of buffer
-      //[     w     r----------e]
-      end = ring->Size;
-      //Wrap the ReadIndex back to 0;
-      //[r    w     c----------e]
-      ring->ReadIndex = 0;
-    } else {
-      //Read isn't to end, so dont wrap.
-      //[     w     r-------e---]
-      ring->ReadIndex = end;
-    }
+    //[     w     r-----------]
+    end = ring->Size;
   }
   COUNT len = end-start;
   DATA data = BufferSpace(ring->Buffer+start, len);
-  SPACE space = BufferSpace(buff, len);
-  BufferCopy(&data, &space);
-  return end-start;
+  BufferCopy(&data, space);
+  //Update the ReadIndex to its future position.
+  //[     c++++++er----w     ]
+  if (data.Buff == ring->Buffer + ring->Size) {
+    ring->ReadIndex = 0;
+  } else {
+    ring->ReadIndex = data.Buff - ring->Buffer;
+  }
+  if (ring->ReadIndex == ring->WriteIndex) {
+    ring->Empty = TRUE;
+  }
 }
 
 //TODO MAKE A BUFFER IMPLEMENTATION.
@@ -96,22 +85,17 @@ COUNT RingBufferWriteSmall( char *buff, COUNT size, struct RING_BUFFER * ring )
 //
 COUNT RingBufferRead( char * buff, COUNT size, struct RING_BUFFER * ring )
 {
-  COUNT read=0;
-  while (read < size && ! RingBufferIsEmpty( ring )) {
-    read += RingBufferReadSmall( buff+read, size-read, ring );
-    if (ring->ReadIndex == ring->WriteIndex) {
-      ring->Empty = TRUE;
-    }
-  }
-  return read;
+  SPACE space = BufferSpace(buff, size);
+  RingBufferReadBuffer(&space, ring);
+  DATA data = BufferData(buff, &space);
+  return data.Length;
 }
 
-void RingBufferReadBuffer(SPACE * buff, struct RING_BUFFER * ring)
+void RingBufferReadBuffer(SPACE * space, struct RING_BUFFER * ring)
 {
-  //TODO WE DO POINTER MATH HERE, BUT I'M OK WITH IT.
-  COUNT read = RingBufferRead(buff->Buff, buff->Length, ring);
-  buff->Buff += read;
-  buff->Length -= read;
+  while (! BufferFull(space) && ! RingBufferIsEmpty(ring)) {
+    RingBufferReadSmall(space, ring);
+  }
 }
 
 //TODO IMPLEMENT THIS IN TERMS OF THE BUFFER IMPL.
