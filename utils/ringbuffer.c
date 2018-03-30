@@ -8,10 +8,9 @@
 //Private Routines
 //
 void badCopy(char * src, char * dst, int len) {
-  for(int cur = 0; cur < len; cur++ )
-  {
-    dst[cur] = src[cur];
-  }
+  SPACE space = BufferSpace(dst, len);
+  DATA data = BufferSpace(src, len);
+  ASSUME(BufferCopy(&data, &space), TRUE);
 }
 
 COUNT RingBufferReadSmall(
