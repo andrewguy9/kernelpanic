@@ -7,11 +7,25 @@
 //
 //Private Routines
 //
+SPACE RingBufferSpace(struct RING_BUFFER * ring) {
+  INDEX start = ring->WriteIndex;
+  INDEX end;
+  //find where we stop
+  if (ring->WriteIndex < ring->ReadIndex) {
+    //We can write from WriteIndex to ReadIndex.
+    //[     w-----------r      ]
+    end = ring->ReadIndex;
+  } else {
+    //We can write to end of buffer
+    //[     r     w-----------]
+    end = ring->Size;
+  }
+  COUNT len = end-start;
+  SPACE space = BufferSpace(ring->Buffer+start, len);
+  return space;
+}
 
-void RingBufferReadSmall(
-    SPACE * space,
-    struct RING_BUFFER * ring)
-{
+DATA RingBufferData(struct RING_BUFFER * ring) {
   INDEX start = ring->ReadIndex;
   INDEX end;
   //find where we stop
@@ -27,6 +41,14 @@ void RingBufferReadSmall(
   }
   COUNT len = end-start;
   DATA data = BufferSpace(ring->Buffer+start, len);
+  return data;
+}
+
+void RingBufferReadSmall(
+    SPACE * space,
+    struct RING_BUFFER * ring)
+{
+  DATA data = RingBufferData(ring);
   BufferCopy(&data, space);
   //Update the ReadIndex to its future position.
   //[     c++++++er----w     ]
@@ -44,20 +66,7 @@ void RingBufferWriteSmall(
     DATA * data,
     struct RING_BUFFER * ring )
 {
-  INDEX start = ring->WriteIndex;
-  INDEX end;
-  //find where we stop
-  if (ring->WriteIndex < ring->ReadIndex) {
-    //We can write from WriteIndex to ReadIndex.
-    //[     w-----------r      ]
-    end = ring->ReadIndex;
-  } else {
-    //We can write to end of buffer
-    //[     r     w-----------]
-    end = ring->Size;
-  }
-  COUNT len = end-start;
-  SPACE space = BufferSpace(ring->Buffer+start, len);
+  SPACE space = RingBufferSpace(ring);
   BufferCopy(data, &space);
   //Update the WriteIndex to its future position.
   //[     c++++++ew----r     ]
