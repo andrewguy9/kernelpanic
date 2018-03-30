@@ -5,7 +5,7 @@
  */
 
 //
-//Private Routines
+//Private Routines for write
 //
 SPACE RingBufferSpace(struct RING_BUFFER * ring) {
   INDEX start = ring->WriteIndex;
@@ -25,6 +25,29 @@ SPACE RingBufferSpace(struct RING_BUFFER * ring) {
   return space;
 }
 
+void RingBufferUpdateWriteIndex(SPACE * space, struct RING_BUFFER * ring) {
+  //Update the WriteIndex to its future position.
+  //[     c++++++ew----r     ]
+  if (space->Buff == ring->Buffer + ring->Size) {
+    ring->WriteIndex = 0;
+  } else {
+    ring->WriteIndex = space->Buff - ring->Buffer;
+  }
+  ring->Empty = FALSE; //TODO IS THIS ALWAYS TRUE?
+}
+
+void RingBufferWriteSmall(
+    DATA * data,
+    struct RING_BUFFER * ring )
+{
+  SPACE space = RingBufferSpace(ring);
+  BufferCopy(data, &space);
+  RingBufferUpdateWriteIndex(&space, ring);
+}
+
+//
+//Private Routines for read
+//
 DATA RingBufferData(struct RING_BUFFER * ring) {
   INDEX start = ring->ReadIndex;
   INDEX end;
@@ -57,17 +80,6 @@ void RingBufferUpdateReadIndex(DATA * data, struct RING_BUFFER * ring) {
   }
 }
 
-void RingBufferUpdateWriteIndex(SPACE * space, struct RING_BUFFER * ring) {
-  //Update the WriteIndex to its future position.
-  //[     c++++++ew----r     ]
-  if (space->Buff == ring->Buffer + ring->Size) {
-    ring->WriteIndex = 0;
-  } else {
-    ring->WriteIndex = space->Buff - ring->Buffer;
-  }
-  ring->Empty = FALSE; //TODO IS THIS ALWAYS TRUE?
-}
-
 void RingBufferReadSmall(
     SPACE * space,
     struct RING_BUFFER * ring)
@@ -75,15 +87,6 @@ void RingBufferReadSmall(
   DATA data = RingBufferData(ring);
   BufferCopy(&data, space);
   RingBufferUpdateReadIndex(&data, ring);
-}
-
-void RingBufferWriteSmall(
-    DATA * data,
-    struct RING_BUFFER * ring )
-{
-  SPACE space = RingBufferSpace(ring);
-  BufferCopy(data, &space);
-  RingBufferUpdateWriteIndex(&space, ring);
 }
 
 //
