@@ -13,9 +13,9 @@ struct RING_BUFFER {
 };
 
 COUNT RingBufferRead( char * buff, COUNT size, struct RING_BUFFER * ring ); //TODO RETIRE.
-void RingBufferReadBuffer(SPACE * buff, struct RING_BUFFER * ring);
+void RingBufferReadBuffer(SPACE * space, struct RING_BUFFER * ring);
 COUNT RingBufferWrite( char * buff, COUNT size, struct RING_BUFFER * ring ); //TODO RETIRE
-void RingBufferWriteBuffer(DATA * buff, struct RING_BUFFER * ring);
+void RingBufferWriteBuffer(DATA * data, struct RING_BUFFER * ring);
 BOOL RingBufferIsEmpty( struct RING_BUFFER * ring );
 BOOL RingBufferIsFull( struct RING_BUFFER * ring );
 void RingBufferInit( char * buff, COUNT size, struct RING_BUFFER * ring );
