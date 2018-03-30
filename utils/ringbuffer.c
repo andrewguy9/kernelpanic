@@ -7,10 +7,8 @@
 //
 //Private Routines
 //
-void badCopy(char * src, char * dst, int len) {
-  SPACE space = BufferSpace(dst, len);
-  DATA data = BufferSpace(src, len);
-  ASSUME(BufferCopy(&data, &space), TRUE);
+void badCopy(DATA * data, SPACE * space) {
+  ASSUME(BufferCopy(data, space), TRUE);
 }
 
 COUNT RingBufferReadSmall(
@@ -49,7 +47,10 @@ COUNT RingBufferReadSmall(
       ring->ReadIndex = end;
     }
   }
-  badCopy(ring->Buffer+cur, buff, end-cur);
+  COUNT len = end-cur;
+  DATA data = BufferSpace(ring->Buffer+cur, len);
+  SPACE space = BufferSpace(buff, len);
+  badCopy(&data, &space);
   return end-cur;
 }
 
@@ -86,7 +87,10 @@ COUNT RingBufferWriteSmall( char *buff, COUNT size, struct RING_BUFFER * ring )
       ring->WriteIndex = end;
     }
   }
-  badCopy(buff, ring->Buffer+cur, end-cur);
+  COUNT len = end-cur;
+  SPACE space = BufferSpace(ring->Buffer+cur, len);
+  DATA data = BufferSpace(buff, len);
+  badCopy(&data, &space);
   return end-cur;
 }
 
