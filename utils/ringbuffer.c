@@ -44,22 +44,37 @@ DATA RingBufferData(struct RING_BUFFER * ring) {
   return data;
 }
 
+void RingBufferUpdateReadIndex(DATA * data, struct RING_BUFFER * ring) {
+  //Update the ReadIndex to its future position.
+  //[     c++++++er----w     ]
+  if (data->Buff == ring->Buffer + ring->Size) {
+    ring->ReadIndex = 0;
+  } else {
+    ring->ReadIndex = data->Buff - ring->Buffer;
+  }
+  if (ring->ReadIndex == ring->WriteIndex) {
+    ring->Empty = TRUE;
+  }
+}
+
+void RingBufferUpdateWriteIndex(SPACE * space, struct RING_BUFFER * ring) {
+  //Update the WriteIndex to its future position.
+  //[     c++++++ew----r     ]
+  if (space->Buff == ring->Buffer + ring->Size) {
+    ring->WriteIndex = 0;
+  } else {
+    ring->WriteIndex = space->Buff - ring->Buffer;
+  }
+  ring->Empty = FALSE; //TODO IS THIS ALWAYS TRUE?
+}
+
 void RingBufferReadSmall(
     SPACE * space,
     struct RING_BUFFER * ring)
 {
   DATA data = RingBufferData(ring);
   BufferCopy(&data, space);
-  //Update the ReadIndex to its future position.
-  //[     c++++++er----w     ]
-  if (data.Buff == ring->Buffer + ring->Size) {
-    ring->ReadIndex = 0;
-  } else {
-    ring->ReadIndex = data.Buff - ring->Buffer;
-  }
-  if (ring->ReadIndex == ring->WriteIndex) {
-    ring->Empty = TRUE;
-  }
+  RingBufferUpdateReadIndex(&data, ring);
 }
 
 void RingBufferWriteSmall(
@@ -68,14 +83,7 @@ void RingBufferWriteSmall(
 {
   SPACE space = RingBufferSpace(ring);
   BufferCopy(data, &space);
-  //Update the WriteIndex to its future position.
-  //[     c++++++ew----r     ]
-  if (space.Buff == ring->Buffer + ring->Size) {
-    ring->WriteIndex = 0;
-  } else {
-    ring->WriteIndex = space.Buff - ring->Buffer;
-  }
-  ring->Empty = FALSE; //TODO IS THIS ALWAYS TRUE?
+  RingBufferUpdateWriteIndex(&space, ring);
 }
 
 //
