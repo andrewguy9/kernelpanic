@@ -114,7 +114,6 @@ void PipeReadStructBuff( SPACE * space, PIPE_READ pipe)
   ASSERT (BufferEmpty(space));
 }
 
-//TODO THIS COULD BE WRITTEN IN TERMS OF BUFFERS.
 void PipeWriteInner( DATA * data, PIPE_WRITE pipe ) {
   BOOL wasEmpty;
   BOOL spaceLeft;
