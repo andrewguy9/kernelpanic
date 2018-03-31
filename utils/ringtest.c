@@ -15,9 +15,9 @@ COUNT TEST_SIZE;
 COUNT RING_SIZE;
 
 struct RING_BUFFER Ring;
-char * Buffer;
-char * In;
-char * Out;
+char * RingBuffer;
+char * InBuffer;
+char * OutBuffer;
 
 void InitBuffers();
 void PrintRing( struct RING_BUFFER * ring );
@@ -32,28 +32,28 @@ void InitBuffers() {
       TEST_SIZE,
       RING_SIZE);
 
-  if (Buffer != NULL) {
-    free( Buffer );
+  if (RingBuffer != NULL) {
+    free( RingBuffer );
   }
-  Buffer = malloc(RING_SIZE);
+  RingBuffer = malloc(RING_SIZE);
 
-  if (In != NULL) {
-    free(In);
+  if (InBuffer != NULL) {
+    free(InBuffer);
   }
-  In = malloc(TEST_SIZE);
+  InBuffer = malloc(TEST_SIZE);
 
-  if (Out != NULL) {
-    free(Out);
+  if (OutBuffer != NULL) {
+    free(OutBuffer);
   }
-  Out = malloc(TEST_SIZE);
+  OutBuffer = malloc(TEST_SIZE);
 
-  RingBufferInit(Buffer, RING_SIZE, &Ring);
+  RingBufferInit(RingBuffer, RING_SIZE, &Ring);
   PrintRing( &Ring );
 
   printf("Initing buffers\n");
   for( int index=0; index<TEST_SIZE; index++ ) {
-    In[index] = 'a'+rand()%26;
-    Out[index] = 'x';
+    InBuffer[index] = 'a'+rand()%26;
+    OutBuffer[index] = 'x';
   }
 }
 
@@ -109,7 +109,7 @@ int Test() {
     readPart = (rand()%TEST_SIZE)+1;
 
     if (write < TEST_SIZE) {
-      delta = RingBufferWrite( In+write, MIN(writePart,TEST_SIZE-write), &Ring );
+      delta = RingBufferWrite( InBuffer+write, MIN(writePart,TEST_SIZE-write), &Ring );
       write += delta;
       printf("write(%2ld) returned %2ld total %2ld\t",
           writePart,
@@ -119,7 +119,7 @@ int Test() {
       ASSERT(delta <= writePart);
     }
     if (read < TEST_SIZE) {
-      delta = RingBufferRead( Out+read, MIN(readPart, TEST_SIZE-read), &Ring );
+      delta = RingBufferRead( OutBuffer+read, MIN(readPart, TEST_SIZE-read), &Ring );
       read += delta;
       printf("read (%2ld) returned %2ld total %2ld\t",
           readPart,
@@ -135,11 +135,11 @@ int Test() {
 
   //verify the buffer
   for (index = 0; index < TEST_SIZE; index++) {
-    if (In[index] != Out[index]) {
+    if (InBuffer[index] != OutBuffer[index]) {
       printf("Failed index %ld : in=%c out=%c\n",
           index,
-          In[index],
-          Out[index]);
+          InBuffer[index],
+          OutBuffer[index]);
       return 1;
     }
   }
