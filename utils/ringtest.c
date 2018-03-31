@@ -2,6 +2,7 @@
 #include<stdio.h>
 
 #include"ringbuffer.h"
+#include"buffer.h"
 #include"utils.h"
 
 #define NUM_TESTS 4
@@ -17,7 +18,9 @@ COUNT RING_SIZE;
 struct RING_BUFFER Ring;
 char * RingBuffer;
 char * InBuffer;
+DATA In;
 char * OutBuffer;
+SPACE Out;
 
 void InitBuffers();
 void PrintRing( struct RING_BUFFER * ring );
@@ -41,20 +44,24 @@ void InitBuffers() {
     free(InBuffer);
   }
   InBuffer = malloc(TEST_SIZE);
+  SPACE inSpace = BufferSpace(InBuffer, TEST_SIZE);
 
   if (OutBuffer != NULL) {
     free(OutBuffer);
   }
   OutBuffer = malloc(TEST_SIZE);
+  SPACE outSpace = BufferSpace(OutBuffer, TEST_SIZE);
 
   RingBufferInit(RingBuffer, RING_SIZE, &Ring);
   PrintRing( &Ring );
 
   printf("Initing buffers\n");
-  for( int index=0; index<TEST_SIZE; index++ ) {
-    InBuffer[index] = 'a'+rand()%26;
-    OutBuffer[index] = 'x';
+  for (int index=0; index<TEST_SIZE; index++) {
+    BufferPrint(&inSpace, "%c", 'a'+rand()%26);
+    BufferPrint(&outSpace, "x");
   }
+  In = BufferData(InBuffer, &inSpace);
+  Out = BufferSpace(OutBuffer, TEST_SIZE);
 }
 
 void PrintRing( struct RING_BUFFER * ring ) {
@@ -96,55 +103,31 @@ void PrintRing( struct RING_BUFFER * ring ) {
 }
 
 int Test() {
-  //populate and drain.
-  INDEX index;
-  INDEX read=0;
-  INDEX write=0;
-  INDEX delta=0;
-  INDEX writePart;
-  INDEX readPart;
-
-  while (read < TEST_SIZE || write < TEST_SIZE) {
-    writePart = (rand()%TEST_SIZE)+1;
-    readPart = (rand()%TEST_SIZE)+1;
-
-    if (write < TEST_SIZE) {
-      delta = RingBufferWrite( InBuffer+write, MIN(writePart,TEST_SIZE-write), &Ring );
-      write += delta;
-      printf("write(%2ld) returned %2ld total %2ld\t",
-          writePart,
-          delta,
-          write);
+  while (!BufferFull(&Out) || !BufferEmpty(&In)) {
+    if (!BufferEmpty(&In)) {
+      printf("Writing\n");
+      RingBufferWriteBuffer(&In, &Ring);
       PrintRing( &Ring );
-      ASSERT(delta <= writePart);
     }
-    if (read < TEST_SIZE) {
-      delta = RingBufferRead( OutBuffer+read, MIN(readPart, TEST_SIZE-read), &Ring );
-      read += delta;
-      printf("read (%2ld) returned %2ld total %2ld\t",
-          readPart,
-          delta,
-          read);
+    if (!BufferFull(&Out)) {
+      printf("Reading\n");
+      RingBufferReadBuffer(&Out, &Ring);
       PrintRing( &Ring );
-      ASSERT( delta <= readPart);
     }
   }
 
-  ASSERT( read == TEST_SIZE);
-  ASSERT( write == TEST_SIZE);
-
+  printf("%s\n", InBuffer);
+  printf("%s\n", OutBuffer);
   //verify the buffer
-  for (index = 0; index < TEST_SIZE; index++) {
-    if (InBuffer[index] != OutBuffer[index]) {
-      printf("Failed index %ld : in=%c out=%c\n",
-          index,
-          InBuffer[index],
-          OutBuffer[index]);
-      return 1;
-    }
+  DATA out = BufferData(OutBuffer, &Out);
+  DATA in = BufferData(InBuffer, &In);
+  if (! BufferCompare(&in, &out)) {
+    printf("Buffer mismatch!\n");
+    return 1;
+  } else {
+    printf("test passed\n");
+    return 0;
   }
-  printf("test passed\n");
-  return 0;
 }
 
 int main() {
