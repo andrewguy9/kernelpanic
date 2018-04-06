@@ -123,8 +123,8 @@ int Test()
 
 	while( read < TEST_SIZE || write < TEST_SIZE )
 	{
-		writePart = rand()%TEST_SIZE;
-		readPart = rand()%TEST_SIZE;
+		writePart = (rand()%TEST_SIZE)+1;
+		readPart = (rand()%TEST_SIZE)+1;
 
 		if( write < TEST_SIZE )
 		{
