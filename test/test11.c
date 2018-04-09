@@ -160,17 +160,20 @@ void * ConsumerMain( void * arg )
     PipeReadStructBuff(&space, reader);
 
     //validate direction of buffer.
-    for (bufferIndex = 0; bufferIndex+1 < length; bufferIndex++) {
-      //TODO DOING POINTER MATH.
+    //TODO DOING POINTER MATH AND ARRAY MATH.
+    char last = myBuffer[0];
+    for (bufferIndex = 1; bufferIndex < length; bufferIndex++) {
+      char cur = myBuffer[bufferIndex];
       if (assending) {
-        if( myBuffer[bufferIndex] >= myBuffer[bufferIndex+1] ) {
+        if( last >= cur ) {
           KernelPanic();
         }
       } else {
-        if (myBuffer[bufferIndex] <= myBuffer[bufferIndex+1]) {
+        if (last <= cur) {
           KernelPanic();
         }
       }
+      last = cur;
     }
 
     //Setup next value.
