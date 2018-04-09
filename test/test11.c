@@ -156,10 +156,8 @@ void * ConsumerMain( void * arg )
     COUNT length = RandomNumbers[timeIndex];
 
     //Perform read
-    PipeReadStruct(
-        myBuffer,
-        length,
-        reader);
+    SPACE space = BufferSpace(myBuffer, length);
+    PipeReadStructBuff(&space, reader);
 
     //validate direction of buffer.
     for (bufferIndex = 0; bufferIndex+1 < length; bufferIndex++) {
