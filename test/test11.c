@@ -136,7 +136,6 @@ void * ConsumerMain( void * arg )
   struct CONSUMER_CONTEXT * context = (struct CONSUMER_CONTEXT *) arg;
   PIPE_READ reader = context->Reader;
   INDEX timeIndex = 0;
-  COUNT bufferIndex;
   char myBuffer[RANDOM_VALUES_SIZE];
   BOOL assending = TRUE;
 
@@ -144,7 +143,7 @@ void * ConsumerMain( void * arg )
 
   while (1) {
     //Set Buffer up with values which will fail if a bug occurs.
-    for (bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++) {
+    for (INDEX bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++) {
       //TODO DOING POINTER MATH.
       if( assending ) {
         myBuffer[bufferIndex] = 0;
@@ -162,7 +161,7 @@ void * ConsumerMain( void * arg )
     //validate direction of buffer.
     //TODO DOING POINTER MATH AND ARRAY MATH.
     char last = myBuffer[0];
-    for (bufferIndex = 1; bufferIndex < length; bufferIndex++) {
+    for (INDEX bufferIndex = 1; bufferIndex < length; bufferIndex++) {
       char cur = myBuffer[bufferIndex];
       if (assending) {
         if( last >= cur ) {
