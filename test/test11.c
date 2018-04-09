@@ -120,11 +120,9 @@ void * ProducerMain( void * arg )
       curBuffer = DecendingBuffer;
     }
 
-    //Perform writ
     DATA data = BufferSpace(curBuffer, length);
     PipeWriteStructBuff(&data, writer);
 
-    //Setup next value.
     timeIndex = (timeIndex + 1) % RANDOM_VALUES_SIZE;
     assending = !assending;
     WatchdogNotify(context->WatchdogId);
