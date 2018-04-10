@@ -159,24 +159,20 @@ void * ConsumerMain( void * arg )
     PipeReadStructBuff(&space, reader);
 
     //validate direction of buffer.
-    //TODO DOING POINTER MATH AND ARRAY MATH.
     DATA data = BufferData(myBuffer, &space);
-    if (!BufferEmpty(&data)) {
-      char * val;
-      for (BufferNext(data, val); !BufferEmpty(&data); BufferNext(data, val)) {
-        //TODO
-      }
-    }
-    char last = myBuffer[0];
-    for (INDEX bufferIndex = 1; bufferIndex < length; bufferIndex++) {
-      char cur = myBuffer[bufferIndex];
-      if (assending) {
-        if( last >= cur ) {
-          KernelPanic();
-        }
-      } else {
-        if (last <= cur) {
-          KernelPanic();
+    char * last = NULL;
+    for (char * cur = BufferNext(data, cur);
+        !BufferEmpty(&data);
+        cur = BufferNext(data, cur)) {
+      if (last) {
+        if (assending) {
+          if( *last >= *cur ) {
+            KernelPanic();
+          }
+        } else {
+          if (*last <= *cur) {
+            KernelPanic();
+          }
         }
       }
       last = cur;
