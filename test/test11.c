@@ -160,6 +160,13 @@ void * ConsumerMain( void * arg )
 
     //validate direction of buffer.
     //TODO DOING POINTER MATH AND ARRAY MATH.
+    DATA data = BufferData(myBuffer, &space);
+    if (!BufferEmpty(&data)) {
+      char * val;
+      for (BufferNext(data, val); !BufferEmpty(&data); BufferNext(data, val)) {
+        //TODO
+      }
+    }
     char last = myBuffer[0];
     for (INDEX bufferIndex = 1; bufferIndex < length; bufferIndex++) {
       char cur = myBuffer[bufferIndex];

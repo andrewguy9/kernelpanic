@@ -23,6 +23,13 @@ void BufferCopy(DATA * d, SPACE * s);
 
 #define BufferFromObj(obj) {(char*) &(obj), sizeof(obj)}
 #define BufferToObj(data, type) (*(type *) data.Buff)
+//TODO PROTOTYPE. Buff advancement is not safe.
+#define BufferNext(data, val)      \
+  ({                               \
+    val = (typeof(val)) data.Buff; \
+    data.Buff += sizeof(*val);    \
+    data.Length -= sizeof(*val);  \
+  })
 
 DATA BufferData(char * buff, const SPACE * s);
 
