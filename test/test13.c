@@ -24,7 +24,8 @@ void * PrimesMain(void * context) {
   INDEX max = 1000000;
   COUNT buffer_size = 100000;
   int * primes_buffer = HalMap(tag, NULL, sizeof(int) * buffer_size);
-  enum PRIMES_STATUS status = findPrimes(max, primes_buffer, buffer_size);
+  SPACE space = BufferSpace(primes_buffer, sizeof(int)*buffer_size);
+  enum PRIMES_STATUS status = findPrimes(max, &space);
   if (status == PRIMES_OK) {
     GatherSync( &PrimesGather, NULL);
     SchedulerShutdown();

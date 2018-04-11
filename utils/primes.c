@@ -27,24 +27,19 @@ BOOL isPrimeProduct(int v, DATA * primes)
   return TRUE;
 }
 
-enum PRIMES_STATUS findPrimes(int max, int primes[], COUNT primes_length) {
-  COUNT found_primes= 0;
-  int cur;
-
-  for (cur = 2; cur < max; cur++) {
-    //TODO DOING POINTER PATH.
-    DATA data = BufferSpace(primes, sizeof(int)*found_primes);
+enum PRIMES_STATUS findPrimes(int max, SPACE * buffer) {
+  SPACE orig = *buffer;
+  for (int cur = 2; cur < max; cur++) {
+    DATA data = BufferData(orig.Buff, buffer);
     if (isPrimeProduct(cur, &data)) {
-      if (found_primes+1 > primes_length) {
+      if (BufferFull(buffer)) {
         return PRIMES_OVERFLOW;
       } else {
-        primes[found_primes++] = cur;
+        DATA prime = BufferFromObj(cur);
+        //TODO THIS IS NOT SAFE.
+        BufferCopy(&prime, buffer);
       }
     }
-  }
-  for (; found_primes<primes_length; found_primes++) {
-    //TODO DOING POINTER MATH.
-    primes[found_primes] = 0;
   }
   return PRIMES_OK;
 }
