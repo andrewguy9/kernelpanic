@@ -154,13 +154,11 @@ void * ConsumerMain( void * arg )
 
   while (1) {
     //Set Buffer up with values which will fail if a bug occurs.
-    for (INDEX bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++) {
-      //TODO DOING POINTER MATH.
-      if( assending ) {
-        myBuffer[bufferIndex] = 0;
-      } else {
-        myBuffer[bufferIndex] = RANDOM_VALUES_SIZE;
-      }
+    SPACE fillSpace = BufferSpace(myBuffer, RANDOM_VALUES_SIZE);
+    char fillValue = assending ? 0 : RANDOM_VALUES_SIZE;
+    while (!BufferFull(&fillSpace)) {
+      DATA fill = BufferFromObj(fillValue);
+      BufferCopy(&fill, &fillSpace);
     }
 
     COUNT length = RandomNumbers[timeIndex];
