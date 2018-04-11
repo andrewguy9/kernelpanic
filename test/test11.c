@@ -130,6 +130,17 @@ void * ProducerMain( void * arg )
   return NULL;
 }
 
+typedef BOOL CMP_FN(char *, char *);
+CMP_FN IsAssending;
+BOOL IsAssending(char * v1, char * v2) {
+  return *v1 < *v2;
+}
+
+CMP_FN IsDecending;
+BOOL IsDecending(char * v1, char * v2) {
+  return *v1 > *v2;
+}
+
 THREAD_MAIN ConsumerMain;
 void * ConsumerMain( void * arg )
 {
@@ -160,19 +171,14 @@ void * ConsumerMain( void * arg )
 
     //validate direction of buffer.
     DATA data = BufferData(myBuffer, &space);
+    CMP_FN * cmp = assending ? IsAssending : IsDecending;
     char * last = NULL;
     for (char * cur = BufferNext(data, cur);
-        !BufferEmpty(&data);
+        cur != NULL;
         cur = BufferNext(data, cur)) {
       if (last) {
-        if (assending) {
-          if( *last >= *cur ) {
+        if (!cmp(last, cur)) {
             KernelPanic();
-          }
-        } else {
-          if (*last <= *cur) {
-            KernelPanic();
-          }
         }
       }
       last = cur;
