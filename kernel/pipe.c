@@ -4,8 +4,8 @@
  * Unit Description:
  * Provides the concept of a Pipe.
  * Pipes are a single direction byte based communication mechanism.
- * A thread can call PipeWrite to put information into the pipe
- * which can be consumed by another thread through PipeRead.
+ * A thread can call PipeWriteBuff to put information into the pipe
+ * which can be consumed by another thread through PipeReadBuff.
  *
  * Calls to pipe functions can cause threads to block.
  */
@@ -70,38 +70,11 @@ void PipeReadInner(SPACE * space, PIPE_READ pipe) {
   }
 }
 
-/*
- * Reads data from a pipe.
- *
- * Arguments:
- * buff - destination buffer
- * size - maximum length that will be read.
- * pipe - pipe we will read from
- *
- * Returns
- * The length of data we read.
- *
- * The size of the read data will be min( data in pipe, size)
- */
-COUNT PipeRead( char * buff, COUNT size, PIPE_READ pipe )
-{
-  SPACE space = BufferSpace(buff, size);
-  PipeReadBuff(&space, pipe);
-  DATA data = BufferData(buff, &space);
-  return data.Length;
-}
-
 void PipeReadBuff( SPACE * space, PIPE_READ pipe)
 {
   SemaphoreDown( & pipe->ReadLock, NULL );
   PipeReadInner(space, pipe);
   SemaphoreUp( & pipe->ReadLock);
-}
-
-void PipeReadStruct( char * buff, COUNT size, PIPE_READ pipe )
-{
-  SPACE space = BufferSpace(buff, size);
-  PipeReadStructBuff(&space, pipe);
 }
 
 void PipeReadStructBuff( SPACE * space, PIPE_READ pipe)
@@ -156,38 +129,11 @@ void PipeWriteInner( DATA * data, PIPE_WRITE pipe ) {
   }
 }
 
-/*
- * Writes data to a pipe.
- *
- * Arguments
- * buff - buffer we will read from
- * size - the maximum distance we will read from.
- * pipe - the pipe we will copy data to.
- *
- * Returns
- * The length of data we read from buff.
- *
- * The size of the written data will be min( space left in pipe, size)
- */
-COUNT PipeWrite( char * buff, COUNT size, PIPE_WRITE pipe )
-{
-  SPACE space = BufferSpace(buff, size);
-  PipeWriteBuff(&space, pipe);
-  DATA data = BufferData(buff, &space);
-  return data.Length;
-}
-
 void PipeWriteBuff(DATA * buff, PIPE_WRITE pipe)
 {
   SemaphoreDown( & pipe->WriteLock, NULL );
   PipeWriteInner(buff, pipe);
   SemaphoreUp( & pipe->WriteLock);
-}
-
-void PipeWriteStruct( char * buff, COUNT size, PIPE_WRITE pipe )
-{
-  DATA d = BufferSpace(buff, size);
-  PipeWriteStructBuff(&d, pipe);
 }
 
 void PipeWriteStructBuff(DATA * data, PIPE_WRITE pipe)

@@ -24,15 +24,11 @@ void PipeInit(
     PIPE_READ * pr,
     PIPE_WRITE * pw );
 
-COUNT PipeRead( char * buff, COUNT size, PIPE_READ pipe ); //TODO RETIRE.
 void PipeReadBuff( SPACE * space, PIPE_READ pipe);
-void PipeReadStruct( char * buff, COUNT size, PIPE_READ pipe ); //TODO RETIRE.
 void PipeReadStructBuff( SPACE * space, PIPE_READ pipe);
 
 
-COUNT PipeWrite( char * buff, COUNT size, PIPE_WRITE pipe );//TODO RETIRE.
 void PipeWriteBuff(DATA * buff, PIPE_WRITE pipe);
-void PipeWriteStruct( char * buff, COUNT size, PIPE_WRITE pipe ); //TODO RETIRE.
 void PipeWriteStructBuff(DATA * buff, PIPE_WRITE pipe);
 
 #endif
