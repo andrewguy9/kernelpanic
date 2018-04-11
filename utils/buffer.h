@@ -15,7 +15,7 @@ typedef struct BUFFER DATA;
 typedef struct BUFFER SPACE;
 
 // Initialize empty buffer.
-SPACE BufferSpace(char * buff, COUNT size);
+SPACE BufferSpace(void * buff, COUNT size);
 
 #ifdef PC_BUILD
 void BufferCopy(DATA * d, SPACE * s);

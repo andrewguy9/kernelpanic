@@ -3,6 +3,7 @@
 #include"kernel/resource.h"
 #include"kernel/hal.h"
 #include"kernel/panic.h"
+#include"utils/buffer.h"
 
 /*
  * Test of the resource unit and the non blocking code path.
@@ -28,7 +29,6 @@ void * Writer( void * arg )
 {
   struct LOCKING_CONTEXT block;
   INDEX sequenceIndex=0;
-  INDEX index;
 
   LockingInit( &block, LockingBlockNonBlocking, LockingWakeNonBlocking );
 
@@ -41,9 +41,13 @@ void * Writer( void * arg )
     sequenceIndex++;
     sequenceIndex%=SEQUENCE_LENGTH;
 
-    for (index = 0; index < BUFFER_SIZE; index++) {
-      //TODO DOING POINTER MATH
-      Buffer[index] = index + Sequence[ sequenceIndex ] ;
+    INDEX index = 0;
+    SPACE space = BufferSpace(Buffer, BUFFER_SIZE*sizeof(int));
+    while (!BufferFull(&space)) {
+      index++;
+      INDEX value = index + Sequence[ sequenceIndex ];
+      DATA data = BufferFromObj(value);
+      BufferCopy(&data, &space);
     }
 
     ResourceUnlockExclusive( &BufferLock );
@@ -58,8 +62,6 @@ void * Writer( void * arg )
 THREAD_MAIN Reader;
 void * Reader( void * arg )
 {
-  INDEX index;
-  int first,second;
   BOOL ready = FALSE;
 
   while (! ready) {
@@ -78,11 +80,12 @@ void * Reader( void * arg )
     //the resource should be shared
     ASSERT( BufferLock.State == RESOURCE_SHARED );
 
-    for (index=1 ; index < BUFFER_SIZE; index++) {
-      //TODO POINTER MATH
-      first = Buffer[index-1];
-      second = Buffer[index];
-      if( (first +1) != second ) {
+    DATA data = BufferSpace(Buffer, BUFFER_SIZE * sizeof(int));
+    char * last = NULL;
+    for (char * cur = BufferNext(data, cur);
+        cur != NULL;
+        cur = BufferNext(data, cur)) {
+      if ( last && *last+1 != *cur) {
         KernelPanic( );
       }
     }
