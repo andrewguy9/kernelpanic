@@ -14,12 +14,13 @@ BOOL isPrime(int v)
   return TRUE;
 }
 
-BOOL isPrimeProduct(int v, int primes[], COUNT num_primes)
+BOOL isPrimeProduct(int v, DATA * primes)
 {
-  int i;
-  for (i=2; i<num_primes; i++) {
-    //TODO DOING POINTER MATH.
-    if (v % primes[i] == 0) {
+  DATA data = *primes;
+  for (int * prime = BufferNext(data, prime);
+      prime != NULL;
+      prime = BufferNext(data, prime)) {
+    if (v % *prime == 0) {
       return FALSE;
     }
   }
@@ -32,7 +33,8 @@ enum PRIMES_STATUS findPrimes(int max, int primes[], COUNT primes_length) {
 
   for (cur = 2; cur < max; cur++) {
     //TODO DOING POINTER PATH.
-    if (isPrimeProduct(cur, primes, found_primes)) {
+    DATA data = BufferSpace(primes, sizeof(int)*found_primes);
+    if (isPrimeProduct(cur, &data)) {
       if (found_primes+1 > primes_length) {
         return PRIMES_OVERFLOW;
       } else {
