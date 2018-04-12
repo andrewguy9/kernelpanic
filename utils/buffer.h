@@ -15,9 +15,13 @@ typedef struct BUFFER DATA;
 typedef struct BUFFER SPACE;
 
 // Initialize empty buffer.
+// TODO IS THERE A GOOD WAY TO DO THIS LIKE calloc?
 SPACE BufferSpace(void * buff, COUNT size);
 
 #ifdef PC_BUILD
+//XXX COULD WE MANAGE STRUCT CHARS DISTINCTION IN HERE?
+//XXX COULD WE HAVE A VARIENT TO FILL THE BUFFER WITH A PATTERN?
+//XXX COULD WE PARAMETRIZE LIKE calloc? I WOULD LIKE TO AMORTIZE LOCK ACQUIRES IN READ/WRITE-STRUCT.
 void BufferCopy(DATA * d, SPACE * s);
 #endif //PC_BUILD
 
@@ -27,6 +31,7 @@ void BufferCopy(DATA * d, SPACE * s);
 void * BufferNextFn(DATA * data, COUNT len);
 #define BufferNext(data, val) ((typeof(val)) BufferNextFn(&data, sizeof(*val)))
 
+//TODO BufferData is inconvient because we need to stash buff.
 DATA BufferData(char * buff, const SPACE * s);
 
 BOOL BufferFull(const SPACE * s);
