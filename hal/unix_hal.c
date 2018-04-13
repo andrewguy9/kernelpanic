@@ -1,5 +1,6 @@
 #include"kernel/hal.h"
 #include"kernel/thread.h"
+#include"utils/buffer.h"
 
 #include<sys/time.h>
 #include<string.h>
@@ -730,21 +731,26 @@ BOOL HalSerialGetChar(char * out)
   }
 }
 
-BOOL HalSerialWriteChar(char data)
+void HalSerialWrite(DATA *data)
 {
-  int writelen = write(serialOutFd, &data, sizeof(char));
-
-  if ( writelen > 0 ) {
-    return TRUE;
-  } else if (writelen == 0) {
-    HalPanic("Wrote 0 to STDOUT");
-  } else {
-    if (errno == EAGAIN) {
-      return FALSE;
-    } else if (errno == EINTR) {
-      return FALSE;
+  while (!BufferEmpty(data)) {
+    char * buff = data->Buff;
+    COUNT len = data->Length;
+    int writelen = write(serialOutFd, buff, len);
+    if ( writelen > 0 ) {
+      //TODO I'M DOING POINTER MATH HERE, BUT I'M FINE WITH IT.
+      data->Buff += writelen;
+      data->Length -= writelen;
+    } else if (writelen == 0) {
+      HalPanic("Wrote 0 to STDOUT");
     } else {
-      HalPanicErrno("Failed to write to STDOUT");
+      if (errno == EAGAIN) {
+        return;
+      } else if (errno == EINTR) {
+        return;
+      } else {
+        HalPanicErrno("Failed to write to STDOUT");
+      }
     }
   }
 }

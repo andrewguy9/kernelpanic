@@ -2,6 +2,7 @@
 #define HAL_H
 
 #include"utils/utils.h"
+#include"utils/buffer.h"
 
 /*
  * Hal.h defines all of the interfaces that the rest of the kernel will 
@@ -60,7 +61,7 @@ void HalRaiseInterrupt(enum IRQ_LEVEL level);
 void HalSetIrq(enum IRQ_LEVEL irq);
 void HalStartSerial();
 BOOL HalSerialGetChar(char * out);
-BOOL HalSerialWriteChar(char data);
+void HalSerialWrite(DATA *data);
 void * HalMap(char * tag, void * addr, COUNT len);
 
 TIME HalGetTime();

@@ -21,20 +21,18 @@ struct GENERATION_CONTEXT ReadGenerationContext;
 ISR_HANDLER SendBytesInterrupt;
 ISR_HANDLER GetBytesInterrupt;
 
-char SendBytesBufferFull;
-char SendBytesBuffer;
+char SendBytesBuffer[BUFFER_SIZE];
+DATA SendBytesData;
 void SendBytesInterrupt(void)
 {
-  ASSERT(IsrIsAtomic(IRQ_LEVEL_SERIAL_WRITE));
-  while (!RingBufferIsEmpty(&SerialOutputRing)) {
-    if (!SendBytesBufferFull) {
-      ASSUME(RingBufferRead(&SendBytesBuffer, sizeof(SendBytesBuffer), &SerialOutputRing), 1);
-      SendBytesBufferFull = TRUE;
+  while (!RingBufferIsEmpty(&SerialOutputRing) || !BufferEmpty(&SendBytesData)) {
+    if (BufferEmpty(&SendBytesData)) {
+      SPACE space = BufferFromObj(SendBytesBuffer);
+      RingBufferReadBuffer(&space, &SerialOutputRing);
+      SendBytesData = BufferData(SendBytesBuffer, &space);
     }
-    SendBytesBufferFull = !HalSerialWriteChar(SendBytesBuffer);
-    if (SendBytesBufferFull) {
-      break; //Hal is putting back pressure on us.
-    }
+    //TODO I DIDN'T GET A BACKPRESSURE SIGNAL.
+    HalSerialWrite(&SendBytesData);
   }
 }
 
@@ -60,7 +58,7 @@ void GetBytesInterrupt(void)
 
 void SerialStartup()
 {
-  SendBytesBufferFull = FALSE;
+  SendBytesData = BufferNull();
   RingBufferInit( SerialInputBuffer, BUFFER_SIZE, &SerialInputRing );
   RingBufferInit( SerialOutputBuffer, BUFFER_SIZE, &SerialOutputRing );
 
