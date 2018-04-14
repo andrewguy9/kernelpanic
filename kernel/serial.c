@@ -76,14 +76,6 @@ void SerialStartup()
   HalStartSerial();
 }
 
-COUNT SerialWrite(char * buf, COUNT len)
-{
-  DATA data = BufferSpace(buf, len);
-  SerialWriteBuffer(&data);
-  //XXX NOTE THAT data ALWAYS HAS LENGTH len
-  return data.Length;
-}
-
 void SerialWriteBuffer(DATA * data) {
   while (! BufferEmpty(data)) {
     IsrDisable(IRQ_LEVEL_SERIAL_WRITE);
@@ -92,14 +84,6 @@ void SerialWriteBuffer(DATA * data) {
 
     HalRaiseInterrupt(IRQ_LEVEL_SERIAL_WRITE);
   }
-}
-
-COUNT SerialRead(char * buf, COUNT len)
-{
-  SPACE space = BufferSpace(buf, len);
-  SerialReadBuffer(&space);
-  DATA data = BufferData(buf, &space);
-  return data.Length;
 }
 
 void SerialReadBuffer(SPACE * space)
