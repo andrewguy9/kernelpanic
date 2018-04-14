@@ -709,24 +709,25 @@ void HalStartSerial()
   fcntl(serialOutFd, F_SETFL, oflags | FASYNC);
 }
 
-BOOL HalSerialGetChar(char * out)
-{
-  int readlen = read(serialInFd, out, sizeof(char));
-  if (readlen > 0) {
-    return TRUE;
-  } else if (readlen == 0) {
-    //We are allowed to recieve zero bytes from the serial.
-    return FALSE;
+void HalSerialRead(SPACE * space) {
+  int len = space->Length;
+  char * buff = space->Buff;
+  int readlen = read(serialInFd, buff, len);
+  if (readlen >= 0) {
+    //TODO I'M DOING POINTER MATH, BUT I'M FINE WITH IT.
+    space->Buff += readlen;
+    space->Length -= readlen;
+    return;
   } else {
     if (errno == EINTR) {
-      return FALSE; //We are allowed to be interrupted by another signal.
+      return; //We are allowed to be interrupted by another signal.
     } else if (errno == EAGAIN) {
-      return FALSE;
+      return;
     } else if(errno == EWOULDBLOCK) {
-      return FALSE;
+      return;
     } else {
       HalPanicErrno("Recieved error from STDIN!");
-      return FALSE;
+      return;
     }
   }
 }

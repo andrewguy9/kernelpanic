@@ -39,10 +39,14 @@ void SendBytesInterrupt(void)
 void GetBytesInterrupt(void)
 {
   while (!RingBufferIsFull(&SerialInputRing)) {
-    char data;
-    if (HalSerialGetChar(&data)) {
-      ASSUME(RingBufferWrite(&data, sizeof(data), &SerialInputRing), 1);
-    } else {
+    //TODO SHOULD BE CHANGED TO HANDLE LARGER BUFFERING.
+    char memory[1];
+    SPACE space = BufferFromObj(memory);
+    HalSerialRead(&space);
+    DATA data = BufferData(memory, &space);
+    RingBufferWriteBuffer(&data, &SerialInputRing);
+    ASSERT (BufferEmpty(&data));
+    if (!BufferFull(&space)) {
       break;
     }
   }
