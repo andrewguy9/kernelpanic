@@ -92,26 +92,11 @@ void RingBufferReadSmall(
 //
 //Public routines
 //
-COUNT RingBufferRead( char * buff, COUNT size, struct RING_BUFFER * ring )
-{
-  SPACE space = BufferSpace(buff, size);
-  RingBufferReadBuffer(&space, ring);
-  DATA data = BufferData(buff, &space);
-  return data.Length;
-}
-
 void RingBufferReadBuffer(SPACE * space, struct RING_BUFFER * ring)
 {
   while (! BufferFull(space) && ! RingBufferIsEmpty(ring)) {
     RingBufferReadSmall(space, ring);
   }
-}
-
-COUNT RingBufferWrite( char * buff, COUNT size, struct RING_BUFFER * ring )
-{
-  DATA data = BufferSpace(buff, size);
-  RingBufferWriteBuffer(&data, ring);
-  return size - data.Length;
 }
 
 void RingBufferWriteBuffer(DATA * data, struct RING_BUFFER * ring)
