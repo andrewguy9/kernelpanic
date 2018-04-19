@@ -121,7 +121,7 @@ void * ProducerMain( void * arg )
     }
 
     DATA data = BufferSpace(curBuffer, length);
-    PipeWriteStructBuff(&data, writer);
+    PipeWriteStructBuffer(&data, writer);
 
     timeIndex = (timeIndex + 1) % RANDOM_VALUES_SIZE;
     assending = !assending;
@@ -165,7 +165,7 @@ void * ConsumerMain( void * arg )
 
     //Perform read
     SPACE space = BufferSpace(myBuffer, length);
-    PipeReadStructBuff(&space, reader);
+    PipeReadStructBuffer(&space, reader);
 
     //validate direction of buffer.
     DATA data = BufferData(myBuffer, &space);

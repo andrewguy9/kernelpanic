@@ -24,11 +24,11 @@ void PipeInit(
     PIPE_READ * pr,
     PIPE_WRITE * pw );
 
-void PipeReadBuff( SPACE * space, PIPE_READ pipe);
-void PipeReadStructBuff( SPACE * space, PIPE_READ pipe);
+void PipeReadBuffer( SPACE * space, PIPE_READ pipe);
+void PipeReadStructBuffer( SPACE * space, PIPE_READ pipe);
 
 
-void PipeWriteBuff(DATA * buff, PIPE_WRITE pipe);
-void PipeWriteStructBuff(DATA * buff, PIPE_WRITE pipe);
+void PipeWriteBuffer(DATA * buff, PIPE_WRITE pipe);
+void PipeWriteStructBuffer(DATA * buff, PIPE_WRITE pipe);
 
 #endif

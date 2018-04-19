@@ -30,20 +30,20 @@ void SocketInit(
 
 void SocketReadCharsBuffer( SPACE * space, struct SOCKET_HANDLE * socket )
 {
-  PipeReadBuff(space, socket->Read);
+  PipeReadBuffer(space, socket->Read);
 }
 
 void SocketReadStructBuffer( SPACE * space, struct SOCKET_HANDLE * socket )
 {
-  PipeReadStructBuff(space, socket->Read);
+  PipeReadStructBuffer(space, socket->Read);
 }
 
 void SocketWriteCharsBuffer( DATA * data, struct SOCKET_HANDLE * socket )
 {
-  PipeWriteBuff(data, socket->Write);
+  PipeWriteBuffer(data, socket->Write);
 }
 
 void SocketWriteStructBuffer( DATA * data, struct SOCKET_HANDLE * socket )
 {
-  PipeWriteStructBuff(data, socket->Write);
+  PipeWriteStructBuffer(data, socket->Write);
 }

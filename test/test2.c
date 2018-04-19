@@ -64,7 +64,7 @@ void * ProducerMain(void * arg)
 
   while (1) {
     DATA write = Data;
-    PipeWriteStructBuff(&write, &Pipe);
+    PipeWriteStructBuffer(&write, &Pipe);
     WatchdogNotify(context->WatchdogId);
   }
   return NULL;
@@ -79,7 +79,7 @@ void * ConsumerMain(void * arg)
 
   while (1) {
     SPACE space = BufferSpace(buff, MESSAGE_LENGTH);
-    PipeReadStructBuff(&space , &Pipe);
+    PipeReadStructBuffer(&space , &Pipe);
     DATA data = BufferData(buff, &space);
 
     if (!BufferCompare(&data, &Data)) {

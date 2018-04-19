@@ -70,14 +70,14 @@ void PipeReadInner(SPACE * space, PIPE_READ pipe) {
   }
 }
 
-void PipeReadBuff( SPACE * space, PIPE_READ pipe)
+void PipeReadBuffer( SPACE * space, PIPE_READ pipe)
 {
   SemaphoreDown( & pipe->ReadLock, NULL );
   PipeReadInner(space, pipe);
   SemaphoreUp( & pipe->ReadLock);
 }
 
-void PipeReadStructBuff( SPACE * space, PIPE_READ pipe)
+void PipeReadStructBuffer( SPACE * space, PIPE_READ pipe)
 {
   SemaphoreDown( & pipe->ReadLock, NULL );
   while (! BufferEmpty(space)) {
@@ -129,14 +129,14 @@ void PipeWriteInner( DATA * data, PIPE_WRITE pipe ) {
   }
 }
 
-void PipeWriteBuff(DATA * buff, PIPE_WRITE pipe)
+void PipeWriteBuffer(DATA * buff, PIPE_WRITE pipe)
 {
   SemaphoreDown( & pipe->WriteLock, NULL );
   PipeWriteInner(buff, pipe);
   SemaphoreUp( & pipe->WriteLock);
 }
 
-void PipeWriteStructBuff(DATA * data, PIPE_WRITE pipe)
+void PipeWriteStructBuffer(DATA * data, PIPE_WRITE pipe)
 {
   SemaphoreDown( & pipe->WriteLock, NULL );
   while (! BufferEmpty(data)) {
