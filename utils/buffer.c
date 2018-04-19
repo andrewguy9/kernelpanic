@@ -16,6 +16,8 @@ SPACE BufferSpace(void * buff, COUNT size)
 
 #ifdef PC_BUILD
 #include<string.h>
+//TODO All non char oriented buffer copies are unsafe.
+//We might break reads across objects.
 void BufferCopy(DATA * data, SPACE * space)
 {
   COUNT len = MIN(data->Length, space->Length);
