@@ -60,15 +60,6 @@ sigset_t HalCurrrentIrqMask;
 BOOL HalCurrrentIrqMaskValid;
 #endif //DEBUG
 
-//
-//Serial Management
-//
-
-struct termios serialSettings;
-struct termios serialSettingsOld;
-int serialInFd;
-int serialOutFd;
-
 //-----------------------------------------------------------------------------
 //--------------------------- HELPER PROTOTYPES -------------------------------
 //-----------------------------------------------------------------------------
@@ -99,13 +90,6 @@ void HalInvalidateIsrDebugInfo();
 #endif
 void HalClearSignals();
 void HalBlockSignal( void * which );
-
-//
-//Serial Mangement
-//
-
-#define SERIAL_INPUT_DEVICE "/dev/tty"
-#define SERIAL_OUTPUT_DEVICE "/dev/tty"
 
 //-----------------------------------------------------------------------------
 //------------------------- HELPER FUNCTIONS ----------------------------------
@@ -251,7 +235,7 @@ void HalBlockSignal( void * which )
 
 void HalPanicFn(char file[], int line, char msg[])
 {
-  printf("PANIC: %s:%d %s\n",file,line, msg);
+  fprintf(stderr, "PANIC: %s:%d %s\n",file,line, msg);
   abort();
 }
 
@@ -260,7 +244,7 @@ void HalPanicFn(char file[], int line, char msg[])
 void HalPanicErrnoFn(char file[], int line, char msg[]) __attribute__((noreturn));
 void HalPanicErrnoFn(char file[], int line, char msg[])
 {
-  printf("PANIC: %s:%d errno %s: %s\n", file, line, strerror(errno), msg);
+  fprintf(stderr, "PANIC: %s:%d errno %s: %s\n", file, line, strerror(errno), msg);
   abort();
 }
 
@@ -652,81 +636,32 @@ void HalIsrFinalize()
 
 void HalStartSerial()
 {
-  int oflags;
-
-  // Open the term for reading and writing.
-  if ( (serialInFd = open(SERIAL_INPUT_DEVICE, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0 ) {
-    HalPanicErrno("failed to open input fd");
-  }
-  if( (serialOutFd = open(SERIAL_OUTPUT_DEVICE, O_WRONLY | O_NOCTTY | O_NONBLOCK) ) < 0 ) {
-    HalPanicErrno("failed to open output fd");
-  }
-
-  //Get the term settings
-  tcgetattr(serialInFd, &serialSettingsOld);
-
-  // For now, lets reuse whatever terminal settings we were started with.
-  serialSettings.c_cflag = serialSettingsOld.c_cflag;
-  serialSettings.c_iflag = serialSettingsOld.c_iflag;
-  serialSettings.c_oflag = serialSettingsOld.c_oflag;
-  serialSettings.c_lflag = serialSettingsOld.c_lflag;
-
-  serialSettings.c_cc[VEOF] = serialSettingsOld.c_cc[VEOF];
-  serialSettings.c_cc[VEOL] = serialSettingsOld.c_cc[VEOL];
-  serialSettings.c_cc[VEOL2] = serialSettingsOld.c_cc[VEOL2];
-  serialSettings.c_cc[VERASE] = serialSettingsOld.c_cc[VERASE];
-  serialSettings.c_cc[VWERASE] = serialSettingsOld.c_cc[VWERASE];
-  serialSettings.c_cc[VKILL] = serialSettingsOld.c_cc[VKILL];
-  serialSettings.c_cc[VREPRINT] = serialSettingsOld.c_cc[VREPRINT];
-  serialSettings.c_cc[VINTR] = serialSettingsOld.c_cc[VINTR];
-  serialSettings.c_cc[VQUIT] = serialSettingsOld.c_cc[VQUIT];
-  serialSettings.c_cc[VSUSP] = serialSettingsOld.c_cc[VSUSP];
-#ifndef LINUX
-  serialSettings.c_cc[VDSUSP] = serialSettingsOld.c_cc[VDSUSP];
-#endif
-  serialSettings.c_cc[VSTART] = serialSettingsOld.c_cc[VSTART];
-  serialSettings.c_cc[VSTOP] = serialSettingsOld.c_cc[VSTOP];
-  serialSettings.c_cc[VLNEXT] = serialSettingsOld.c_cc[VLNEXT];
-  serialSettings.c_cc[VDISCARD] = serialSettingsOld.c_cc[VDISCARD];
-  serialSettings.c_cc[VMIN] = serialSettingsOld.c_cc[VMIN];
-  serialSettings.c_cc[VTIME] = serialSettingsOld.c_cc[VTIME];
-#ifndef LINUX
-  serialSettings.c_cc[VSTATUS] = serialSettingsOld.c_cc[VSTATUS];
-#endif
-
-  serialSettings.c_ispeed = serialSettingsOld.c_ispeed;
-  serialSettings.c_ospeed = serialSettingsOld.c_ospeed;
-
-  tcflush(serialInFd, TCIFLUSH);
-  tcsetattr(serialInFd,TCSANOW,&serialSettings);
-
-  fcntl(serialInFd, F_SETOWN, getpid(  ));
-  oflags = fcntl(serialInFd, F_GETFL);
-  fcntl(serialInFd, F_SETFL, oflags | FASYNC);
-
-  fcntl(serialOutFd, F_SETOWN, getpid(  ));
-  oflags = fcntl(serialOutFd, F_GETFL);
-  fcntl(serialOutFd, F_SETFL, oflags | FASYNC);
+  setvbuf(stdin, NULL, _IONBF, 0);
+  setvbuf(stdout, NULL, _IONBF, 0);
+  setvbuf(stderr, NULL, _IONBF, 0);
 }
 
 void HalSerialRead(SPACE * space) {
   int len = space->Length;
   char * buff = space->Buff;
-  int readlen = read(serialInFd, buff, len);
-  if (readlen >= 0) {
+  size_t readlen = fread(buff, 1, len, stdin);
+  if (readlen == 0) {
     DATA data = BufferSpace(buff, readlen);
     BufferAdvance(&data, space);
     return;
   } else {
-    if (errno == EINTR) {
-      return; //We are allowed to be interrupted by another signal.
-    } else if (errno == EAGAIN) {
-      return;
-    } else if(errno == EWOULDBLOCK) {
-      return;
+    if (ferror(stdin)) {
+      if (errno == EINTR) {
+        return; //We are allowed to be interrupted by another signal.
+      } else if (errno == EAGAIN) {
+        return;
+      } else if(errno == EWOULDBLOCK) {
+        return;
+      } else {
+        HalPanicErrno("Failed to read to stdin");
+      }
     } else {
-      HalPanicErrno("Recieved error from STDIN!");
-      return;
+      HalPanic("Short read from stdin");
     }
   }
 }
@@ -736,19 +671,21 @@ void HalSerialWrite(DATA *data)
   while (!BufferEmpty(data)) {
     char * buff = data->Buff;
     COUNT len = data->Length;
-    int writelen = write(serialOutFd, buff, len);
+    size_t writelen = fwrite(buff, 1, len, stdout);
     if ( writelen > 0 ) {
       DATA written = BufferSpace(buff, writelen);
       BufferAdvance(&written, data);
-    } else if (writelen == 0) {
-      HalPanic("Wrote 0 to STDOUT");
     } else {
-      if (errno == EAGAIN) {
-        return;
-      } else if (errno == EINTR) {
-        return;
+      if (ferror(stdout)) {
+        if (errno == EAGAIN) {
+          return;
+        } else if (errno == EINTR) {
+          return;
+        } else {
+          HalPanicErrno("Failed to write to stdout");
+        }
       } else {
-        HalPanicErrno("Failed to write to STDOUT");
+        HalPanic("Short write to stdin");
       }
     }
   }
