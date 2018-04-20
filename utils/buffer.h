@@ -45,4 +45,7 @@ BOOL BufferPrint(SPACE * s, char * format, ...);
 #ifdef PC_BUILD
 BOOL BufferCompare(const DATA * d1, const DATA * d2);
 #endif //PC_BUILD
+
+void BufferAdvance(const DATA * data, SPACE * space);
+
 #endif //BUFF_H

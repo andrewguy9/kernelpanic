@@ -714,9 +714,8 @@ void HalSerialRead(SPACE * space) {
   char * buff = space->Buff;
   int readlen = read(serialInFd, buff, len);
   if (readlen >= 0) {
-    //TODO I'M DOING POINTER MATH, BUT I'M FINE WITH IT.
-    space->Buff += readlen;
-    space->Length -= readlen;
+    DATA data = BufferSpace(buff, readlen);
+    BufferAdvance(&data, space);
     return;
   } else {
     if (errno == EINTR) {
@@ -739,9 +738,8 @@ void HalSerialWrite(DATA *data)
     COUNT len = data->Length;
     int writelen = write(serialOutFd, buff, len);
     if ( writelen > 0 ) {
-      //TODO I'M DOING POINTER MATH HERE, BUT I'M FINE WITH IT.
-      data->Buff += writelen;
-      data->Length -= writelen;
+      DATA written = BufferSpace(buff, writelen);
+      BufferAdvance(&written, data);
     } else if (writelen == 0) {
       HalPanic("Wrote 0 to STDOUT");
     } else {

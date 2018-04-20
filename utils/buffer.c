@@ -105,3 +105,10 @@ void * BufferNextFn(DATA * data, COUNT len) {
 }
 
 #endif //PC_BUILD
+
+void BufferAdvance(const DATA * data, SPACE * space) {
+  ASSERT(data->Buff == space->Buff);
+  ASSERT(data->Length <= space->Length);
+  space->Buff += data->Length;
+  space->Length -= data->Length;
+}
