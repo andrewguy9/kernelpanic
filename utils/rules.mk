@@ -38,3 +38,5 @@ utils/$(TARGET)_bhamtest.o: utils/bhamtest.c
 utils/$(TARGET)_primestest.o: utils/primestest.c
 
 utils/$(TARGET)_buffertest.o: utils/buffertest.c
+
+utils/$(TARGET)_utilstest.o: utils/utilstest.c
