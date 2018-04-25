@@ -21,8 +21,10 @@ struct THREAD CountThread2;
 int Max = 1000000;
 
 #define BUFF_SIZE 32
-char Buff1[BUFF_SIZE];
-char Buff2[BUFF_SIZE];
+char Mem1[BUFF_SIZE];
+SPACE Buff1 = BufferFromObj(Mem1);
+char Mem2[BUFF_SIZE];
+SPACE Buff2 = BufferFromObj(Mem2);
 
 struct SOCKET Socket;
 struct SOCKET_HANDLE H1;
@@ -60,10 +62,8 @@ int main(int argc, char ** argv)
 
   MutexInit(&Kicker, FALSE);
   SocketInit(
-      Buff1,
-      BUFF_SIZE,
-      Buff2,
-      BUFF_SIZE,
+      &Buff1,
+      &Buff2,
       & Socket,
       & H1,
       & H2);

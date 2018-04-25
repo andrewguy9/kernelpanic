@@ -5,7 +5,7 @@
 #include"buffer.h"
 
 struct RING_BUFFER {
-  char * Buffer;
+  void * Buffer;
   COUNT Size;
   INDEX ReadIndex;
   INDEX WriteIndex;
@@ -16,6 +16,6 @@ void RingBufferReadBuffer(SPACE * space, struct RING_BUFFER * ring);
 void RingBufferWriteBuffer(DATA * data, struct RING_BUFFER * ring);
 BOOL RingBufferIsEmpty( struct RING_BUFFER * ring );
 BOOL RingBufferIsFull( struct RING_BUFFER * ring );
-void RingBufferInit( char * buff, COUNT size, struct RING_BUFFER * ring );
+void RingBufferInit( SPACE * space, struct RING_BUFFER * ring );
 
 #endif

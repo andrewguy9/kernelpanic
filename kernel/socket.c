@@ -7,10 +7,8 @@
  */
 
 void SocketInit(
-    char * buff1,
-    COUNT buff1_size,
-    char * buff2,
-    COUNT buff2_size,
+    SPACE * space1,
+    SPACE * space2,
     struct SOCKET * socket,
     struct SOCKET_HANDLE * h1,
     struct SOCKET_HANDLE * h2
@@ -20,8 +18,8 @@ void SocketInit(
   PIPE_READ p2_read;
   PIPE_WRITE p2_write;
 
-  PipeInit(buff1, buff1_size, &socket->Pipe1, &p1_read, &p1_write);
-  PipeInit(buff2, buff2_size, &socket->Pipe2, &p2_read, &p2_write);
+  PipeInit(space1, &socket->Pipe1, &p1_read, &p1_write);
+  PipeInit(space2, &socket->Pipe2, &p2_read, &p2_write);
   h1->Read = p1_read;
   h1->Write = p2_write;
   h2->Read = p2_read;

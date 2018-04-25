@@ -52,7 +52,8 @@ void InitBuffers() {
   OutBuffer = malloc(TEST_SIZE);
   SPACE outSpace = BufferSpace(OutBuffer, TEST_SIZE);
 
-  RingBufferInit(RingBuffer, RING_SIZE, &Ring);
+  SPACE space = BufferSpace(RingBuffer, RING_SIZE);
+  RingBufferInit(&space, &Ring);
   PrintRing( &Ring );
 
   printf("Initing buffers\n");

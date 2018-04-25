@@ -13,14 +13,14 @@
 /*
  * Initializes a pipe
  */
-void PipeInit( char * buff, COUNT size, struct PIPE * pipe, PIPE_READ * pr, PIPE_WRITE * pw )
+void PipeInit( SPACE * space, struct PIPE * pipe, PIPE_READ * pr, PIPE_WRITE * pw )
 {
   SemaphoreInit( & pipe->Mutex, 1 );
   SemaphoreInit( & pipe->EmptyLock, 0 ); //Buffer starts empty, block reads.
   SemaphoreInit( & pipe->FullLock, 1 );//Buffer starts empty, allow writes.
   SemaphoreInit( & pipe->ReadLock, 1 );
   SemaphoreInit( & pipe->WriteLock, 1 );
-  RingBufferInit( buff, size, & pipe->Ring );
+  RingBufferInit( space, & pipe->Ring );
   * pr = pipe;
   * pw = pipe;
 }

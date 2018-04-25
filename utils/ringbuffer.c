@@ -31,7 +31,7 @@ void RingBufferUpdateWriteIndex(SPACE * space, struct RING_BUFFER * ring) {
   if (space->Buff == ring->Buffer + ring->Size) {
     ring->WriteIndex = 0;
   } else {
-    ring->WriteIndex = space->Buff - ring->Buffer;
+    ring->WriteIndex = (char*) space->Buff - (char*) ring->Buffer;
   }
   ring->Empty = FALSE; //TODO IS THIS ALWAYS TRUE?
 }
@@ -73,7 +73,7 @@ void RingBufferUpdateReadIndex(DATA * data, struct RING_BUFFER * ring) {
   if (data->Buff == ring->Buffer + ring->Size) {
     ring->ReadIndex = 0;
   } else {
-    ring->ReadIndex = data->Buff - ring->Buffer;
+    ring->ReadIndex = (char*) data->Buff - (char*) ring->Buffer;
   }
   if (ring->ReadIndex == ring->WriteIndex) {
     ring->Empty = TRUE;
@@ -116,10 +116,12 @@ BOOL RingBufferIsFull( struct RING_BUFFER * ring )
   return ! ring->Empty && ring->WriteIndex == ring->ReadIndex;
 }
 
-void RingBufferInit( char * buff, COUNT size, struct RING_BUFFER * ring )
-{
-  ring->Buffer = buff;
-  ring->Size = size;
+void RingBufferInit( SPACE * space, struct RING_BUFFER * ring ) {
+  DATA data = *space;
+  BufferAdvance(&data, space);
+  //TODO REACHING INTO BUFFER
+  ring->Buffer = data.Buff;
+  ring->Size = data.Length;
   ring->ReadIndex=0;
   ring->WriteIndex=0;
   ring->Empty = TRUE;

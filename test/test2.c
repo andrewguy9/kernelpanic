@@ -93,13 +93,14 @@ void * ConsumerMain(void * arg)
 //main
 int main()
 {
-  void * RingBuff;
   KernelInit();
 
   SchedulerStartup();
 
-  RingBuff = HalMap(RING_TAG, NULL, RING_SIZE);
-  PipeInit( RingBuff, RING_SIZE, &Pipe, &PipeReader, &PipeWriter );
+  void * RingBuff = HalMap(RING_TAG, NULL, RING_SIZE);
+  SPACE space = BufferSpace(RingBuff, RING_SIZE);
+
+  PipeInit(&space, &Pipe, &PipeReader, &PipeWriter);
 
   SchedulerCreateThread(
       &Producer1,

@@ -17,10 +17,8 @@ struct SOCKET_HANDLE {
 };
 
 void SocketInit(
-    char * buff1,
-    COUNT buff1_size,
-    char * buff2,
-    COUNT buff2_size,
+    SPACE * space1,
+    SPACE * space2,
     struct SOCKET * socket,
     struct SOCKET_HANDLE * h1,
     struct SOCKET_HANDLE * h2

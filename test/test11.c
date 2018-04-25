@@ -12,10 +12,13 @@
 
 #define BUFFER_LENGTH 10
 
-char MessageBuffer1[BUFFER_LENGTH];
-char MessageBuffer2[BUFFER_LENGTH];
-char MessageBuffer3[BUFFER_LENGTH];
+char MessageMemory1[BUFFER_LENGTH];
+char MessageMemory2[BUFFER_LENGTH];
+char MessageMemory3[BUFFER_LENGTH];
 
+SPACE MessageBuffer1 = BufferFromObj(MessageMemory1);
+SPACE MessageBuffer2 = BufferFromObj(MessageMemory2);
+SPACE MessageBuffer3 = BufferFromObj(MessageMemory3);
 #define RANDOM_VALUES_SIZE 15
 char RandomNumbers [RANDOM_VALUES_SIZE] =
 {
@@ -67,7 +70,7 @@ struct CONSUMER_CONTEXT ConsumerContext2;
 struct CONSUMER_CONTEXT ConsumerContext3;
 
 void SetupPipe(
-    char * buff,
+    SPACE * space,
     struct PIPE * pipe,
     struct PRODUCER_CONTEXT * pc,
     struct CONSUMER_CONTEXT * cc,
@@ -75,7 +78,7 @@ void SetupPipe(
     INDEX consumer_watchdog) {
   PIPE_READ reader;
   PIPE_WRITE writer;
-  PipeInit( buff, BUFFER_LENGTH, pipe, &reader, &writer );
+  PipeInit( space, pipe, &reader, &writer );
   pc->WatchdogId = producer_watchdog;
   pc->Writer = writer;
   cc->WatchdogId = consumer_watchdog;
@@ -197,9 +200,9 @@ int main()
 
   KernelInit();
   SchedulerStartup();
-  SetupPipe(MessageBuffer1, &Pipe1, &ProducerContext1, &ConsumerContext1, 1, 2);
-  SetupPipe(MessageBuffer2, &Pipe2, &ProducerContext2, &ConsumerContext2, 3, 4);
-  SetupPipe(MessageBuffer3, &Pipe3, &ProducerContext3, &ConsumerContext3, 5, 6);
+  SetupPipe(&MessageBuffer1, &Pipe1, &ProducerContext1, &ConsumerContext1, 1, 2);
+  SetupPipe(&MessageBuffer2, &Pipe2, &ProducerContext2, &ConsumerContext2, 3, 4);
+  SetupPipe(&MessageBuffer3, &Pipe3, &ProducerContext3, &ConsumerContext3, 5, 6);
 
   SchedulerCreateThread(
       &Producer1,

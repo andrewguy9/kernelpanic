@@ -7,8 +7,10 @@
 
 #define BUFFER_SIZE 32
 
-char SerialInputBuffer[BUFFER_SIZE];
-char SerialOutputBuffer[BUFFER_SIZE];
+char SerialInputMemory[BUFFER_SIZE];
+SPACE SerialInputBuffer = BufferFromObj(SerialInputMemory);
+char SerialOutputMemory[BUFFER_SIZE];
+SPACE SerialOutputBuffer = BufferFromObj(SerialOutputMemory);
 
 struct RING_BUFFER SerialInputRing;
 struct RING_BUFFER SerialOutputRing;
@@ -63,8 +65,8 @@ void GetBytesInterrupt(void)
 void SerialStartup()
 {
   SendBytesData = BufferNull();
-  RingBufferInit( SerialInputBuffer, BUFFER_SIZE, &SerialInputRing );
-  RingBufferInit( SerialOutputBuffer, BUFFER_SIZE, &SerialOutputRing );
+  RingBufferInit( &SerialInputBuffer, &SerialInputRing );
+  RingBufferInit( &SerialOutputBuffer, &SerialOutputRing );
 
   ReadGenerationCount=0;
   GenerationInit(&ReadGeneration, ReadGenerationCount);
