@@ -16,7 +16,7 @@ typedef struct BUFFER SPACE;
 
 // Initialize empty buffer.
 // TODO IS THERE A GOOD WAY TO DO THIS LIKE calloc?
-SPACE BufferSpace(void * buff, COUNT size);
+#define BufferSpace(buff, size) {(void*) (buff), (size)}
 
 #ifdef PC_BUILD
 //XXX COULD WE MANAGE STRUCT CHARS DISTINCTION IN HERE?

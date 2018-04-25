@@ -12,57 +12,51 @@
  * Prints success or failure for validation.
  */
 
-COUNT TEST_SIZE;
-COUNT RING_SIZE;
 
-struct RING_BUFFER Ring;
-char * RingBuffer;
-char * InBuffer;
-DATA In;
-char * OutBuffer;
-SPACE Out;
-
-void InitBuffers();
 void PrintRing( struct RING_BUFFER * ring );
-int Test();
 
-
-void InitBuffers() {
-  TEST_SIZE = rand()%128;
-  RING_SIZE = rand()%32;
-
-  printf("Test on buffer size %ld, ring size %ld\n",
-      TEST_SIZE,
-      RING_SIZE);
-
-  if (RingBuffer != NULL) {
-    free( RingBuffer );
+DATA InitIn(COUNT testSize) {
+  char * InBuffer = malloc(testSize);
+  SPACE inSpace = BufferSpace(InBuffer, testSize);
+  printf("Initing input\n");
+  for (int index=0; index<testSize; index++) {
+    BufferPrint(&inSpace, "%c", 'a'+rand()%26);
   }
-  RingBuffer = malloc(RING_SIZE);
+  DATA In = BufferData(InBuffer, &inSpace);
+  return In;
+}
 
-  if (InBuffer != NULL) {
-    free(InBuffer);
+SPACE InitOut(COUNT testSize) {
+  char * OutBuffer = malloc(testSize);
+  SPACE outSpace = BufferSpace(OutBuffer, testSize);
+  printf("Initing output\n");
+  for (int index=0; index<testSize; index++) {
+    BufferPrint(&outSpace, "*");
   }
-  InBuffer = malloc(TEST_SIZE);
-  SPACE inSpace = BufferSpace(InBuffer, TEST_SIZE);
+  SPACE out = BufferSpace(OutBuffer, testSize);
+  return out;
+}
 
-  if (OutBuffer != NULL) {
-    free(OutBuffer);
-  }
-  OutBuffer = malloc(TEST_SIZE);
-  SPACE outSpace = BufferSpace(OutBuffer, TEST_SIZE);
-
-  SPACE space = BufferSpace(RingBuffer, RING_SIZE);
+struct RING_BUFFER InitRing() {
+  COUNT ringSize = rand()%32;
+  printf("Test on ring size %ld\n", ringSize);
+  char * RingBuffer;
+  RingBuffer = malloc(ringSize);
+  SPACE space = BufferSpace(RingBuffer, ringSize);
+  struct RING_BUFFER Ring;
   RingBufferInit(&space, &Ring);
   PrintRing( &Ring );
+  return Ring;
+}
 
-  printf("Initing buffers\n");
-  for (int index=0; index<TEST_SIZE; index++) {
-    BufferPrint(&inSpace, "%c", 'a'+rand()%26);
-    BufferPrint(&outSpace, "x");
-  }
-  In = BufferData(InBuffer, &inSpace);
-  Out = BufferSpace(OutBuffer, TEST_SIZE);
+void FreeBuffer(struct BUFFER * buff) {
+  free(buff->Buff); //XXX CRACKING BUFFERS
+  *buff = BufferNull;
+}
+
+void FreeRing(struct RING_BUFFER * ring) {
+  free(ring->Buffer);
+  ring->Buffer = NULL;
 }
 
 void PrintRing( struct RING_BUFFER * ring ) {
@@ -72,7 +66,7 @@ void PrintRing( struct RING_BUFFER * ring ) {
     printf(" ");
   }
   printf("[");
-  for (INDEX cur=0; cur < RING_SIZE; cur++) {
+  for (INDEX cur=0; cur < ring->Size; cur++) {
     if( ring->WriteIndex == cur && ring->ReadIndex == cur ) {
       printf("b");
     } else if( ring->WriteIndex == cur ) {
@@ -103,25 +97,26 @@ void PrintRing( struct RING_BUFFER * ring ) {
   printf("]\n");
 }
 
-int Test() {
-  while (!BufferFull(&Out) || !BufferEmpty(&In)) {
-    if (!BufferEmpty(&In)) {
+void MoveData(DATA in, SPACE out, struct RING_BUFFER ring) {
+  while (!BufferFull(&out) || !BufferEmpty(&in)) {
+    if (!BufferEmpty(&in)) {
       printf("Writing\n");
-      RingBufferWriteBuffer(&In, &Ring);
-      PrintRing( &Ring );
+      RingBufferWriteBuffer(&in, &ring);
+      PrintRing( &ring );
     }
-    if (!BufferFull(&Out)) {
+    if (!BufferFull(&out)) {
       printf("Reading\n");
-      RingBufferReadBuffer(&Out, &Ring);
-      PrintRing( &Ring );
+      RingBufferReadBuffer(&out, &ring);
+      PrintRing( &ring );
     }
   }
+}
 
-  printf("%s\n", InBuffer);
-  printf("%s\n", OutBuffer);
+int Test(DATA in, SPACE out, struct RING_BUFFER ring) {
+  MoveData(in, out, ring);
+  printf("%s\n", in.Buff); //XXX CRACKING BUFFER
+  printf("%s\n", out.Buff); //XXX CRACKING BUFFER
   //verify the buffer
-  DATA out = BufferData(OutBuffer, &Out);
-  DATA in = BufferData(InBuffer, &In);
   if (! BufferCompare(&in, &out)) {
     printf("Buffer mismatch!\n");
     return 1;
@@ -137,9 +132,17 @@ int main() {
   for (testNum = 0; testNum < NUM_TESTS; testNum++) {
     printf("---------------------------------------------------------------\n");
     //Initialize in and out buffers.
-    InitBuffers();
-    if( Test() )
+    COUNT testSize = rand()%128;
+    printf("Test on buffer size %ld\n", testSize);
+    DATA in = InitIn(testSize);
+    SPACE out = InitOut(testSize);
+    struct RING_BUFFER ring = InitRing();
+    if (Test(in, out, ring)) { //TODO PASS ARGS
       return 1;
+    }
+    FreeBuffer(&in);
+    FreeBuffer(&out);
+    FreeRing(&ring);
     printf("passed\n");
   }
   printf("test round passed\n");
