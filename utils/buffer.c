@@ -27,16 +27,6 @@ DATA BufferData(char * buff, const SPACE * s)
   return d;
 }
 
-BOOL BufferFull(const SPACE * s)
-{
-  return s->Length == 0;
-}
-
-BOOL BufferEmpty(const DATA * d)
-{
-  return d->Length == 0;
-}
-
 #ifdef PC_BUILD
 /*
  * Render a string into buffer.
@@ -91,10 +81,3 @@ void * BufferNextFn(DATA * data, COUNT len) {
 }
 
 #endif //PC_BUILD
-
-void BufferAdvance(const DATA * data, SPACE * space) {
-  ASSERT(data->Buff == space->Buff);
-  ASSERT(data->Length <= space->Length);
-  space->Buff += data->Length;
-  space->Length -= data->Length;
-}

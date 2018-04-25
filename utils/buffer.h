@@ -35,8 +35,8 @@ void * BufferNextFn(DATA * data, COUNT len);
 //TODO BufferData is inconvient because we need to stash buff.
 DATA BufferData(char * buff, const SPACE * s);
 
-BOOL BufferFull(const SPACE * s);
-BOOL BufferEmpty(const DATA * d);
+#define BufferFull(space) ((space)->Length == 0)
+#define BufferEmpty(data) ((data)->Length == 0)
 
 #ifdef PC_BUILD
 BOOL BufferPrint(SPACE * s, char * format, ...);
@@ -46,6 +46,11 @@ BOOL BufferPrint(SPACE * s, char * format, ...);
 BOOL BufferCompare(const DATA * d1, const DATA * d2);
 #endif //PC_BUILD
 
-void BufferAdvance(const DATA * data, SPACE * space);
+#define BufferAdvance(data, space) ({ \
+    ASSERT((data)->Buff == (space)->Buff); \
+    ASSERT((data)->Length <= (space)->Length); \
+    (space)->Buff += (data)->Length; \
+    (space)->Length -= (data)->Length; \
+    })
 
 #endif //BUFF_H
