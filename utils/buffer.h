@@ -27,7 +27,7 @@ void BufferCopy(DATA * d, SPACE * s);
 
 #define BufferFromObj(obj) {(char*) &(obj), sizeof(obj)}
 #define BufferToObj(data, type) (*(type *) data.Buff)
-struct BUFFER BufferNull();
+extern const struct BUFFER BufferNull;
 //TODO PROTOTYPE. Buff advancement is not safe.
 void * BufferNextFn(DATA * data, COUNT len);
 #define BufferNext(data, val) ((typeof(val)) BufferNextFn(&data, sizeof(*val)))

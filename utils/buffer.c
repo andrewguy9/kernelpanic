@@ -29,11 +29,7 @@ void BufferCopy(DATA * data, SPACE * space)
 }
 #endif // PC_BUILD
 
-struct BUFFER BufferNull()
-{
-  struct BUFFER result = {NULL, 0};
-  return result;
-}
+const struct BUFFER BufferNull = {NULL, 0};
 
 DATA BufferData(char * buff, const SPACE * s)
 {

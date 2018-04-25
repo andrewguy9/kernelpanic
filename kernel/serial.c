@@ -64,7 +64,7 @@ void GetBytesInterrupt(void)
 
 void SerialStartup()
 {
-  SendBytesData = BufferNull();
+  SendBytesData = BufferNull;
   RingBufferInit( &SerialInputBuffer, &SerialInputRing );
   RingBufferInit( &SerialOutputBuffer, &SerialOutputRing );
 
