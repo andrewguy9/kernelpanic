@@ -63,15 +63,4 @@ BOOL BufferCompare(const DATA * d1, const DATA * d2)
   }
 }
 
-void * BufferNextFn(DATA * data, COUNT len) {
-  if (len > data->Length) {
-    return NULL;
-  } else {
-    void * place = data->Buff;
-    data->Buff += len;
-    data->Length -= len;
-    return place;
-  }
-}
-
 #endif //PC_BUILD

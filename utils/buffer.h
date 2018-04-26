@@ -29,7 +29,17 @@ void BufferCopy(DATA * d, SPACE * s);
 #define BufferToObj(data, type) (*(type *) data.Buff)
 extern const struct BUFFER BufferNull;
 //TODO PROTOTYPE. Buff advancement is not safe.
-void * BufferNextFn(DATA * data, COUNT len);
+static inline void * BufferNextFn(DATA * data, COUNT len) {
+  if (len > data->Length) {
+    return NULL;
+  } else {
+    void * place = data->Buff;
+    data->Buff += len;
+    data->Length -= len;
+    return place;
+  }
+}
+
 #define BufferNext(data, val) ((typeof(val)) BufferNextFn(&data, sizeof(*val)))
 
 //TODO BufferData is inconvient because we need to stash buff.
