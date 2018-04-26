@@ -76,15 +76,10 @@ void Pop()
 }
 
 void DumpList(struct LINKED_LIST * list) {
-  if (list->Head == NULL) {
-    printf("null list\n");
-    return;
-  }
-
   for (struct ELEMENT * cur = (struct ELEMENT *) list->Head,
       * last = NULL,
       * head = (struct ELEMENT *) list->Head;
-      cur != head || last == NULL;
+      list->Head && (cur != head || last == NULL);
       last = cur,
       cur = (struct ELEMENT *) cur->Link.LinkedListLink.Next) {
     printf("%d,", cur->Data);
