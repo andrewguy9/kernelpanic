@@ -75,24 +75,21 @@ void Pop()
                 printf("heap returned null\n");
 }
 
-void DumpList( struct LINKED_LIST * list )
-{
-        struct ELEMENT * cur = (struct ELEMENT *) list->Head;
-        struct ELEMENT * head = (struct ELEMENT *) list->Head;
+void DumpList(struct LINKED_LIST * list) {
+  if (list->Head == NULL) {
+    printf("null list\n");
+    return;
+  }
 
-        if( list->Head == NULL )
-        {
-                printf("null list\n");
-                return;
-        }
-
-        do
-        {
-                printf("%d,", cur->Data);
-                cur = (struct ELEMENT *) cur->Link.LinkedListLink.Next;
-        }while( cur != head );
-        printf("\n");
-        return;
+  for (struct ELEMENT * cur = (struct ELEMENT *) list->Head,
+      * last = NULL,
+      * head = (struct ELEMENT *) list->Head;
+      cur != head || last == NULL;
+      last = cur,
+      cur = (struct ELEMENT *) cur->Link.LinkedListLink.Next) {
+    printf("%d,", cur->Data);
+  }
+  printf("\n");
 }
 
 void DumpAtomic( struct ATOMIC_LIST * list )
