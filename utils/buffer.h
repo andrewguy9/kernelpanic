@@ -33,7 +33,10 @@ void * BufferNextFn(DATA * data, COUNT len);
 #define BufferNext(data, val) ((typeof(val)) BufferNextFn(&data, sizeof(*val)))
 
 //TODO BufferData is inconvient because we need to stash buff.
-DATA BufferData(char * buff, const SPACE * s);
+static inline DATA BufferData(void * base, const SPACE * space) {
+  DATA data = {base, space->Buff - (char*) base};
+  return data;
+}
 
 #define BufferFull(space) ((space)->Length == 0)
 #define BufferEmpty(data) ((data)->Length == 0)

@@ -21,12 +21,6 @@ void BufferCopy(DATA * data, SPACE * space)
 
 const struct BUFFER BufferNull = {NULL, 0};
 
-DATA BufferData(char * buff, const SPACE * s)
-{
-  DATA d = {buff, s->Buff - buff};
-  return d;
-}
-
 #ifdef PC_BUILD
 /*
  * Render a string into buffer.
