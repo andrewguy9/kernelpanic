@@ -76,12 +76,12 @@ void Pop()
 }
 
 void DumpList(struct LINKED_LIST * list) {
-  for (struct ELEMENT * cur = (struct ELEMENT *) list->Head,
+  for (struct ELEMENT * cur = BASE_OBJECT(list->Head, struct ELEMENT, Link),
       * last = NULL,
-      * head = (struct ELEMENT *) list->Head;
+      * head = BASE_OBJECT(list->Head, struct ELEMENT, Link);
       list->Head && (cur != head || last == NULL);
       last = cur,
-      cur = (struct ELEMENT *) cur->Link.LinkedListLink.Next) {
+      cur = BASE_OBJECT(cur->Link.LinkedListLink.Next, struct ELEMENT, Link)) {
     printf("%d,", cur->Data);
   }
   printf("\n");
