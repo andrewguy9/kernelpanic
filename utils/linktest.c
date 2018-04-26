@@ -76,15 +76,7 @@ void Pop()
 }
 
 void DumpList(struct LINKED_LIST * list) {
-#define T struct ELEMENT
-#define field Link
-
-  for (T * cur = BASE_OBJECT(list->Head, T, field),
-      * last = NULL,
-      * head = BASE_OBJECT(list->Head, T, field);
-      list->Head && (cur != head || last == NULL);
-      last = cur,
-      cur = BASE_OBJECT(cur->field.LinkedListLink.Next, T, field)) {
+  LINKED_LIST_FOR_EACH(cur, struct ELEMENT, Link) {
     printf("%d,", cur->Data);
   }
   printf("\n");
