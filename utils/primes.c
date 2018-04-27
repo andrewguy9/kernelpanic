@@ -27,19 +27,22 @@ BOOL isPrimeProduct(int v, DATA * primes)
   return TRUE;
 }
 
-enum PRIMES_STATUS findPrimes(int max, SPACE * buffer) {
-  SPACE orig = *buffer;
-  for (int cur = 2; cur < max; cur++) {
-    DATA data = BufferData(orig.Buff, buffer);
+enum PRIMES_STATUS findPrimes(int max, SPACE * space) {
+  SPACE orig = *space;
+  //TODO WE WANT TO EXIT IF OVERFLOW, NOT IF FULL.
+  for (int cur = 2; cur < max && !BufferFull(space); cur++) {
+    //TODO It sucks that we have to keep building data up.
+    DATA data = BufferData(orig.Buff, space);
     if (isPrimeProduct(cur, &data)) {
-      if (BufferFull(buffer)) {
-        return PRIMES_OVERFLOW;
-      } else {
-        DATA prime = BufferFromObj(cur);
-        //TODO THIS IS NOT SAFE.
-        BufferCopy(&prime, buffer);
-      }
+      //TODO WE SHOULD HAVE A EASY WAY TO WRITE AN OBJECT TO A BUFFER.
+      DATA prime = BufferFromObj(cur);
+      BufferCopy(&prime, space);
     }
   }
-  return PRIMES_OK;
+  //TODO WE WANT TO ERROR ON OVERFLOW, NOT FULL.
+  if (BufferFull(space)) {
+    return PRIMES_OVERFLOW;
+  } else {
+    return PRIMES_OK;
+  }
 }
