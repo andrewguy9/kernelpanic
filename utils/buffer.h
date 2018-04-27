@@ -26,6 +26,7 @@ void BufferCopy(DATA * d, SPACE * s);
 #endif //PC_BUILD
 
 #define BufferFromObj(obj) {(char*) &(obj), sizeof(obj)}
+//TODO should replace instances of BufferToObj into BufferForEach.
 #define BufferToObj(data, type) (*(type *) data.Buff)
 extern const struct BUFFER BufferNull;
 //TODO PROTOTYPE. Buff advancement is not safe.
