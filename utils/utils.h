@@ -72,20 +72,11 @@
 #define ASSUME( expression, result ) (expression)
 #endif //DEBUG
 
-// https://stackoverflow.com/questions/400951/does-c-have-a-foreach-loop-construct
-#if 0
-#define FOR_EACH(item, array) \
-  for(int keep = 1, \
-      count = 0,\
-      size = sizeof (array) / sizeof *(array); \
-      keep && count != size; \
-      keep = !keep, count++) \
-      for(typeof(array[0]) * item = (array) + count; keep; keep = !keep)
-#else
-#define FOR_EACH(item, array)                                            \
-  for(typeof(*(array)) *item = array,                                    \
-                       *stop = array + sizeof (array) / sizeof *(array); \
-      item != stop;                                                      \
+#define FOR_EACH_N(item, array, count)            \
+  for(typeof(*(array)) *item = (array),           \
+                       *stop = (array) + (count); \
+      item != stop;                               \
       item++)
-#endif
+
+#define FOR_EACH(item, array) FOR_EACH_N(item, array, sizeof (array) / sizeof *(array))
 #endif //UTILS_H
