@@ -66,4 +66,9 @@ BOOL BufferCompare(const DATA * d1, const DATA * d2);
     (space)->Length -= (data)->Length; \
     })
 
+#define BUFFER_FOR_EACH(item, T, buff) \
+  for (T * (item) = BufferNext((buff), (item)); \
+      (item) != NULL; \
+      (item) = BufferNext((buff), (item)))
+
 #endif //BUFF_H

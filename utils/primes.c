@@ -17,18 +17,7 @@ BOOL isPrime(int v)
 BOOL isPrimeProduct(int v, DATA * primes)
 {
   DATA data = *primes;
-#if 1
-#define BUFFER_FOR_EACH(item, T, buff) \
-  for (T * (item) = BufferNext((buff), (item)); \
-      (item) != NULL; \
-      (item) = BufferNext((buff), (item)))
-
   BUFFER_FOR_EACH(prime, int, data) {
-#else
-  for (int * prime = BufferNext(data, prime);
-      prime != NULL;
-      prime = BufferNext(data, prime)) {
-#endif
     if (v % *prime == 0) {
       return FALSE;
     }
