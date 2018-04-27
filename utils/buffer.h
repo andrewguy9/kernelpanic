@@ -25,6 +25,17 @@ typedef struct BUFFER SPACE;
 void BufferCopy(DATA * d, SPACE * s);
 #endif //PC_BUILD
 
+//TODO I DIDN'T DO A BOUNDS CHECK
+#define BufferWrite(item, buffer) \
+      do { \
+        typeof(item) * src = &(item); \
+        typeof(item) * dst = (typeof(cur) *) buffer->Buff; \
+        *dst = *src; \
+        buffer->Buff += sizeof(item); \
+        buffer->Length -= sizeof(item); \
+      } while(0)
+
+//TODO should replace instances of BufferFromObj->BufferCopy into BufferWrite.
 #define BufferFromObj(obj) {(char*) &(obj), sizeof(obj)}
 #define BufferToObj(data, type) (*(type *) data.Buff)
 extern const struct BUFFER BufferNull;

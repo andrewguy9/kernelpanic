@@ -34,21 +34,7 @@ enum PRIMES_STATUS findPrimes(int max, SPACE * space) {
     //TODO It sucks that we have to keep building data up.
     DATA data = BufferData(orig.Buff, space);
     if (isPrimeProduct(cur, &data)) {
-#if 0
-      DATA prime = BufferFromObj(cur);
-      BufferCopy(&prime, space);
-#else
-//TODO I DIDN'T DO A BOUNDS CHECK
-#define BufferWrite(item, buffer) \
-      do { \
-        typeof(item) * src = &(item); \
-        typeof(item) * dst = (typeof(cur) *) buffer->Buff; \
-        *dst = *src; \
-        buffer->Buff += sizeof(item); \
-        buffer->Length -= sizeof(item); \
-      } while(0)
       BufferWrite(cur, space);
-#endif
     }
   }
   //TODO WE WANT TO ERROR ON OVERFLOW, NOT FULL.
