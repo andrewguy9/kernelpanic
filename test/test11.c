@@ -174,9 +174,7 @@ void * ConsumerMain( void * arg )
     DATA data = BufferData(myBuffer, &space);
     CMP_FN * cmp = assending ? IsAssending : IsDecending;
     char * last = NULL;
-    for (char * cur = BufferNext(data, cur);
-        cur != NULL;
-        cur = BufferNext(data, cur)) {
+    BUFFER_FOR_EACH(cur, char, data) {
       if (last) {
         if (!cmp(last, cur)) {
             KernelPanic();

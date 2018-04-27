@@ -82,9 +82,7 @@ void * Reader( void * arg )
 
     DATA data = BufferSpace(Buffer, BUFFER_SIZE * sizeof(int));
     char * last = NULL;
-    for (char * cur = BufferNext(data, cur);
-        cur != NULL;
-        cur = BufferNext(data, cur)) {
+    BUFFER_FOR_EACH(cur, char, data) {
       if ( last && *last+1 != *cur) {
         KernelPanic( );
       }
