@@ -144,7 +144,7 @@ int main() {
     DATA in = InitIn(testSize);
     SPACE out = InitOut(testSize);
     struct RING_BUFFER ring = InitRing();
-    if (Test(in, out, ring)) { //TODO PASS ARGS
+    if (Test(in, out, ring)) {
       return 1;
     }
     FreeBuffer(&in);
