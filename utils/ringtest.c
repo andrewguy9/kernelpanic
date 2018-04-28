@@ -136,9 +136,7 @@ int Test(DATA in, SPACE out, struct RING_BUFFER ring) {
 }
 
 int main() {
-  int testNum;
-
-  for (testNum = 0; testNum < NUM_TESTS; testNum++) {
+  for (int testNum = 0; testNum < NUM_TESTS; testNum++) {
     printf("---------------------------------------------------------------\n");
     //Initialize in and out buffers.
     COUNT testSize = rand()%128;
