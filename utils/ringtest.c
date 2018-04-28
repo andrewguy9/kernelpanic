@@ -66,7 +66,6 @@ void PrintRing( struct RING_BUFFER * ring ) {
     printf(" ");
   }
   printf("[");
-  //TODO use for each macro.
   for (INDEX cur=0; cur < ring->Size; cur++) {
     if( ring->WriteIndex == cur && ring->ReadIndex == cur ) {
       printf("b");
