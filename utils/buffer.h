@@ -66,4 +66,7 @@ BOOL BufferCompare(const DATA * d1, const DATA * d2);
     (space)->Length -= (data)->Length; \
     })
 
+#define BUFFER_UNTIL_FULL(buffer) \
+  while(!BufferFull(&buffer))
+
 #endif //BUFF_H
