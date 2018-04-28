@@ -19,9 +19,18 @@ DATA InitIn(COUNT testSize) {
   char * InBuffer = malloc(testSize);
   SPACE inSpace = BufferSpace(InBuffer, testSize);
   printf("Initing input\n");
+#if 0
   for (int index=0; index<testSize; index++) {
+    //TODO HANDLE ERROR FROM PRINT.
     BufferPrint(&inSpace, "%c", 'a'+rand()%26);
   }
+#elif 1
+  while(!BufferFull(&inSpace)) {
+    BufferPrint(&inSpace, "%c", 'a'+rand()%26);
+  }
+#else
+  //TODO MAKE A MACRO
+#endif
   DATA In = BufferData(InBuffer, &inSpace);
   return In;
 }
