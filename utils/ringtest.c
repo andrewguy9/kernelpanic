@@ -39,6 +39,7 @@ SPACE InitOut(COUNT testSize) {
   char * OutBuffer = malloc(testSize);
   SPACE outSpace = BufferSpace(OutBuffer, testSize);
   printf("Initing output\n");
+  //TODO USE ABOVE MACRO.
   for (int index=0; index<testSize; index++) {
     BufferPrint(&outSpace, "*");
   }
@@ -75,6 +76,7 @@ void PrintRing( struct RING_BUFFER * ring ) {
     printf(" ");
   }
   printf("[");
+  //TODO use for each macro.
   for (INDEX cur=0; cur < ring->Size; cur++) {
     if( ring->WriteIndex == cur && ring->ReadIndex == cur ) {
       printf("b");
