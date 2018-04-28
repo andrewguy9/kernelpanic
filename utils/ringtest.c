@@ -30,8 +30,7 @@ SPACE InitOut(COUNT testSize) {
   char * OutBuffer = malloc(testSize);
   SPACE outSpace = BufferSpace(OutBuffer, testSize);
   printf("Initing output\n");
-  //TODO USE ABOVE MACRO.
-  for (int index=0; index<testSize; index++) {
+  BUFFER_UNTIL_FULL(outSpace) {
     BufferPrint(&outSpace, "*");
   }
   SPACE out = BufferSpace(OutBuffer, testSize);
