@@ -98,12 +98,12 @@ AVR_FRE_STRING = -e TARGET="$(AVR_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CFLAGS=
 	rm -f $(DIR)/*.asm
 	rm -f $(DIR)/*.out
 	rm -f $(DIR)/*.o
-	rm -f $(DIR)/core*
+	rm -f $(DIR)/core.*
 	rm -f $(DIR)/*~
 	rm -f $(DIR)/*.hex
 	rm -f $(DIR)/*.elf
 	rm -f $(DIR)/*.aws
-	rm -f $(DIR)/*.core
+	rm -f $(DIR)/*.core.
 	rm -f $(DIR)/*.map
 ###########################
 # tags 

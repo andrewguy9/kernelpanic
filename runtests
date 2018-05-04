@@ -1,6 +1,8 @@
 #!/bin/bash
 
-USAGE="$0 [-r=x] [-b=y] branch1 [branch2 ...]"
+set -e
+
+USAGE="$0 [-r=x] [-b=y] dst_branch"
 
 OPTS=$(getopt r:b:h $*)
 
@@ -49,24 +51,16 @@ then
   exit 1
 fi
 
-b1=$1
+dst_branch=$1
 shift
 
 echo "cleaning"
 make clean > /dev/null
-git checkout "$b1"
 echo "building"
 make pc pc_fre > /dev/null
-./perf --batch "$batch" --runs "$runs" "$jobid" $(cat ./performance.txt)
-
-for b2 in "$@";
-do
-  echo "cleaning"
-  make clean > /dev/null
-  git checkout "$b2"
-  echo "building"
-  make pc pc_fre > /dev/null
-  ./perf.pl --batch "$batch" --runs "$runs" "$jobid" $(cat ./performance.txt)
-  ./perf_report $jobid $b1 $b2
-done
-
+echo "Running regression tests"
+./regression --batch $batch --runs $runs --jobid "$jobid"
+echo "Running performance tests"
+./perf       --batch $batch --runs $runs --jobid "$jobid"
+echo "Performance compared to $dst_branch"
+./perf_report $dst_branch HEAD
