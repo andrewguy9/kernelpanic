@@ -1,25 +1,46 @@
-#!/bin/bash
-jobid=$1
-b1=$2
-b2=$3
+#!/usr/bin/perl
+use warnings;
+use strict;
 
-read -r -d '' sql <<- _EOM_
-	create table perf(job text, branch text, commit_hash text, dirty text, test text, real float, user float, sys float);
-	.separator ","
-	.headers on
-	.mode column
-	.import perf.csv perf
-	select
-          b1.test as test,
-          b1.rt as "${b1}_avg",
-          b2.rt as "${b2}_avg",
-          b2.rt-b1.rt as delta,
-          cast(100*(b2.rt-b1.rt)/b1.rt as int) as percent
-        from (select test,avg(real) as rt from perf where branch='${b1}' and job='${jobid}' group by branch,test) as b1
-        inner join (select test,avg(real) as rt from perf where branch='${b2}' and job='${jobid}' group by branch,test) as b2
-        on b1.test = b2.test
-        order by test;
-_EOM_
+my @branches = ();
+if (@ARGV) {
+  push @branches, @ARGV;
+}
 
+my $setup = <<'SETUP_SQL';
+create table perf(job text, branch text, commit_hash text, dirty text, test text, real float, user float, sys float);
+.separator ","
+.headers on
+.mode column
+.import perf.csv perf
+SETUP_SQL
+
+my $branch1 = $ARGV[0];
+my $branch2 = $ARGV[1];
+#print "$branch1, $branch2\n";
+
+chomp (my $rev1=`git rev-parse --short $branch1`);
+if ($? != 0) {die("failed to find rev for $branch1")};
+chomp (my $rev2=`git rev-parse --short $branch2`);
+if ($? != 0) {die("failed to find rev for $branch2")};
+#print "$rev1, $rev2\n";
+
+my $query = <<QUERY_SQL;
+select
+  b1.test as test,
+  b1.rt as "${branch1}_avg",
+  b2.rt as "${branch2}_avg",
+  b2.rt-b1.rt as delta,
+  cast(100*(b2.rt-b1.rt)/b1.rt as int) as percent
+from (select test,avg(real) as rt from perf where commit_hash='${rev1}' group by commit_hash,test) as b1
+inner join (select test,avg(real) as rt from perf where commit_hash='${rev2}' group by commit_hash,test) as b2
+on b1.test = b2.test
+order by test;
+QUERY_SQL
+
+my $sql = "$setup\n$query";
+#print "$sql\n";
 #TODO could be nice to get stddev of tests.
-echo "$sql" | sqlite3
+my $result = `echo "$sql" | sqlite3`;
+print "$result\n";
+if ($? != 0) {die("Failed to run query")}

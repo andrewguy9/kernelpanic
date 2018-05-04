@@ -9,7 +9,7 @@ use File::Basename;
 use File::Which;
 
 #Get options
-my $timeout = 60;
+my $timeout="600";
 my $batchsize = 1;
 my $runs = 1;
 my $debugger;
@@ -50,8 +50,8 @@ my @tests = ();
 if (@ARGV) {
   push @tests, @ARGV;
 } else {
-  print "Sourcing tests from regression.txt\n";
-  open(REGRESSION_TESTS, "regression.txt");
+  print "Sourcing tests from performance.txt\n";
+  open(REGRESSION_TESTS, "performance.txt");
 
   while( my $test = <REGRESSION_TESTS> ) {
     chomp( $test );
@@ -104,5 +104,5 @@ exit($status);
 
 sub runtest {
   my $test_name = shift @_;
-  exec "./perf.py", "--until=$timeout", $jobid, $branch, $commit, $dirty_str, $test_name;
+  exec "./perf.py", "--timeout=$timeout" , $jobid, $branch, $commit, $dirty_str, $test_name;
 }
