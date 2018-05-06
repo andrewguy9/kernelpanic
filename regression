@@ -9,7 +9,7 @@ use File::Basename;
 use File::Which;
 
 #Get options
-my $timeout = 60;
+my $timeout = 300;
 my $batchsize = 1;
 my $runs = 1;
 my $debugger;
