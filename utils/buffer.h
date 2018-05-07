@@ -24,6 +24,14 @@ typedef struct BUFFER SPACE;
 //XXX COULD WE PARAMETRIZE LIKE calloc? I WOULD LIKE TO AMORTIZE LOCK ACQUIRES IN READ/WRITE-STRUCT.
 //TODO most instances of BufferCopy WOULD BE BETTER AS BUFFER_FOR_EACH AND ASSIGNMENT OPERATOR.
 void BufferCopy(DATA * d, SPACE * s);
+
+//TODO WOULD A STRUCT ASSIGMENT OPERATOR BE BETTER?
+#define BufferWrite(obj, space) \
+  do { \
+    DATA data = BufferFromObj(obj); \
+    BufferCopy(&data, &space); \
+    ASSERT (BufferEmpty(&data)); \
+  }while (0)
 #endif //PC_BUILD
 
 #define BufferFromObj(obj) {(char*) &(obj), sizeof(obj)}

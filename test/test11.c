@@ -92,9 +92,7 @@ DATA SetupData(char * buff, COUNT len, char start, int diff) {
   SPACE space = BufferSpace(buff, len);
   char val = start;
   BUFFER_UNTIL_FULL(space) {
-    DATA valData = BufferFromObj(val);
-    BufferCopy(&valData, &space);
-    ASSERT (BufferEmpty(&valData)); //TODO SHOULD BE GUARANTEED?
+    BufferWrite(val, space);
     val+=diff;
   }
   ASSERT (BufferFull(&space));
@@ -162,9 +160,8 @@ void * ConsumerMain( void * arg )
     //Set Buffer up with values which will fail if a bug occurs.
     SPACE fillSpace = BufferSpace(myBuffer, RANDOM_VALUES_SIZE);
     char fillValue = assending ? 0 : RANDOM_VALUES_SIZE;
-    while (!BufferFull(&fillSpace)) {
-      DATA fill = BufferFromObj(fillValue);
-      BufferCopy(&fill, &fillSpace);
+    BUFFER_UNTIL_FULL(fillSpace) {
+      BufferWrite(fillValue, fillSpace);
     }
 
     COUNT length = RandomNumbers[timeIndex];
