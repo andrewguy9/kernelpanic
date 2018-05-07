@@ -46,17 +46,14 @@ void test_BufferToObj() {
 
 void test_BufferCopy() {
   struct TEST_STRUCT obj = {5,10};
-  DATA inData = BufferFromObj(obj);
+  const DATA orig = BufferFromObj(obj);
+  DATA inData = orig;
   char buff[sizeof(obj)];
   SPACE space = BufferFromObj(buff);
   BufferCopy(&inData, &space);
-  ASSERT(BufferEmpty(&inData));
-  ASSERT(BufferEmpty(&space));
-  DATA out_data = BufferData(buff, &space);
-  struct TEST_STRUCT copy = {0,0};
-  copy = BufferToObj(out_data, struct TEST_STRUCT);
-  ASSERT (copy.Val1 = 5);
-  ASSERT (copy.Val2 = 10);
+  ASSERT (BufferEmpty(&inData));
+  DATA copy = BufferData(&buff, &space);
+  ASSERT (BufferCompare(&copy, &orig));
 }
 
 void test_BUFFER_FOR_EACH() {
