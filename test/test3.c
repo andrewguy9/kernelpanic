@@ -41,13 +41,12 @@ void * Writer( void * arg )
     sequenceIndex++;
     sequenceIndex%=SEQUENCE_LENGTH;
 
-    INDEX index = 0;
     SPACE space = BufferSpace(Buffer, BUFFER_SIZE*sizeof(int));
-    while (!BufferFull(&space)) {
+    INDEX index = 0;
+    BUFFER_UNTIL_FULL(space) {
       index++;
       INDEX value = index + Sequence[ sequenceIndex ];
-      DATA data = BufferFromObj(value);
-      BufferCopy(&data, &space);
+      BufferWrite(value, space);
     }
 
     ResourceUnlockExclusive( &BufferLock );
