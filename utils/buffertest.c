@@ -59,6 +59,16 @@ void test_BufferCopy() {
   ASSERT (copy.Val2 = 10);
 }
 
+void test_BUFFER_FOR_EACH() {
+  int nums[] = {1,2,3,4,5,6,7,8,9};
+  DATA inData = BufferFromObj(nums);
+  int sum=0;
+  BUFFER_FOR_EACH(cur, int, inData) {
+    sum += *cur;
+  }
+  ASSERT(sum == 45);
+}
+
 void test_struct()
 {
   test_BufferSpace();
@@ -66,6 +76,7 @@ void test_struct()
   test_BufferData();
   test_BufferToObj();
   test_BufferCopy();
+  test_BUFFER_FOR_EACH();
 }
 
 void test_string()
