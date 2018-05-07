@@ -90,9 +90,12 @@ void SetupPipe(
 
 DATA SetupData(char * buff, COUNT len, char start, int diff) {
   SPACE space = BufferSpace(buff, len);
-  for (char val = start; !BufferFull(&space); val+=diff) {
+  char val = start;
+  BUFFER_UNTIL_FULL(space) {
     DATA valData = BufferFromObj(val);
     BufferCopy(&valData, &space);
+    ASSERT (BufferEmpty(&valData)); //TODO SHOULD BE GUARANTEED?
+    val+=diff;
   }
   ASSERT (BufferFull(&space));
   return BufferData(buff, &space);

@@ -71,4 +71,7 @@ BOOL BufferCompare(const DATA * d1, const DATA * d2);
       (item) != NULL; \
       (item) = BufferNext((buff), (item)))
 
+#define BUFFER_UNTIL_FULL(buff) \
+  while (! BufferFull(&buff))
+
 #endif //BUFF_H
