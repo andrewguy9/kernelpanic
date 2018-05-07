@@ -28,14 +28,12 @@ BOOL isPrimeProduct(int v, DATA * primes)
 enum PRIMES_STATUS findPrimes(int max, SPACE * buffer) {
   SPACE orig = *buffer;
   for (int cur = 2; cur < max; cur++) {
-    DATA data = BufferData(orig.Buff, buffer);
-    if (isPrimeProduct(cur, &data)) {
+    DATA primes = BufferData(orig.Buff, buffer);
+    if (isPrimeProduct(cur, &primes)) {
       if (BufferFull(buffer)) {
         return PRIMES_OVERFLOW;
       } else {
-        DATA prime = BufferFromObj(cur);
-        //TODO THIS IS NOT SAFE.
-        BufferCopy(&prime, buffer);
+        BufferWrite(cur, *buffer);
       }
     }
   }
