@@ -19,7 +19,7 @@ DATA InitIn(COUNT testSize) {
   char * InBuffer = malloc(testSize);
   SPACE inSpace = BufferSpace(InBuffer, testSize);
   printf("Initing input\n");
-  for (int index=0; index<testSize; index++) {
+  BUFFER_UNTIL_FULL(inSpace) {
     BufferPrint(&inSpace, "%c", 'a'+rand()%26);
   }
   DATA In = BufferData(InBuffer, &inSpace);
@@ -30,7 +30,7 @@ SPACE InitOut(COUNT testSize) {
   char * OutBuffer = malloc(testSize);
   SPACE outSpace = BufferSpace(OutBuffer, testSize);
   printf("Initing output\n");
-  for (int index=0; index<testSize; index++) {
+  BUFFER_UNTIL_FULL(outSpace) {
     BufferPrint(&outSpace, "*");
   }
   SPACE out = BufferSpace(OutBuffer, testSize);
@@ -127,9 +127,7 @@ int Test(DATA in, SPACE out, struct RING_BUFFER ring) {
 }
 
 int main() {
-  int testNum;
-
-  for (testNum = 0; testNum < NUM_TESTS; testNum++) {
+  for (int testNum = 0; testNum < NUM_TESTS; testNum++) {
     printf("---------------------------------------------------------------\n");
     //Initialize in and out buffers.
     COUNT testSize = rand()%128;
@@ -137,7 +135,7 @@ int main() {
     DATA in = InitIn(testSize);
     SPACE out = InitOut(testSize);
     struct RING_BUFFER ring = InitRing();
-    if (Test(in, out, ring)) { //TODO PASS ARGS
+    if (Test(in, out, ring)) {
       return 1;
     }
     FreeBuffer(&in);
