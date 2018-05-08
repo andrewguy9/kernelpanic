@@ -48,6 +48,22 @@ void test_BufferCopy() {
   ASSERT (BufferCompare(&copy, &orig));
 }
 
+void test_BufferWrite() {
+  int nums[9];
+  SPACE space = BufferSpace(nums, sizeof(int)*9);
+  int i=1;
+  BUFFER_UNTIL_FULL(space) {
+    BufferWrite(i, space);
+    i+=1;
+  }
+  int sum=0;
+  DATA data = BufferData(nums, &space);
+  BUFFER_FOR_EACH(cur, int, data) {
+    sum += *cur;
+  }
+  ASSERT (sum==45);
+}
+
 void test_BUFFER_FOR_EACH() {
   int nums[] = {1,2,3,4,5,6,7,8,9};
   DATA inData = BufferFromObj(nums);
@@ -64,6 +80,7 @@ void test_struct()
   test_BufferFromObj();
   test_BufferData();
   test_BufferCopy();
+  test_BufferWrite();
   test_BUFFER_FOR_EACH();
 }
 
