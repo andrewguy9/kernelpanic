@@ -25,17 +25,18 @@ BOOL isPrimeProduct(int v, DATA * primes)
   return TRUE;
 }
 
-enum PRIMES_STATUS findPrimes(int max, SPACE * buffer) {
-  SPACE orig = *buffer;
-  for (int cur = 2; cur < max; cur++) {
-    DATA primes = BufferData(orig.Buff, buffer);
+enum PRIMES_STATUS findPrimes(int max, SPACE * space) {
+  SPACE orig = *space;
+  for (int cur = 2; cur < max && !BufferFull(space); cur++) {
+    DATA primes = BufferData(orig.Buff, space);
     if (isPrimeProduct(cur, &primes)) {
-      if (BufferFull(buffer)) {
-        return PRIMES_OVERFLOW;
-      } else {
-        BufferWrite(cur, *buffer);
-      }
+      BufferWrite(cur, *space);
     }
   }
-  return PRIMES_OK;
+  //TODO WE WANT TO ERROR ON OVERFLOW, NOT FULL.
+  if (BufferFull(space)) {
+    return PRIMES_OVERFLOW;
+  } else {
+    return PRIMES_OK;
+  }
 }
