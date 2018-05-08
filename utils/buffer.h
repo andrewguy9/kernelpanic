@@ -28,9 +28,11 @@ void BufferCopy(DATA * d, SPACE * s);
 //TODO WOULD A STRUCT ASSIGMENT OPERATOR BE BETTER?
 #define BufferWrite(obj, space) \
   do { \
-    DATA data = BufferFromObj(obj); \
-    BufferCopy(&data, &space); \
-    ASSERT (BufferEmpty(&data)); \
+    ASSERT ((space).Length >= sizeof(obj)); \
+    typeof(obj) * v = (typeof(obj) *) (space).Buff; \
+    *v = obj; \
+    (space).Buff += sizeof(obj); \
+    (space).Length -= sizeof(obj); \
   }while (0)
 #endif //PC_BUILD
 
