@@ -194,6 +194,7 @@ void HalClearSignals()
 {
   INDEX i;
 
+  //TODO for loop over HalIrqToSignal and HalIrqToSigaction.
   for(i=0; i < IRQ_LEVEL_COUNT; i++) {
     HalIrqToSignal[i] = 0;
     HalIrqToSigaction[i].sa_handler = NULL;
@@ -201,6 +202,7 @@ void HalClearSignals()
     HalIrqToSigaction[i].sa_flags = 0;
   }
 
+  //TODO for loop over HalSignalToHandler and HalSignalToIrq
   for(i=0; i<NSIG; i++) {
     HalSignalToHandler[i] = NULL;
     HalSignalToIrq[i] = IRQ_LEVEL_NONE;
@@ -218,6 +220,7 @@ void HalBlockSignal( void * which )
   INDEX i;
   INDEX signum = (INDEX) which;
 
+  //TODO for loop over HalIrqToSigaction
   for(i=0; i < IRQ_LEVEL_COUNT; i++) {
     sigaddset(&HalIrqToSigaction[i].sa_mask, signum);
   }
@@ -499,6 +502,7 @@ BOOL sigset_empty(sigset_t a) {
 #ifdef SIGNAL_HACK // Use function which touch linux struct internals.
 sigset_t sigset_xor(sigset_t a, sigset_t b) {
   sigset_t result;
+  //TODO for loop over sigsets.__val
   for (int i = 0; i < _SIGSET_NWORDS; i++) {
     result.__val[i] = a.__val[i] ^ b.__val[i];
   }
@@ -606,6 +610,7 @@ void HalRegisterIsrHandler( HAL_ISR_HANDLER handler, void * which, enum IRQ_LEVE
 
   ASSERT(HalIsIrqAtomic(IRQ_LEVEL_MAX));
 
+  //TODO for loop over HalIrqToSigaction.
   for (i=level; i < IRQ_LEVEL_COUNT; i++) {
     sigaddset(&HalIrqToSigaction[i].sa_mask, signum);
   }
@@ -623,6 +628,7 @@ void HalIsrFinalize()
 {
   enum IRQ_LEVEL level;
 
+  //TODO loop over HalIreqToSignal
   for (level = IRQ_LEVEL_NONE; level < IRQ_LEVEL_COUNT; level++) {
     if (HalIrqToSignal[level] != 0) {
       ASSUME( sigaction(HalIrqToSignal[level], &HalIrqToSigaction[level], NULL), 0 );

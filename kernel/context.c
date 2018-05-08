@@ -52,6 +52,7 @@ void ContextInit( struct CONTEXT * context, char * Pointer, COUNT Size, STACK_IN
                 context->Low = Pointer;
                 //Write pattern over stack so we can expose
                 //variable initialization errors.
+                //TODO for loop over Pointer with count Size.
                 for(cur=0; cur<Size; cur++)
                         Pointer[cur] = 0xaa;
 #endif

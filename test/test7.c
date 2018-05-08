@@ -61,12 +61,14 @@ void ValidateState(BOOL * transitionArray)
 	INDEX index;
 
 	//check 
+        //TODO for loop over checkArray
 	for(index = 0; index < NUM_THREADS; index++)
 	{
 		if(checkArray[index])
 			KernelPanic();
 	}
 
+        //TODO for loop over checkArray
 	for(index=0; index < NUM_THREADS; index++)
 		checkArray[index] = TRUE;
 }
@@ -169,6 +171,7 @@ int main()
 {
         INDEX index;
 
+        //TODO for loop over TransitionArray1&2.
         for(index=0; index < NUM_THREADS; index++)
         {
                 TransitionArray1[index] = TRUE;

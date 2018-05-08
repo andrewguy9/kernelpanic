@@ -57,6 +57,7 @@ void * SleeperMain(void * unused)
 	INDEX cur=0;
 	while(1)
 	{
+                //TODO for loop over Sequence?
 		for( cur = 0; cur < SEQUENCE_LENGTH; cur++)
 		{
 			//Register Timer: The timer should run before we wake.
