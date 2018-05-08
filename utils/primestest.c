@@ -14,6 +14,7 @@ int main(int argc, char ** argv)
   INDEX i;
   enum PRIMES_STATUS status = findPrimes(max, &space);
   if (status == PRIMES_OK) {
+    //TODO should be buffer loop.
     for (i=0; i<buffer_size; i++) {
       if (primes_buffer[i] == 0) {
         break;
