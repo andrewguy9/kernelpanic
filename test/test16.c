@@ -34,22 +34,18 @@ struct COMBOS_RESULT {
 };
 
 void combinationsResultInit(struct COMBOS_RESULT * result) {
-  INDEX i;
-  //TODO for loop over result->Nums
-  for (i=0; i<CHOOSE_K; i++) {
-    result->Nums[i] = 0;
+  FOR_EACH(cur, result->Nums) {
+    *cur = 0;
   }
 }
 
 void combinationsPrint(struct COMBOS_RESULT * result) {
-  int i;
 #define BUFF_SIZE 512
   char buff[BUFF_SIZE];
   SPACE space = BufferSpace(buff, sizeof(buff));
 
-  //TODO for loop over result->Nums, in reverse.
-  for (i=CHOOSE_K-1; i>=0; i--) {
-    BufferPrint(&space, "%d\t", result->Nums[i]);
+  FOR_EACH(num, result->Nums) {
+    BufferPrint(&space, "%d\t", *num);
   }
   BufferPrint(&space, "\n");
   ASSERT (! BufferFull(&space));
