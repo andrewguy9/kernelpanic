@@ -602,13 +602,12 @@ void HalIsrInit()
  */
 void HalRegisterIsrHandler( HAL_ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
 {
-  INDEX i;
   INDEX signum = (INDEX) which;
 
   ASSERT(HalIsIrqAtomic(IRQ_LEVEL_MAX));
 
-  //TODO for loop over HalIrqToSigaction.
-  for (i=level; i < IRQ_LEVEL_COUNT; i++) {
+  //TODO for loop over only part of HalIrqToSigaction.
+  for (INDEX i=level; i < IRQ_LEVEL_COUNT; i++) {
     sigaddset(&HalIrqToSigaction[i].sa_mask, signum);
   }
 
