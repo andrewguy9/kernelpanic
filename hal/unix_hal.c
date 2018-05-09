@@ -192,18 +192,19 @@ void HalInvalidateIsrDebugInfo()
  */
 void HalClearSignals()
 {
-  INDEX i;
-
-  for(i=0; i < IRQ_LEVEL_COUNT; i++) {
-    HalIrqToSignal[i] = 0;
-    HalIrqToSigaction[i].sa_handler = NULL;
-    sigemptyset(&HalIrqToSigaction[i].sa_mask);
-    HalIrqToSigaction[i].sa_flags = 0;
+  FOR_EACH(cur, HalIrqToSignal) {
+    *cur = 0;
   }
-
-  for(i=0; i<NSIG; i++) {
-    HalSignalToHandler[i] = NULL;
-    HalSignalToIrq[i] = IRQ_LEVEL_NONE;
+  FOR_EACH(cur, HalIrqToSigaction) {
+    cur->sa_handler = NULL;
+    sigemptyset(&cur->sa_mask);
+    cur->sa_flags = 0;
+  }
+  FOR_EACH(cur, HalSignalToHandler) {
+    *cur = NULL;
+  }
+  FOR_EACH(cur, HalSignalToIrq) {
+    *cur = IRQ_LEVEL_NONE;
   }
 }
 
@@ -215,11 +216,10 @@ void HalClearSignals()
  */
 void HalBlockSignal( void * which )
 {
-  INDEX i;
   INDEX signum = (INDEX) which;
 
-  for(i=0; i < IRQ_LEVEL_COUNT; i++) {
-    sigaddset(&HalIrqToSigaction[i].sa_mask, signum);
+  FOR_EACH(action, HalIrqToSigaction) {
+    sigaddset(&action->sa_mask, signum);
   }
 }
 
@@ -601,12 +601,11 @@ void HalIsrInit()
  */
 void HalRegisterIsrHandler( HAL_ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
 {
-  INDEX i;
   INDEX signum = (INDEX) which;
 
   ASSERT(HalIsIrqAtomic(IRQ_LEVEL_MAX));
 
-  for (i=level; i < IRQ_LEVEL_COUNT; i++) {
+  for (INDEX i=level; i < IRQ_LEVEL_COUNT; i++) {
     sigaddset(&HalIrqToSigaction[i].sa_mask, signum);
   }
 
