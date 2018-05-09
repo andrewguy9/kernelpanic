@@ -12,7 +12,7 @@
 
 //Define Sleep Patern
 #define SEQUENCE_LENGTH 8
-COUNT Sequence[SEQUENCE_LENGTH] = {4,8,16,32,64,128,256,512};
+TIME Sequence[SEQUENCE_LENGTH] = {4,8,16,32,64,128,256,512};
 
 //Define Thread
 struct THREAD SleeperThread;
@@ -54,30 +54,23 @@ BOOL TimerHandler( struct HANDLER_OBJECT * handler )
 THREAD_MAIN SleeperMain;
 void * SleeperMain(void * unused)
 {
-	INDEX cur=0;
 	while(1)
 	{
-                //TODO for loop over Sequence?
-		for( cur = 0; cur < SEQUENCE_LENGTH; cur++)
-		{
+                FOR_EACH(time, Sequence) {
 			//Register Timer: The timer should run before we wake.
 			TimerRegister(
 					& Timer,
-					Sequence[cur] - 1,
+					*time - 1,
 					TimerHandler,
 					NULL);
-
 			//Go to sleep:
-			Sleep( Sequence[cur] );
-
+			Sleep( *time );
 			//Check to see if the timer fired before we woke.
 			IsrDisable(IRQ_LEVEL_MAX);
-			if( !HandlerIsFinished( &Timer ) )
-			{
+			if( !HandlerIsFinished( &Timer ) ) {
 				KernelPanic( );
 			}
 			IsrEnable(IRQ_LEVEL_MAX);
-
 			//Increase our iteration count.
 			TimerCycles++;
 		}
