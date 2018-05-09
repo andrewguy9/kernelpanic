@@ -192,20 +192,19 @@ void HalInvalidateIsrDebugInfo()
  */
 void HalClearSignals()
 {
-  INDEX i;
-
-  //TODO for loop over HalIrqToSignal and HalIrqToSigaction.
-  for(i=0; i < IRQ_LEVEL_COUNT; i++) {
-    HalIrqToSignal[i] = 0;
-    HalIrqToSigaction[i].sa_handler = NULL;
-    sigemptyset(&HalIrqToSigaction[i].sa_mask);
-    HalIrqToSigaction[i].sa_flags = 0;
+  FOR_EACH(cur, HalIrqToSignal) {
+    *cur = 0;
   }
-
-  //TODO for loop over HalSignalToHandler and HalSignalToIrq
-  for(i=0; i<NSIG; i++) {
-    HalSignalToHandler[i] = NULL;
-    HalSignalToIrq[i] = IRQ_LEVEL_NONE;
+  FOR_EACH(cur, HalIrqToSigaction) {
+    cur->sa_handler = NULL;
+    sigemptyset(&cur->sa_mask);
+    cur->sa_flags = 0;
+  }
+  FOR_EACH(cur, HalSignalToHandler) {
+    *cur = NULL;
+  }
+  FOR_EACH(cur, HalSignalToIrq) {
+    *cur = IRQ_LEVEL_NONE;
   }
 }
 
