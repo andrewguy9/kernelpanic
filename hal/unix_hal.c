@@ -624,7 +624,7 @@ void HalIsrFinalize()
 {
   enum IRQ_LEVEL level;
 
-  //TODO loop over HalIreqToSignal
+  //TODO loop over HalIrqToSignal and HalIrqToSigaction
   for (level = IRQ_LEVEL_NONE; level < IRQ_LEVEL_COUNT; level++) {
     if (HalIrqToSignal[level] != 0) {
       ASSUME( sigaction(HalIrqToSignal[level], &HalIrqToSigaction[level], NULL), 0 );
