@@ -128,9 +128,8 @@ BOOL IsrIsAtomic(enum IRQ_LEVEL level)
 
         ASSERT( level != IRQ_LEVEL_NONE);//Because enums can be signed or unsigned we need to make sure IRQ_LEVEL_NONE aka 0 is never passed.
 
-        enum IRQ_LEVEL l;
-        //TODO for loop over IsrDisabledCount.
-        for(l = IRQ_LEVEL_COUNT - 1; l >= level; l--) {
+        //TODO for loop over part of IsrDisabledCount.
+        for(enum IRQ_LEVEL l = IRQ_LEVEL_COUNT - 1; l >= level; l--) {
                 if( IsrDisabledCount[l] == 0 ) {
                         ASSERT( ! HalIsIrqAtomic( l ) );
                 } else {
