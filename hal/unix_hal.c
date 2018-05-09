@@ -216,12 +216,10 @@ void HalClearSignals()
  */
 void HalBlockSignal( void * which )
 {
-  INDEX i;
   INDEX signum = (INDEX) which;
 
-  //TODO for loop over HalIrqToSigaction
-  for(i=0; i < IRQ_LEVEL_COUNT; i++) {
-    sigaddset(&HalIrqToSigaction[i].sa_mask, signum);
+  FOR_EACH(action, HalIrqToSigaction) {
+    sigaddset(&action->sa_mask, signum);
   }
 }
 
