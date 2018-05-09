@@ -58,19 +58,17 @@ BOOL * DoTransition(INDEX index, BOOL * transitionArray)
 void ValidateState(BOOL * transitionArray)
 {
 	BOOL * checkArray = transitionArray;
-	INDEX index;
 
 	//check 
-        //TODO for loop over checkArray
-	for(index = 0; index < NUM_THREADS; index++)
-	{
-		if(checkArray[index])
+        FOR_EACH_N(check, checkArray, NUM_THREADS) {
+		if(*check) {
 			KernelPanic();
+                }
 	}
 
-        //TODO for loop over checkArray
-	for(index=0; index < NUM_THREADS; index++)
-		checkArray[index] = TRUE;
+        FOR_EACH_N(check, checkArray, NUM_THREADS) {
+		*check = TRUE;
+        }
 }
 
 //
@@ -169,14 +167,8 @@ void * ValidateMain(void * arg)
 
 int main()
 {
-        INDEX index;
-
-        //TODO for loop over TransitionArray1&2.
-        for(index=0; index < NUM_THREADS; index++)
-        {
-                TransitionArray1[index] = TRUE;
-                TransitionArray2[index] = FALSE;
-        }
+        FOR_EACH(i, TransitionArray1) { *i = TRUE; }
+        FOR_EACH(i, TransitionArray2) { *i = FALSE; }
 
         KernelInit();
 
