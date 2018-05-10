@@ -3,6 +3,12 @@
 
 #include"utils.h"
 
+/*
+ * TODO Bitmap library should be revamped to look more like buffer.
+ * If you are passing bitmaps around, there should be a size field which
+ * could be used for ensuring range checks.
+ * There could be definition macros so that size is well defined.
+ */
 //
 //  Private Macros for doing library math
 //

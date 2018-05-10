@@ -23,10 +23,18 @@ typedef struct BUFFER SPACE;
 //XXX COULD WE HAVE A VARIENT TO FILL THE BUFFER WITH A PATTERN?
 //XXX COULD WE PARAMETRIZE LIKE calloc? I WOULD LIKE TO AMORTIZE LOCK ACQUIRES IN READ/WRITE-STRUCT.
 void BufferCopy(DATA * d, SPACE * s);
+
+#define BufferWrite(obj, space) \
+  do { \
+    ASSERT ((space).Length >= sizeof(obj)); \
+    typeof(obj) * v = (typeof(obj) *) (space).Buff; \
+    *v = obj; \
+    (space).Buff += sizeof(obj); \
+    (space).Length -= sizeof(obj); \
+  }while (0)
 #endif //PC_BUILD
 
 #define BufferFromObj(obj) {(char*) &(obj), sizeof(obj)}
-#define BufferToObj(data, type) (*(type *) data.Buff)
 extern const struct BUFFER BufferNull;
 //TODO PROTOTYPE. Buff advancement is not safe.
 static inline void * BufferNextFn(DATA * data, COUNT len) {
@@ -65,5 +73,13 @@ BOOL BufferCompare(const DATA * d1, const DATA * d2);
     (space)->Buff += (data)->Length; \
     (space)->Length -= (data)->Length; \
     })
+
+#define BUFFER_FOR_EACH(item, T, buff) \
+  for (T * (item) = BufferNext((buff), (item)); \
+      (item) != NULL; \
+      (item) = BufferNext((buff), (item)))
+
+#define BUFFER_UNTIL_FULL(buff) \
+  while (! BufferFull(&buff))
 
 #endif //BUFF_H

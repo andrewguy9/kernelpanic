@@ -41,13 +41,12 @@ void * Writer( void * arg )
     sequenceIndex++;
     sequenceIndex%=SEQUENCE_LENGTH;
 
-    INDEX index = 0;
     SPACE space = BufferSpace(Buffer, BUFFER_SIZE*sizeof(int));
-    while (!BufferFull(&space)) {
+    INDEX index = 0;
+    BUFFER_UNTIL_FULL(space) {
       index++;
       INDEX value = index + Sequence[ sequenceIndex ];
-      DATA data = BufferFromObj(value);
-      BufferCopy(&data, &space);
+      BufferWrite(value, space);
     }
 
     ResourceUnlockExclusive( &BufferLock );
@@ -82,9 +81,7 @@ void * Reader( void * arg )
 
     DATA data = BufferSpace(Buffer, BUFFER_SIZE * sizeof(int));
     char * last = NULL;
-    for (char * cur = BufferNext(data, cur);
-        cur != NULL;
-        cur = BufferNext(data, cur)) {
+    BUFFER_FOR_EACH(cur, char, data) {
       if ( last && *last+1 != *cur) {
         KernelPanic( );
       }

@@ -17,9 +17,7 @@ BOOL isPrime(int v)
 BOOL isPrimeProduct(int v, DATA * primes)
 {
   DATA data = *primes;
-  for (int * prime = BufferNext(data, prime);
-      prime != NULL;
-      prime = BufferNext(data, prime)) {
+  BUFFER_FOR_EACH(prime, int, data) {
     if (v % *prime == 0) {
       return FALSE;
     }
@@ -27,19 +25,18 @@ BOOL isPrimeProduct(int v, DATA * primes)
   return TRUE;
 }
 
-enum PRIMES_STATUS findPrimes(int max, SPACE * buffer) {
-  SPACE orig = *buffer;
-  for (int cur = 2; cur < max; cur++) {
-    DATA data = BufferData(orig.Buff, buffer);
-    if (isPrimeProduct(cur, &data)) {
-      if (BufferFull(buffer)) {
-        return PRIMES_OVERFLOW;
-      } else {
-        DATA prime = BufferFromObj(cur);
-        //TODO THIS IS NOT SAFE.
-        BufferCopy(&prime, buffer);
-      }
+enum PRIMES_STATUS findPrimes(int max, SPACE * space) {
+  SPACE orig = *space;
+  for (int cur = 2; cur < max && !BufferFull(space); cur++) {
+    DATA primes = BufferData(orig.Buff, space);
+    if (isPrimeProduct(cur, &primes)) {
+      BufferWrite(cur, *space);
     }
   }
-  return PRIMES_OK;
+  //TODO WE WANT TO ERROR ON OVERFLOW, NOT FULL.
+  if (BufferFull(space)) {
+    return PRIMES_OVERFLOW;
+  } else {
+    return PRIMES_OK;
+  }
 }

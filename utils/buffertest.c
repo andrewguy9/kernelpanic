@@ -36,27 +36,42 @@ void test_BufferData() {
   ASSERT (strcmp("test", data.Buff) == 0);
 }
 
-void test_BufferToObj() {
-  struct TEST_STRUCT obj1 = {5, 10};
-  DATA data = BufferFromObj(obj1);
-  struct TEST_STRUCT obj2 = BufferToObj(data, struct TEST_STRUCT);
-  ASSERT(obj2.Val1 == 5);
-  ASSERT(obj2.Val2 == 10);
-}
-
 void test_BufferCopy() {
   struct TEST_STRUCT obj = {5,10};
-  DATA inData = BufferFromObj(obj);
+  const DATA orig = BufferFromObj(obj);
+  DATA inData = orig;
   char buff[sizeof(obj)];
   SPACE space = BufferFromObj(buff);
   BufferCopy(&inData, &space);
-  ASSERT(BufferEmpty(&inData));
-  ASSERT(BufferEmpty(&space));
-  DATA out_data = BufferData(buff, &space);
-  struct TEST_STRUCT copy = {0,0};
-  copy = BufferToObj(out_data, struct TEST_STRUCT);
-  ASSERT (copy.Val1 = 5);
-  ASSERT (copy.Val2 = 10);
+  ASSERT (BufferEmpty(&inData));
+  DATA copy = BufferData(&buff, &space);
+  ASSERT (BufferCompare(&copy, &orig));
+}
+
+void test_BufferWrite() {
+  int nums[9];
+  SPACE space = BufferSpace(nums, sizeof(int)*9);
+  int i=1;
+  BUFFER_UNTIL_FULL(space) {
+    BufferWrite(i, space);
+    i+=1;
+  }
+  int sum=0;
+  DATA data = BufferData(nums, &space);
+  BUFFER_FOR_EACH(cur, int, data) {
+    sum += *cur;
+  }
+  ASSERT (sum==45);
+}
+
+void test_BUFFER_FOR_EACH() {
+  int nums[] = {1,2,3,4,5,6,7,8,9};
+  DATA inData = BufferFromObj(nums);
+  int sum=0;
+  BUFFER_FOR_EACH(cur, int, inData) {
+    sum += *cur;
+  }
+  ASSERT(sum == 45);
 }
 
 void test_struct()
@@ -64,8 +79,9 @@ void test_struct()
   test_BufferSpace();
   test_BufferFromObj();
   test_BufferData();
-  test_BufferToObj();
   test_BufferCopy();
+  test_BufferWrite();
+  test_BUFFER_FOR_EACH();
 }
 
 void test_string()

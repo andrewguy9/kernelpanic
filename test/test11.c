@@ -90,9 +90,10 @@ void SetupPipe(
 
 DATA SetupData(char * buff, COUNT len, char start, int diff) {
   SPACE space = BufferSpace(buff, len);
-  for (char val = start; !BufferFull(&space); val+=diff) {
-    DATA valData = BufferFromObj(val);
-    BufferCopy(&valData, &space);
+  char val = start;
+  BUFFER_UNTIL_FULL(space) {
+    BufferWrite(val, space);
+    val+=diff;
   }
   ASSERT (BufferFull(&space));
   return BufferData(buff, &space);
@@ -159,9 +160,8 @@ void * ConsumerMain( void * arg )
     //Set Buffer up with values which will fail if a bug occurs.
     SPACE fillSpace = BufferSpace(myBuffer, RANDOM_VALUES_SIZE);
     char fillValue = assending ? 0 : RANDOM_VALUES_SIZE;
-    while (!BufferFull(&fillSpace)) {
-      DATA fill = BufferFromObj(fillValue);
-      BufferCopy(&fill, &fillSpace);
+    BUFFER_UNTIL_FULL(fillSpace) {
+      BufferWrite(fillValue, fillSpace);
     }
 
     COUNT length = RandomNumbers[timeIndex];
@@ -174,9 +174,7 @@ void * ConsumerMain( void * arg )
     DATA data = BufferData(myBuffer, &space);
     CMP_FN * cmp = assending ? IsAssending : IsDecending;
     char * last = NULL;
-    for (char * cur = BufferNext(data, cur);
-        cur != NULL;
-        cur = BufferNext(data, cur)) {
+    BUFFER_FOR_EACH(cur, char, data) {
       if (last) {
         if (!cmp(last, cur)) {
             KernelPanic();

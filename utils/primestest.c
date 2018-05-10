@@ -11,14 +11,11 @@ int main(int argc, char ** argv)
   int * primes_buffer = malloc(sizeof(int) * buffer_size);
   SPACE space = BufferSpace(primes_buffer, buffer_size);
 
-  INDEX i;
   enum PRIMES_STATUS status = findPrimes(max, &space);
   if (status == PRIMES_OK) {
-    for (i=0; i<buffer_size; i++) {
-      if (primes_buffer[i] == 0) {
-        break;
-      }
-      printf("%d\n", primes_buffer[i]);
+    DATA primes = BufferData(primes_buffer, &space);
+    BUFFER_FOR_EACH(prime, int, primes) {
+      printf("%d\n", *prime);
     }
   } else {
     printf("Overflowed primes buffer\n");
