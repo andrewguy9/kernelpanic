@@ -154,7 +154,6 @@ void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, BIT
 //Public Functions
 //
 
-//TODO Could be converted to use Buffers.
 BOOL MapInit( struct MAP * map, BITMAP_WORD * wallBuff, COUNT buffLen, COUNT width, COUNT height )
 {
 	INDEX cur;
@@ -165,7 +164,6 @@ BOOL MapInit( struct MAP * map, BITMAP_WORD * wallBuff, COUNT buffLen, COUNT wid
 		map->Height = height;
 		map->Width = width;
 
-                //TODO for loop over wallBuff, but should be buffer based.
 		for( cur=0; cur < buffLen; cur++ )
 			wallBuff[cur] = 0;
 
