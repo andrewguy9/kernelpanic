@@ -10,7 +10,8 @@ include test/rules.mk
 
 #########################
 
-tests: utils/$(TARGET)_linktest.out utils/$(TARGET)_treetest.out utils/$(TARGET)_ringtest.out utils/$(TARGET)_bitmaptest.out umouse/$(TARGET)_maptest.out utils/$(TARGET)_bhamtest.out umouse/$(TARGET)_motortest.out umouse/$(TARGET)_floodfilltest.out umouse/$(TARGET)_movetest.out utils/$(TARGET)_primestest.out
+tests: utils/$(TARGET)_linktest.out utils/$(TARGET)_treetest.out utils/$(TARGET)_ringtest.out utils/$(TARGET)_bitmaptest.out umouse/$(TARGET)_maptest.out utils/$(TARGET)_bhamtest.out umouse/$(TARGET)_motortest.out umouse/$(TARGET)_floodfilltest.out umouse/$(TARGET)_movetest.out utils/$(TARGET)_primestest.out utils/$(TARGET)_buffertest.out
+
 
 umouse: $(TARGET)_test0.out $(TARGET)_test1.out $(TARGET)_test2.out $(TARGET)_test3.out $(TARGET)_test4.out $(TARGET)_test5.out $(TARGET)_test6.out $(TARGET)_test7.out $(TARGET)_test8.out $(TARGET)_test9.out $(TARGET)_test10.out $(TARGET)_test11.out $(TARGET)_test12.out $(TARGET)_test13.out $(TARGET)_test14.out $(TARGET)_test15.out $(TARGET)_umouse.out
 
@@ -28,6 +29,8 @@ utils/$(TARGET)_bitmaptest.out: utils/$(TARGET)_bitmaptest.o utils/$(TARGET)_bit
 utils/$(TARGET)_bhamtest.out: utils/$(TARGET)_bhamtest.o utils/$(TARGET)_bham.o
 
 utils/$(TARGET)_primestest.out: utils/$(TARGET)_primestest.o utils/$(TARGET)_primes.o
+
+utils/$(TARGET)_buffertest.out: utils/$(TARGET)_buffertest.o
 
 umouse/$(TARGET)_maptest.out: umouse/$(TARGET)_maptest.o umouse/$(TARGET)_map.o utils/$(TARGET)_bitmap.o
 
