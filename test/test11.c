@@ -3,6 +3,7 @@
 #include"kernel/pipe.h"
 #include"kernel/panic.h"
 #include"kernel/watchdog.h"
+#include"utils/buffer.h"
 #include<stdio.h>
 
 /*
@@ -11,18 +12,21 @@
 
 #define BUFFER_LENGTH 10
 
-char MessageBuffer1[BUFFER_LENGTH];
-char MessageBuffer2[BUFFER_LENGTH];
-char MessageBuffer3[BUFFER_LENGTH];
+char MessageMemory1[BUFFER_LENGTH];
+char MessageMemory2[BUFFER_LENGTH];
+char MessageMemory3[BUFFER_LENGTH];
 
+SPACE MessageBuffer1 = BufferFromObj(MessageMemory1);
+SPACE MessageBuffer2 = BufferFromObj(MessageMemory2);
+SPACE MessageBuffer3 = BufferFromObj(MessageMemory3);
 #define RANDOM_VALUES_SIZE 15
 char RandomNumbers [RANDOM_VALUES_SIZE] =
 {
-	0xf, 0x1, 0x2,
-	0x3, 0x0, 0x5,
-	0x6, 0x7, 0x8,
-   	0x9, 0xa, 0x0,
-	0xc, 0xd, 0xe
+  0xf, 0x1, 0x2,
+  0x3, 0x0, 0x5,
+  0x6, 0x7, 0x8,
+  0x9, 0xa, 0x0,
+  0xc, 0xd, 0xe
 };
 
 struct PIPE Pipe1;
@@ -49,13 +53,13 @@ struct THREAD Consumer3;
 
 struct PRODUCER_CONTEXT
 {
-        INDEX WatchdogId;
-        PIPE_WRITE Writer;
+  INDEX WatchdogId;
+  PIPE_WRITE Writer;
 };
 struct CONSUMER_CONTEXT
 {
-        INDEX WatchdogId;
-        PIPE_READ Reader;
+  INDEX WatchdogId;
+  PIPE_READ Reader;
 };
 
 struct PRODUCER_CONTEXT ProducerContext1;
@@ -66,7 +70,7 @@ struct CONSUMER_CONTEXT ConsumerContext2;
 struct CONSUMER_CONTEXT ConsumerContext3;
 
 void SetupPipe(
-    char * buff,
+    SPACE * space,
     struct PIPE * pipe,
     struct PRODUCER_CONTEXT * pc,
     struct CONSUMER_CONTEXT * cc,
@@ -74,7 +78,7 @@ void SetupPipe(
     INDEX consumer_watchdog) {
   PIPE_READ reader;
   PIPE_WRITE writer;
-  PipeInit( buff, BUFFER_LENGTH, pipe, &reader, &writer );
+  PipeInit( space, pipe, &reader, &writer );
   pc->WatchdogId = producer_watchdog;
   pc->Writer = writer;
   cc->WatchdogId = consumer_watchdog;
@@ -84,47 +88,45 @@ void SetupPipe(
 #define QUANTUM 1
 #define TIMEOUT (2*QUANTUM*6)
 
+DATA SetupData(char * buff, COUNT len, char start, int diff) {
+  SPACE space = BufferSpace(buff, len);
+  char val = start;
+  BUFFER_UNTIL_FULL(space) {
+    BufferWrite(val, space);
+    val+=diff;
+  }
+  ASSERT (BufferFull(&space));
+  return BufferData(buff, &space);
+}
+
+char AssendingBuffer[RANDOM_VALUES_SIZE];
+char DecendingBuffer[RANDOM_VALUES_SIZE];
+
+DATA AssendingData;
+DATA DecendingData;
+
 THREAD_MAIN ProducerMain;
 void * ProducerMain( void * arg )
 {
   struct PRODUCER_CONTEXT * context = (struct PRODUCER_CONTEXT *) arg;
-  PIPE_WRITE writer = context->Writer;
-  INDEX timeIndex;
-  INDEX bufferIndex;
-  COUNT length;
-  char AssendingBuffer[RANDOM_VALUES_SIZE];
-  char DecendingBuffer[RANDOM_VALUES_SIZE];
-  BOOL assending;
-
-  char * curBuffer;
-
   WatchdogAddFlag(context->WatchdogId);
 
-  for( bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++ )
-  {
-    AssendingBuffer[ bufferIndex ] = bufferIndex;
-    DecendingBuffer[ bufferIndex ] = RANDOM_VALUES_SIZE - bufferIndex;
-  }
+  INDEX timeIndex = 0;
+  BOOL assending = TRUE;
+  char * curBuffer;
+  PIPE_WRITE writer = context->Writer;
+  while (1) {
+    COUNT length = RandomNumbers[timeIndex];
 
-  timeIndex = 0;
-  assending = TRUE;
-
-  while(1)
-  {
-    length = RandomNumbers[timeIndex];
-
-    if( assending )
+    if (assending) {
       curBuffer = AssendingBuffer;
-    else
+    } else {
       curBuffer = DecendingBuffer;
+    }
 
-    //Perform write
-    PipeWriteStruct(
-        curBuffer,
-        length,
-        writer);
+    DATA data = BufferSpace(curBuffer, length);
+    PipeWriteStructBuffer(&data, writer);
 
-    //Setup next value.
     timeIndex = (timeIndex + 1) % RANDOM_VALUES_SIZE;
     assending = !assending;
     WatchdogNotify(context->WatchdogId);
@@ -132,54 +134,53 @@ void * ProducerMain( void * arg )
   return NULL;
 }
 
+typedef BOOL CMP_FN(char *, char *);
+CMP_FN IsAssending;
+BOOL IsAssending(char * v1, char * v2) {
+  return *v1 < *v2;
+}
+
+CMP_FN IsDecending;
+BOOL IsDecending(char * v1, char * v2) {
+  return *v1 > *v2;
+}
+
 THREAD_MAIN ConsumerMain;
 void * ConsumerMain( void * arg )
 {
   struct CONSUMER_CONTEXT * context = (struct CONSUMER_CONTEXT *) arg;
   PIPE_READ reader = context->Reader;
-  INDEX timeIndex;
-  COUNT bufferIndex;
+  INDEX timeIndex = 0;
   char myBuffer[RANDOM_VALUES_SIZE];
-  BOOL assending;
-  COUNT length;
-
-  timeIndex = 0;
-  assending = TRUE;
+  BOOL assending = TRUE;
 
   WatchdogAddFlag(context->WatchdogId);
 
-  while(1)
-  {
+  while (1) {
     //Set Buffer up with values which will fail if a bug occurs.
-    for( bufferIndex = 0; bufferIndex < RANDOM_VALUES_SIZE; bufferIndex++ )
-    {
-      if( assending )
-        myBuffer[bufferIndex] = 0;
-      else
-        myBuffer[bufferIndex] = RANDOM_VALUES_SIZE;
+    SPACE fillSpace = BufferSpace(myBuffer, RANDOM_VALUES_SIZE);
+    char fillValue = assending ? 0 : RANDOM_VALUES_SIZE;
+    BUFFER_UNTIL_FULL(fillSpace) {
+      BufferWrite(fillValue, fillSpace);
     }
 
-    length = RandomNumbers[timeIndex];
+    COUNT length = RandomNumbers[timeIndex];
 
     //Perform read
-    PipeReadStruct(
-        myBuffer,
-        length,
-        reader);
+    SPACE space = BufferSpace(myBuffer, length);
+    PipeReadStructBuffer(&space, reader);
 
     //validate direction of buffer.
-    for( bufferIndex = 0; bufferIndex+1 < length; bufferIndex++)
-    {
-      if( assending )
-      {
-        if( myBuffer[bufferIndex] >= myBuffer[bufferIndex+1] )
-          KernelPanic();
+    DATA data = BufferData(myBuffer, &space);
+    CMP_FN * cmp = assending ? IsAssending : IsDecending;
+    char * last = NULL;
+    BUFFER_FOR_EACH(cur, char, data) {
+      if (last) {
+        if (!cmp(last, cur)) {
+            KernelPanic();
+        }
       }
-      else
-      {
-        if( myBuffer[bufferIndex] <= myBuffer[bufferIndex+1] )
-          KernelPanic();
-      }
+      last = cur;
     }
 
     //Setup next value.
@@ -192,11 +193,14 @@ void * ConsumerMain( void * arg )
 
 int main()
 {
+  AssendingData = SetupData(AssendingBuffer, RANDOM_VALUES_SIZE, 'a', 1);
+  DecendingData = SetupData(DecendingBuffer, RANDOM_VALUES_SIZE, 'z', -1);
+
   KernelInit();
   SchedulerStartup();
-  SetupPipe(MessageBuffer1, &Pipe1, &ProducerContext1, &ConsumerContext1, 1, 2);
-  SetupPipe(MessageBuffer2, &Pipe2, &ProducerContext2, &ConsumerContext2, 3, 4);
-  SetupPipe(MessageBuffer3, &Pipe3, &ProducerContext3, &ConsumerContext3, 5, 6);
+  SetupPipe(&MessageBuffer1, &Pipe1, &ProducerContext1, &ConsumerContext1, 1, 2);
+  SetupPipe(&MessageBuffer2, &Pipe2, &ProducerContext2, &ConsumerContext2, 3, 4);
+  SetupPipe(&MessageBuffer3, &Pipe3, &ProducerContext3, &ConsumerContext3, 5, 6);
 
   SchedulerCreateThread(
       &Producer1,

@@ -11,23 +11,20 @@
 //Main routine for threads.
 //
 
-#define BUF_SIZE 512
+#define BUF_SIZE 32
 
 THREAD_MAIN TestThreadMain;
 void * TestThreadMain( void * arg )
 {
-        char buf[BUF_SIZE];
-        COUNT read;
+  char buf[BUF_SIZE];
 
-        while( 1 )
-        {
-                read = SerialRead(buf, BUF_SIZE);
-                buf[read]= '\0';
-                if(read > 0) {
-                        SerialWrite(buf, read);
-                }
-        }
-        return NULL;
+  while (1) {
+    SPACE space = BufferSpace(buf, BUF_SIZE);
+    SerialReadBuffer(&space);
+    DATA data = BufferData(buf, &space);
+    SerialWriteBuffer(&data);
+  }
+  return NULL;
 }
 
 
@@ -46,22 +43,22 @@ char TestThreadStack[STACK_SIZE];
 
 int main()
 {
-        //Initialize the kernel structures.
-        KernelInit();
+  //Initialize the kernel structures.
+  KernelInit();
 
-        SchedulerStartup();
-        SerialStartup();
+  SchedulerStartup();
+  SerialStartup();
 
-        //Initialize Threads
-        SchedulerCreateThread(
-                        &TestThread,
-                        2,
-                        TestThreadStack,
-                        STACK_SIZE,
-                        TestThreadMain,
-                        NULL,
-                        TRUE);
+  //Initialize Threads
+  SchedulerCreateThread(
+      &TestThread,
+      2,
+      TestThreadStack,
+      STACK_SIZE,
+      TestThreadMain,
+      NULL,
+      TRUE);
 
-        KernelStart();
-        return 0;
+  KernelStart();
+  return 0;
 }

@@ -21,8 +21,10 @@ struct THREAD CountThread2;
 int Max = 1000000;
 
 #define BUFF_SIZE 32
-char Buff1[BUFF_SIZE];
-char Buff2[BUFF_SIZE];
+char Mem1[BUFF_SIZE];
+SPACE Buff1 = BufferFromObj(Mem1);
+char Mem2[BUFF_SIZE];
+SPACE Buff2 = BufferFromObj(Mem2);
 
 struct SOCKET Socket;
 struct SOCKET_HANDLE H1;
@@ -35,13 +37,16 @@ void * CountMain(void * context) {
   int v;
   if (MutexLock(&Kicker)) {
     v = 0;
-    SocketWriteStruct((char*) &v, sizeof(v), socket);
+    DATA d = BufferFromObj(v);
+    SocketWriteStructBuffer( &d, socket);
   }
 
   while (1) {
-    SocketReadStruct((char*) &v, sizeof(v), socket);
+    SPACE s = BufferFromObj(v);
+    SocketReadStructBuffer(&s, socket);
     v++;
-    SocketWriteStruct((char*) &v, sizeof(v), socket);
+    DATA d = BufferFromObj(v);
+    SocketWriteStructBuffer(&d, socket);
     if (v>Max) {
       SchedulerShutdown();
       return NULL;
@@ -57,10 +62,8 @@ int main(int argc, char ** argv)
 
   MutexInit(&Kicker, FALSE);
   SocketInit(
-      Buff1,
-      BUFF_SIZE,
-      Buff2,
-      BUFF_SIZE,
+      &Buff1,
+      &Buff2,
       & Socket,
       & H1,
       & H2);

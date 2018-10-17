@@ -30,10 +30,11 @@ ISR_HANDLER* IsrHandlerTable[IRQ_LEVEL_COUNT];
 //Run at kernel startup to initialize flags.
 void IsrStartup()
 {
-        INDEX i;
-        for(i = 0; i < IRQ_LEVEL_COUNT; i++) {
-                IsrDisabledCount[i] = 0;
-                IsrHandlerTable[i] = NULL;
+        FOR_EACH(count, IsrDisabledCount) {
+                *count = 0;
+        }
+        FOR_EACH(handler, IsrHandlerTable) {
+                *handler = NULL;
         }
 }
 
@@ -127,8 +128,7 @@ BOOL IsrIsAtomic(enum IRQ_LEVEL level)
 
         ASSERT( level != IRQ_LEVEL_NONE);//Because enums can be signed or unsigned we need to make sure IRQ_LEVEL_NONE aka 0 is never passed.
 
-        enum IRQ_LEVEL l;
-        for(l = IRQ_LEVEL_COUNT - 1; l >= level; l--) {
+        for(enum IRQ_LEVEL l = IRQ_LEVEL_COUNT - 1; l >= level; l--) {
                 if( IsrDisabledCount[l] == 0 ) {
                         ASSERT( ! HalIsIrqAtomic( l ) );
                 } else {

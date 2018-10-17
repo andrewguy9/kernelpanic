@@ -32,10 +32,6 @@ void ContextBootstrap(void * arg)
 void ContextInit( struct CONTEXT * context, char * Pointer, COUNT Size, STACK_INIT_ROUTINE Foo, void * Arg)
 {
 #ifdef DEBUG
-        int cur;
-#endif
-
-#ifdef DEBUG
         //Set up the stack boundry.
         CounterInit(&context->TimesRun);
         CounterInit(&context->TimesSwitched);
@@ -52,8 +48,9 @@ void ContextInit( struct CONTEXT * context, char * Pointer, COUNT Size, STACK_IN
                 context->Low = Pointer;
                 //Write pattern over stack so we can expose
                 //variable initialization errors.
-                for(cur=0; cur<Size; cur++)
-                        Pointer[cur] = 0xaa;
+                FOR_EACH_N(cur, Pointer, Size) {
+                        *cur = 0xaa;
+                }
 #endif
                 //Populate regular stack
                 context->Main = Foo;

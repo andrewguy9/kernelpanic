@@ -17,18 +17,16 @@ struct SOCKET_HANDLE {
 };
 
 void SocketInit(
-    char * buff1,
-    COUNT buff1_size,
-    char * buff2,
-    COUNT buff2_size,
+    SPACE * space1,
+    SPACE * space2,
     struct SOCKET * socket,
     struct SOCKET_HANDLE * h1,
     struct SOCKET_HANDLE * h2
     );
 
-COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET_HANDLE * socket );
-void SocketReadStruct( char * buff, COUNT size, struct SOCKET_HANDLE * socket );
-COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET_HANDLE * socket );
-void SocketWriteStruct( char * buff, COUNT size, struct SOCKET_HANDLE * socket );
+void SocketReadCharsBuffer( SPACE * space, struct SOCKET_HANDLE * socket );
+void SocketReadStructBuffer( SPACE * space, struct SOCKET_HANDLE * socket );
+void SocketWriteCharsBuffer( DATA * data, struct SOCKET_HANDLE * socket );
+void SocketWriteStructBuffer( DATA * data, struct SOCKET_HANDLE * socket );
 
 #endif

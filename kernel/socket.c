@@ -7,10 +7,8 @@
  */
 
 void SocketInit(
-    char * buff1,
-    COUNT buff1_size,
-    char * buff2,
-    COUNT buff2_size,
+    SPACE * space1,
+    SPACE * space2,
     struct SOCKET * socket,
     struct SOCKET_HANDLE * h1,
     struct SOCKET_HANDLE * h2
@@ -20,30 +18,30 @@ void SocketInit(
   PIPE_READ p2_read;
   PIPE_WRITE p2_write;
 
-  PipeInit(buff1, buff1_size, &socket->Pipe1, &p1_read, &p1_write);
-  PipeInit(buff2, buff2_size, &socket->Pipe2, &p2_read, &p2_write);
+  PipeInit(space1, &socket->Pipe1, &p1_read, &p1_write);
+  PipeInit(space2, &socket->Pipe2, &p2_read, &p2_write);
   h1->Read = p1_read;
   h1->Write = p2_write;
   h2->Read = p2_read;
   h2->Write = p1_write;
 }
 
-COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET_HANDLE * socket )
+void SocketReadCharsBuffer( SPACE * space, struct SOCKET_HANDLE * socket )
 {
-  return PipeRead( buff, size, socket->Read);
+  PipeReadBuffer(space, socket->Read);
 }
 
-void SocketReadStruct( char * buff, COUNT size, struct SOCKET_HANDLE * socket )
+void SocketReadStructBuffer( SPACE * space, struct SOCKET_HANDLE * socket )
 {
-  PipeReadStruct( buff, size, socket->Read);
+  PipeReadStructBuffer(space, socket->Read);
 }
 
-COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET_HANDLE * socket )
+void SocketWriteCharsBuffer( DATA * data, struct SOCKET_HANDLE * socket )
 {
-  return PipeWrite( buff, size, socket->Write);
+  PipeWriteBuffer(data, socket->Write);
 }
 
-void SocketWriteStruct( char * buff, COUNT size, struct SOCKET_HANDLE * socket )
+void SocketWriteStructBuffer( DATA * data, struct SOCKET_HANDLE * socket )
 {
-  PipeWriteStruct( buff, size, socket->Write);
+  PipeWriteStructBuffer(data, socket->Write);
 }

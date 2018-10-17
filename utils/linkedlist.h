@@ -22,4 +22,12 @@ BOOL LinkedListIsEmpty( struct LINKED_LIST * list );
 
 void LinkedListInit( struct LINKED_LIST * list );
 
+#define LINKED_LIST_FOR_EACH(item, T, field) \
+  for (T * item = BASE_OBJECT(list->Head, T, field), \
+      * last = NULL, \
+      * head = BASE_OBJECT(list->Head, T, field); \
+      list->Head && (item != head || last == NULL); \
+      last = item, \
+      item = BASE_OBJECT(item->field.LinkedListLink.Next, T, field))
+
 #endif

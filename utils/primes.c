@@ -14,32 +14,29 @@ BOOL isPrime(int v)
   return TRUE;
 }
 
-BOOL isPrimeProduct(int v, int primes[], COUNT num_primes)
+BOOL isPrimeProduct(int v, DATA * primes)
 {
-  int i;
-  for (i=2; i<num_primes; i++) {
-    if (v % primes[i] == 0) {
+  DATA data = *primes;
+  BUFFER_FOR_EACH(prime, int, data) {
+    if (v % *prime == 0) {
       return FALSE;
     }
   }
   return TRUE;
 }
 
-enum PRIMES_STATUS findPrimes(int max, int primes[], COUNT primes_length) {
-  COUNT found_primes= 0;
-  int cur;
-
-  for (cur = 2; cur < max; cur++) {
-    if (isPrimeProduct(cur, primes, found_primes)) {
-      if (found_primes+1 > primes_length) {
-        return PRIMES_OVERFLOW;
-      } else {
-        primes[found_primes++] = cur;
-      }
+enum PRIMES_STATUS findPrimes(int max, SPACE * space) {
+  SPACE orig = *space;
+  for (int cur = 2; cur < max && !BufferFull(space); cur++) {
+    DATA primes = BufferData(orig.Buff, space);
+    if (isPrimeProduct(cur, &primes)) {
+      BufferWrite(cur, *space);
     }
   }
-  for (; found_primes<primes_length; found_primes++) {
-    primes[found_primes] = 0;
+  //TODO WE WANT TO ERROR ON OVERFLOW, NOT FULL.
+  if (BufferFull(space)) {
+    return PRIMES_OVERFLOW;
+  } else {
+    return PRIMES_OK;
   }
-  return PRIMES_OK;
 }

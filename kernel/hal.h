@@ -2,6 +2,7 @@
 #define HAL_H
 
 #include"utils/utils.h"
+#include"utils/buffer.h"
 
 /*
  * Hal.h defines all of the interfaces that the rest of the kernel will 
@@ -53,14 +54,14 @@ void HalEndInterrupt();
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, COUNT stackSize, STACK_INIT_ROUTINE foo, void * arg);
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context );
 #define HalPanic(msg) HalPanicFn(__FILE__, __LINE__, msg)
-void HalPanicFn(char file[], int line, char msg[]);
+void HalPanicFn(char file[], int line, char msg[]) __attribute__((noreturn));
 void HalShutdownNow();
 void HalSleepProcessor();
 void HalRaiseInterrupt(enum IRQ_LEVEL level);
 void HalSetIrq(enum IRQ_LEVEL irq);
 void HalStartSerial();
-BOOL HalSerialGetChar(char * out);
-void HalSerialWriteChar(char data);
+void HalSerialRead(SPACE * space);
+void HalSerialWrite(DATA *data);
 void * HalMap(char * tag, void * addr, COUNT len);
 
 TIME HalGetTime();
