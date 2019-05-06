@@ -14,32 +14,32 @@ BOOL isPrime(int v)
   return TRUE;
 }
 
-BOOL isPrimeProduct(int v, int primes[], COUNT num_primes)
+BOOL isPrimeProduct(int v, DATA * primes)
 {
-  int i;
-  for (i=2; i<num_primes; i++) {
-    if (v % primes[i] == 0) {
+  DATA data = *primes;
+  for (int * prime = BufferNext(data, prime);
+      prime != NULL;
+      prime = BufferNext(data, prime)) {
+    if (v % *prime == 0) {
       return FALSE;
     }
   }
   return TRUE;
 }
 
-enum PRIMES_STATUS findPrimes(int max, int primes[], COUNT primes_length) {
-  COUNT found_primes= 0;
-  int cur;
-
-  for (cur = 2; cur < max; cur++) {
-    if (isPrimeProduct(cur, primes, found_primes)) {
-      if (found_primes+1 > primes_length) {
+enum PRIMES_STATUS findPrimes(int max, SPACE * buffer) {
+  SPACE orig = *buffer;
+  for (int cur = 2; cur < max; cur++) {
+    DATA data = BufferData(orig.Buff, buffer);
+    if (isPrimeProduct(cur, &data)) {
+      if (BufferFull(buffer)) {
         return PRIMES_OVERFLOW;
       } else {
-        primes[found_primes++] = cur;
+        DATA prime = BufferFromObj(cur);
+        //TODO THIS IS NOT SAFE.
+        BufferCopy(&prime, buffer);
       }
     }
-  }
-  for (; found_primes<primes_length; found_primes++) {
-    primes[found_primes] = 0;
   }
   return PRIMES_OK;
 }

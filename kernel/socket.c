@@ -28,22 +28,22 @@ void SocketInit(
   h2->Write = p1_write;
 }
 
-COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET_HANDLE * socket )
+void SocketReadCharsBuffer( SPACE * space, struct SOCKET_HANDLE * socket )
 {
-  return PipeRead( buff, size, socket->Read);
+  PipeReadBuff(space, socket->Read);
 }
 
-void SocketReadStruct( char * buff, COUNT size, struct SOCKET_HANDLE * socket )
+void SocketReadStructBuffer( SPACE * space, struct SOCKET_HANDLE * socket )
 {
-  PipeReadStruct( buff, size, socket->Read);
+  PipeReadStructBuff(space, socket->Read);
 }
 
-COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET_HANDLE * socket )
+void SocketWriteCharsBuffer( DATA * data, struct SOCKET_HANDLE * socket )
 {
-  return PipeWrite( buff, size, socket->Write);
+  PipeWriteBuff(data, socket->Write);
 }
 
-void SocketWriteStruct( char * buff, COUNT size, struct SOCKET_HANDLE * socket )
+void SocketWriteStructBuffer( DATA * data, struct SOCKET_HANDLE * socket )
 {
-  PipeWriteStruct( buff, size, socket->Write);
+  PipeWriteStructBuff(data, socket->Write);
 }

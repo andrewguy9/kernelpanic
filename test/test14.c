@@ -35,13 +35,16 @@ void * CountMain(void * context) {
   int v;
   if (MutexLock(&Kicker)) {
     v = 0;
-    SocketWriteStruct((char*) &v, sizeof(v), socket);
+    DATA d = BufferFromObj(v);
+    SocketWriteStructBuffer( &d, socket);
   }
 
   while (1) {
-    SocketReadStruct((char*) &v, sizeof(v), socket);
+    SPACE s = BufferFromObj(v);
+    SocketReadStructBuffer(&s, socket);
     v++;
-    SocketWriteStruct((char*) &v, sizeof(v), socket);
+    DATA d = BufferFromObj(v);
+    SocketWriteStructBuffer(&d, socket);
     if (v>Max) {
       SchedulerShutdown();
       return NULL;

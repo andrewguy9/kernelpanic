@@ -26,47 +26,51 @@
 //given a pointer to a field.
 #define BASE_OBJECT( ptr, base, field ) ((base*)((INDEX)(ptr) - OFFSET_OF(base,field)))
 
-//
-//  Assert and Assume
-//
-
-#ifdef DEBUG
-
+/* Fail: Macro for bailing out on onrecoverable failure.
+ * On kernel builds, causes a panic.
+ * On app builds calls abort. */
 #ifdef APP_BUILD
-
-//This is a app build. Asserts result in printf/exit.
 #include<stdio.h>
 #include<stdlib.h>
-#define ASSERT( condition ) \
-	if( !(condition) )      \
-		printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__)
-
-//This is a app build. Assumes result in a app and printf/exit.
-#define ASSUME( expression, result ) (ASSERT( (condition) == (result) ))
-
+#define FAIL( msg )                                           \
+  do {                                                        \
+    printf(msg " in file %s, line %d\n", __FILE__, __LINE__); \
+    abort();                                                  \
+  } while(0)
 #endif //APP_BUILD
-
 #ifdef KERNEL_BUILD
-
-//This is a kernel build. Asserts result in a kernel panic.
 #include"kernel/panic.h"
-#define ASSERT( condition ) \
-	if( ! (condition) ) \
-		Panic( __FILE__, __LINE__ )
+#define FAIL( msg )               \
+  do {                            \
+    Panic( __FILE__, __LINE__ );  \
+  } while (0)
+#endif //KERNEL_BUILD
 
-#define ASSUME( expression, result ) ASSERT(expression == result )
+/* Assert: If condition evaluates to false, fail.
+ * Applies only on debug builds. Not evaluated on release builds.
+ */
+#ifdef DEBUG
+#define ASSERT( condition )   \
+  do {                        \
+    if( !(condition) ) {      \
+      FAIL("assert FAILED");  \
+    }                         \
+  } while (0)
+#else // DEBUG
+#define ASSERT( condition )
+#endif //DEBUG
 
-#endif //ifdef KERNEL_BUILD
-
-#else //ifdef DEBUG
-
-//This is a fre build, no asserts enabled.
-#define ASSERT( condition ) 
-
-//This is a fre build, ASSUME runs expression, but no check.
+/* Assume: On debug, evalutes expression and asserts equality with result.
+ * On release builds, evaulates expression, with no check of result.
+ */
+#ifdef DEBUG
+#define ASSUME( expression, result )    \
+  do {                                  \
+    ASSERT( (expression) == (result) ); \
+  } while (0)
+#else
 #define ASSUME( expression, result ) (expression)
+#endif //DEBUG
 
-#endif //ifdef DEBUG
+#endif //UTILS_H
 
-
-#endif

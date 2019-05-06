@@ -26,9 +26,9 @@ void SocketInit(
     struct SOCKET_HANDLE * h2
     );
 
-COUNT SocketReadChars( char * buff, COUNT size, struct SOCKET_HANDLE * socket );
-void SocketReadStruct( char * buff, COUNT size, struct SOCKET_HANDLE * socket );
-COUNT SocketWriteChars( char * buff, COUNT size, struct SOCKET_HANDLE * socket );
-void SocketWriteStruct( char * buff, COUNT size, struct SOCKET_HANDLE * socket );
+void SocketReadCharsBuffer( SPACE * space, struct SOCKET_HANDLE * socket );
+void SocketReadStructBuffer( SPACE * space, struct SOCKET_HANDLE * socket );
+void SocketWriteCharsBuffer( DATA * data, struct SOCKET_HANDLE * socket );
+void SocketWriteStructBuffer( DATA * data, struct SOCKET_HANDLE * socket );
 
 #endif
