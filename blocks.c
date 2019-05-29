@@ -19,7 +19,7 @@
 }
 
 #define filter(T) \
-  ^(int (^ fn)(T), T arr[], T out[], int n) { \
+  ^int (int (^ fn)(T), T arr[], T out[], int n) { \
   int pos = 0; \
   for (int i=0; i<n; i++) { \
     if (fn(arr[i])) { \
