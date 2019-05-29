@@ -12,10 +12,12 @@ int main() {
   int input[4] = {1,2,3,4};
   int intermediate[4];
   int output[4];
-  
-  void printr(int x, int idx) {
-    printf("%d", x);
-  }
-  forEach(int)(printr, output, 4);
+
+  ({void _(int x, int idx) { printf("%d %d\n", x, idx); } (void (*)(int, int))_;})(5,10);
+
+  forEach(int)(
+  ({void _(int x, int idx) { printf("%d", x); } (void (*)(int, int))_;}),
+    output,
+    4);
   printf("\n");
 }
