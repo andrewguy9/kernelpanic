@@ -9,13 +9,10 @@ int main() {
   void printr(int x) {
     printf("%d", x);
   }
-  {
-    void forEach(int arr[], int n) {
-      for (int i=0; i<n; i++) {
-        printr(arr[i]);
-      }
+  ({void _(int arr[], int n) {
+    for (int i=0; i<n; i++) {
+      printf("%d", arr[i]);
     }
-    forEach(output, 4);
-  }
+  } (void (*)(int [], int))_;})(output, 4);
   printf("\n");
 }
