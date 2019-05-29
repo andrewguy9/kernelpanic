@@ -1,8 +1,8 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-#define lambda_inc \
-  ^ int (int x) { return x + 1; }
+#define lambda_int_int \
+  ^ int (int x)
 
 #define forEach(T) \
   ^(void (^ fn)(T, int), T arr[], int n) { \
@@ -33,7 +33,7 @@ int main() {
   int input[4] = {1,2,3,4};
   int intermediate[4];
   int output[4];
-  int result = lambda_inc(1);
+  int result = lambda_int_int{return x+1;}(1);
   printf("%c\n", result);
   map(int,int)(^(int x) { return x+1; }, input, intermediate, 4);
   int count = filter(int)(^int (int x) { return x%2==0;}, intermediate, output, 4);
