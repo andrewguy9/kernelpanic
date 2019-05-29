@@ -1,6 +1,9 @@
 #include<stdio.h>
 #include<stdlib.h>
 
+#define lambda_void_int_int(body) \
+  ({void _(int x, int idx) body (void (*)(int, int))_;})
+
 #define forEach(T) \
   ({void _(void (*fn)(T, int), T arr[], int n) { \
     for (int i=0; i<n; i++) { \
@@ -13,7 +16,7 @@ int main() {
   int intermediate[4];
   int output[4];
 
-  ({void _(int x, int idx) { printf("%d %d\n", x, idx); } (void (*)(int, int))_;})(5,10);
+  lambda_void_int_int( {printf("%d %d\n", x, idx);} )(5,10);
 
   forEach(int)(
   ({void _(int x, int idx) { printf("%d", x); } (void (*)(int, int))_;}),
