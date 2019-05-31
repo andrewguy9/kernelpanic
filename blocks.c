@@ -4,6 +4,9 @@
 #define lambda(ReturnType, ...) \
   ^ ReturnType (__VA_ARGS__)
 
+#define lambdaRef(RefName, ReturnType, ...) \
+  ReturnType (^ RefName) (__VA_ARGS__)
+
 #define forEach(T) \
   ^(void (^ fn)(T, int), T arr[], int n) { \
     for (int i=0; i<n; i++) { \
@@ -33,7 +36,7 @@ int main() {
   int input[4] = {1,2,3,4};
   int intermediate[4];
   int output[4];
-  int (^ fn)(int,int) = lambda(int, int x, int y){return x+y;};
+  lambdaRef(fn, int, int, int) = lambda(int, int x, int y){return x+y;};
   int result = fn(1,2);
   printf("%d\n", result);
   map(int,int)(lambda(int, int x){ return x+1; }, input, intermediate, 4);
