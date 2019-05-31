@@ -22,7 +22,7 @@
 }
 
 #define filter(T) \
-  ^int (lambdaRef(fn, int,T), T arr[], T out[], int n) { \
+  lambda(int, lambdaRef(fn, int,T), T arr[], T out[], int n) { \
   int pos = 0; \
   for (int i=0; i<n; i++) { \
     if (fn(arr[i])) { \
