@@ -36,9 +36,9 @@ int main() {
   int (^ fn)(int,int) = lambda(int, int x, int y){return x+y;};
   int result = fn(1,2);
   printf("%d\n", result);
-  map(int,int)(^(int x) { return x+1; }, input, intermediate, 4);
-  int count = filter(int)(^int (int x) { return x%2==0;}, intermediate, output, 4);
-  forEach(int)(^(int val, int index) {
+  map(int,int)(lambda(int, int x){ return x+1; }, input, intermediate, 4);
+  int count = filter(int)(lambda(int, int x){ return x%2==0;}, intermediate, output, 4);
+  forEach(int)(lambda(void, int val, int index) {
       printf("%d ", val);
   }, output, count);
   printf("\n");
