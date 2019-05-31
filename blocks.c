@@ -15,7 +15,7 @@
   }
 
 #define map(A,B) \
-  lambda(void, B (^fn)(A), A input[], B output[], int n) { \
+  lambda(void, lambdaRef(fn, B, A), A input[], B output[], int n) { \
     forEach(A)( ^(A val, int i) { \
       output[i] = fn(val); \
     }, input, n); \
