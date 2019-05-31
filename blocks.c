@@ -8,7 +8,7 @@
   ReturnType (^ RefName) (__VA_ARGS__)
 
 #define forEach(T) \
-  ^(void (^ fn)(T, int), T arr[], int n) { \
+  lambda(void, lambdaRef(fn, void, T, int), T arr[], int n) { \
     for (int i=0; i<n; i++) { \
       fn(arr[i], i); \
     } \
