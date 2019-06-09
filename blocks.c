@@ -1,48 +1,247 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-#define lambda(ReturnType, ...) \
-  ^ ReturnType (__VA_ARGS__)
+#include"blocks.h"
 
-#define lambdaRef(RefName, ReturnType, ...) \
-  ReturnType (^ RefName) (__VA_ARGS__)
-
-#define forEach(T) \
-  lambda(void, lambdaRef(fn, void, T, int), T arr[], int n) { \
-    for (int i=0; i<n; i++) { \
-      fn(arr[i], i); \
-    } \
-  }
-
-#define map(A,B) \
-  lambda(void, lambdaRef(fn, B, A), A input[], B output[], int n) { \
-    forEach(A)( lambda(void, A val, int i) { \
-      output[i] = fn(val); \
-    }, input, n); \
+void test_forPtrs() {
+  printf("testing forPtrs...\n");
+  int data[] = {1,2,3};
+  __block int count = 0;
+  __block int sum = 0;
+  int *cursor = &data[0];
+  int *end = &data[3];
+  forPtrs(int)(lambda(void, int x) {count+=1; sum+=x;}, &cursor, end);
+  printf("count,sum [1,2,3] = %d, %d\n", count, sum);
 }
 
-#define filter(T) \
-  lambda(int, lambdaRef(fn, int, T), T arr[], T out[], int n) { \
-  int pos = 0; \
-  for (int i=0; i<n; i++) { \
-    if (fn(arr[i])) { \
-      out[pos++] = arr[i]; \
-    } \
-  } \
-  return pos; \
+void test_forEach() {
+  printf("testing forEach...\n");
+  int data[] = {1,2,3};
+  __block int count = 0;
+  __block int sum = 0;
+  forEach(int)(lambda(void, int x){count+=1; sum+=x;}, data, 3);
+  printf("count,sum [1,2,3] = %d, %d\n", count, sum);
+}
+
+void test_lamdaRef() {
+  printf("testing lambdaRef...\n");
+  lambdaRef(fn, int, int, int) = lambda(int, int x, int y){return x+y;};
+  printf("+ of 1,2 = %d\n", fn(1,2));
+}
+
+void test_mapPartial(char * caseName, int *data_start, int *data_end, int *space_start, int *space_end) {
+  int *data_cursor = data_start, *space_cursor = space_start;
+  printf("case %s: [", caseName);
+  for(int * cur = data_start; cur != data_end; cur++) {
+    printf("%d,", *cur);
+  }
+  printf("] -> [");
+  mapPartial(int, int)(
+      lambda(int, int x){return x+1;}, &data_cursor, data_end, &space_cursor, space_end);
+  int mapped = data_cursor - data_start;
+  for(int i=0; i<mapped; i++) {
+    printf("%d,", space_start[i]);
+  }
+  printf("]\n");
+}
+
+void test_mapPartials() {
+  printf("testing mapPartial...\n");
+  {
+    int arr1[0];
+    int arr2[0];
+    test_mapPartial("empty 2 arrays", &arr1[0], &arr1[0], &arr2[0], &arr2[0]);
+  }
+  {
+    int arr[0];
+    test_mapPartial("empty 1 array", &arr[0], &arr[0], &arr[0], &arr[0]);
+  }
+  {
+    int arr1[4] = {1,2,3,4};
+    int arr2[4];
+    test_mapPartial("equal 2 arrays", &arr1[0], &arr1[4], &arr2[0], &arr2[4]);
+  }
+  {
+    int arr1[4] = {1,2,3,4};
+    test_mapPartial("equal 1 array", &arr1[0], &arr1[4], &arr1[0], &arr1[4]);
+  }
+  {
+    int arr1[4] = {1,2,3,4};
+    int arr2[2];
+    test_mapPartial("short results, 2 array", &arr1[0], &arr1[4], &arr2[0], &arr2[2]);
+  }
+  {
+    int arr1[2] = {1,2};
+    int arr2[4];
+    test_mapPartial("short inputs, 2 array", &arr1[0], &arr1[2], &arr2[0], &arr2[4]);
+  }
+  {
+    int arr1[4] = {1,2,3,4};
+    test_mapPartial("short results, 1 array", &arr1[0], &arr1[4], &arr1[0], &arr1[2]);
+  }
+  {
+    int arr1[4] = {1,2,3,4};
+    test_mapPartial("short inputs, 1 array", &arr1[0], &arr1[2], &arr1[0], &arr1[4]);
+  }
+}
+
+void test_map(char * caseName, int data[], int space[], size_t n) {
+  printf("case %s: [", caseName);
+  for(int i = 0; i<n; i++) {
+    printf("%d,", data[i]);
+  }
+  printf("] -> [");
+  map(int, int)(
+      lambda(int, int x){return x+1;}, data, space, n);
+  for(int i=0; i<n; i++) {
+    printf("%d,", space[i]);
+  }
+  printf("]\n");
+}
+
+void test_maps() {
+  printf("Testing map...\n");
+  {
+    int arr1[0];
+    int arr2[0];
+    test_map("empty 2 arrays", arr1, arr2, 0);
+  }
+  {
+    int arr[0];
+    test_map("empty 1 array", arr, arr, 0);
+  }
+  {
+    int arr1[4] = {1,2,3,4};
+    int arr2[4];
+    test_map("equal 2 array", arr1, arr2, 4);
+  }
+  {
+    int arr[4] = {1,2,3,4};
+    test_map("equal 1 array", arr, arr, 4);
+  }
+}
+
+void test_filterPartial(char * caseName, int *data_start, int *data_end, int *space_start, int *space_end) {
+  int *data_cursor = data_start, *space_cursor = space_start;
+  printf("case %s: [", caseName);
+  for(int * cur = data_start; cur != data_end; cur++) {
+    printf("%d,", *cur);
+  }
+  printf("] -> [");
+  filterPartial(int)(
+      lambda(_Bool, int x){return x % 2 == 0;}, &data_cursor, data_end, &space_cursor, space_end);
+  int mapped = space_cursor - space_start;
+  for(int i=0; i<mapped; i++) {
+    printf("%d,", space_start[i]);
+  }
+  printf("]\n");
+}
+
+void test_filterPartials() {
+  printf("Testing filterPartial...\n");
+  {
+    int arr1[0];
+    int arr2[0];
+    test_filterPartial("empty 2 arrays", &arr1[0], &arr1[0], &arr2[0], &arr2[0]);
+  }
+  {
+    int arr[0];
+    test_filterPartial("empty 1 array", &arr[0], &arr[0], &arr[0], &arr[0]);
+  }
+  {
+    int arr1[4] = {1,2,3,4};
+    int arr2[4];
+    test_filterPartial("equal 2 arrays", &arr1[0], &arr1[4], &arr2[0], &arr2[4]);
+  }
+  {
+    int arr1[4] = {1,2,3,4};
+    test_filterPartial("equal 1 array", &arr1[0], &arr1[4], &arr1[0], &arr1[4]);
+  }
+  {
+    int arr1[6] = {1,2,3,4,5,6};
+    int arr2[2];
+    test_filterPartial("short results, 2 array", &arr1[0], &arr1[6], &arr2[0], &arr2[2]);
+  }
+  {
+    int arr1[2] = {1,2};
+    int arr2[4];
+    test_filterPartial("short inputs, 2 array", &arr1[0], &arr1[2], &arr2[0], &arr2[4]);
+  }
+  {
+    int arr1[6] = {1,2,3,4,5,6};
+    test_filterPartial("short results, 1 array", &arr1[0], &arr1[6], &arr1[0], &arr1[2]);
+  }
+  {
+    int arr1[4] = {1,2,3,4};
+    test_filterPartial("short inputs, 1 array", &arr1[0], &arr1[2], &arr1[0], &arr1[4]);
+  }
+}
+
+void test_filter(char * caseName, int data[], int space[], int n) {
+  printf("case %s: [", caseName);
+  for(int i = 0; i < n; i++) {
+    printf("%d,", data[i]);
+  }
+  printf("] -> [");
+  int mapped = filter(int)(
+      lambda(_Bool, int x){return x % 2 == 0;}, data, space, n);
+  for(int i=0; i<mapped; i++) {
+    printf("%d,", space[i]);
+  }
+  printf("]\n");
+}
+
+void test_filters() {
+  printf("Testing filter...\n");
+  {
+    int arr1[0];
+    int arr2[0];
+    test_filter("empty 2 arrays", arr1, arr2, 0);
+  }
+  {
+    int arr[0];
+    test_filter("empty 1 array", arr, arr, 0);
+  }
+  {
+    int arr1[4] = {1,2,3,4};
+    int arr2[4];
+    test_filter("2 arrays", arr1, arr2, 4);
+  }
+  {
+    int arr1[4] = {1,2,3,4};
+    test_filter("1 array", arr1, arr1, 4);
+  }
+}
+
+void test_reduce(char * caseName, int data[], int n) {
+  printf("case %s: [", caseName);
+  for(int i = 0; i < n; i++) {
+    printf("%d,", data[i]);
+  }
+  int reduced = reduce(int, int)(
+      lambda(int, int acc, int x){return acc + x;}, data, n, 0);
+  printf("] -> %d\n", reduced);
+}
+
+void test_reduces() {
+  printf("Testing reduce...\n");
+  {
+    int arr[0];
+    test_reduce("empty", arr, 0);
+  }
+  {
+    int arr[4] = {1,2,3,4};
+    test_reduce("array", arr, 4);
+  }
 }
 
 int main() {
-  int input[4] = {1,2,3,4};
-  int intermediate[4];
-  int output[4];
-  lambdaRef(fn, int, int, int) = lambda(int, int x, int y){return x+y;};
-  int result = fn(1,2);
-  printf("%d\n", result);
-  map(int,int)(lambda(int, int x){ return x+1; }, input, intermediate, 4);
-  int count = filter(int)(lambda(int, int x){ return x%2==0;}, intermediate, output, 4);
-  forEach(int)(lambda(void, int val, int index) {
-      printf("%d ", val);
-  }, output, count);
-  printf("\n");
+  test_forPtrs();
+  test_forEach();
+  test_lamdaRef();
+  test_mapPartials();
+  test_maps();
+  test_filterPartials();
+  test_filters();
+  test_reduces();
 }
