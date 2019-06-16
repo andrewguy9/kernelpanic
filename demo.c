@@ -18,8 +18,12 @@ chardata_t buffer_gets(charspace_t *space) {
 
 int main() {
   char strMem[10];
+  do {
   charspace_t strSpace = FROM_ARRAY(strMem);
   chardata_t str = buffer_gets(&strSpace);
+  if (EMPTY(chardata_t)(str)) {
+    break;
+  }
 
   char filteredMem[10];
   charspace_t filteredSpace = FROM_ARRAY(filteredMem);
@@ -30,6 +34,5 @@ int main() {
   int sum = BufferReduce(char, int, chardata_t)(
       lambda(int, int acc, char y) { return acc + y - '0'; }, filtered, 0);
   printf("digits sum is %d\n", sum);
-
-  return 0;
+  } while (1);
 }
