@@ -28,8 +28,7 @@ int main() {
   char filteredMem[10];
   charspace_t filteredSpace = FROM_ARRAY(filteredMem);
   chardata_t filtered = BufferFilter(char, chardata_t, charspace_t)(
-      lambda(_Bool, char x) { return x > '0' && x < '9'; }, str,
-      &filteredSpace);
+      lambda(_Bool, char x) { return x > '0' && x < '9'; }, &str, &filteredSpace);
 
   int sum = BufferReduce(char, int, chardata_t)(
       lambda(int, int acc, char y) { return acc + y - '0'; }, filtered, 0);

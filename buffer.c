@@ -50,7 +50,7 @@ int main() {
       char digits[10];
       charspace_t digit_space = FROM_ARRAY(digits);
       chardata_t digits_data = BufferFilter(char, chardata_t, charspace_t)(
-          lambda(_Bool, char x) { return x > '0' && x < '9'; }, data,
+          lambda(_Bool, char x) { return x > '0' && x < '9'; }, &data,
           &digit_space);
       printf("digits:");
       BufferForEach(char, chardata_t)(

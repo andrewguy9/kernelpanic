@@ -65,17 +65,11 @@
     return (OUT_T){mem, mem + length};                                         \
   }
 
-// TODO won't read all of src if dst is smaller than src.
-// TODO lets fail on uneven buffer sizes for now.
-// TODO what if we are mapping a large buffer into a small buffer, can we do it
-// in multiple rounds?
 #define BufferFilter(T, DT, ST)                                                \
-  lambda(DT, lambdaRef(fn, _Bool, T), DT src, ST *dst) {                       \
-    size_t max_read = min(dst->end - dst->start, src.end - src.start);            \
-    T *mem = dst->start;                                                       \
-    size_t data_len = filter(T)(fn, src.start, mem, max_read);                    \
-    dst->start += data_len;                                                    \
-    return (DT){mem, mem + data_len};                                          \
+  lambda(DT, lambdaRef(fn, _Bool, T), DT *src, ST *dst) {                      \
+    T *start = dst->start;                                                     \
+    filterPartial(T)(fn, &src->start, src->end, &dst->start, dst->end);        \
+    return (DT) {start, dst->start};                                           \
   }
 
 #define BufferReduce(A, B, DA)                                                 \
