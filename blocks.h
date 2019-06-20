@@ -24,7 +24,7 @@
    &l_anonymous_functions_name;                        \
    })
 
-#define lambdaRef(l_ret_type, l_name, l_arguments) \
+#define lambdaRef(l_name, l_ret_type, l_arguments) \
   l_ret_type (*l_name) l_arguments
 
 #endif // Compiler check
