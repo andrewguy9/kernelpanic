@@ -4,11 +4,27 @@
 // TODO use utils version.
 #define min(x, y) ((x) > (y) ? (y) : (x))
 
+#ifdef __GNUC__
+#define lambda(l_ret_type, l_arguments, l_body)        \
+  ({                                                   \
+   l_ret_type l_anonymous_functions_name l_arguments   \
+   l_body                                              \
+   &l_anonymous_functions_name;                        \
+   })
+
+#define lambdaRef(l_ret_type, l_name, l_arguments) \
+  l_ret_type (*l_name) l_arguments
+
+#endif // __GNUC__
+#ifdef __clang__
+
 #define lambda(ReturnType, arguments, ...) \
   ^ ReturnType arguments __VA_ARGS__
 
 #define lambdaRef(RefName, ReturnType, ...) \
   ReturnType (^ RefName) (__VA_ARGS__)
+
+#endif // __clang__
 
 #define forPtrs(T) \
   lambda(void, (lambdaRef(fn, void, T), T **cursor, T *stop) { \
@@ -71,4 +87,4 @@
     return accum; \
   })
 
-#endif
+#endif // BLOCKS_H
