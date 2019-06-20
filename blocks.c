@@ -6,8 +6,8 @@
 void test_forPtrs() {
   printf("testing forPtrs...\n");
   int data[] = {1,2,3};
-  int count = 0;
-  int sum = 0;
+  CAPTURE int count = 0;
+  CAPTURE int sum = 0;
   int *cursor = &data[0];
   int *end = &data[3];
   forPtrs(int)(lambda(void, (int x), {count+=1; sum+=x;}), &cursor, end);
@@ -17,8 +17,8 @@ void test_forPtrs() {
 void test_forEach() {
   printf("testing forEach...\n");
   int data[] = {1,2,3};
-  int count = 0;
-  int sum = 0;
+  CAPTURE int count = 0;
+  CAPTURE int sum = 0;
   forEach(int)(lambda(void, (int x), {count+=1; sum+=x;}), data, 3);
   printf("count,sum [1,2,3] = %d, %d\n", count, sum);
 }

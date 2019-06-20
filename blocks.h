@@ -5,6 +5,8 @@
 #define min(x, y) ((x) > (y) ? (y) : (x))
 
 #if defined(__clang__)
+#define CAPTURE __block
+
 #define lambda(ReturnType, arguments, ...) \
   ^ ReturnType arguments __VA_ARGS__
 
@@ -12,6 +14,8 @@
   ReturnType (^ RefName) (__VA_ARGS__)
 
 #elif defined(__GNUC__) || defined(__GNUG__)
+
+#define CAPTURE
 
 #define lambda(l_ret_type, l_arguments, l_body)        \
   ({                                                   \
