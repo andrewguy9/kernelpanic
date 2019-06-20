@@ -10,7 +10,7 @@ void test_forPtrs() {
   __block int sum = 0;
   int *cursor = &data[0];
   int *end = &data[3];
-  forPtrs(int)(lambda(void, int x) {count+=1; sum+=x;}, &cursor, end);
+  forPtrs(int)(lambda(void, (int x) {count+=1; sum+=x;}), &cursor, end);
   printf("count,sum [1,2,3] = %d, %d\n", count, sum);
 }
 
@@ -19,13 +19,13 @@ void test_forEach() {
   int data[] = {1,2,3};
   __block int count = 0;
   __block int sum = 0;
-  forEach(int)(lambda(void, int x){count+=1; sum+=x;}, data, 3);
+  forEach(int)(lambda(void, (int x){count+=1; sum+=x;}), data, 3);
   printf("count,sum [1,2,3] = %d, %d\n", count, sum);
 }
 
 void test_lamdaRef() {
   printf("testing lambdaRef...\n");
-  lambdaRef(fn, int, int, int) = lambda(int, int x, int y){return x+y;};
+  lambdaRef(fn, int, int, int) = lambda(int, (int x, int y){return x+y;});
   printf("+ of 1,2 = %d\n", fn(1,2));
 }
 
@@ -37,7 +37,7 @@ void test_mapPartial(char * caseName, int *data_start, int *data_end, int *space
   }
   printf("] -> [");
   mapPartial(int, int)(
-      lambda(int, int x){return x+1;}, &data_cursor, data_end, &space_cursor, space_end);
+      lambda(int, (int x){return x+1;}), &data_cursor, data_end, &space_cursor, space_end);
   int mapped = data_cursor - data_start;
   for(int i=0; i<mapped; i++) {
     printf("%d,", space_start[i]);
@@ -92,7 +92,7 @@ void test_map(char * caseName, int data[], int space[], size_t n) {
   }
   printf("] -> [");
   map(int, int)(
-      lambda(int, int x){return x+1;}, data, space, n);
+      lambda(int, (int x){return x+1;}), data, space, n);
   for(int i=0; i<n; i++) {
     printf("%d,", space[i]);
   }
@@ -129,7 +129,7 @@ void test_filterPartial(char * caseName, int *data_start, int *data_end, int *sp
   }
   printf("] -> [");
   filterPartial(int)(
-      lambda(_Bool, int x){return x % 2 == 0;}, &data_cursor, data_end, &space_cursor, space_end);
+      lambda(_Bool, (int x){return x % 2 == 0;}), &data_cursor, data_end, &space_cursor, space_end);
   int mapped = space_cursor - space_start;
   for(int i=0; i<mapped; i++) {
     printf("%d,", space_start[i]);
@@ -184,7 +184,7 @@ void test_filter(char * caseName, int data[], int space[], int n) {
   }
   printf("] -> [");
   int mapped = filter(int)(
-      lambda(_Bool, int x){return x % 2 == 0;}, data, space, n);
+      lambda(_Bool, (int x){return x % 2 == 0;}), data, space, n);
   for(int i=0; i<mapped; i++) {
     printf("%d,", space[i]);
   }
@@ -219,7 +219,7 @@ void test_reduce(char * caseName, int data[], int n) {
     printf("%d,", data[i]);
   }
   int reduced = reduce(int, int)(
-      lambda(int, int acc, int x){return acc + x;}, data, n, 0);
+      lambda(int, (int acc, int x){return acc + x;}), data, n, 0);
   printf("] -> %d\n", reduced);
 }
 
