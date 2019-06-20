@@ -4,7 +4,15 @@
 // TODO use utils version.
 #define min(x, y) ((x) > (y) ? (y) : (x))
 
-#ifdef __GNUC__
+#if defined(__clang__)
+#define lambda(ReturnType, arguments, ...) \
+  ^ ReturnType arguments __VA_ARGS__
+
+#define lambdaRef(RefName, ReturnType, ...) \
+  ReturnType (^ RefName) (__VA_ARGS__)
+
+#elif defined(__GNUC__) || defined(__GNUG__)
+
 #define lambda(l_ret_type, l_arguments, l_body)        \
   ({                                                   \
    l_ret_type l_anonymous_functions_name l_arguments   \
@@ -15,16 +23,8 @@
 #define lambdaRef(l_ret_type, l_name, l_arguments) \
   l_ret_type (*l_name) l_arguments
 
-#endif // __GNUC__
-#ifdef __clang__
+#endif // Compiler check
 
-#define lambda(ReturnType, arguments, ...) \
-  ^ ReturnType arguments __VA_ARGS__
-
-#define lambdaRef(RefName, ReturnType, ...) \
-  ReturnType (^ RefName) (__VA_ARGS__)
-
-#endif // __clang__
 
 #define forPtrs(T) \
   lambda(void, (lambdaRef(fn, void, T), T **cursor, T *stop) { \
