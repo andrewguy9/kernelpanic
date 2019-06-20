@@ -14,23 +14,6 @@ void test_forPtrs() {
   printf("count,sum [1,2,3] = %d, %d\n", count, sum);
 }
 
-void test_forPtrsGcc() {
-  printf("testing forPtrs...\n");
-  int data[] = {1,2,3};
-  __block int count = 0;
-  __block int sum = 0;
-  int *cursor = &data[0];
-  int *end = &data[3];
-  void lambda1(int x) { count += 1; sum+=x;}
-  void lambda2(void fn(int), int **cursor, int *stop) {
-    for(; *cursor != stop; (*cursor)+=1) {
-      fn(**cursor);
-    }
-  }
-  lambda2(lambda1, &cursor, end);
-  printf("count,sum [1,2,3] = %d, %d\n", count, sum);
-}
-
 void test_forEach() {
   printf("testing forEach...\n");
   int data[] = {1,2,3};
