@@ -884,6 +884,16 @@ static Obj *prim_println(void *root, Obj **env, Obj **list) {
     return Nil;
 }
 
+// (panic message)
+static Obj *prim_panic(void *root, Obj **env, Obj **list) {
+    DEFINE1(tmp);
+    *tmp = (*list)->car;
+    print(eval(root, env, tmp));
+    printf("\n");
+    KernelPanic();
+    return Nil;
+}
+
 // (if expr expr expr ...)
 static Obj *prim_if(void *root, Obj **env, Obj **list) {
     if (length(*list) < 2)
@@ -953,6 +963,7 @@ static void define_primitives(void *root, Obj **env) {
     add_primitive(root, env, "=", prim_num_eq);
     add_primitive(root, env, "eq", prim_eq);
     add_primitive(root, env, "println", prim_println);
+    add_primitive(root, env, "panic", prim_panic);
 }
 
 //======================================================================
