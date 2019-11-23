@@ -246,8 +246,6 @@ void HalBlockSignal( void * which )
 //Hal Utilities
 //
 
-#define HalPanic(msg) HalPanicFn(__FILE__, __LINE__, msg)
-
 void HalPanicFn(char file[], int line, char msg[])
 {
         printf("PANIC: %s:%d %s\n",file,line, msg);
