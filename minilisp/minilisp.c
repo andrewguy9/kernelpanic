@@ -1,6 +1,6 @@
 // This software is in the public domain.
 
-#include <assert.h>
+#include "utils/utils.h"
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -272,7 +272,7 @@ static void forward_root_objects(void *root) {
 // Implements Cheney's copying garbage collection algorithm.
 // http://en.wikipedia.org/wiki/Cheney%27s_algorithm
 static void gc(void *root) {
-    assert(!gc_running);
+    ASSERT(!gc_running);
     gc_running = true;
 
     // Allocate a new semi-space.
@@ -354,7 +354,7 @@ static Obj *make_primitive(void *root, Primitive *fn) {
 }
 
 static Obj *make_function(void *root, Obj **env, int type, Obj **params, Obj **body) {
-    assert(type == TFUNCTION || type == TMACRO);
+    ASSERT(type == TFUNCTION || type == TMACRO);
     Obj *r = alloc(root, type, sizeof(Obj *) * 3);
     r->params = *params;
     r->body = *body;
