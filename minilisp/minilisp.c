@@ -1,6 +1,7 @@
 // This software is in the public domain.
 
 #include "utils/utils.h"
+#include "kernel/hal.h"
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -14,10 +15,8 @@
 static __attribute((noreturn)) void error(char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
+    HalError(fmt, ap);
     va_end(ap);
-    exit(1);
 }
 
 //======================================================================
@@ -890,7 +889,7 @@ static Obj *prim_panic(void *root, Obj **env, Obj **list) {
     *tmp = (*list)->car;
     print(eval(root, env, tmp));
     printf("\n");
-    KernelPanic();
+    error("minilisp error");
     return Nil;
 }
 

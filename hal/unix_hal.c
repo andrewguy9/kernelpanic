@@ -259,7 +259,7 @@ void HalPanicErrnoFn(char file[], int line, char msg[])
   HalError("PANIC: %s:%d errno %s: %s\n", file, line, strerror(errno), msg);
 }
 
-void HalError(char *fmt, ...) {
+void __attribute((noreturn)) HalError(char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
   vprintf(fmt, ap);
