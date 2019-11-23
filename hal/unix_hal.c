@@ -10,6 +10,7 @@
 #include<errno.h>
 #include<termios.h>
 #include<sys/mman.h>
+#include<stdarg.h>
 
 //-----------------------------------------------------------------------------
 //-------------------------- GLOBALS ------------------------------------------
@@ -248,16 +249,22 @@ void HalBlockSignal( void * which )
 
 void HalPanicFn(char file[], int line, char msg[])
 {
-        printf("PANIC: %s:%d %s\n",file,line, msg);
-        abort();
+  HalError("PANIC: %s:%d %s\n", file, line, msg);
 }
 
 #define HalPanicErrno(msg) HalPanicErrnoFn(__FILE__, __LINE__, msg)
 
 void HalPanicErrnoFn(char file[], int line, char msg[])
 {
-        printf("PANIC: %s:%d errno %s: %s\n", file, line, strerror(errno), msg);
-        abort();
+  HalError("PANIC: %s:%d errno %s: %s\n", file, line, strerror(errno), msg);
+}
+
+void HalError(char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vprintf(fmt, ap);
+  va_end(ap);
+  abort();
 }
 
 void HalShutdownNow() {
