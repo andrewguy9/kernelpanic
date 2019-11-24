@@ -14,7 +14,7 @@
 #define ASSENDING( a, b, c ) ((a) <= (b) && (b) <= (c))
 //Returns a pointer to the base structure 
 //given a pointer to a field.
-#define BASE_OBJECT( ptr, base, field ) ((base*)((INDEX)(ptr) - offsetof(base,field)))
+#define container_of( ptr, base, field ) ((base*)((INDEX)(ptr) - offsetof(base,field)))
 
 //
 //  Assert and Assume

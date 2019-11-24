@@ -51,7 +51,7 @@ void QueueTimers(TIME time, struct HEAP * heap)
         while( HeapSize( heap ) > 0 &&
                         HeapHeadWeight( heap ) <= time ) {
 
-                struct HANDLER_OBJECT * timer = BASE_OBJECT(
+                struct HANDLER_OBJECT * timer = container_of(
                                 HeapPop(  heap ),
                                 struct HANDLER_OBJECT,
                                 Link );

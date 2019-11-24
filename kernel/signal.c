@@ -42,7 +42,7 @@ void SignalSet( struct SIGNAL * signal )
                 //
 
                 while( ! LinkedListIsEmpty( &signal->WaitingThreads ) ) {
-                        context = BASE_OBJECT(
+                        context = container_of(
                                         LinkedListPop( &signal->WaitingThreads ),
                                         struct LOCKING_CONTEXT,
                                         Link );
