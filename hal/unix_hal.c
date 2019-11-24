@@ -302,7 +302,7 @@ void HalPetWatchdog( TIME when )
         WatchdogInterval.it_interval.tv_usec = 0;
         WatchdogInterval.it_value.tv_sec = 0;
         WatchdogInterval.it_value.tv_usec = when * 1000;
-        ASSUME(setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL ), 0);
+        CHECK(setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL ) == 0);
 }
 
 //
@@ -323,9 +323,9 @@ void HalCreateStackFrame(
         sigset_t trampolineMask;
         struct sigaction switchStackAction;
 
-        ASSUME(sigemptyset( &oldSet ), 0);
-        ASSUME(sigemptyset( &trampolineMask ), 0);
-        ASSUME(sigaddset( &trampolineMask, HAL_ISR_TRAMPOLINE ), 0);
+        CHECK(sigemptyset( &oldSet ) == 0);
+        CHECK(sigemptyset( &trampolineMask ) == 0);
+        CHECK(sigaddset( &trampolineMask, HAL_ISR_TRAMPOLINE ) == 0);
 
         Context->Foo = foo;
         Context->Arg = arg;
@@ -362,7 +362,7 @@ void HalCreateStackFrame(
         //The trampoline signal has been triggered.
         //All signals are blocked.
         //We will unblock the Trampoine signal so it gets delivered.
-        ASSUME(sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL ), 0);
+        CHECK(sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL ) == 0);
 
         //Make sure that the signal was delivered.
         if (!halTempContextProcessed) {
@@ -378,7 +378,7 @@ void HalCreateStackFrame(
 	}
 
         //Now that we have bootstrapped the new thread, lets restore the old mask.
-        ASSUME(sigprocmask(SIG_SETMASK, &oldSet, NULL), 0);
+        CHECK(sigprocmask(SIG_SETMASK, &oldSet, NULL) == 0);
 }
 
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
@@ -446,7 +446,7 @@ TIME HalTimeDelta(struct timeval *time1, struct timeval *time2)
 void HalInitClock()
 {
         //Set the startup time.
-        ASSUME(gettimeofday(&HalStartupTime, NULL), 0);
+        CHECK(gettimeofday(&HalStartupTime, NULL) == 0);
 }
 
 void HalSetTimer(TIME delta)
@@ -471,7 +471,7 @@ void HalSetTimer(TIME delta)
         TimerInterval.it_value.tv_sec = seconds;
         TimerInterval.it_value.tv_usec = micros;
 
-        ASSUME(setitimer( ITIMER_REAL, &TimerInterval, NULL ), 0);
+        CHECK(setitimer( ITIMER_REAL, &TimerInterval, NULL ) == 0);
 }
 
 void HalResetClock()
@@ -483,7 +483,7 @@ void HalResetClock()
 TIME HalGetTime()
 {
         struct timeval sysTime;
-        ASSUME(gettimeofday(&sysTime, NULL), 0);
+        CHECK(gettimeofday(&sysTime, NULL) == 0);
 
         return HalTimeDelta(&HalStartupTime, &sysTime);
 }
@@ -500,9 +500,9 @@ sigset_t sigset_and(sigset_t a, sigset_t b) {
 	int status;
 	sigset_t result;
 	status = sigemptyset(&result);
-	ASSUME(status, 0);
+	CHECK(status == 0);
 	status = sigandset(&result, &a, &b);
-	ASSUME(status, 0);
+	CHECK(status == 0);
 	return result;
 }
 
@@ -510,9 +510,9 @@ sigset_t sigset_or(sigset_t a, sigset_t b) {
 	int status;
 	sigset_t result;
 	status = sigemptyset(&result);
-	ASSUME(status, 0);
+	CHECK(status == 0);
 	status = sigorset(&result, &a, &b);
-	ASSUME(status, 0);
+	CHECK(status == 0);
 	return result;
 }
 
@@ -533,17 +533,17 @@ sigset_t sigset_not(sigset_t a) {
 	int status;
 	sigset_t result;
 	status = sigemptyset(&result);
-	ASSUME(status, 0);
+	CHECK(status == 0);
         for (i=1; i <= __SIGRTMAX; i++) {
                 status = sigismember(&a, i);
                 if (status == 0) {
                   //Not set, so set in result.
                   status = sigaddset(&result, i);
-                  ASSUME(status, 0);
+                  CHECK(status == 0);
                 } else if (status == 1) {
                   //Set, so unset.
                   status = sigdelset(&result, i);
-                  ASSUME(status, 0);
+                  CHECK(status == 0);
                 } else if (status == -1) {
                   HalPanicErrno("Failed to test signal membership.");
                 }
@@ -649,7 +649,7 @@ void HalIsrFinalize()
 
         for(level = IRQ_LEVEL_NONE; level < IRQ_LEVEL_COUNT; level++) {
                 if(HalIrqToSignal[level] != 0) {
-                        ASSUME( sigaction(HalIrqToSignal[level], &HalIrqToSigaction[level], NULL), 0 );
+                        CHECK( sigaction(HalIrqToSignal[level], &HalIrqToSigaction[level], NULL) == 0 );
                 }
         }
 }

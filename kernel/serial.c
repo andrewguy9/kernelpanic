@@ -25,7 +25,7 @@ void SendBytesInterrupt(void)
         ASSERT(IsrIsAtomic(IRQ_LEVEL_SERIAL_WRITE));
         while (!RingBufferIsEmpty(&SerialOutputRing)) {
                 char data;
-                ASSUME(RingBufferRead(&data, sizeof(data), &SerialOutputRing), 1);
+                CHECK(RingBufferRead(&data, sizeof(data), &SerialOutputRing) == 1);
                 HalSerialWriteChar(data);
         }
 }
@@ -35,7 +35,7 @@ void GetBytesInterrupt(void)
         while (!RingBufferIsFull(&SerialInputRing)) {
                 char data;
                 if (HalSerialGetChar(&data)) {
-                        ASSUME(RingBufferWrite(&data, sizeof(data), &SerialInputRing), 1);
+                        CHECK(RingBufferWrite(&data, sizeof(data), &SerialInputRing) == 1);
                 } else {
                         break;
                 }
