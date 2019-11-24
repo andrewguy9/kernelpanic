@@ -50,7 +50,7 @@ void SoftInterrupt()
 
         //TODO TOO MUCH DUPLICATION.
         while( (link = AtomicListPop(&SoftInterruptHandlerList)) ) {
-                handler = BASE_OBJECT(
+                handler = container_of(
                                 link,
                                 struct HANDLER_OBJECT,
                                 Link );

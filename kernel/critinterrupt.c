@@ -49,7 +49,7 @@ void CritInterrupt()
 
         //TODO TOO MUCH DUPLICATION
         while( (link = AtomicListPop(&CritInterruptHandlerList)) ) {
-                handler = BASE_OBJECT(
+                handler = container_of(
                                 link,
                                 struct HANDLER_OBJECT,
                                 Link );

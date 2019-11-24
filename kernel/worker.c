@@ -35,7 +35,7 @@ struct WORKER_ITEM * WorkerGetItem( struct WORKER_QUEUE * queue )
         CritInterruptEnable();
 
         ASSERT( link != NULL );
-        return BASE_OBJECT( link, struct WORKER_ITEM, Link );
+        return container_of( link, struct WORKER_ITEM, Link );
 }
 
 /*
@@ -79,7 +79,7 @@ void WorkerWakeOnLock( struct LOCKING_CONTEXT * context )
         struct WORKER_ITEM * worker;
         struct WORKER_QUEUE * queue;
 
-        worker = BASE_OBJECT( context,
+        worker = container_of( context,
                         struct WORKER_ITEM,
                         LockingContext);
         queue = worker->Queue;

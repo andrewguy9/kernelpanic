@@ -50,7 +50,7 @@ void GenerationUpdate(struct GENERATION * gen, COUNT value)
 
         gen->Generation = value;
         while (! LinkedListIsEmpty( &gen->WaitingThreads) ) {
-                context = BASE_OBJECT(
+                context = container_of(
                                 LinkedListPop(&gen->WaitingThreads),
                                 struct LOCKING_CONTEXT,
                                 Link);
