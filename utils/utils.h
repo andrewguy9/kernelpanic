@@ -29,7 +29,7 @@
 #include<stdlib.h>
 #define ASSERT( condition ) \
   ((void)((condition) ? \
-   NULL : \
+   0 : \
    printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__)))
 
 //This is a app build. Assumes result in a app and printf/exit.
