@@ -32,7 +32,8 @@
 		printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__)
 
 //This is a app build. Assumes result in a app and printf/exit.
-#define ASSUME( expression, result ) (ASSERT( (condition) == (result) ))
+#define CHECK( expression ) (ASSERT (expression) )
+#define ASSUME( expression, result ) (CHECK( (expression) == (result) ))
 
 #endif //APP_BUILD
 
@@ -44,7 +45,8 @@
 	if( ! (condition) ) \
 		Panic( __FILE__, __LINE__ )
 
-#define ASSUME( expression, result ) ASSERT(expression == result )
+#define CHECK( expression ) ASSERT(expression)
+#define ASSUME( expression, result ) CHECK( (expression) == (result) )
 
 #endif //ifdef KERNEL_BUILD
 
@@ -53,8 +55,10 @@
 //This is a fre build, no asserts enabled.
 #define ASSERT( condition ) 
 
+//This is a fre build, CHECK runs expression, but no ASSERT
+#define CHECK( expression ) (expression)
 //This is a fre build, ASSUME runs expression, but no check.
-#define ASSUME( expression, result ) (expression)
+#define ASSUME( expression, result ) CHECK(expression)
 
 #endif //ifdef DEBUG
 
