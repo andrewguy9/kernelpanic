@@ -2,11 +2,11 @@
 
 #include<stdio.h>
 
-BOOL SubMoveMovingEndState[9] = 
-{FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,TRUE,TRUE};
+_Bool SubMoveMovingEndState[9] = 
+{false,true,true,false,false,false,false,true,true};
 
-BOOL SubMovesRotates[9] = 
-{FALSE,FALSE,FALSE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE};
+_Bool SubMovesRotates[9] = 
+{false,false,false,false,true,true,true,true,true};
 
 char * MoveName[9] = 
 {"done","start","forward","stop","turn right","turn left","turn around","int right","int left"};
@@ -53,7 +53,7 @@ void SubMoveApply(
 		INDEX * x, 
 		INDEX * y,
 	   	enum DIRECTION * dir,
-	   	BOOL * moving, 
+	   	_Bool * moving, 
 		enum SUB_MOVE move)
 {
 	*moving = SubMoveMovingEndState[move];
@@ -128,7 +128,7 @@ void GetCell(INDEX *x, INDEX *y, enum DIRECTION dir )
 //
 
 //Tests conditions at start of move
-BOOL MoveStartCentered(INDEX x, INDEX y, enum SUB_MOVE move )
+_Bool MoveStartCentered(INDEX x, INDEX y, enum SUB_MOVE move )
 {
 	switch( move )
 	{
@@ -139,11 +139,11 @@ BOOL MoveStartCentered(INDEX x, INDEX y, enum SUB_MOVE move )
 			return IS_CENTERED(x,y);
 			break;
 		default:
-			return TRUE;
+			return true;
 	}
 }
 
-BOOL MoveStartEdge( INDEX x, INDEX y, enum SUB_MOVE move )
+_Bool MoveStartEdge( INDEX x, INDEX y, enum SUB_MOVE move )
 {
 	switch( move )
 	{
@@ -152,11 +152,11 @@ BOOL MoveStartEdge( INDEX x, INDEX y, enum SUB_MOVE move )
 		case SUB_MOVE_INTEGRATE_LEFT:
 			return IS_EDGED(x,y);
 		default:
-			return TRUE;
+			return true;
 	}
 }
 
-BOOL MoveStartMoving(BOOL moving, enum SUB_MOVE move )
+_Bool MoveStartMoving(_Bool moving, enum SUB_MOVE move )
 {
 	switch( move )
 	{
@@ -176,11 +176,11 @@ BOOL MoveStartMoving(BOOL moving, enum SUB_MOVE move )
 			break;
 		//dont care
 		default:
-			return TRUE;
+			return true;
 	}
 }
 
-BOOL MoveStartStraightAway(INDEX startX, INDEX startY, enum DIRECTION dir, enum SUB_MOVE move, struct FLOOD_MAP * flood )
+_Bool MoveStartStraightAway(INDEX startX, INDEX startY, enum DIRECTION dir, enum SUB_MOVE move, struct FLOOD_MAP * flood )
 {
 	INDEX x;
 	INDEX y;
@@ -199,15 +199,15 @@ BOOL MoveStartStraightAway(INDEX startX, INDEX startY, enum DIRECTION dir, enum 
 			nextFill = FloodFillGet( x, y, flood );
 			//printf("has flood %d facing flood %d\n",curFill,nextFill);
 			if( nextFill < curFill )
-				return TRUE;
-			else return FALSE;
+				return true;
+			else return false;
 		default:
-			return TRUE;
+			return true;
 	}
 }
 
 //Tests conditions at end of move
-BOOL MoveEndOnWall( INDEX x, INDEX y, struct MAP * map, enum SUB_MOVE move )
+_Bool MoveEndOnWall( INDEX x, INDEX y, struct MAP * map, enum SUB_MOVE move )
 {
 	//TODO BROKEN
 	enum DIRECTION dir;
@@ -219,37 +219,37 @@ BOOL MoveEndOnWall( INDEX x, INDEX y, struct MAP * map, enum SUB_MOVE move )
 		case SUB_MOVE_INTEGRATE_RIGHT:
 		case SUB_MOVE_INTEGRATE_LEFT:
 			if(x%2==1 && y%2==1)
-				return TRUE;//ended in middle of cell, no walls
+				return true;//ended in middle of cell, no walls
 			else if( x%2 == 1 )
 				dir = SOUTH;
 			else if( y%2 == 1 )
 				dir = WEST;
 			else
-				return FALSE;//ended on peg, fail
+				return false;//ended on peg, fail
 			//printf("end on wall test (%d,%d,%d) == %d\n",
 			//		x,y,dir,MapGetWall( x/2, y/2, dir, map));
 			return ! MapGetWall( x/2, y/2, dir, map );
 		default:
-			return TRUE;
+			return true;
 	}
 }
 
-BOOL MoveEndOnPeg(INDEX x, INDEX y)
+_Bool MoveEndOnPeg(INDEX x, INDEX y)
 {
 	if( x%2==0 && y%2==0 )
-		return FALSE;
+		return false;
 	else
-		return TRUE;
+		return true;
 }
 
-BOOL MoveEndInScanned(INDEX x, INDEX y, enum DIRECTION dir, struct SCAN_LOG * scan)
+_Bool MoveEndInScanned(INDEX x, INDEX y, enum DIRECTION dir, struct SCAN_LOG * scan)
 {
 	GetCell(&x,&y,dir);
 	//printf("checking scan in %d,%d = %d\n",x,y,ScanLogGet( x, y, scan ));
 	return ScanLogGet( x, y, scan );
 }
 
-BOOL MoveNextScanned( 
+_Bool MoveNextScanned( 
 		INDEX x, 
 		INDEX y, 
 		enum DIRECTION dir,
@@ -267,12 +267,12 @@ BOOL MoveNextScanned(
 			return ScanLogGet( x, y, scan );
 			break;
 		default:
-			return TRUE;
+			return true;
 	}
 }
 
 //Tests conditions in front of mouse (at end of move)
-BOOL MoveNextLessFloodFill( INDEX x, INDEX y, enum DIRECTION dir, enum SUB_MOVE move, struct FLOOD_MAP * flood )
+_Bool MoveNextLessFloodFill( INDEX x, INDEX y, enum DIRECTION dir, enum SUB_MOVE move, struct FLOOD_MAP * flood )
 {
 	COUNT curFill = FloodFillGet( x/2, y/2, flood );//get current cell (end pos)
 	SubMoveTranslate( &x, &y, dir, 2 );//look up cordinates for facing cell
@@ -287,11 +287,11 @@ BOOL MoveNextLessFloodFill( INDEX x, INDEX y, enum DIRECTION dir, enum SUB_MOVE 
 			return facingFill < curFill;
 			break;
 		default:
-			return TRUE;
+			return true;
 	}
 }
 
-BOOL MoveEndFacingWall(INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map, enum SUB_MOVE move )
+_Bool MoveEndFacingWall(INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map, enum SUB_MOVE move )
 {
 	switch( move )
 	{
@@ -303,11 +303,11 @@ BOOL MoveEndFacingWall(INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map, e
 		case SUB_MOVE_INTEGRATE_LEFT:
 			//if we "facing a wall" then we must be in middle
 			if ( ! IS_CENTERED(x,y) )
-				return TRUE;
+				return true;
 			//if we are centered then we can directly look up the wall
 			return ! MapGetWall( x/2, y/2, dir, map );
 		default:
-			return TRUE;
+			return true;
 
 	}
 }
@@ -315,11 +315,11 @@ BOOL MoveEndFacingWall(INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map, e
 //
 //Apply all the tests.
 //
-BOOL SubMoveLegal( 
+_Bool SubMoveLegal( 
 		INDEX x, 
 		INDEX y, 
 		enum DIRECTION dir, 
-		BOOL moving,
+		_Bool moving,
 		enum SUB_MOVE move,
 		struct MAP *map,
 		struct SCAN_LOG *scan,
@@ -332,24 +332,24 @@ BOOL SubMoveLegal(
 	if( ! MoveStartCentered(x,y,move) )
 	{
 		//printf("failed centered test\n");
-		return FALSE;
+		return false;
 	}
 	if( ! MoveStartEdge(x,y,move) )
 	{
 		//printf("failed start edge test\n");
-		return FALSE;
+		return false;
 	}
 
 	if( !MoveStartMoving( moving, move ) )
 	{
 		//printf("failed start moving test\n");
-		return FALSE;
+		return false;
 	}
 
 	if( ! MoveStartStraightAway( x, y, dir, move, flood ))
 	{
 		//printf("failed straight away test\n");
-		return FALSE;
+		return false;
 	}
 
 	//
@@ -361,23 +361,23 @@ BOOL SubMoveLegal(
 	if( ! MoveEndOnWall(x,y,map, move) )
 	{
 		//printf("failed end on wall test\n");
-		return FALSE;
+		return false;
 	}
 	
 	if( ! MoveEndOnPeg(x,y) )
 	{
 		//printf("ended on peg\n");
-		return FALSE;
+		return false;
 	}
 	if( ! MoveEndInScanned(x,y,dir,scan) )
 	{
 		//printf("end on scanned test\n");
-		return FALSE;
+		return false;
 	}
 	if( ! MoveEndFacingWall(x,y,dir,map,move) )//NO MOVEMENT
 	{
 		//printf("failed facing wall test\n");
-		return FALSE;
+		return false;
 	}
 	//
 	//Facing Tests
@@ -387,16 +387,16 @@ BOOL SubMoveLegal(
 	if( ! MoveNextScanned( x, y, dir, move, scan) )//TRANSLATE 1
 	{
 		//printf("end facing unexplored cell\n");
-		return FALSE;
+		return false;
 	}
 	if( ! MoveNextLessFloodFill(x,y,dir, move, flood ) )//TRANSLATE 2
 	{
 		//printf("end not facing less flood\n");
-		return FALSE;
+		return false;
 	}
 
 	//printf("test %s passed\n",MoveName[move]);
-	return TRUE;
+	return true;
 }
 
 //
@@ -407,7 +407,7 @@ enum SUB_MOVE SubMoveFindBest(
 		INDEX startX,
 		INDEX startY,
 		enum DIRECTION startDir,
-		BOOL startMoving,
+		_Bool startMoving,
 		struct FLOOD_MAP * flood, 
 		struct MAP * map,
 		struct SCAN_LOG * scan)
@@ -416,15 +416,15 @@ enum SUB_MOVE SubMoveFindBest(
 	enum SUB_MOVE best;
 	unsigned char bestFlood;
 	unsigned char bestFacingFlood;
-	BOOL bestFacingWall;
-	BOOL bestRotated;
+	_Bool bestFacingWall;
+	_Bool bestRotated;
 
 	//cur move vars
 	enum SUB_MOVE cur;
 	unsigned char curFlood;
 	unsigned char curFacingFlood;
-	BOOL curFacingWall;
-	BOOL curRotated;
+	_Bool curFacingWall;
+	_Bool curRotated;
 
 	//temp calculation vars
 	INDEX tempX,tempY;
@@ -433,7 +433,7 @@ enum SUB_MOVE SubMoveFindBest(
 	INDEX x;
 	INDEX y;
 	enum DIRECTION dir;
-	BOOL moving;
+	_Bool moving;
 
 	//set up standard to measure against: SUB_MOVE_DONE
 	x = startX;
@@ -442,10 +442,10 @@ enum SUB_MOVE SubMoveFindBest(
 	moving = startMoving;
 	best = SUB_MOVE_DONE;
 	bestFlood = 255;//FloodFillGet( x/2, y/2, flood );
-	bestFacingWall = TRUE;//MapGetWall( x/2, y/2, dir, map );
+	bestFacingWall = true;//MapGetWall( x/2, y/2, dir, map );
 	//SubMoveApply( &x, &y, &dir, &moving, SUB_MOVE_FORWARD );
 	bestFacingFlood = 255;//FloodFillGet( x/2, y/2, flood );
-	bestRotated = TRUE;//SubMovesRotates[SUB_MOVE_DONE];
+	bestRotated = true;//SubMovesRotates[SUB_MOVE_DONE];
 
 	for( cur = SUB_MOVE_START; cur <= SUB_MOVE_INTEGRATE_LEFT; cur++ )
 	{

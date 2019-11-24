@@ -11,13 +11,11 @@ typedef size_t COUNT;
 typedef size_t INDEX;
 
 #ifdef AVR_BUILD
-typedef unsigned char BOOL;
 typedef unsigned long int TIME;
 typedef unsigned char ATOMIC;
 #endif
 
 #ifdef PC_BUILD
-typedef unsigned char BOOL;
 typedef unsigned long int TIME;
 typedef unsigned long int ATOMIC;
 typedef unsigned long long DOUBLE_COUNT;

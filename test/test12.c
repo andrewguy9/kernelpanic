@@ -36,9 +36,9 @@ char ManagerStack[STACK_SIZE];
 char WaiterBlockingStack[STACK_SIZE];
 char WaiterNonBlockingStack[STACK_SIZE];
 
-volatile BOOL Flair;
-volatile BOOL Respond1;
-volatile BOOL Respond2;
+volatile _Bool Flair;
+volatile _Bool Respond1;
+volatile _Bool Respond2;
 
 //
 //Mains
@@ -50,7 +50,7 @@ void * ManagerMain(void * unused)
 	while(1)
 	{
 		//printf("going to signal\n");
-		Flair = TRUE;
+		Flair = true;
 		SignalSet( &Signal );
 		//printf("signaled\n");
 		
@@ -64,7 +64,7 @@ void * ManagerMain(void * unused)
 		SignalUnset( &Signal );
 		//printf("unset\n");
 
-		Flair = FALSE;
+		Flair = false;
 
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
@@ -77,7 +77,7 @@ void * WaiterBlockingMain(void * unused)
 {
 	while(1)
 	{
-		Respond1 = FALSE;
+		Respond1 = false;
 
 		//printf("going to block\n");
 		SignalWaitForSignal( & Signal, NULL );
@@ -85,7 +85,7 @@ void * WaiterBlockingMain(void * unused)
 
 		ASSERT( Flair );
 		
-		Respond1 = TRUE;
+		Respond1 = true;
 
 	}
         return NULL;
@@ -99,14 +99,14 @@ void * WaiterNonBlockingMain(void * unused)
 	LockingInit( & context, LockingBlockNonBlocking, LockingWakeNonBlocking );
 	while(1)
 	{
-		Respond2 = FALSE;
+		Respond2 = false;
 		//printf("going to spin\n");
 		SignalWaitForSignal( &Signal, &context );
 		while( !LockingIsAcquired( &context ) )
                   ;
 		ASSERT( Flair );
 
-		Respond2 = TRUE;
+		Respond2 = true;
 		//printf("spin ended\n");
 		
 		SchedulerStartCritical();
@@ -121,11 +121,11 @@ int main()
 
         SchedulerStartup();
 
-        SignalInit( &Signal, FALSE );
+        SignalInit( &Signal, false );
 
-        Flair = FALSE;
-        Respond1 = FALSE;
-        Respond2 = FALSE;
+        Flair = false;
+        Respond1 = false;
+        Respond2 = false;
 
         SchedulerCreateThread(
                         &ManagerThread,
@@ -134,7 +134,7 @@ int main()
                         STACK_SIZE,
                         ManagerMain,
                         NULL,
-                        TRUE );
+                        true );
 
         SchedulerCreateThread(
                         &WaiterBlockingThread,
@@ -143,7 +143,7 @@ int main()
                         STACK_SIZE,
                         WaiterBlockingMain,
                         NULL,
-                        TRUE );
+                        true );
 
         SchedulerCreateThread(
                         &WaiterNonBlockingThread,
@@ -152,7 +152,7 @@ int main()
                         STACK_SIZE,
                         WaiterNonBlockingMain,
                         NULL,
-                        TRUE );
+                        true );
 
         KernelStart();
         return 0;

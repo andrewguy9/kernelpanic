@@ -96,7 +96,7 @@ int main()
                         STACK_SIZE,
                         ThreadMain,
                         NULL,
-                        TRUE);
+                        true);
 
         KernelStart();
         return 0;

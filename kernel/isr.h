@@ -30,15 +30,15 @@ void IsrIncrement(enum IRQ_LEVEL level);
 
 void IsrDecrement(enum IRQ_LEVEL level);
 
-void IsrDefer( enum IRQ_LEVEL level, BOOL enable );
+void IsrDefer( enum IRQ_LEVEL level, _Bool enable );
 
 //
 //Functions for Sanity Checking
 //
 
 #ifdef DEBUG
-BOOL IsrIsAtomic(enum IRQ_LEVEL level);
-BOOL IsrIsEdge(enum IRQ_LEVEL level);
+_Bool IsrIsAtomic(enum IRQ_LEVEL level);
+_Bool IsrIsEdge(enum IRQ_LEVEL level);
 #endif//DEBUG
 
 #endif

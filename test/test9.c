@@ -88,7 +88,7 @@ int main()
                         STACK_SIZE,
                         TestThreadMain,
                         &Value1,
-                        TRUE);
+                        true);
 
         SchedulerCreateThread(
                         &TestThreadDivide,
@@ -97,7 +97,7 @@ int main()
                         STACK_SIZE,
                         TestThreadMain,
                         &Value2,
-                        TRUE);
+                        true);
 
         SchedulerCreateThread(
                         &TestThreadExp,
@@ -106,7 +106,7 @@ int main()
                         STACK_SIZE,
                         TestThreadMain,
                         &Value3,
-                        TRUE);
+                        true);
 
         //Enable the watchdog
         WatchdogEnable( TIMEOUT );

@@ -27,7 +27,7 @@ struct itimerval WatchdogInterval;
 //
 
 struct MACHINE_CONTEXT * halTempContext;
-volatile BOOL halTempContextProcessed;
+volatile _Bool halTempContextProcessed;
 
 
 //
@@ -57,7 +57,7 @@ enum IRQ_LEVEL HalSignalToIrq[NSIG];
 //Create a mask for debugging
 #ifdef DEBUG
 sigset_t HalCurrrentIrqMask;
-BOOL HalCurrrentIrqMaskValid;
+_Bool HalCurrrentIrqMaskValid;
 #endif //DEBUG
 
 //
@@ -137,7 +137,7 @@ void HalStackTrampoline( int SignalNumber )
                 //Because status was 0 we know that this is the creation of
                 //the stack frame. We can use the locals to construct the frame.
 
-                halTempContextProcessed = TRUE;
+                halTempContextProcessed = true;
                 halTempContext = NULL;
                 return;
         } else {
@@ -191,13 +191,13 @@ void HalIsrHandler( int SignalNumber )
 #ifdef DEBUG
 void HalUpdateIsrDebugInfo()
 {
-        HalCurrrentIrqMaskValid = TRUE;
+        HalCurrrentIrqMaskValid = true;
         sigprocmask(0, NULL, &HalCurrrentIrqMask);
 }
 
 void HalInvalidateIsrDebugInfo()
 {
-        HalCurrrentIrqMaskValid = FALSE;
+        HalCurrrentIrqMaskValid = false;
 }
 #endif
 
@@ -342,7 +342,7 @@ void HalCreateStackFrame(
         sigaction(HAL_ISR_TRAMPOLINE, &switchStackAction, NULL );
 
         halTempContext = Context;
-        halTempContextProcessed = FALSE;
+        halTempContextProcessed = false;
 
         newStack.ss_sp = cstack;
         newStack.ss_size = stackSize;
@@ -516,7 +516,7 @@ sigset_t sigset_or(sigset_t a, sigset_t b) {
 	return result;
 }
 
-BOOL sigset_empty(sigset_t a) {
+_Bool sigset_empty(sigset_t a) {
 	return sigisemptyset(&a);
 }
 #ifdef SIGNAL_HACK // Use function which touch linux struct internals.
@@ -566,14 +566,14 @@ sigset_t sigset_and(sigset_t a, sigset_t b) {
 	return a & b;
 }
 
-BOOL sigset_empty(sigset_t a) {
+_Bool sigset_empty(sigset_t a) {
 	return !a;
 }
 #endif // LINUX
 /*
  * Returns true if the system is running at at least IRQ level.
  */
-BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
+_Bool HalIsIrqAtomic(enum IRQ_LEVEL level)
 {
         sigset_t curSet;
         int status;
@@ -717,25 +717,25 @@ void HalStartSerial()
         fcntl(serialOutFd, F_SETFL, oflags | FASYNC);
 }
 
-BOOL HalSerialGetChar(char * out)
+_Bool HalSerialGetChar(char * out)
 {
         int readlen = read(serialInFd, out, sizeof(char));
 
         if(readlen > 0) {
-                return TRUE;
+                return true;
         } else if(readlen == 0) {
                 //We are allowed to recieve zero bytes from the serial.
-                return FALSE;
+                return false;
         } else {
                 if(errno == EINTR) {
-                        return FALSE; //We are allowed to be interrupted by another signal.
+                        return false; //We are allowed to be interrupted by another signal.
                 } else if(errno == EAGAIN) {
-                        return FALSE;
+                        return false;
                 } else if(errno == EWOULDBLOCK) {
-                        return FALSE;
+                        return false;
                 } else {
                         HalPanicErrno("Recieved error from STDIN!");
-                        return FALSE;
+                        return false;
                 }
         }
 }

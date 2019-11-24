@@ -28,26 +28,26 @@ COUNT TimerCycles;//Times we have run the test.
 
 //Crit Function
 HANDLER_FUNCTION CritHandler;
-BOOL CritHandler( struct HANDLER_OBJECT * handler )
+_Bool CritHandler( struct HANDLER_OBJECT * handler )
 {
 	ASSERT( SchedulerIsCritical() );
 	if( !SchedulerIsThreadBlocked( &SleeperThread ) ) {
 		KernelPanic( );
 	}
 
-	return TRUE;
+	return true;
 }
 
 //Timer Function
 HANDLER_FUNCTION TimerHandler;
-BOOL TimerHandler( struct HANDLER_OBJECT * handler )
+_Bool TimerHandler( struct HANDLER_OBJECT * handler )
 {
 	CritInterruptRegisterHandler(
 			handler,
 			CritHandler,
 			NULL );
 
-	return FALSE;
+	return false;
 }
 
 //Thread Main
@@ -101,7 +101,7 @@ int main()
                         STACK_SIZE,
                         SleeperMain,
                         NULL,
-                        TRUE);
+                        true);
 
         KernelStart();
         return 0;

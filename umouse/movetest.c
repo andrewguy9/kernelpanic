@@ -145,7 +145,7 @@ void PrintMapScan( struct MAP * map, struct SCAN_LOG * scan, INDEX mouseX, INDEX
 void MakeLines(INDEX x, INDEX y, COUNT dist, enum DIRECTION moveDir, enum DIRECTION wallDir, struct MAP * map )
 {
 	for (; dist > 0; dist--) {
-		MapSetWall( x, y, wallDir, TRUE, map );
+		MapSetWall( x, y, wallDir, true, map );
 		SubMoveTranslate( &x, &y, moveDir, 1 );
 	}
 }
@@ -196,7 +196,7 @@ void PrintMove( enum SUB_MOVE move )
 	}
 }
 
-void PrintState(INDEX x, INDEX y, enum DIRECTION dir, BOOL moving )
+void PrintState(INDEX x, INDEX y, enum DIRECTION dir, _Bool moving )
 {
 	printf("(%ld.%ld,%ld.%ld) ",x/2,x%2,y/2,y%2);
 	switch(dir)
@@ -222,12 +222,12 @@ void PrintState(INDEX x, INDEX y, enum DIRECTION dir, BOOL moving )
 	printf("\n");
 }
 
-void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, BOOL moving, INDEX destX, INDEX destY)
+void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, _Bool moving, INDEX destX, INDEX destY)
 {
 	INDEX scanX, scanY;
 	enum DIRECTION testDir;
 
-	BOOL mapChanged = FALSE;
+	_Bool mapChanged = false;
 
 	scanX = x;
 	scanY = y;
@@ -251,12 +251,12 @@ void UpdateMap( INDEX x, INDEX y, enum DIRECTION dir, BOOL moving, INDEX destX, 
 			if( ! MapGetWall( scanX/2, scanY/2, testDir, &MouseMap ) &&
 					MapGetWall( scanX/2, scanY/2, testDir, &WorldMap ) )
 			{//mouse just saw new wall
-				MapSetWall( scanX/2, scanY/2, testDir, TRUE, &MouseMap );
-				mapChanged = TRUE;
+				MapSetWall( scanX/2, scanY/2, testDir, true, &MouseMap );
+				mapChanged = true;
 			}
 		}
 		//Log that we scanned the cell.
-		ScanLogSet(scanX/2,scanY/2,TRUE,&ScanLog);
+		ScanLogSet(scanX/2,scanY/2,true,&ScanLog);
 	}
 	else
 	{
@@ -283,7 +283,7 @@ void RunMoves(INDEX * startX, INDEX *startY, enum DIRECTION *startDir, INDEX des
 	INDEX x= *startX, y= *startY;
 	enum DIRECTION dir = *startDir;
 	enum SUB_MOVE move = SUB_MOVE_DONE;
-	BOOL moving = FALSE;
+	_Bool moving = false;
 
 	//force a flood fill calculation
 	FloodFillClear( &FloodMap );
@@ -354,9 +354,9 @@ int main()
 	ScanLogInit(WIDTH,HEIGHT,ScanLogBuff,&ScanLog);
 
 	//set mouse starting cell
-	MapSetWall( 0, 0, EAST, TRUE, &WorldMap );
-	MapSetWall( 0, 0, EAST, TRUE, &MouseMap );
-	ScanLogSet( 0, 0, TRUE, &ScanLog );
+	MapSetWall( 0, 0, EAST, true, &WorldMap );
+	MapSetWall( 0, 0, EAST, true, &MouseMap );
+	ScanLogSet( 0, 0, true, &ScanLog );
 	
 
 	//Populate the world map with sample maze
@@ -366,7 +366,7 @@ int main()
 	MakeLines(4, 3, 2, NORTH, WEST,  &WorldMap );
 	MakeLines(4, 2, 2, EAST,  NORTH, &WorldMap );
 	MakeLines(0, 5, 4, EAST,  SOUTH, &WorldMap );
-	MapSetWall(1, 6, EAST, TRUE,     &WorldMap );
+	MapSetWall(1, 6, EAST, true,     &WorldMap );
 	MakeLines(3, 3, 2, NORTH, WEST, &WorldMap );
 	//Set up flood fill.
 	FloodFillInit(

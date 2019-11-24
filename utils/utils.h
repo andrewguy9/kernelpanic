@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include"types.h"
+#include"stdbool.h"
 
 //
 //IFDEF DEFINITIONS
@@ -9,9 +10,6 @@
 #ifndef NULL
 #define NULL ((void *) 0)
 #endif
-
-#define FALSE ((BOOL) 0)
-#define TRUE ((BOOL)(! FALSE ))
 
 //
 //MATH MACROS

@@ -118,7 +118,7 @@ COUNT RingBufferRead( char * buff, COUNT size, struct RING_BUFFER * ring )
 		read += RingBufferReadSmall( buff+read, size-read, ring );
 		if( ring->ReadIndex == ring->WriteIndex )
 		{
-			ring->Empty = TRUE;
+			ring->Empty = true;
 		}
 
 	}
@@ -131,17 +131,17 @@ COUNT RingBufferWrite( char * buff, COUNT size, struct RING_BUFFER * ring )
 	while( write < size && !RingBufferIsFull( ring ) )
 	{
 		write += RingBufferWriteSmall( buff+write, size-write, ring );
-		ring->Empty = FALSE;
+		ring->Empty = false;
 	}
 	return write;
 }
 
-BOOL RingBufferIsEmpty( struct RING_BUFFER * ring )
+_Bool RingBufferIsEmpty( struct RING_BUFFER * ring )
 {
 	return ring->Empty;
 }
 
-BOOL RingBufferIsFull( struct RING_BUFFER * ring )
+_Bool RingBufferIsFull( struct RING_BUFFER * ring )
 {
 	return ! ring->Empty && ring->WriteIndex == ring->ReadIndex;
 }
@@ -152,5 +152,5 @@ void RingBufferInit( char * buff, COUNT size, struct RING_BUFFER * ring )
 	ring->Size = size;
 	ring->ReadIndex=0;
 	ring->WriteIndex=0;
-	ring->Empty = TRUE;
+	ring->Empty = true;
 }

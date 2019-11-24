@@ -98,7 +98,7 @@ int main()
                         STACK_SIZE ,
                         ProducerMain ,
                         NULL,
-                        TRUE );
+                        true );
 
         SchedulerCreateThread(
                         &ConsumerBlocking,
@@ -107,7 +107,7 @@ int main()
                         STACK_SIZE ,
                         ConsumerBlockingMain,
                         NULL,
-                        TRUE );
+                        true );
 
         SchedulerCreateThread(
                         &ConsumerNonBlocking ,
@@ -116,7 +116,7 @@ int main()
                         STACK_SIZE ,
                         ConsumerNonBlockingMain ,
                         NULL,
-                        TRUE );
+                        true );
 
         KernelStart();
         return 0;

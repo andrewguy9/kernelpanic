@@ -94,7 +94,7 @@ void * ProducerMain( void * arg )
   COUNT length;
   char AssendingBuffer[RANDOM_VALUES_SIZE];
   char DecendingBuffer[RANDOM_VALUES_SIZE];
-  BOOL assending;
+  _Bool assending;
 
   char * curBuffer;
 
@@ -107,7 +107,7 @@ void * ProducerMain( void * arg )
   }
 
   timeIndex = 0;
-  assending = TRUE;
+  assending = true;
 
   while(1)
   {
@@ -140,11 +140,11 @@ void * ConsumerMain( void * arg )
   INDEX timeIndex;
   COUNT bufferIndex;
   char myBuffer[RANDOM_VALUES_SIZE];
-  BOOL assending;
+  _Bool assending;
   COUNT length;
 
   timeIndex = 0;
-  assending = TRUE;
+  assending = true;
 
   WatchdogAddFlag(context->WatchdogId);
 
@@ -205,7 +205,7 @@ int main()
       STACK_SIZE,
       ProducerMain,
       & ProducerContext1,
-      TRUE );
+      true );
   SchedulerCreateThread(
       &Producer2,
       QUANTUM,
@@ -213,7 +213,7 @@ int main()
       STACK_SIZE,
       ProducerMain,
       & ProducerContext2,
-      TRUE );
+      true );
   SchedulerCreateThread(
       &Producer3,
       QUANTUM,
@@ -221,7 +221,7 @@ int main()
       STACK_SIZE,
       ProducerMain,
       & ProducerContext3,
-      TRUE );
+      true );
   SchedulerCreateThread(
       &Consumer1,
       QUANTUM,
@@ -229,7 +229,7 @@ int main()
       STACK_SIZE,
       ConsumerMain,
       & ConsumerContext1,
-      TRUE );
+      true );
   SchedulerCreateThread(
       &Consumer2,
       QUANTUM,
@@ -237,7 +237,7 @@ int main()
       STACK_SIZE,
       ConsumerMain,
       & ConsumerContext2,
-      TRUE );
+      true );
   SchedulerCreateThread(
       &Consumer3,
       QUANTUM,
@@ -245,7 +245,7 @@ int main()
       STACK_SIZE,
       ConsumerMain,
       & ConsumerContext3,
-      TRUE );
+      true );
 
   WatchdogEnable( TIMEOUT );
   KernelStart();

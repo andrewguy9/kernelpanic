@@ -16,9 +16,9 @@
 
 void SchedulerForceSwitch( );
 
-BOOL SchedulerIsThreadDead( struct THREAD * thread );
+_Bool SchedulerIsThreadDead( struct THREAD * thread );
 
-BOOL SchedulerIsThreadBlocked( struct THREAD * thread );
+_Bool SchedulerIsThreadBlocked( struct THREAD * thread );
 
 void SchedulerResumeThread( struct THREAD * thread );
 
@@ -29,7 +29,7 @@ struct THREAD * SchedulerGetActiveThread();
 void SchedulerStartup( );
 
 void SchedulerShutdown( );
-BOOL SchedulerIsShuttingDown( );
+_Bool SchedulerIsShuttingDown( );
 
 void SchedulerCreateThread(
                 struct THREAD * thread,
@@ -38,7 +38,7 @@ void SchedulerCreateThread(
                 COUNT stackSize,
                 THREAD_MAIN main,
                 void * Argument,
-                BOOL start);
+                _Bool start);
 
 struct LOCKING_CONTEXT * SchedulerGetLockingContext();
 

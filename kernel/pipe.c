@@ -26,8 +26,8 @@ void PipeInit( char * buff, COUNT size, struct PIPE * pipe, PIPE_READ * pr, PIPE
 }
 
 COUNT PipeReadInner( char * buff, COUNT size, PIPE_READ pipe ) {
-        BOOL wasFull;
-        BOOL dataLeft;
+        _Bool wasFull;
+        _Bool dataLeft;
         COUNT read;
 
         //Acquire EmptyLock - No readers can progress until there is data.
@@ -41,7 +41,7 @@ COUNT PipeReadInner( char * buff, COUNT size, PIPE_READ pipe ) {
         //If it is, then the FullLock should
         //have been leaked, and writers should be blocking.
         wasFull = RingBufferIsFull( & pipe->Ring );
-        ASSERT( wasFull ? (pipe->FullLock.Count == 0) : TRUE );
+        ASSERT( wasFull ? (pipe->FullLock.Count == 0) : true );
 
         //Perform the read.
         read = RingBufferRead( buff, size, & pipe->Ring );
@@ -106,8 +106,8 @@ void PipeReadStruct( char * buff, COUNT size, PIPE_READ pipe )
 }
 
 COUNT PipeWriteInner( char * buff, COUNT size, PIPE_WRITE pipe ) {
-        BOOL wasEmpty;
-        BOOL spaceLeft;
+        _Bool wasEmpty;
+        _Bool spaceLeft;
         COUNT write;
 
         //Acquire FullLock - No writers can progress until we are done.
@@ -121,7 +121,7 @@ COUNT PipeWriteInner( char * buff, COUNT size, PIPE_WRITE pipe ) {
         //If it is, then the EmptyLock should
         //have been leaked, and readers should be blocking.
         wasEmpty = RingBufferIsEmpty( & pipe->Ring );
-        ASSERT( wasEmpty ? (pipe->EmptyLock.Count == 0) : TRUE );
+        ASSERT( wasEmpty ? (pipe->EmptyLock.Count == 0) : true );
 
         //Perform the write.
         write = RingBufferWrite( buff, size, & pipe->Ring );

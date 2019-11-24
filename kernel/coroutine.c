@@ -9,7 +9,7 @@ void CoRoutineWrapper (void * arg) {
   struct COROUTINE * coroutine = arg;
   coroutine->Foo(coroutine->Params, coroutine->Result, &coroutine->YieldContext);
   // Foo has returned, from now on, return that we are done.
-  while (TRUE) {
+  while (true) {
     //tell them to not come back, jump to caller.
     coroutine->YieldContext.Status = COROUTINE_DONE;
     ContextSwitch(&coroutine->YieldContext.RoutineState, &coroutine->YieldContext.CallerState);

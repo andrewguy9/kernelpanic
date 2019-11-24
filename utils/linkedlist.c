@@ -78,14 +78,14 @@ void LinkedListEnqueue( struct LINKED_LIST_LINK * node, struct LINKED_LIST * lis
         list->Head = node->Next;
 }
 
-BOOL LinkedListIsEmpty( struct LINKED_LIST * list )
+_Bool LinkedListIsEmpty( struct LINKED_LIST * list )
 {
         ASSERT( list != NULL );
 
         if( list->Head == NULL )
-                return TRUE;
+                return true;
         else
-                return FALSE;
+                return false;
 }
 
 void LinkedListInit( struct LINKED_LIST * list )

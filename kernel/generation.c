@@ -9,11 +9,11 @@
 /*
  * Updates a generation with a new value from a high IRQ.
  */
-BOOL GenerationUpdateHandler(struct HANDLER_OBJECT * HandlerObj)
+_Bool GenerationUpdateHandler(struct HANDLER_OBJECT * HandlerObj)
 {
         struct GENERATION_CONTEXT * context = HandlerObj->Context;
         GenerationUpdate(context->Generation, context->NewValue);
-        return TRUE;
+        return true;
 }
 
 /*

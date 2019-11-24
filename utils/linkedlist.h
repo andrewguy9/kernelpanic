@@ -18,7 +18,7 @@ void LinkedListEnqueue( struct LINKED_LIST_LINK * node, struct LINKED_LIST * lis
 
 struct LINKED_LIST_LINK * LinkedListPeek( struct LINKED_LIST * list );
 
-BOOL LinkedListIsEmpty( struct LINKED_LIST * list );
+_Bool LinkedListIsEmpty( struct LINKED_LIST * list );
 
 void LinkedListInit( struct LINKED_LIST * list );
 

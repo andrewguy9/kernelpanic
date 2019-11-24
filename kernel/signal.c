@@ -17,7 +17,7 @@
  */
 
 
-void SignalInit( struct SIGNAL * signal, BOOL state )
+void SignalInit( struct SIGNAL * signal, _Bool state )
 {
         LinkedListInit( & signal->WaitingThreads );
         signal->State = state;
@@ -50,7 +50,7 @@ void SignalSet( struct SIGNAL * signal )
                         LockingAcquire( context );
                 }
 
-                signal->State = TRUE;
+                signal->State = true;
         }
         LockingEnd();
 }
@@ -59,7 +59,7 @@ void SignalUnset( struct SIGNAL * signal )
 {
         LockingStart();
 
-        signal->State = FALSE;
+        signal->State = false;
 
         LockingEnd();
 }
