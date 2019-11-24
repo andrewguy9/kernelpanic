@@ -53,7 +53,7 @@
 #else //ifdef DEBUG
 
 //This is a fre build, no asserts enabled.
-#define ASSERT( condition ) 
+#define ASSERT( condition )
 
 //This is a fre build, CHECK runs expression, but no ASSERT
 #define CHECK( expression ) (expression)
