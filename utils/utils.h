@@ -27,6 +27,8 @@
 //This is a app build. Asserts result in printf/exit.
 #include<stdio.h>
 #include<stdlib.h>
+//TODO what should ASSERT/CHECK evaluate to?
+//TODO Are ASSERT and CHECK expressions or statements?
 #define ASSERT( condition ) \
 	if( !(condition) )      \
 		printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__)
