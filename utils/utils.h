@@ -17,7 +17,7 @@
 #define container_of( ptr, base, field ) ((base*)((INDEX)(ptr) - offsetof(base,field)))
 
 //
-//  Assert and Assume
+//  Assert and Check
 //
 
 #ifdef DEBUG
@@ -32,9 +32,8 @@
    0 : \
    printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__)))
 
-//This is a app build. Assumes result in a app and printf/exit.
+//This is a app build. CHECKs result in a app and printf/exit.
 #define CHECK( expression ) ((void) (ASSERT (expression) ))
-#define ASSUME( expression, result ) (CHECK( (expression) == (result) ))
 
 #endif //APP_BUILD
 
@@ -48,7 +47,6 @@
      Panic( __FILE__, __LINE__ )))
 
 #define CHECK( expression ) ((void) ASSERT(expression))
-#define ASSUME( expression, result ) CHECK( (expression) == (result) )
 
 #endif //ifdef KERNEL_BUILD
 
@@ -59,8 +57,6 @@
 
 //This is a fre build, CHECK runs expression, but no ASSERT
 #define CHECK( expression ) ((void)(expression))
-//This is a fre build, ASSUME runs expression, but no check.
-#define ASSUME( expression, result ) CHECK(expression)
 
 #endif //ifdef DEBUG
 
