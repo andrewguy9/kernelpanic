@@ -6,13 +6,6 @@
 #include"stddef.h"
 
 //
-//IFDEF DEFINITIONS
-//
-#ifndef NULL
-#define NULL ((void *) 0)
-#endif
-
-//
 //MATH MACROS
 //
 #define MAX( a, b ) ((a)>(b) ? (a) : (b) )
