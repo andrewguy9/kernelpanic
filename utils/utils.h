@@ -28,9 +28,9 @@
 #include<stdio.h>
 #include<stdlib.h>
 #define ASSERT( condition ) \
-  ((condition) ? \
+  ((void)((condition) ? \
    NULL : \
-   printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__))
+   printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__)))
 
 //This is a app build. Assumes result in a app and printf/exit.
 #define CHECK( expression ) ((void) (ASSERT (expression) ))
@@ -43,9 +43,9 @@
 //This is a kernel build. Asserts result in a kernel panic.
 #include"kernel/panic.h"
 #define ASSERT( condition ) \
-    ((condition) ? \
-     NULL : \
-     Panic( __FILE__, __LINE__ ))
+    ((void)((condition) ? \
+     0 : \
+     Panic( __FILE__, __LINE__ )))
 
 #define CHECK( expression ) ((void) ASSERT(expression))
 #define ASSUME( expression, result ) CHECK( (expression) == (result) )
@@ -55,7 +55,7 @@
 #else //ifdef DEBUG
 
 //This is a fre build, no asserts enabled.
-#define ASSERT( condition ) (NULL)
+#define ASSERT( condition ) ((void) (NULL))
 
 //This is a fre build, CHECK runs expression, but no ASSERT
 #define CHECK( expression ) ((void)(expression))
