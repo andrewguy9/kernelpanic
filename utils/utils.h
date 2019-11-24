@@ -22,7 +22,8 @@
 #define OFFSET_OF( type, field ) ((INDEX)(&(((type *)0)->field)))
 //Returns a pointer to the base structure 
 //given a pointer to a field.
-#define BASE_OBJECT( ptr, base, field ) ((base*)((INDEX)(ptr) - OFFSET_OF(base,field)))
+#define container_of( ptr, base, field ) ((base*)((INDEX)(ptr) - OFFSET_OF(base,field)))
+#define BASE_OBJECT( ptr, base, field ) container_of(ptr, base, field)
 
 //
 //  Assert and Assume
