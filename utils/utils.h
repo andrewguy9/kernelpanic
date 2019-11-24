@@ -3,6 +3,7 @@
 
 #include"types.h"
 #include"stdbool.h"
+#include"stddef.h"
 
 //
 //IFDEF DEFINITIONS
@@ -18,11 +19,9 @@
 #define MIN( a, b ) ((a)<(b) ? (a) : (b) )
 #define CLAMP(value, max, min) (MIN(MAX(min, value), max))
 #define ASSENDING( a, b, c ) ((a) <= (b) && (b) <= (c))
-//Returns the byte offset of FIELD in TYPE
-#define OFFSET_OF( type, field ) ((INDEX)(&(((type *)0)->field)))
 //Returns a pointer to the base structure 
 //given a pointer to a field.
-#define BASE_OBJECT( ptr, base, field ) ((base*)((INDEX)(ptr) - OFFSET_OF(base,field)))
+#define BASE_OBJECT( ptr, base, field ) ((base*)((INDEX)(ptr) - offsetof(base,field)))
 
 //
 //  Assert and Assume
