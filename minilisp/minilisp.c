@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <stdarg.h> //va_start va_end
 #include <stdio.h> //fprintf printf getchar ungetc EOF stdin stderr
-#include <string.h>
+#include <string.h> //memcpy strlen strcmp strchr
 
 static __attribute((noreturn)) void error(char *fmt, ...) {
     va_list ap;
