@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
 
 static __attribute((noreturn)) void error(char *fmt, ...) {
     va_list ap;
@@ -255,8 +254,8 @@ static inline Obj *forward(Obj *obj) {
     return newloc;
 }
 
-static void *alloc_semispace() {
-    return mmap(NULL, MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+static void *alloc_semispace(char * tag) {
+    return HalMap(tag, NULL, MEMORY_SIZE);
 }
 
 // Copies the root objects.
@@ -982,8 +981,8 @@ int main(int argc, char **argv) {
     always_gc = getEnvFlag("MINILISP_ALWAYS_GC");
 
     // Memory allocation
-    cur_heap = alloc_semispace();
-    next_heap = alloc_semispace();
+    cur_heap = alloc_semispace("minilisp_heap1.map");
+    next_heap = alloc_semispace("minilisp_heap2.map");
     memory = cur_heap;
 
     // Constants and primitives
