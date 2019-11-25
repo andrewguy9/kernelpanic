@@ -3,10 +3,7 @@
 #include "utils/utils.h"
 #include "kernel/hal.h"
 #include <ctype.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <stdarg.h> //va_start va_end
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -115,9 +112,9 @@ static void *from_space;
 static size_t mem_nused = 0;
 
 // Flags to debug GC
-static bool gc_running = false;
-static bool debug_gc = false;
-static bool always_gc = false;
+static _Bool gc_running = false;
+static _Bool debug_gc = false;
+static _Bool always_gc = false;
 
 static void gc(void *root);
 
