@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
 
 static __attribute((noreturn)) void error(char *fmt, ...) {
     va_list ap;
@@ -101,6 +100,9 @@ static Obj *Symbols;
 
 // The size of the heap in byte
 #define MEMORY_SIZE 65536
+
+
+static void *cur_heap=NULL, *next_heap=NULL;
 
 // The pointer pointing to the beginning of the current heap
 static void *memory;
@@ -252,8 +254,8 @@ static inline Obj *forward(Obj *obj) {
     return newloc;
 }
 
-static void *alloc_semispace() {
-    return mmap(NULL, MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+static void *alloc_semispace(char * tag) {
+    return HalMap(tag, NULL, MEMORY_SIZE);
 }
 
 // Copies the root objects.
@@ -271,9 +273,11 @@ static void gc(void *root) {
     ASSERT(!gc_running);
     gc_running = true;
 
-    // Allocate a new semi-space.
+    // Swap heaps
     from_space = memory;
-    memory = alloc_semispace();
+    memory = next_heap;
+    next_heap=cur_heap;
+    cur_heap=memory;
 
     // Initialize the two pointers for GC. Initially they point to the beginning of the to-space.
     scan1 = scan2 = memory;
@@ -312,7 +316,6 @@ static void gc(void *root) {
     }
 
     // Finish up GC.
-    munmap(from_space, MEMORY_SIZE);
     size_t old_nused = mem_nused;
     mem_nused = (size_t)((uint8_t *)scan1 - (uint8_t *)memory);
     if (debug_gc)
@@ -978,7 +981,9 @@ int main(int argc, char **argv) {
     always_gc = getEnvFlag("MINILISP_ALWAYS_GC");
 
     // Memory allocation
-    memory = alloc_semispace();
+    cur_heap = alloc_semispace("minilisp_heap1.map");
+    next_heap = alloc_semispace("minilisp_heap2.map");
+    memory = cur_heap;
 
     // Constants and primitives
     Symbols = Nil;
