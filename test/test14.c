@@ -55,7 +55,7 @@ int main(int argc, char ** argv)
   KernelInit();
   SchedulerStartup();
 
-  MutexInit(&Kicker, FALSE);
+  MutexInit(&Kicker, false);
   SocketInit(
       Buff1,
       BUFF_SIZE,
@@ -71,7 +71,7 @@ int main(int argc, char ** argv)
       STACK_SIZE,
       CountMain,
       &H1,
-      TRUE);
+      true);
 
   SchedulerCreateThread(
       &CountThread2,
@@ -80,7 +80,7 @@ int main(int argc, char ** argv)
       STACK_SIZE,
       CountMain,
       &H2,
-      TRUE);
+      true);
 
   KernelStart();
 

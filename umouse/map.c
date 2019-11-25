@@ -10,12 +10,12 @@
  * This will initialize a map structure for use later.
  *
  * Call MapGetWall() to fetch wheather a wall is present.
- * Returns TRUE if there is a wall.
- * Returns FALSE if there no wall.
+ * Returns true if there is a wall.
+ * Returns false if there no wall.
  *
  * Call MapSetWall() to set a wall's state in the map.
- * Pass state = TRUE to turn the wall on.
- * Pass state = FALSE to turn the wall off.
+ * Pass state = true to turn the wall on.
+ * Pass state = false to turn the wall off.
  *
  * Both MapGetWall and MapSetWall can be called for indexes out
  * of bounds.
@@ -89,7 +89,7 @@
  *     00 01 02 03 X - Axis (Minor)
  *
  * Walls inside the border are in bounds, walls outside are out of bounds.
- * Out of bounds walls are implied to be TRUE.
+ * Out of bounds walls are implied to be true.
  * H Walls Out of Bounds Minor = (Y==0) || (Y>=Height)
  * V Walls Out of Bounds Minor = (X==0) || (X>=Width )
  * Generic Out of Bounds Minor = (minor==0) || (minor>=minor_size)
@@ -111,7 +111,7 @@
 #define MapAdjustX( x, dir ) ( (dir) == (EAST) ? (x)+1 : (x) )
 #define MapAdjustY( y, dir ) ( (dir) == (NORTH) ? (y)+1 : (y) )
 #define MapOutOfBoundsMinor( minor, minorSize ) \
-	( (minor) == 0 || (minor) >= (minorSize) ? TRUE : FALSE )
+	( (minor) == 0 || (minor) >= (minorSize) ? true : false )
 #define MapOutOfBoundsMajor( major, majorSize) \
 	 ((major)>=(majorSize))
 #define MapGetIndex( major, minorSize, minor ) \
@@ -121,13 +121,13 @@
 //Private functions
 //
 
-BOOL MapGetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, BITMAP_WORD * walls )
+_Bool MapGetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, BITMAP_WORD * walls )
 {
 	INDEX index;
-	BOOL result;
+	_Bool result;
 	if( MapOutOfBoundsMinor(minor, minorSize ) || MapOutOfBoundsMajor(major, majorSize ) )
 	{//checking in gauranteed space
-		result = TRUE;
+		result = true;
 	}
 	else
 	{//checking in mapped space
@@ -137,7 +137,7 @@ BOOL MapGetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, BIT
 	return result;
 }
 
-void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, BITMAP_WORD * walls, BOOL state )
+void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, BITMAP_WORD * walls, _Bool state )
 {
 	INDEX index;
 	if( ! (MapOutOfBoundsMinor( minor, minorSize ) || MapOutOfBoundsMajor(major, majorSize ) ) )
@@ -154,7 +154,7 @@ void MapSetFlag( INDEX major, INDEX majorSize, INDEX minor, INDEX minorSize, BIT
 //Public Functions
 //
 
-BOOL MapInit( struct MAP * map, BITMAP_WORD * wallBuff, COUNT buffLen, COUNT width, COUNT height )
+_Bool MapInit( struct MAP * map, BITMAP_WORD * wallBuff, COUNT buffLen, COUNT width, COUNT height )
 {
 	INDEX cur;
 	if( buffLen >= MapSizeNeeded( width, height ) )
@@ -167,15 +167,15 @@ BOOL MapInit( struct MAP * map, BITMAP_WORD * wallBuff, COUNT buffLen, COUNT wid
 		for( cur=0; cur < buffLen; cur++ )
 			wallBuff[cur] = 0;
 
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
-BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map )
+_Bool MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map )
 {
 	x = MapAdjustX(x,dir);
 	y = MapAdjustY(y,dir);
@@ -196,10 +196,10 @@ BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map )
 
 	//Map Get Wall has invalid direction.
 	ASSERT(0);
-	return FALSE;
+	return false;
 }
 
-void MapSetWall( INDEX x, INDEX y, enum DIRECTION dir, BOOL state, struct MAP * map )
+void MapSetWall( INDEX x, INDEX y, enum DIRECTION dir, _Bool state, struct MAP * map )
 {
 
 	x = MapAdjustX(x,dir);

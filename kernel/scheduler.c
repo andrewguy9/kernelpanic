@@ -80,7 +80,7 @@ struct MUTEX SchedulerMutex;
 COUNT RunningThreads;
 
 //Track if we are shutting down.
-BOOL Shutdown;
+_Bool Shutdown;
 
 void PostCritHandler(struct HANDLER_OBJECT * obj )
 {
@@ -117,7 +117,7 @@ void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 
 #ifdef DEBUG
         //The context is embeded in a thread, extract it.
-        struct THREAD * thread = BASE_OBJECT( context,
+        struct THREAD * thread = container_of( context,
                         struct THREAD,
                         LockingContext);
 
@@ -135,7 +135,7 @@ void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
 {
         //The context is embeded in a thread, extract it.
-        struct THREAD * thread = BASE_OBJECT( context,
+        struct THREAD * thread = container_of( context,
                         struct THREAD,
                         LockingContext);
 
@@ -191,14 +191,14 @@ void SchedulerResumeThread( struct THREAD * thread )
         LinkedListEnqueue( &thread->Link.LinkedListLink, &RunQueue );
 }
 
-BOOL SchedulerIsThreadDead( struct THREAD * thread )
+_Bool SchedulerIsThreadDead( struct THREAD * thread )
 {
         ASSERT( CritInterruptIsAtomic() );
 
         return thread->State == THREAD_STATE_DONE;
 }
 
-BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
+_Bool SchedulerIsThreadBlocked( struct THREAD * thread )
 {
         ASSERT( CritInterruptIsAtomic() );
 
@@ -277,7 +277,7 @@ void Schedule()
         //Pick the next thread
         if ( ! LinkedListIsEmpty( &RunQueue ) ) {
                 //there are threads waiting, run one
-                NextThread = BASE_OBJECT( LinkedListPop( &RunQueue ),
+                NextThread = container_of( LinkedListPop( &RunQueue ),
                                 struct THREAD,
                                 Link);
         } else {
@@ -311,7 +311,7 @@ void SchedulerNeedsSwitch()
  * mark the quantum as expired so that when the
  * critical section does end we can force a switch.
  */
-BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
+_Bool SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
 {
         TIME currentTime = TimeGet();
 
@@ -331,7 +331,7 @@ BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
                         NULL );
 
         //We return false here because we have re-registered the timer.
-        return FALSE;
+        return false;
 }
 
 /*
@@ -340,7 +340,7 @@ BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
  * It can be scheduled be queued by the scheduler timer firing
  * or a thread yielding.
  */
-BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
+_Bool SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 {
         //Only the global SchedulerCritObject should invoke this callback.
         ASSERT( handler == &SchedulerCritObject );
@@ -365,7 +365,7 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
         //This will release any held resources.
         SchedulerSwitch();
 
-        return TRUE;
+        return true;
 }
 
 void SchedulerStartup()
@@ -381,12 +381,12 @@ void SchedulerStartup()
                         NULL);
 
         //Initialize the crit handler
-        MutexInit( &SchedulerMutex, FALSE );
+        MutexInit( &SchedulerMutex, false );
 
         QuantumStartTime = TimeGet();
 
         RunningThreads = 0;
-        Shutdown = FALSE;
+        Shutdown = false;
 
         //Create a thread for idle loop.
         SchedulerCreateThread( &IdleThread, //Thread
@@ -395,7 +395,7 @@ void SchedulerStartup()
                         0, //Stack Size
                         NULL, //Main
                         NULL, //Argument
-                        FALSE );//Start
+                        false );//Start
 
         //Initialize context unit.
         ActiveThread = &IdleThread;
@@ -403,13 +403,13 @@ void SchedulerStartup()
 
 void SchedulerShutdown( ) {
         SchedulerStartCritical();
-        Shutdown = TRUE;
+        Shutdown = true;
         SchedulerEndCritical();
 }
 
-BOOL SchedulerIsShuttingDown( ) {
+_Bool SchedulerIsShuttingDown( ) {
         SchedulerStartCritical();
-        BOOL result = Shutdown;
+        _Bool result = Shutdown;
         SchedulerEndCritical();
         return result;
 }
@@ -492,7 +492,7 @@ void SchedulerCreateThread(
                 COUNT stackSize,
                 THREAD_MAIN main,
                 void * Argument,
-                BOOL start)
+                _Bool start)
 {
         ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
 

@@ -8,13 +8,13 @@ struct RING_BUFFER {
 	COUNT Size;
 	INDEX ReadIndex;
 	INDEX WriteIndex;
-	BOOL Empty;
+	_Bool Empty;
 };
 
 COUNT RingBufferRead( char * buff, COUNT size, struct RING_BUFFER * ring );
 COUNT RingBufferWrite( char * buff, COUNT size, struct RING_BUFFER * ring );
-BOOL RingBufferIsEmpty( struct RING_BUFFER * ring );
-BOOL RingBufferIsFull( struct RING_BUFFER * ring );
+_Bool RingBufferIsEmpty( struct RING_BUFFER * ring );
+_Bool RingBufferIsFull( struct RING_BUFFER * ring );
 void RingBufferInit( char * buff, COUNT size, struct RING_BUFFER * ring );
 
 #endif

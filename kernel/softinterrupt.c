@@ -45,12 +45,12 @@ void SoftInterrupt()
 {
         struct ATOMIC_LIST_LINK * link;
         struct HANDLER_OBJECT * handler;
-        BOOL isComplete;
+        _Bool isComplete;
         HANDLER_FUNCTION * func;
 
         //TODO TOO MUCH DUPLICATION.
         while( (link = AtomicListPop(&SoftInterruptHandlerList)) ) {
-                handler = BASE_OBJECT(
+                handler = container_of(
                                 link,
                                 struct HANDLER_OBJECT,
                                 Link );

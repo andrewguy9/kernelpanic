@@ -3,26 +3,26 @@
  * Determines if a number is prime
  */
 
-BOOL isPrime(int v)
+_Bool isPrime(int v)
 {
   int i;
   for (i=0; i<v; i++) {
     if (v % i == 0) {
-      return FALSE;
+      return false;
     }
   }
-  return TRUE;
+  return true;
 }
 
-BOOL isPrimeProduct(int v, int primes[], COUNT num_primes)
+_Bool isPrimeProduct(int v, int primes[], COUNT num_primes)
 {
   int i;
   for (i=2; i<num_primes; i++) {
     if (v % primes[i] == 0) {
-      return FALSE;
+      return false;
     }
   }
-  return TRUE;
+  return true;
 }
 
 enum PRIMES_STATUS findPrimes(int max, int primes[], COUNT primes_length) {

@@ -14,6 +14,6 @@ struct BHAM
 };
 
 void BHamInit( COUNT x, COUNT y, struct BHAM * bham );
-BOOL BHamTick( struct BHAM * bham );
+_Bool BHamTick( struct BHAM * bham );
 
 #endif

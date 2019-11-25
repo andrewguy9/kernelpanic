@@ -118,7 +118,7 @@ int main()
                         STACK_SIZE,
                         ProducerMain,
                         & ProducerContext1,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         &Producer2,
                         QUANTUM,
@@ -126,7 +126,7 @@ int main()
                         STACK_SIZE,
                         ProducerMain,
                         & ProducerContext2,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         &Consumer1,
                         QUANTUM,
@@ -134,7 +134,7 @@ int main()
                         STACK_SIZE,
                         ConsumerMain,
                         & ConsumerContext1,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         &Consumer2,
                         QUANTUM,
@@ -142,7 +142,7 @@ int main()
                         STACK_SIZE,
                         ConsumerMain,
                         & ConsumerContext2,
-                        TRUE);
+                        true);
 
         SchedulerCreateThread(
                         &Consumer3,
@@ -151,7 +151,7 @@ int main()
                         STACK_SIZE,
                         ConsumerMain,
                         & ConsumerContext3,
-                        TRUE);
+                        true);
         WatchdogEnable( TIMEOUT );
         //Kick off the kernel.
         KernelStart();

@@ -13,7 +13,7 @@ COUNT SeldomCount;
 
 struct HANDLER_OBJECT FrequentTimer;
 HANDLER_FUNCTION FrequentHandler;
-BOOL FrequentHandler( struct HANDLER_OBJECT * timer )
+_Bool FrequentHandler( struct HANDLER_OBJECT * timer )
 {
 	int * count = timer->Context;
 
@@ -26,12 +26,12 @@ BOOL FrequentHandler( struct HANDLER_OBJECT * timer )
 			20,
 			FrequentHandler,
 		    count );
-	return FALSE;
+	return false;
 }
 
 struct HANDLER_OBJECT SeldomTimer;
 HANDLER_FUNCTION SeldomHandler;
-BOOL SeldomHandler( struct HANDLER_OBJECT * timer )
+_Bool SeldomHandler( struct HANDLER_OBJECT * timer )
 {
 	int * count = timer->Context;
 
@@ -44,7 +44,7 @@ BOOL SeldomHandler( struct HANDLER_OBJECT * timer )
 			40,
 			SeldomHandler,
 			count );
-	return FALSE;
+	return false;
 }
 
 int main()

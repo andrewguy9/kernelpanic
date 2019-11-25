@@ -39,19 +39,19 @@ void BHamInit( COUNT x, COUNT y, struct BHAM * bham )
 	bham->Error = -bham->X;
 }
 
-BOOL BHamTick( struct BHAM * bham )
+_Bool BHamTick( struct BHAM * bham )
 {
 	bham->Error += bham->Y;
 	if( bham->Error > 0 )
 	{
 		//We step on y. Reset error.
 		bham->Error -= bham->X;
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		//We didn't step on y, return.
-		return FALSE;
+		return false;
 	}
 }
 

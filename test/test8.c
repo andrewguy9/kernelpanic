@@ -50,7 +50,7 @@ void * DeathThreadMain( void * arg )
 THREAD_MAIN StallThreadMain;
 void * StallThreadMain( void * arg )
 {
-	while(TRUE)
+	while(true)
 	{
 		if(StallCount != 0 )
 		{
@@ -72,7 +72,7 @@ void * StallThreadMain( void * arg )
 THREAD_MAIN RestartThreadMain;
 void * RestartThreadMain( void * arg )
 {
-        while(TRUE)
+        while(true)
         {
                 SchedulerJoinThread(&DeathThread);
                 SchedulerStartCritical();
@@ -84,7 +84,7 @@ void * RestartThreadMain( void * arg )
                     STACK_SIZE,
                     DeathThreadMain,
                     NULL,
-                    TRUE);
+                    true);
                 DeathCount--;
 
                 if( SchedulerIsThreadBlocked( &StallThread ) ) {
@@ -121,7 +121,7 @@ int main()
                         STACK_SIZE,
                         DeathThreadMain,
                         NULL,
-                        TRUE);
+                        true);
 
         SchedulerCreateThread(
                         &StallThread,
@@ -130,7 +130,7 @@ int main()
                         STACK_SIZE,
                         StallThreadMain,
                         NULL,
-                        TRUE);
+                        true);
 
         SchedulerCreateThread(
                         &RestartThread,
@@ -139,7 +139,7 @@ int main()
                         STACK_SIZE,
                         RestartThreadMain,
                         NULL,
-                        TRUE);
+                        true);
 
         KernelStart();
         return 0;

@@ -81,7 +81,7 @@ struct MACHINE_CONTEXT
 };
 
 #ifdef DEBUG
-BOOL HalIsIrqAtomic(enum IRQ_LEVEL level);
+_Bool HalIsIrqAtomic(enum IRQ_LEVEL level);
 #endif
 
 void HalContextSwitch(struct MACHINE_CONTEXT * oldStack, struct MACHINE_CONTEXT * newStack);

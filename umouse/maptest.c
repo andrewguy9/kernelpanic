@@ -92,7 +92,7 @@ int main()
 
 	PrintFlags( & MyMap );
 
-	while( TRUE )
+	while( true )
 	{
 		printf("please enter x then y then direction (1n 2s 3e 4w)\n");
 		scanf("%ld %ld %ld", &x, &y, &dir_int);
@@ -113,7 +113,7 @@ int main()
 				break;
 		}
 
-		MapSetWall( x, y, dir, TRUE, &MyMap );
+		MapSetWall( x, y, dir, true, &MyMap );
 
 		PrintMap( & MyMap );
 		PrintFlags( & MyMap );
