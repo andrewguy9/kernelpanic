@@ -4,8 +4,8 @@
 #include "kernel/hal.h"
 #include <ctype.h>
 #include <stdarg.h> //va_start va_end
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h> //fprintf printf getchar ungetc EOF stdin stderr
 #include <string.h>
 
 static __attribute((noreturn)) void error(char *fmt, ...) {
