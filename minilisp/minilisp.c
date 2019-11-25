@@ -4,7 +4,6 @@
 #include "kernel/hal.h"
 #include <ctype.h>
 #include <stdarg.h> //va_start va_end
-#include <stdlib.h>
 #include <stdio.h> //fprintf printf getchar ungetc EOF stdin stderr
 #include <string.h>
 
