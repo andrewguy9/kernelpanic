@@ -2,7 +2,7 @@
 
 #include "utils/utils.h"
 #include "kernel/hal.h"
-#include <ctype.h>
+#include <ctype.h> //isdigit isalnum isalpha
 #include <stdarg.h> //va_start va_end
 #include <stdio.h> //fprintf printf getchar ungetc EOF stdin stderr
 #include <string.h> //memcpy strlen strcmp strchr
