@@ -103,7 +103,7 @@ static Obj *Symbols;
 #define MEMORY_SIZE 65536
 
 
-static void *heap1=NULL, *heap2=NULL;
+static void *cur_heap=NULL, *next_heap=NULL;
 
 // The pointer pointing to the beginning of the current heap
 static void *memory;
@@ -274,11 +274,11 @@ static void gc(void *root) {
     ASSERT(!gc_running);
     gc_running = true;
 
-    // Allocate a new semi-space.
+    // Swap heaps
     from_space = memory;
-    memory = heap1;
-    heap1=heap2;
-    heap2=memory;
+    memory = next_heap;
+    next_heap=cur_heap;
+    cur_heap=memory;
 
     // Initialize the two pointers for GC. Initially they point to the beginning of the to-space.
     scan1 = scan2 = memory;
@@ -982,9 +982,9 @@ int main(int argc, char **argv) {
     always_gc = getEnvFlag("MINILISP_ALWAYS_GC");
 
     // Memory allocation
-    heap1 = alloc_semispace();
-    heap2 = alloc_semispace();
-    memory = heap2;
+    cur_heap = alloc_semispace();
+    next_heap = alloc_semispace();
+    memory = cur_heap;
 
     // Constants and primitives
     Symbols = Nil;
