@@ -108,3 +108,10 @@ COUNT SerialRead(char * buf, COUNT len)
   }
   return read;
 }
+
+_Bool SerialPeak(char * out) {
+  IsrDisable(IRQ_LEVEL_SERIAL_READ);
+  _Bool result = RingBufferPeak(out, &SerialInputRing);
+  IsrEnable(IRQ_LEVEL_SERIAL_READ);
+  return result;
+}

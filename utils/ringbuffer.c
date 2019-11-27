@@ -89,6 +89,15 @@ COUNT RingBufferWriteSmall( char *buff, COUNT size, struct RING_BUFFER * ring ) 
   return index;
 }
 
+_Bool RingBufferPeak( char * out, struct RING_BUFFER * ring) {
+  if (RingBufferIsEmpty(ring)) {
+    return false;
+  } else {
+    *out = ring->Buffer[ring->ReadIndex];
+    return true;
+  }
+}
+
 //
 //Public routines
 //

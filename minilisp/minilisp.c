@@ -4,9 +4,10 @@
 #include"kernel/scheduler.h"
 #include "utils/utils.h"
 #include "kernel/hal.h"
+#include "kernel/serial.h"
 #include <ctype.h> //isdigit isalnum isalpha
 #include <stdarg.h> //va_start va_end
-#include <stdio.h> //fprintf printf getchar ungetc EOF stdin stderr
+#include <stdio.h> //fprintf printf EOF stderr
 #include <string.h> //memcpy strlen strcmp strchr
 #include <errno.h>
 
@@ -390,10 +391,16 @@ const char symbol_chars[] = "~!@#$%^&*-_=+:/?<>";
 
 static Obj *read_expr(void *root);
 
-static int peek(void) {
-    int c = getchar();
-    ungetc(c, stdin);
+static char peek(void) {
+    char c;
+    do {} while(! SerialPeak(&c));
     return c;
+}
+
+static char get1char(void) {
+  char c;
+  do {} while(0 == SerialRead(&c, 1));
+  return c;
 }
 
 // Destructively reverses the given list.
@@ -411,12 +418,12 @@ static Obj *reverse(Obj *p) {
 // Skips the input until newline is found. Newline is one of \r, \r\n or \n.
 static void skip_line(void) {
     for (;;) {
-        int c = getchar();
+        int c = get1char();
         if (c == EOF || c == '\n')
             return;
         if (c == '\r') {
             if (peek() == '\n')
-                getchar();
+                get1char();
             return;
         }
     }
@@ -468,7 +475,7 @@ static Obj *read_quote(void *root) {
 
 static int read_number(int val) {
     while (isdigit(peek()))
-        val = val * 10 + (getchar() - '0');
+        val = val * 10 + (get1char() - '0');
     return val;
 }
 
@@ -479,7 +486,7 @@ static Obj *read_symbol(void *root, char c) {
     while (isalnum(peek()) || strchr(symbol_chars, peek())) {
         if (SYMBOL_MAX_LEN <= len)
             error("Symbol name too long");
-        buf[len++] = getchar();
+        buf[len++] = get1char();
     }
     buf[len] = '\0';
     return intern(root, buf);
@@ -487,7 +494,7 @@ static Obj *read_symbol(void *root, char c) {
 
 static Obj *read_expr(void *root) {
     for (;;) {
-        int c = getchar();
+        int c = get1char();
         if (c == ' ' || c == '\n' || c == '\r' || c == '\t')
             continue;
         if (c == EOF) {
@@ -1023,6 +1030,7 @@ char LispThreadStack[STACK_SIZE];
 
 int main() {
   KernelInit();
+  SerialStartup();
   SchedulerStartup();
   SchedulerCreateThread(
       &LispThread,
