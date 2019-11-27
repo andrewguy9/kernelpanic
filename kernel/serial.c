@@ -22,90 +22,89 @@ ISR_HANDLER GetBytesInterrupt;
 
 void SendBytesInterrupt(void)
 {
-        ASSERT(IsrIsAtomic(IRQ_LEVEL_SERIAL_WRITE));
-        while (!RingBufferIsEmpty(&SerialOutputRing)) {
-                char data;
-                CHECK(RingBufferRead(&data, sizeof(data), &SerialOutputRing) == 1);
-                HalSerialWriteChar(data);
-        }
+  ASSERT(IsrIsAtomic(IRQ_LEVEL_SERIAL_WRITE));
+  while (!RingBufferIsEmpty(&SerialOutputRing)) {
+    char data;
+    CHECK(RingBufferRead(&data, sizeof(data), &SerialOutputRing) == 1);
+    HalSerialWriteChar(data);
+  }
 }
 
 void GetBytesInterrupt(void)
 {
-        while (!RingBufferIsFull(&SerialInputRing)) {
-                char data;
-                if (HalSerialGetChar(&data)) {
-                        CHECK(RingBufferWrite(&data, sizeof(data), &SerialInputRing) == 1);
-                } else {
-                        break;
-                }
-        }
+  while (!RingBufferIsFull(&SerialInputRing)) {
+    char data;
+    if (HalSerialGetChar(&data)) {
+      CHECK(RingBufferWrite(&data, sizeof(data), &SerialInputRing) == 1);
+    } else {
+      break;
+    }
+  }
 
-        if ( HandlerIsFinished(&ReadGenerationCritObject) ) {
-                GenerationUpdateSafe(
-                                &ReadGeneration,
-                                ++ReadGenerationCount,
-                                &ReadGenerationContext,
-                                &ReadGenerationCritObject);
-        }
+  if ( HandlerIsFinished(&ReadGenerationCritObject) ) {
+    GenerationUpdateSafe(
+        &ReadGeneration,
+        ++ReadGenerationCount,
+        &ReadGenerationContext,
+        &ReadGenerationCritObject);
+  }
 }
 
 void SerialStartup()
 {
-        RingBufferInit( SerialInputBuffer, BUFFER_SIZE, &SerialInputRing );
-        RingBufferInit( SerialOutputBuffer, BUFFER_SIZE, &SerialOutputRing );
+  RingBufferInit( SerialInputBuffer, BUFFER_SIZE, &SerialInputRing );
+  RingBufferInit( SerialOutputBuffer, BUFFER_SIZE, &SerialOutputRing );
 
-        ReadGenerationCount=0;
-        GenerationInit(&ReadGeneration, ReadGenerationCount);
-        HandlerInit(&ReadGenerationCritObject);
+  ReadGenerationCount=0;
+  GenerationInit(&ReadGeneration, ReadGenerationCount);
+  HandlerInit(&ReadGenerationCritObject);
 
-        IsrRegisterHandler( SendBytesInterrupt, (void *) HAL_ISR_SERIAL_WRITE, IRQ_LEVEL_SERIAL_WRITE);
-        IsrRegisterHandler( GetBytesInterrupt, (void *) HAL_ISR_SERIAL_READ, IRQ_LEVEL_SERIAL_READ);
+  IsrRegisterHandler( SendBytesInterrupt, (void *) HAL_ISR_SERIAL_WRITE, IRQ_LEVEL_SERIAL_WRITE);
+  IsrRegisterHandler( GetBytesInterrupt, (void *) HAL_ISR_SERIAL_READ, IRQ_LEVEL_SERIAL_READ);
 
-        HalStartSerial();
+  HalStartSerial();
 }
 
 COUNT SerialWrite(char * buf, COUNT len)
 {
-        COUNT write;
+  COUNT write;
 
-        IsrDisable(IRQ_LEVEL_SERIAL_WRITE);
-        write = RingBufferWrite(buf, len, &SerialOutputRing);
-        IsrEnable(IRQ_LEVEL_SERIAL_WRITE);
+  IsrDisable(IRQ_LEVEL_SERIAL_WRITE);
+  write = RingBufferWrite(buf, len, &SerialOutputRing);
+  IsrEnable(IRQ_LEVEL_SERIAL_WRITE);
 
-        HalRaiseInterrupt(IRQ_LEVEL_SERIAL_WRITE);
+  HalRaiseInterrupt(IRQ_LEVEL_SERIAL_WRITE);
 
-        return write;
+  return write;
 }
 
 COUNT SerialRead(char * buf, COUNT len)
 {
-        COUNT read = 0;
-        COUNT readGeneration;
-        _Bool wasFull = false;
+  COUNT read = 0;
+  COUNT readGeneration;
+  _Bool wasFull = false;
 
-        do {
-                IsrDisable(IRQ_LEVEL_SERIAL_READ);
+  do {
+    IsrDisable(IRQ_LEVEL_SERIAL_READ);
 
-                if ( RingBufferIsFull( &SerialInputRing ) ) {
-                        wasFull = true;
-                }
+    if ( RingBufferIsFull( &SerialInputRing ) ) {
+      wasFull = true;
+    }
 
-                read = RingBufferRead(buf, len, &SerialInputRing);
-                readGeneration = ReadGenerationCount;
+    read = RingBufferRead(buf, len, &SerialInputRing);
+    readGeneration = ReadGenerationCount;
 
-                IsrEnable(IRQ_LEVEL_SERIAL_READ);
+    IsrEnable(IRQ_LEVEL_SERIAL_READ);
 
-                if (read == 0) {
-                        GenerationWait(&ReadGeneration, readGeneration, NULL);
-                }
-        } while (read == 0);
+    if (read == 0) {
+      GenerationWait(&ReadGeneration, readGeneration, NULL);
+    }
+  } while (read == 0);
 
-        // We were full, so lets make sure there wasn't any data buffered
-        // in the hal.
-        if ( wasFull ) {
-                HalRaiseInterrupt( IRQ_LEVEL_SERIAL_READ );
-        }
-        return read;
+  // We were full, so lets make sure there wasn't any data buffered
+  // in the hal.
+  if ( wasFull ) {
+    HalRaiseInterrupt( IRQ_LEVEL_SERIAL_READ );
+  }
+  return read;
 }
-
