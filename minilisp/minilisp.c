@@ -9,7 +9,6 @@
 #include <stdarg.h> //va_start va_end
 #include <stdio.h> //fprintf printf EOF stderr
 #include <string.h> //memcpy strlen strcmp strchr
-#include <errno.h>
 
 #define STACK_SIZE HAL_MIN_STACK_SIZE
 
@@ -498,11 +497,7 @@ static Obj *read_expr(void *root) {
         if (c == ' ' || c == '\n' || c == '\r' || c == '\t')
             continue;
         if (c == EOF) {
-            if (errno == EINTR) {
-                continue;
-            } else {
-                return NULL;
-            }
+          return NULL;
         }
         if (c == ';') {
             skip_line();
