@@ -1,11 +1,16 @@
 // This software is in the public domain.
 
+#include"kernel/startup.h"
+#include"kernel/scheduler.h"
 #include "utils/utils.h"
 #include "kernel/hal.h"
 #include <ctype.h> //isdigit isalnum isalpha
 #include <stdarg.h> //va_start va_end
 #include <stdio.h> //fprintf printf getchar ungetc EOF stdin stderr
 #include <string.h> //memcpy strlen strcmp strchr
+#include <errno.h>
+
+#define STACK_SIZE HAL_MIN_STACK_SIZE
 
 static __attribute((noreturn)) void error(char *fmt, ...) {
     va_list ap;
@@ -485,8 +490,13 @@ static Obj *read_expr(void *root) {
         int c = getchar();
         if (c == ' ' || c == '\n' || c == '\r' || c == '\t')
             continue;
-        if (c == EOF)
-            return NULL;
+        if (c == EOF) {
+            if (errno == EINTR) {
+                continue;
+            } else {
+                return NULL;
+            }
+        }
         if (c == ';') {
             skip_line();
             continue;
@@ -974,7 +984,8 @@ static bool getEnvFlag(char *name) {
     return val && val[0];
 }
 
-int main(int argc, char **argv) {
+THREAD_MAIN lisp_main;
+void * lisp_main(void * arg) {
     // Debug flags
     debug_gc = getEnvFlag("MINILISP_DEBUG_GC");
     always_gc = getEnvFlag("MINILISP_ALWAYS_GC");
@@ -1004,4 +1015,24 @@ int main(int argc, char **argv) {
         print(eval(root, env, expr));
         printf("\n");
     }
+    SchedulerShutdown();
 }
+
+struct THREAD LispThread;
+char LispThreadStack[STACK_SIZE];
+
+int main() {
+  KernelInit();
+  SchedulerStartup();
+  SchedulerCreateThread(
+      &LispThread,
+      255,
+      LispThreadStack,
+      STACK_SIZE,
+      lisp_main,
+      NULL,
+      true);
+  KernelStart();
+  return 0;
+}
+
