@@ -7,7 +7,7 @@
 #include "kernel/serial.h"
 #include <ctype.h> //isdigit isalnum isalpha
 #include <stdarg.h> //va_start va_end
-#include <stdio.h> //fprintf printf EOF stderr
+#include <stdio.h> //fprintf EOF stderr vsnprintf
 #include <string.h> //memcpy strlen strcmp strchr
 
 #define STACK_SIZE HAL_MIN_STACK_SIZE
@@ -402,6 +402,21 @@ static char get1char(void) {
   return c;
 }
 
+static void write(char * buf) {
+  while (0 != *buf) {
+    COUNT len = SerialWrite(buf, strlen(buf));
+    buf += len;
+  }
+}
+
+static void myprintf(const char * format, ...) {
+  va_list args;
+  char buff[100];
+  va_start(args, format);
+  vsnprintf(buff, 100, format, args);
+  write(buff);
+}
+
 // Destructively reverses the given list.
 static Obj *reverse(Obj *p) {
     Obj *ret = Nil;
@@ -525,25 +540,25 @@ static Obj *read_expr(void *root) {
 static void print(Obj *obj) {
     switch (obj->type) {
     case TCELL:
-        printf("(");
+        write("(");
         for (;;) {
             print(obj->car);
             if (obj->cdr == Nil)
                 break;
             if (obj->cdr->type != TCELL) {
-                printf(" . ");
+                write(" . ");
                 print(obj->cdr);
                 break;
             }
-            printf(" ");
+            write(" ");
             obj = obj->cdr;
         }
-        printf(")");
+        write(")");
         return;
 
 #define CASE(type, ...)                         \
     case type:                                  \
-        printf(__VA_ARGS__);                    \
+        myprintf(__VA_ARGS__);                  \
         return
     CASE(TINT, "%d", obj->value);
     CASE(TSYMBOL, "%s", obj->name);
@@ -890,7 +905,7 @@ static Obj *prim_println(void *root, Obj **env, Obj **list) {
     DEFINE1(tmp);
     *tmp = (*list)->car;
     print(eval(root, env, tmp));
-    printf("\n");
+    write("\n");
     return Nil;
 }
 
@@ -899,7 +914,7 @@ static Obj *prim_panic(void *root, Obj **env, Obj **list) {
     DEFINE1(tmp);
     *tmp = (*list)->car;
     print(eval(root, env, tmp));
-    printf("\n");
+    write("\n");
     error("minilisp error");
     return Nil;
 }
@@ -1015,7 +1030,7 @@ void * lisp_main(void * arg) {
         if (*expr == Dot)
             error("Stray dot");
         print(eval(root, env, expr));
-        printf("\n");
+        write("\n");
     }
     SchedulerShutdown();
 }
