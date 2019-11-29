@@ -44,7 +44,7 @@ void CritInterrupt()
 {
         struct ATOMIC_LIST_LINK * link;
         struct HANDLER_OBJECT * handler;
-        BOOL isComplete;
+        _Bool isComplete;
         HANDLER_FUNCTION * func;
 
         //TODO TOO MUCH DUPLICATION

@@ -14,7 +14,7 @@ struct SCAN_LOG
 };
 
 void ScanLogInit( INDEX width, INDEX height, BITMAP_WORD * buff, struct SCAN_LOG * log );
-void ScanLogSet( INDEX x, INDEX y, BOOL flagState, struct SCAN_LOG * mapLog );
-BOOL ScanLogGet( INDEX x, INDEX y, struct SCAN_LOG * mapLog );
+void ScanLogSet( INDEX x, INDEX y, _Bool flagState, struct SCAN_LOG * mapLog );
+_Bool ScanLogGet( INDEX x, INDEX y, struct SCAN_LOG * mapLog );
 
 #endif

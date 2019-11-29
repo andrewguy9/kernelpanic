@@ -144,9 +144,9 @@ void LockingEnd()
  * should call this function to signal them that they have infact
  * acquired the lock.
  */
-BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
+_Bool LockingIsAcquired( struct LOCKING_CONTEXT * context )
 {
-        BOOL result;
+        _Bool result;
 
         SchedulerStartCritical();
 
@@ -155,18 +155,18 @@ BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
         switch( context->State )
         {
                 case LOCKING_STATE_ACQUIRED:
-                        result = TRUE;
+                        result = true;
                         context->State = LOCKING_STATE_READY;
                         break;
 
                 case LOCKING_STATE_BLOCKING:
-                        result = FALSE;
+                        result = false;
                         break;
 
                 case LOCKING_STATE_READY:
                 default:
                         KernelPanic( );
-                        result = FALSE;
+                        result = false;
                         break;
         }
 
@@ -175,12 +175,12 @@ BOOL LockingIsAcquired( struct LOCKING_CONTEXT * context )
         return result;
 }
 
-BOOL LockingIsFree( struct LOCKING_CONTEXT * context )
+_Bool LockingIsFree( struct LOCKING_CONTEXT * context )
 {
         if( context->State == LOCKING_STATE_READY ) {
-                return TRUE;
+                return true;
         } else {
-                return FALSE;
+                return false;
         }
 }
 

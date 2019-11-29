@@ -34,16 +34,16 @@ char SpinThread2Stack[STACK_SIZE];
 
 char ValidateThreadStack[STACK_SIZE];
 
-BOOL TransitionArray1[NUM_THREADS];
-BOOL TransitionArray2[NUM_THREADS];
+_Bool TransitionArray1[NUM_THREADS];
+_Bool TransitionArray2[NUM_THREADS];
 
 //
 //Validation
 //
 
-BOOL * DoTransition(INDEX index, BOOL * transitionArray)
+_Bool * DoTransition(INDEX index, _Bool * transitionArray)
 {
-	transitionArray[index] = FALSE;
+	transitionArray[index] = false;
 
 	if( transitionArray == TransitionArray1 )
 	{
@@ -55,9 +55,9 @@ BOOL * DoTransition(INDEX index, BOOL * transitionArray)
 	}
 }
 
-void ValidateState(BOOL * transitionArray)
+void ValidateState(_Bool * transitionArray)
 {
-	BOOL * checkArray = transitionArray;
+	_Bool * checkArray = transitionArray;
 	INDEX index;
 
 	//check 
@@ -68,7 +68,7 @@ void ValidateState(BOOL * transitionArray)
 	}
 
 	for(index=0; index < NUM_THREADS; index++)
-		checkArray[index] = TRUE;
+		checkArray[index] = true;
 }
 
 //
@@ -79,9 +79,9 @@ THREAD_MAIN BlockingMain;
 void * BlockingMain(void * arg)
 {
 	INDEX index = (INDEX) arg;
-	BOOL * array = TransitionArray1;
+	_Bool * array = TransitionArray1;
 
-	while(TRUE)
+	while(true)
 	{
 		array = DoTransition( index, array );
 		GatherSync( & Gather, NULL );
@@ -97,12 +97,12 @@ THREAD_MAIN WaitMain;
 void * WaitMain(void * arg)
 {
 	INDEX index = (INDEX) arg;
-	BOOL * array = TransitionArray1;
+	_Bool * array = TransitionArray1;
 	struct LOCKING_CONTEXT context;
 
 	LockingInit( & context, LockingBlockNonBlocking, LockingWakeNonBlocking );
 
-	while(TRUE)
+	while(true)
 	{
 		array = DoTransition( index, array );
 
@@ -125,12 +125,12 @@ THREAD_MAIN SpinMain;
 void * SpinMain(void * arg)
 {
 	INDEX index = (INDEX) arg;
-	BOOL * array = TransitionArray1;
+	_Bool * array = TransitionArray1;
 	struct LOCKING_CONTEXT context;
 
 	LockingInit( & context, LockingBlockNonBlocking, LockingWakeNonBlocking );
 
-	while(TRUE)
+	while(true)
 	{
 		array = DoTransition( index, array );
 
@@ -150,10 +150,10 @@ THREAD_MAIN ValidateMain;
 void * ValidateMain(void * arg)
 {
 	INDEX index = (INDEX) arg;
-	BOOL * array = TransitionArray1;
-	BOOL * check = NULL;
+	_Bool * array = TransitionArray1;
+	_Bool * check = NULL;
 
-	while(TRUE)
+	while(true)
 	{
 		check = array;
 		array = DoTransition( index, array );
@@ -171,8 +171,8 @@ int main()
 
         for(index=0; index < NUM_THREADS; index++)
         {
-                TransitionArray1[index] = TRUE;
-                TransitionArray2[index] = FALSE;
+                TransitionArray1[index] = true;
+                TransitionArray2[index] = false;
         }
 
         KernelInit();
@@ -188,7 +188,7 @@ int main()
                         STACK_SIZE,
                         BlockingMain,
                         (void *) 0,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         &BlockThread2,
                         1,
@@ -196,7 +196,7 @@ int main()
                         STACK_SIZE,
                         BlockingMain,
                         (void *) 1,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         &WaitThread1,
                         1,
@@ -204,7 +204,7 @@ int main()
                         STACK_SIZE,
                         WaitMain,
                         (void *) 2,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         &WaitThread2,
                         1,
@@ -212,7 +212,7 @@ int main()
                         STACK_SIZE,
                         WaitMain,
                         (void *) 3,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         &SpinThread1,
                         1,
@@ -220,7 +220,7 @@ int main()
                         STACK_SIZE,
                         SpinMain,
                         (void *) 4,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         &SpinThread2,
                         1,
@@ -228,7 +228,7 @@ int main()
                         STACK_SIZE,
                         SpinMain,
                         (void *) 5,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         &ValidateThread,
                         1,
@@ -236,7 +236,7 @@ int main()
                         STACK_SIZE,
                         ValidateMain,
                         (void *) 6,
-                        TRUE);
+                        true);
 
         KernelStart();
         return 0;

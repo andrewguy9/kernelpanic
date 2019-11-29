@@ -99,7 +99,7 @@ void FloodFillCalculate(
 {
 	INDEX x,y;
 	unsigned char curValue;
-	while(TRUE)
+	while(true)
 	{
 #ifdef PC_BUILD
 		//printf("start\n");

@@ -82,13 +82,13 @@ COUNT SerialRead(char * buf, COUNT len)
 {
         COUNT read = 0;
         COUNT readGeneration;
-        BOOL wasFull = FALSE;
+        _Bool wasFull = false;
 
         do {
                 IsrDisable(IRQ_LEVEL_SERIAL_READ);
 
                 if ( RingBufferIsFull( &SerialInputRing ) ) {
-                        wasFull = TRUE;
+                        wasFull = true;
                 }
 
                 read = RingBufferRead(buf, len, &SerialInputRing);

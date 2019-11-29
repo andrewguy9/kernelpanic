@@ -65,14 +65,14 @@ void * Reader( void * arg )
 	INDEX index;
 
 	int first,second;
-	BOOL ready = FALSE;
+	_Bool ready = false;
 
 	while( ! ready )
 	{
 		SchedulerStartCritical();
 		if( TimesWritten > 0 )
 		{
-			ready = TRUE;
+			ready = true;
 			SchedulerEndCritical();
 		}
 		else
@@ -139,7 +139,7 @@ int main()
                         STACK_SIZE,
                         Reader,
                         NULL,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         & Reader2,
                         5,
@@ -147,7 +147,7 @@ int main()
                         STACK_SIZE,
                         Reader,
                         NULL,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         & Reader3,
                         5,
@@ -155,7 +155,7 @@ int main()
                         STACK_SIZE,
                         Reader,
                         NULL,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         & Writer1,
                         5,
@@ -163,7 +163,7 @@ int main()
                         STACK_SIZE,
                         Writer,
                         NULL,
-                        TRUE);
+                        true);
         SchedulerCreateThread(
                         & Writer2,
                         5,
@@ -171,7 +171,7 @@ int main()
                         STACK_SIZE,
                         Writer,
                         NULL,
-                        TRUE);
+                        true);
 
         KernelStart();
         return 0;

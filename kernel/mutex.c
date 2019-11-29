@@ -22,12 +22,12 @@
  * and then checking the lock's state. The return value is true if
  * the mutex was aquired or false if the call failed ot aquire the lock.
  */
-BOOL MutexLock( struct MUTEX * lock )
+_Bool MutexLock( struct MUTEX * lock )
 {
         if(AtomicGetAndSet(&lock->Locked)) {
-                return FALSE;
+                return false;
         } else {
-                return TRUE;
+                return true;
         }
 }
 
@@ -36,21 +36,21 @@ BOOL MutexLock( struct MUTEX * lock )
  */
 void MutexUnlock( struct MUTEX * lock )
 {
-        ASSUME(AtomicGetAndClear(&lock->Locked), TRUE);
+        ASSUME(AtomicGetAndClear(&lock->Locked), true);
 }
 
 #ifdef DEBUG
 /*
  * Returns the state of the lock:
- * FALSE - Not Locked
- * !FALSE - Locked
+ * false - Not Locked
+ * !false - Locked
  */
-BOOL MutexIsLocked( struct MUTEX * lock )
+_Bool MutexIsLocked( struct MUTEX * lock )
 {
         if(lock->Locked) {
-                return TRUE;
+                return true;
         } else {
-                return FALSE;
+                return false;
         }
 }
 #endif
@@ -58,7 +58,7 @@ BOOL MutexIsLocked( struct MUTEX * lock )
 /*
  * Initializes a mutex to unlocked.
  */
-void MutexInit( struct MUTEX * lock, BOOL initialState )
+void MutexInit( struct MUTEX * lock, _Bool initialState )
 {
         if(initialState) {
                 lock->Locked = 1;

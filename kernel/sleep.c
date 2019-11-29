@@ -10,14 +10,14 @@
  * a critical section so it can wake a thread.
  */
 HANDLER_FUNCTION SleepCritHandler;
-BOOL SleepCritHandler( struct HANDLER_OBJECT * handler )
+_Bool SleepCritHandler( struct HANDLER_OBJECT * handler )
 {
   struct SIGNAL * sleepSignal = handler->Context;
 
   ASSERT( SchedulerIsCritical() );
   SignalSet(sleepSignal);
 
-  return TRUE;
+  return true;
 }
 
 /*
@@ -28,14 +28,14 @@ BOOL SleepCritHandler( struct HANDLER_OBJECT * handler )
  * We will schedule a critical handler which can wake threads.
  */
 HANDLER_FUNCTION SleepTimerHandler;
-BOOL SleepTimerHandler( struct HANDLER_OBJECT * timer )
+_Bool SleepTimerHandler( struct HANDLER_OBJECT * timer )
 {
   CritInterruptRegisterHandler(
       timer,
       SleepCritHandler,
       timer->Context );
 
-  return FALSE;
+  return false;
 }
 
 /*
@@ -53,7 +53,7 @@ void Sleep( COUNT time )
   struct SIGNAL sleepSignal;
   struct HANDLER_OBJECT timer;
 
-  SignalInit(&sleepSignal, FALSE);
+  SignalInit(&sleepSignal, false);
   HandlerInit( &timer );
   TimerRegister( &timer, time, SleepTimerHandler, &sleepSignal);
   SignalWaitForSignal(&sleepSignal, NULL);

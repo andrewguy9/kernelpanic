@@ -222,7 +222,7 @@ void HalContextSwitch( )
 
 void HalPanicFn(char file[], int line, char msg[])
 {
-	BOOL failed = TRUE;
+	_Bool failed = true;
 
 	while( failed );
 }

@@ -60,7 +60,7 @@ void HalSleepProcessor();
 void HalRaiseInterrupt(enum IRQ_LEVEL level);
 void HalSetIrq(enum IRQ_LEVEL irq);
 void HalStartSerial();
-BOOL HalSerialGetChar(char * out);
+_Bool HalSerialGetChar(char * out);
 void HalSerialWriteChar(char data);
 void * HalMap(char * tag, void * addr, COUNT len);
 

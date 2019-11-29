@@ -57,7 +57,7 @@ void WorkerAddItem( struct WORKER_QUEUE * queue, struct WORKER_ITEM * item )
 
         CritInterruptDisable();
         //Finished needs to be updated with critical sections disabled.
-        item->Finished = FALSE;
+        item->Finished = false;
         //Adding to the queue needs to be done with Critinterrupts Disabled.
         LinkedListEnqueue( &item->Link.LinkedListLink, & queue->List );
         CritInterruptEnable();
@@ -124,7 +124,7 @@ void * WorkerThreadMain( void * arg )
         list = & queue->List;
 
         //Loop consuming work items.
-        while(TRUE) {
+        while(true) {
                 //Fetch a handler
                 item = WorkerGetItem( queue );
 
@@ -137,7 +137,7 @@ void * WorkerThreadMain( void * arg )
                 {
                         case WORKER_FINISHED:
                                 //the item is done, mark so caller knows.
-                                item->Finished = TRUE;
+                                item->Finished = true;
                                 break;
 
                         case WORKER_BLOCKED:
@@ -153,7 +153,7 @@ void * WorkerThreadMain( void * arg )
                                 CritInterruptEnable();
                                 break;
                 }// end switch
-        }// end while(TRUE).
+        }// end while(true).
         return NULL;
 }
 
@@ -177,7 +177,7 @@ void WorkerCreateWorker(
                         stackSize,
                         WorkerThreadMain,
                         queue,
-                        TRUE);
+                        true);
 }
 
 void WorkerInitItem( struct WORKER_QUEUE * queue, WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  )
@@ -198,10 +198,10 @@ void WorkerInitItem( struct WORKER_QUEUE * queue, WORKER_FUNCTION foo, void * co
 /*
  * WorkerItemIsFinished should be used by creator of a work item
  * to see if his work item structure is free for use. If
- * WorkerItemIsFinished returns TRUE, then it is safe to use
+ * WorkerItemIsFinished returns true, then it is safe to use
  * the work item.
  *
- * If it returns FALSE, then the work item is still either
+ * If it returns false, then the work item is still either
  * queued, or currently running.
  *
  * USAGE:
@@ -209,9 +209,9 @@ void WorkerInitItem( struct WORKER_QUEUE * queue, WORKER_FUNCTION foo, void * co
  * It is the caller's responsibility to avoid racing to reclaim
  * work items.
  */
-BOOL WorkerItemIsFinished( struct WORKER_ITEM * item )
+_Bool WorkerItemIsFinished( struct WORKER_ITEM * item )
 {
-        BOOL result;
+        _Bool result;
         IsrDisable(IRQ_LEVEL_MAX);
         result = item->Finished;
         IsrEnable(IRQ_LEVEL_MAX);

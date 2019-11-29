@@ -57,7 +57,7 @@ void MakeLines(COUNT hSkip, COUNT vSkip, struct MAP * map, enum DIRECTION dir )
 	INDEX x,y;
 	for(x=0; x<map->Width; x+=hSkip)
 		for(y=0; y<map->Height; y+=vSkip)
-			MapSetWall( x, y, dir, TRUE, map );
+			MapSetWall( x, y, dir, true, map );
 }
 
 struct MAP Map;

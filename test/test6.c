@@ -41,20 +41,20 @@ HANDLER_FUNCTION WorkCritHandler;
 
 //Handlers
 
-BOOL WorkTimerHandler( struct HANDLER_OBJECT * timer ) 
+_Bool WorkTimerHandler( struct HANDLER_OBJECT * timer ) 
 {
 	CritInterruptRegisterHandler(
 			timer, 
 			WorkCritHandler,
 			NULL );
 
-	return FALSE;
+	return false;
 }
 
-BOOL WorkCritHandler( struct HANDLER_OBJECT * timer )
+_Bool WorkCritHandler( struct HANDLER_OBJECT * timer )
 {
 	//TODO WE NEED TO FIX WORKER UNIT TO ACT LIKE HANDLERS.
-	static BOOL FirstPass = TRUE;
+	static _Bool FirstPass = true;
 
 	if( WorkerItemIsFinished(&ProducerItem) || FirstPass )
 	{
@@ -72,8 +72,8 @@ BOOL WorkCritHandler( struct HANDLER_OBJECT * timer )
 			WorkTimerHandler,
 			NULL );
 
-	FirstPass = FALSE;
-	return FALSE;
+	FirstPass = false;
+	return false;
 }
 
 enum WORKER_RETURN WorkerConsumerTask( struct WORKER_ITEM * item )

@@ -23,13 +23,13 @@ void SubMoveTranslate( INDEX * x, INDEX * y, enum DIRECTION dir, COUNT dist );
 
 void SubMoveRotate( enum DIRECTION * dir, enum ANGLE angle );
 
-void SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, BOOL * moving, enum SUB_MOVE move);
+void SubMoveApply(INDEX * x, INDEX * y, enum DIRECTION * dir, _Bool * moving, enum SUB_MOVE move);
 
-BOOL SubMoveLegal( 
+_Bool SubMoveLegal( 
 		INDEX x, 
 		INDEX y, 
 		enum DIRECTION startDir, 
-		BOOL moving,
+		_Bool moving,
 		enum SUB_MOVE move,
 		struct MAP *map,
 	   	struct SCAN_LOG *scan,
@@ -39,7 +39,7 @@ enum SUB_MOVE SubMoveFindBest(
 		INDEX startX,
 	   	INDEX startY,
 	   	enum DIRECTION startDir,
-		BOOL moving,
+		_Bool moving,
 	   	struct FLOOD_MAP * flood, 
 		struct MAP * map,
 		struct SCAN_LOG * scanLog);
