@@ -32,7 +32,7 @@ void Remove(int value)
 
 	if( avlLink != NULL )
 	{
-		struct ELEMENT * element = BASE_OBJECT( 
+		struct ELEMENT * element = container_of( 
 				avlLink,
 				struct ELEMENT, 
 				Link);

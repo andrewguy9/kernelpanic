@@ -43,7 +43,7 @@ struct ELEMENT * getElementFromLink(union LINK * link) {
         if(link == NULL) {
                 return NULL;
         } else {
-                return BASE_OBJECT( link, struct ELEMENT, Link );
+                return container_of( link, struct ELEMENT, Link );
         }
 }
 

@@ -117,7 +117,7 @@ void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 
 #ifdef DEBUG
         //The context is embeded in a thread, extract it.
-        struct THREAD * thread = BASE_OBJECT( context,
+        struct THREAD * thread = container_of( context,
                         struct THREAD,
                         LockingContext);
 
@@ -135,7 +135,7 @@ void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
 {
         //The context is embeded in a thread, extract it.
-        struct THREAD * thread = BASE_OBJECT( context,
+        struct THREAD * thread = container_of( context,
                         struct THREAD,
                         LockingContext);
 
@@ -277,7 +277,7 @@ void Schedule()
         //Pick the next thread
         if ( ! LinkedListIsEmpty( &RunQueue ) ) {
                 //there are threads waiting, run one
-                NextThread = BASE_OBJECT( LinkedListPop( &RunQueue ),
+                NextThread = container_of( LinkedListPop( &RunQueue ),
                                 struct THREAD,
                                 Link);
         } else {

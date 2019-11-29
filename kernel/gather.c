@@ -44,7 +44,7 @@ void GatherSync( struct GATHER * gather, struct LOCKING_CONTEXT * context )
                 //Tell everyone waiting they can continue.
                 while( ! LinkedListIsEmpty( & gather->List ) ) {
                         struct LOCKING_CONTEXT * curContext;
-                        curContext = BASE_OBJECT(
+                        curContext = container_of(
                                         LinkedListPop( &gather->List ),
                                         struct LOCKING_CONTEXT,
                                         Link);
