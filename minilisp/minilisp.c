@@ -7,10 +7,37 @@
 #include "kernel/serial.h"
 #include <ctype.h> //isdigit isalnum isalpha
 #include <stdarg.h> //va_start va_end
-#include <stdio.h> //fprintf EOF stderr vsnprintf
+#include <stdio.h> //EOF vsnprintf
 #include <string.h> //memcpy strlen strcmp strchr
 
 #define STACK_SIZE HAL_MIN_STACK_SIZE
+
+static char peek(void) {
+    char c;
+    do {} while(! SerialPeak(&c));
+    return c;
+}
+
+static char get1char(void) {
+  char c;
+  do {} while(0 == SerialRead(&c, 1));
+  return c;
+}
+
+static void write(char * buf) {
+  while (0 != *buf) {
+    COUNT len = SerialWrite(buf, strlen(buf));
+    buf += len;
+  }
+}
+
+static void myprintf(char * format, ...) {
+  va_list args;
+  char buff[100];
+  va_start(args, format);
+  vsnprintf(buff, 100, format, args);
+  write(buff);
+}
 
 static __attribute((noreturn)) void error(char *fmt, ...) {
     va_list ap;
@@ -323,7 +350,7 @@ static void gc(void *root) {
     size_t old_nused = mem_nused;
     mem_nused = (size_t)((uint8_t *)scan1 - (uint8_t *)memory);
     if (debug_gc)
-        fprintf(stderr, "GC: %zu bytes out of %zu bytes copied.\n", mem_nused, old_nused);
+        myprintf("GC: %zu bytes out of %zu bytes copied.\n", mem_nused, old_nused);
     gc_running = false;
 }
 
@@ -389,33 +416,6 @@ static Obj *acons(void *root, Obj **x, Obj **y, Obj **a) {
 const char symbol_chars[] = "~!@#$%^&*-_=+:/?<>";
 
 static Obj *read_expr(void *root);
-
-static char peek(void) {
-    char c;
-    do {} while(! SerialPeak(&c));
-    return c;
-}
-
-static char get1char(void) {
-  char c;
-  do {} while(0 == SerialRead(&c, 1));
-  return c;
-}
-
-static void write(char * buf) {
-  while (0 != *buf) {
-    COUNT len = SerialWrite(buf, strlen(buf));
-    buf += len;
-  }
-}
-
-static void myprintf(const char * format, ...) {
-  va_list args;
-  char buff[100];
-  va_start(args, format);
-  vsnprintf(buff, 100, format, args);
-  write(buff);
-}
 
 // Destructively reverses the given list.
 static Obj *reverse(Obj *p) {
