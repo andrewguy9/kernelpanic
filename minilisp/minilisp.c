@@ -5,6 +5,7 @@
 #include "utils/utils.h"
 #include "kernel/hal.h"
 #include "kernel/serial.h"
+#include "kernel/sleep.h"
 #include <ctype.h> //isdigit isalnum isalpha
 #include <stdarg.h> //va_start va_end
 #include <stdio.h> //EOF vsnprintf
@@ -918,6 +919,16 @@ static Obj *prim_panic(void *root, Obj **env, Obj **list) {
     error("minilisp error");
     return Nil;
 }
+// (sleep milliseconds)
+static Obj *prim_sleep(void *root, Obj **env, Obj **list) {
+    DEFINE1(sleep);
+    *sleep = (*list)->car;
+    *sleep = eval(root, env, sleep);
+    if ((*sleep)->type != TINT)
+      error("sleep only takes numbers");
+    Sleep((*sleep)->value);
+    return Nil;
+}
 
 // (if expr expr expr ...)
 static Obj *prim_if(void *root, Obj **env, Obj **list) {
@@ -989,6 +1000,7 @@ static void define_primitives(void *root, Obj **env) {
     add_primitive(root, env, "eq", prim_eq);
     add_primitive(root, env, "println", prim_println);
     add_primitive(root, env, "panic", prim_panic);
+    add_primitive(root, env, "sleep", prim_sleep);
 }
 
 //======================================================================
