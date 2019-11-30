@@ -32,7 +32,7 @@ static void write(char * buf) {
   }
 }
 
-static void myprintf(char * format, ...) {
+static void lisp_printf(char * format, ...) {
   va_list args;
   char buff[100];
   va_start(args, format);
@@ -351,7 +351,7 @@ static void gc(void *root) {
     size_t old_nused = mem_nused;
     mem_nused = (size_t)((uint8_t *)scan1 - (uint8_t *)memory);
     if (debug_gc)
-        myprintf("GC: %zu bytes out of %zu bytes copied.\n", mem_nused, old_nused);
+        lisp_printf("GC: %zu bytes out of %zu bytes copied.\n", mem_nused, old_nused);
     gc_running = false;
 }
 
@@ -559,7 +559,7 @@ static void print(Obj *obj) {
 
 #define CASE(type, ...)                         \
     case type:                                  \
-        myprintf(__VA_ARGS__);                  \
+        lisp_printf(__VA_ARGS__);                  \
         return
     CASE(TINT, "%d", obj->value);
     CASE(TSYMBOL, "%s", obj->name);
