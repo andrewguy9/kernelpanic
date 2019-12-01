@@ -395,6 +395,7 @@ void SchedulerStartup()
                         0, //Stack Size
                         NULL, //Main
                         NULL, //Argument
+                        NULL, //Local
                         false );//Start
 
         //Initialize context unit.
@@ -491,7 +492,8 @@ void SchedulerCreateThread(
                 char * stack,
                 COUNT stackSize,
                 THREAD_MAIN main,
-                void * Argument,
+                void * argument,
+                void * local,
                 _Bool start)
 {
         ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
@@ -503,7 +505,8 @@ void SchedulerCreateThread(
         LockingInit( & thread->LockingContext, SchedulerBlockOnLock, SchedulerWakeOnLock );
         ResourceInit(& thread->ResultLock, RESOURCE_EXCLUSIVE);
         thread->Main = main;
-        thread->Argument = Argument;
+        thread->Argument = argument;
+        thread->Local = local;
         thread->Result = NULL;
 
         //initialize stack
@@ -526,3 +529,23 @@ void * SchedulerJoinThread(struct THREAD * thread) {
 void SchedulerReleaseThread(struct THREAD * thread) {
   ResourceUnlockShared( & thread->ResultLock);
 }
+
+void * ThreadLocalGet()
+{
+        CritInterruptDisable();
+        ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
+        struct THREAD * thread = SchedulerGetActiveThread();
+        void * local = thread->Local;
+        CritInterruptEnable();
+        return local;
+}
+
+void ThreadLocalSet(void * val)
+{
+        CritInterruptDisable();
+        ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
+        struct THREAD * thread = SchedulerGetActiveThread();
+        thread->Local = val;
+        CritInterruptEnable();
+}
+

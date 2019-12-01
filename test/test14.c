@@ -71,6 +71,7 @@ int main(int argc, char ** argv)
       STACK_SIZE,
       CountMain,
       &H1,
+      NULL,
       true);
 
   SchedulerCreateThread(
@@ -80,6 +81,7 @@ int main(int argc, char ** argv)
       STACK_SIZE,
       CountMain,
       &H2,
+      NULL,
       true);
 
   KernelStart();

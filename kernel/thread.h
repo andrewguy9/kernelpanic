@@ -19,8 +19,8 @@ struct THREAD
         struct CONTEXT Stack;//Info on registers/stack for thread.
         THREAD_MAIN * Main;//The thread's main function ptr.
         void * Argument;//The thread's arguments.
+        void * Local;//The thead's local storage.
         void * Result;
 };
-
 
 #endif

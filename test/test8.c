@@ -84,6 +84,7 @@ void * RestartThreadMain( void * arg )
                     STACK_SIZE,
                     DeathThreadMain,
                     NULL,
+                    NULL,
                     true);
                 DeathCount--;
 
@@ -121,6 +122,7 @@ int main()
                         STACK_SIZE,
                         DeathThreadMain,
                         NULL,
+                        NULL,
                         true);
 
         SchedulerCreateThread(
@@ -130,6 +132,7 @@ int main()
                         STACK_SIZE,
                         StallThreadMain,
                         NULL,
+                        NULL,
                         true);
 
         SchedulerCreateThread(
@@ -138,6 +141,7 @@ int main()
                         RestartThreadStack,
                         STACK_SIZE,
                         RestartThreadMain,
+                        NULL,
                         NULL,
                         true);
 

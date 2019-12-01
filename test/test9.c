@@ -88,6 +88,7 @@ int main()
                         STACK_SIZE,
                         TestThreadMain,
                         &Value1,
+                        NULL,
                         true);
 
         SchedulerCreateThread(
@@ -97,6 +98,7 @@ int main()
                         STACK_SIZE,
                         TestThreadMain,
                         &Value2,
+                        NULL,
                         true);
 
         SchedulerCreateThread(
@@ -106,6 +108,7 @@ int main()
                         STACK_SIZE,
                         TestThreadMain,
                         &Value3,
+                        NULL,
                         true);
 
         //Enable the watchdog
