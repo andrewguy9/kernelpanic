@@ -136,17 +136,18 @@ static Obj *Symbols;
 
 static void *cur_heap=NULL, *next_heap=NULL;
 
-// The pointer pointing to the beginning of the current heap
-// TODO
-static void *memory;
+struct ALLOC_BLOCK {
+  // The pointer pointing to the beginning of the current heap
+  void *memory;
 
-// The pointer pointing to the beginning of the old heap
-// TODO
-static void *from_space;
+  // The pointer pointing to the beginning of the old heap
+  void *from_space;
 
-// The number of bytes allocated from the heap
-// TODO
-static size_t mem_nused = 0;
+  // The number of bytes allocated from the heap
+  size_t mem_nused;
+};
+
+struct ALLOC_BLOCK block;
 
 // Flags to debug GC
 static _Bool gc_running = false;
@@ -236,19 +237,19 @@ static Obj *alloc(void *root, int type, size_t size) {
     gc(root);
 
   // Otherwise, run GC only when the available memory is not large enough.
-  if (!always_gc && MEMORY_SIZE < mem_nused + size)
+  if (!always_gc && MEMORY_SIZE < block.mem_nused + size)
     gc(root);
 
   // Terminate the program if we couldn't satisfy the memory request. This can happen if the
   // requested size was too large or the from-space was filled with too many live objects.
-  if (MEMORY_SIZE < mem_nused + size)
+  if (MEMORY_SIZE < block.mem_nused + size)
     error("Memory exhausted");
 
   // Allocate the object.
-  Obj *obj = memory + mem_nused;
+  Obj *obj = block.memory + block.mem_nused;
   obj->type = type;
   obj->size = size;
-  mem_nused += size;
+  block.mem_nused += size;
   return obj;
 }
 
@@ -270,7 +271,7 @@ static Obj *scan2;
 static inline Obj *forward(Obj *obj) {
   // If the object's address is not in the from-space, the object is not managed by GC nor it
   // has already been moved to the to-space.
-  ptrdiff_t offset = (uint8_t *)obj - (uint8_t *)from_space;
+  ptrdiff_t offset = (uint8_t *)obj - (uint8_t *)block.from_space;
   if (offset < 0 || MEMORY_SIZE <= offset)
     return obj;
 
@@ -312,13 +313,13 @@ static void gc(void *root) {
   gc_running = true;
 
   // Swap heaps
-  from_space = memory;
-  memory = next_heap;
+  block.from_space = block.memory;
+  block.memory = next_heap;
   next_heap=cur_heap;
-  cur_heap=memory;
+  cur_heap=block.memory;
 
   // Initialize the two pointers for GC. Initially they point to the beginning of the to-space.
-  scan1 = scan2 = memory;
+  scan1 = scan2 = block.memory;
 
   // Copy the GC root objects first. This moves the pointer scan2.
   forward_root_objects(root);
@@ -354,10 +355,10 @@ static void gc(void *root) {
   }
 
   // Finish up GC.
-  size_t old_nused = mem_nused;
-  mem_nused = (size_t)((uint8_t *)scan1 - (uint8_t *)memory);
+  size_t old_nused = block.mem_nused;
+  block.mem_nused = (size_t)((uint8_t *)scan1 - (uint8_t *)block.memory);
   if (debug_gc)
-    lisp_printf("GC: %zu bytes out of %zu bytes copied.\n", mem_nused, old_nused);
+    lisp_printf("GC: %zu bytes out of %zu bytes copied.\n", block.mem_nused, old_nused);
   gc_running = false;
 }
 
@@ -1020,7 +1021,6 @@ static bool getEnvFlag(char *name) {
 }
 
 THREAD_MAIN lisp_main;
-//TODO
 void * lisp_main(void * arg) {
   // Debug flags
   debug_gc = getEnvFlag("MINILISP_DEBUG_GC");
@@ -1029,7 +1029,8 @@ void * lisp_main(void * arg) {
   // Memory allocation
   cur_heap = alloc_semispace("minilisp_heap1.map");
   next_heap = alloc_semispace("minilisp_heap2.map");
-  memory = cur_heap;
+  block.memory = cur_heap;
+  block.mem_nused = 0;
 
   // Constants and primitives
   Symbols = Nil;
