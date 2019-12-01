@@ -2,6 +2,7 @@
 #include"kernel/scheduler.h"
 #include"kernel/gather.h"
 #include"kernel/panic.h"
+#include"kernel/hal.h"
 #include"utils/utils.h"
 
 #include<stdio.h>
@@ -41,14 +42,16 @@ _Bool TransitionArray2[NUM_THREADS];
 //Validation
 //
 
-_Bool * DoTransition(INDEX index, _Bool * transitionArray) {
+_Bool * DoTransition(INDEX index) {
+  _Bool * transitionArray = THREAD_LOCAL_GET(_Bool *);
   transitionArray[index] = false;
 
   if( transitionArray == TransitionArray1 ) {
-    return TransitionArray2;
+    ThreadLocalSet(TransitionArray2);
   } else {
-    return TransitionArray1;
+    ThreadLocalSet(TransitionArray1);
   }
+  return transitionArray;
 }
 
 void ValidateState(_Bool * transitionArray) {
@@ -72,10 +75,9 @@ void ValidateState(_Bool * transitionArray) {
 THREAD_MAIN BlockingMain;
 void * BlockingMain(void * arg) {
   INDEX index = (INDEX) arg;
-  _Bool * array = TransitionArray1;
 
   while(true) {
-    array = DoTransition( index, array );
+    DoTransition( index );
     GatherSync( & Gather, NULL );
   }
   return NULL;
@@ -88,13 +90,12 @@ void * BlockingMain(void * arg) {
 THREAD_MAIN WaitMain;
 void * WaitMain(void * arg) {
   INDEX index = (INDEX) arg;
-  _Bool * array = TransitionArray1;
   struct LOCKING_CONTEXT context;
 
   LockingInit( & context, LockingBlockNonBlocking, LockingWakeNonBlocking );
 
   while(true) {
-    array = DoTransition( index, array );
+    DoTransition( index );
 
     GatherSync( & Gather, &context );
 
@@ -113,13 +114,12 @@ void * WaitMain(void * arg) {
 THREAD_MAIN SpinMain;
 void * SpinMain(void * arg) {
   INDEX index = (INDEX) arg;
-  _Bool * array = TransitionArray1;
   struct LOCKING_CONTEXT context;
 
   LockingInit( & context, LockingBlockNonBlocking, LockingWakeNonBlocking );
 
   while(true) {
-    array = DoTransition( index, array );
+    DoTransition( index );
     GatherSync( & Gather, &context );
     while( !LockingIsAcquired( & context ) );
 
@@ -134,14 +134,11 @@ void * SpinMain(void * arg) {
 THREAD_MAIN ValidateMain;
 void * ValidateMain(void * arg) {
   INDEX index = (INDEX) arg;
-  _Bool * array = TransitionArray1;
-  _Bool * check = NULL;
 
   while(true) {
-    check = array;
-    array = DoTransition( index, array );
+    _Bool * array = DoTransition( index );
     GatherSync( & Gather, NULL );
-    ValidateState( check );
+    ValidateState( array );
   }
   return NULL;
 }
@@ -167,7 +164,7 @@ int main() {
       STACK_SIZE,
       BlockingMain,
       (void *) 0,
-      NULL,
+      TransitionArray1,
       true);
   SchedulerCreateThread(
       &BlockThread2,
@@ -176,7 +173,7 @@ int main() {
       STACK_SIZE,
       BlockingMain,
       (void *) 1,
-      NULL,
+      TransitionArray1,
       true);
   SchedulerCreateThread(
       &WaitThread1,
@@ -185,7 +182,7 @@ int main() {
       STACK_SIZE,
       WaitMain,
       (void *) 2,
-      NULL,
+      TransitionArray1,
       true);
   SchedulerCreateThread(
       &WaitThread2,
@@ -194,7 +191,7 @@ int main() {
       STACK_SIZE,
       WaitMain,
       (void *) 3,
-      NULL,
+      TransitionArray1,
       true);
   SchedulerCreateThread(
       &SpinThread1,
@@ -203,7 +200,7 @@ int main() {
       STACK_SIZE,
       SpinMain,
       (void *) 4,
-      NULL,
+      TransitionArray1,
       true);
   SchedulerCreateThread(
       &SpinThread2,
@@ -212,7 +209,7 @@ int main() {
       STACK_SIZE,
       SpinMain,
       (void *) 5,
-      NULL,
+      TransitionArray1,
       true);
   SchedulerCreateThread(
       &ValidateThread,
@@ -221,7 +218,7 @@ int main() {
       STACK_SIZE,
       ValidateMain,
       (void *) 6,
-      NULL,
+      TransitionArray1,
       true);
 
   KernelStart();
