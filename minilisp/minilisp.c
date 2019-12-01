@@ -137,12 +137,15 @@ static Obj *Symbols;
 static void *cur_heap=NULL, *next_heap=NULL;
 
 // The pointer pointing to the beginning of the current heap
+// TODO
 static void *memory;
 
 // The pointer pointing to the beginning of the old heap
+// TODO
 static void *from_space;
 
 // The number of bytes allocated from the heap
+// TODO
 static size_t mem_nused = 0;
 
 // Flags to debug GC
@@ -210,6 +213,7 @@ static inline size_t roundup(size_t var, size_t size) {
 }
 
 // Allocates memory block. This may start GC if we don't have enough memory.
+// TODO
 static Obj *alloc(void *root, int type, size_t size) {
   // The object must be large enough to contain a pointer for the forwarding pointer. Make it
   // larger if it's smaller than that.
@@ -262,6 +266,7 @@ static Obj *scan2;
 
 // Moves one object from the from-space to the to-space. Returns the object's new address. If the
 // object has already been moved, does nothing but just returns the new address.
+// TODO
 static inline Obj *forward(Obj *obj) {
   // If the object's address is not in the from-space, the object is not managed by GC nor it
   // has already been moved to the to-space.
@@ -301,6 +306,7 @@ static void forward_root_objects(void *root) {
 
 // Implements Cheney's copying garbage collection algorithm.
 // http://en.wikipedia.org/wiki/Cheney%27s_algorithm
+// TODO
 static void gc(void *root) {
   ASSERT(!gc_running);
   gc_running = true;
@@ -1014,6 +1020,7 @@ static bool getEnvFlag(char *name) {
 }
 
 THREAD_MAIN lisp_main;
+//TODO
 void * lisp_main(void * arg) {
   // Debug flags
   debug_gc = getEnvFlag("MINILISP_DEBUG_GC");
