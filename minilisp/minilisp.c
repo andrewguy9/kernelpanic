@@ -214,8 +214,7 @@ static inline size_t roundup(size_t var, size_t size) {
 }
 
 // Allocates memory block. This may start GC if we don't have enough memory.
-// TODO
-static Obj *alloc(void *root, int type, size_t size) {
+static Obj *alloc(void *root, struct ALLOC_BLOCK * block, int type, size_t size) {
   // The object must be large enough to contain a pointer for the forwarding pointer. Make it
   // larger if it's smaller than that.
   size = roundup(size, sizeof(void *));
@@ -237,19 +236,19 @@ static Obj *alloc(void *root, int type, size_t size) {
     gc(root);
 
   // Otherwise, run GC only when the available memory is not large enough.
-  if (!always_gc && MEMORY_SIZE < block.mem_nused + size)
+  if (!always_gc && MEMORY_SIZE < block->mem_nused + size)
     gc(root);
 
   // Terminate the program if we couldn't satisfy the memory request. This can happen if the
   // requested size was too large or the from-space was filled with too many live objects.
-  if (MEMORY_SIZE < block.mem_nused + size)
+  if (MEMORY_SIZE < block->mem_nused + size)
     error("Memory exhausted");
 
   // Allocate the object.
-  Obj *obj = block.memory + block.mem_nused;
+  Obj *obj = block->memory + block->mem_nused;
   obj->type = type;
   obj->size = size;
-  block.mem_nused += size;
+  block->mem_nused += size;
   return obj;
 }
 
@@ -367,33 +366,33 @@ static void gc(void *root) {
 //======================================================================
 
 static Obj *make_int(void *root, int value) {
-  Obj *r = alloc(root, TINT, sizeof(int));
+  Obj *r = alloc(root, &block, TINT, sizeof(int));
   r->value = value;
   return r;
 }
 
 static Obj *cons(void *root, Obj **car, Obj **cdr) {
-  Obj *cell = alloc(root, TCELL, sizeof(Obj *) * 2);
+  Obj *cell = alloc(root, &block, TCELL, sizeof(Obj *) * 2);
   cell->car = *car;
   cell->cdr = *cdr;
   return cell;
 }
 
 static Obj *make_symbol(void *root, char *name) {
-  Obj *sym = alloc(root, TSYMBOL, strlen(name) + 1);
+  Obj *sym = alloc(root, &block, TSYMBOL, strlen(name) + 1);
   strcpy(sym->name, name);
   return sym;
 }
 
 static Obj *make_primitive(void *root, Primitive *fn) {
-  Obj *r = alloc(root, TPRIMITIVE, sizeof(Primitive *));
+  Obj *r = alloc(root, &block, TPRIMITIVE, sizeof(Primitive *));
   r->fn = fn;
   return r;
 }
 
 static Obj *make_function(void *root, Obj **env, int type, Obj **params, Obj **body) {
   ASSERT(type == TFUNCTION || type == TMACRO);
-  Obj *r = alloc(root, type, sizeof(Obj *) * 3);
+  Obj *r = alloc(root, &block, type, sizeof(Obj *) * 3);
   r->params = *params;
   r->body = *body;
   r->env = *env;
@@ -401,7 +400,7 @@ static Obj *make_function(void *root, Obj **env, int type, Obj **params, Obj **b
 }
 
 struct Obj *make_env(void *root, Obj **vars, Obj **up) {
-  Obj *r = alloc(root, TENV, sizeof(Obj *) * 2);
+  Obj *r = alloc(root, &block, TENV, sizeof(Obj *) * 2);
   r->vars = *vars;
   r->up = *up;
   return r;
