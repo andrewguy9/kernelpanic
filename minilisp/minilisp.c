@@ -135,9 +135,6 @@ static Obj *Symbols;
 #define MEMORY_SIZE 65536
 
 
-//TODO move to ALLOC_BLOCK.
-static void *cur_heap=NULL, *next_heap=NULL;
-
 struct ALLOC_BLOCK {
   // The pointer pointing to the beginning of the current heap
   void *memory;
@@ -147,6 +144,10 @@ struct ALLOC_BLOCK {
 
   // The number of bytes allocated from the heap
   size_t mem_nused;
+
+  void *cur_heap;
+  void *next_heap;
+
 };
 
 // Flags to debug GC
@@ -318,11 +319,10 @@ static void gc(void *root) {
   gc_running = true;
 
   // Swap heaps
-  // TODO cur_heap and next_heap should be part of block.
   block->from_space = block->memory;
-  block->memory = next_heap;
-  next_heap=cur_heap;
-  cur_heap=block->memory;
+  block->memory = block->next_heap;
+  block->next_heap=block->cur_heap;
+  block->cur_heap=block->memory;
 
   // Initialize the two pointers for GC. Initially they point to the beginning of the to-space.
   scan1 = scan2 = block->memory;
@@ -1043,11 +1043,10 @@ void * lisp_main(void * arg) {
   always_gc = getEnvFlag("MINILISP_ALWAYS_GC");
 
   // Memory allocation
-  // move cur_heap into block.
-  cur_heap = alloc_semispace("minilisp_heap1.map");
-  next_heap = alloc_semispace("minilisp_heap2.map");
   struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
-  block->memory = cur_heap;
+  block->cur_heap = alloc_semispace("minilisp_heap1.map");
+  block->next_heap = alloc_semispace("minilisp_heap2.map");
+  block->memory = block->cur_heap;
   block->mem_nused = 0;
 
   // Constants and primitives
