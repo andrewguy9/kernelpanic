@@ -135,6 +135,7 @@ static Obj *Symbols;
 #define MEMORY_SIZE 65536
 
 
+//TODO move to ALLOC_BLOCK.
 static void *cur_heap=NULL, *next_heap=NULL;
 
 struct ALLOC_BLOCK {
@@ -314,6 +315,7 @@ static void gc(void *root) {
   gc_running = true;
 
   // Swap heaps
+  // TODO cur_heap and next_heap should be part of block.
   block->from_space = block->memory;
   block->memory = next_heap;
   next_heap=cur_heap;
@@ -1036,6 +1038,7 @@ void * lisp_main(void * arg) {
   always_gc = getEnvFlag("MINILISP_ALWAYS_GC");
 
   // Memory allocation
+  // move cur_heap into block.
   cur_heap = alloc_semispace("minilisp_heap1.map");
   next_heap = alloc_semispace("minilisp_heap2.map");
   struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
