@@ -150,6 +150,7 @@ struct ALLOC_BLOCK {
 };
 
 // Flags to debug GC
+// TODO we should move these to alloc_block.
 static _Bool gc_running = false;
 static _Bool debug_gc = false;
 static _Bool always_gc = false;
@@ -232,6 +233,7 @@ static Obj *alloc(void *root, struct ALLOC_BLOCK * block, int type, size_t size)
   // more predictable and repeatable. If there's a memory bug that the C variable has a direct
   // reference to a Lisp object, the pointer will become invalid by this GC call. Dereferencing
   // that will immediately cause SEGV.
+  // TODO add gc_running to alloc_block.
   if (always_gc && !gc_running)
     gc(root);
 
@@ -310,6 +312,7 @@ static void forward_root_objects(void *root) {
 // http://en.wikipedia.org/wiki/Cheney%27s_algorithm
 // TODO
 static void gc(void *root) {
+  //TODO gc_running can be on alloc_block.
   ASSERT(!gc_running);
   struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
   gc_running = true;
@@ -1034,6 +1037,7 @@ static bool getEnvFlag(char *name) {
 THREAD_MAIN lisp_main;
 void * lisp_main(void * arg) {
   // Debug flags
+  // TODO move into alloc_block.
   debug_gc = getEnvFlag("MINILISP_DEBUG_GC");
   always_gc = getEnvFlag("MINILISP_ALWAYS_GC");
 
