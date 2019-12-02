@@ -134,6 +134,7 @@ int main()
                         STACK_SIZE,
                         ManagerMain,
                         NULL,
+                        NULL,
                         true );
 
         SchedulerCreateThread(
@@ -143,6 +144,7 @@ int main()
                         STACK_SIZE,
                         WaiterBlockingMain,
                         NULL,
+                        NULL,
                         true );
 
         SchedulerCreateThread(
@@ -151,6 +153,7 @@ int main()
                         WaiterNonBlockingStack,
                         STACK_SIZE,
                         WaiterNonBlockingMain,
+                        NULL,
                         NULL,
                         true );
 

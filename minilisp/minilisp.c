@@ -1068,6 +1068,7 @@ int main() {
       STACK_SIZE,
       lisp_main,
       NULL,
+      NULL,
       true);
   KernelStart();
   return 0;

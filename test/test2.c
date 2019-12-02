@@ -118,6 +118,7 @@ int main()
                         STACK_SIZE,
                         ProducerMain,
                         & ProducerContext1,
+                        NULL,
                         true);
         SchedulerCreateThread(
                         &Producer2,
@@ -126,6 +127,7 @@ int main()
                         STACK_SIZE,
                         ProducerMain,
                         & ProducerContext2,
+                        NULL,
                         true);
         SchedulerCreateThread(
                         &Consumer1,
@@ -134,6 +136,7 @@ int main()
                         STACK_SIZE,
                         ConsumerMain,
                         & ConsumerContext1,
+                        NULL,
                         true);
         SchedulerCreateThread(
                         &Consumer2,
@@ -142,6 +145,7 @@ int main()
                         STACK_SIZE,
                         ConsumerMain,
                         & ConsumerContext2,
+                        NULL,
                         true);
 
         SchedulerCreateThread(
@@ -151,6 +155,7 @@ int main()
                         STACK_SIZE,
                         ConsumerMain,
                         & ConsumerContext3,
+                        NULL,
                         true);
         WatchdogEnable( TIMEOUT );
         //Kick off the kernel.

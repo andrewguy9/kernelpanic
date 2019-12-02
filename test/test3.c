@@ -139,6 +139,7 @@ int main()
                         STACK_SIZE,
                         Reader,
                         NULL,
+                        NULL,
                         true);
         SchedulerCreateThread(
                         & Reader2,
@@ -146,6 +147,7 @@ int main()
                         Reader2Stack,
                         STACK_SIZE,
                         Reader,
+                        NULL,
                         NULL,
                         true);
         SchedulerCreateThread(
@@ -155,6 +157,7 @@ int main()
                         STACK_SIZE,
                         Reader,
                         NULL,
+                        NULL,
                         true);
         SchedulerCreateThread(
                         & Writer1,
@@ -163,6 +166,7 @@ int main()
                         STACK_SIZE,
                         Writer,
                         NULL,
+                        NULL,
                         true);
         SchedulerCreateThread(
                         & Writer2,
@@ -170,6 +174,7 @@ int main()
                         Writer2Stack,
                         STACK_SIZE,
                         Writer,
+                        NULL,
                         NULL,
                         true);
 
