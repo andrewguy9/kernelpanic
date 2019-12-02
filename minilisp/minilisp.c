@@ -148,13 +148,12 @@ struct ALLOC_BLOCK {
   void *cur_heap;
   void *next_heap;
 
-};
+  // Flags to debug GC
+  _Bool gc_running;
+  _Bool debug_gc;
+  _Bool always_gc;
 
-// Flags to debug GC
-// TODO we should move these to alloc_block.
-static _Bool gc_running = false;
-static _Bool debug_gc = false;
-static _Bool always_gc = false;
+};
 
 static void gc(void *root);
 
@@ -234,12 +233,11 @@ static Obj *alloc(void *root, struct ALLOC_BLOCK * block, int type, size_t size)
   // more predictable and repeatable. If there's a memory bug that the C variable has a direct
   // reference to a Lisp object, the pointer will become invalid by this GC call. Dereferencing
   // that will immediately cause SEGV.
-  // TODO add gc_running to alloc_block.
-  if (always_gc && !gc_running)
+  if (block->always_gc && !block->gc_running)
     gc(root);
 
   // Otherwise, run GC only when the available memory is not large enough.
-  if (!always_gc && MEMORY_SIZE < block->mem_nused + size)
+  if (!block->always_gc && MEMORY_SIZE < block->mem_nused + size)
     gc(root);
 
   // Terminate the program if we couldn't satisfy the memory request. This can happen if the
@@ -311,12 +309,10 @@ static void forward_root_objects(void *root) {
 
 // Implements Cheney's copying garbage collection algorithm.
 // http://en.wikipedia.org/wiki/Cheney%27s_algorithm
-// TODO
 static void gc(void *root) {
-  //TODO gc_running can be on alloc_block.
-  ASSERT(!gc_running);
   struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
-  gc_running = true;
+  ASSERT(!block->gc_running);
+  block->gc_running = true;
 
   // Swap heaps
   block->from_space = block->memory;
@@ -363,9 +359,9 @@ static void gc(void *root) {
   // Finish up GC.
   size_t old_nused = block->mem_nused;
   block->mem_nused = (size_t)((uint8_t *)scan1 - (uint8_t *)block->memory);
-  if (debug_gc)
+  if (block->debug_gc)
     lisp_printf("GC: %zu bytes out of %zu bytes copied.\n", block->mem_nused, old_nused);
-  gc_running = false;
+  block->gc_running = false;
 }
 
 //======================================================================
@@ -1037,17 +1033,16 @@ static bool getEnvFlag(char *name) {
 
 THREAD_MAIN lisp_main;
 void * lisp_main(void * arg) {
-  // Debug flags
-  // TODO move into alloc_block.
-  debug_gc = getEnvFlag("MINILISP_DEBUG_GC");
-  always_gc = getEnvFlag("MINILISP_ALWAYS_GC");
-
   // Memory allocation
   struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
   block->cur_heap = alloc_semispace("minilisp_heap1.map");
   block->next_heap = alloc_semispace("minilisp_heap2.map");
   block->memory = block->cur_heap;
   block->mem_nused = 0;
+  // Debug flags
+  block->debug_gc = getEnvFlag("MINILISP_DEBUG_GC");
+  block->always_gc = getEnvFlag("MINILISP_ALWAYS_GC");
+
 
   // Constants and primitives
   // TODO symbols should be part of thread local.
