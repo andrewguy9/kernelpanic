@@ -1065,7 +1065,7 @@ struct THREAD LispThread;
 char LispThreadStack[STACK_SIZE];
 
 int main() {
-struct ALLOC_BLOCK block;
+  struct ALLOC_BLOCK block;
 
   KernelInit();
   SerialStartup();
