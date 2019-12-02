@@ -1029,6 +1029,7 @@ static void define_primitives(void *root, Obj **env) {
 //======================================================================
 
 // Returns true if the environment variable is defined and not the empty string.
+//TODO candidate for removal.
 static bool getEnvFlag(char *name) {
   char *val = getenv(name);
   return val && val[0];
