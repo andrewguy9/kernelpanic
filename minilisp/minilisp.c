@@ -147,8 +147,6 @@ struct ALLOC_BLOCK {
   size_t mem_nused;
 };
 
-struct ALLOC_BLOCK block;
-
 // Flags to debug GC
 static _Bool gc_running = false;
 static _Bool debug_gc = false;
@@ -268,9 +266,10 @@ static Obj *scan2;
 // object has already been moved, does nothing but just returns the new address.
 // TODO
 static inline Obj *forward(Obj *obj) {
+  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
   // If the object's address is not in the from-space, the object is not managed by GC nor it
   // has already been moved to the to-space.
-  ptrdiff_t offset = (uint8_t *)obj - (uint8_t *)block.from_space;
+  ptrdiff_t offset = (uint8_t *)obj - (uint8_t *)block->from_space;
   if (offset < 0 || MEMORY_SIZE <= offset)
     return obj;
 
@@ -309,16 +308,17 @@ static void forward_root_objects(void *root) {
 // TODO
 static void gc(void *root) {
   ASSERT(!gc_running);
+  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
   gc_running = true;
 
   // Swap heaps
-  block.from_space = block.memory;
-  block.memory = next_heap;
+  block->from_space = block->memory;
+  block->memory = next_heap;
   next_heap=cur_heap;
-  cur_heap=block.memory;
+  cur_heap=block->memory;
 
   // Initialize the two pointers for GC. Initially they point to the beginning of the to-space.
-  scan1 = scan2 = block.memory;
+  scan1 = scan2 = block->memory;
 
   // Copy the GC root objects first. This moves the pointer scan2.
   forward_root_objects(root);
@@ -354,10 +354,10 @@ static void gc(void *root) {
   }
 
   // Finish up GC.
-  size_t old_nused = block.mem_nused;
-  block.mem_nused = (size_t)((uint8_t *)scan1 - (uint8_t *)block.memory);
+  size_t old_nused = block->mem_nused;
+  block->mem_nused = (size_t)((uint8_t *)scan1 - (uint8_t *)block->memory);
   if (debug_gc)
-    lisp_printf("GC: %zu bytes out of %zu bytes copied.\n", block.mem_nused, old_nused);
+    lisp_printf("GC: %zu bytes out of %zu bytes copied.\n", block->mem_nused, old_nused);
   gc_running = false;
 }
 
@@ -366,33 +366,38 @@ static void gc(void *root) {
 //======================================================================
 
 static Obj *make_int(void *root, int value) {
-  Obj *r = alloc(root, &block, TINT, sizeof(int));
+  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
+  Obj *r = alloc(root, block, TINT, sizeof(int));
   r->value = value;
   return r;
 }
 
 static Obj *cons(void *root, Obj **car, Obj **cdr) {
-  Obj *cell = alloc(root, &block, TCELL, sizeof(Obj *) * 2);
+  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
+  Obj *cell = alloc(root, block, TCELL, sizeof(Obj *) * 2);
   cell->car = *car;
   cell->cdr = *cdr;
   return cell;
 }
 
 static Obj *make_symbol(void *root, char *name) {
-  Obj *sym = alloc(root, &block, TSYMBOL, strlen(name) + 1);
+  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
+  Obj *sym = alloc(root, block, TSYMBOL, strlen(name) + 1);
   strcpy(sym->name, name);
   return sym;
 }
 
 static Obj *make_primitive(void *root, Primitive *fn) {
-  Obj *r = alloc(root, &block, TPRIMITIVE, sizeof(Primitive *));
+  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
+  Obj *r = alloc(root, block, TPRIMITIVE, sizeof(Primitive *));
   r->fn = fn;
   return r;
 }
 
 static Obj *make_function(void *root, Obj **env, int type, Obj **params, Obj **body) {
   ASSERT(type == TFUNCTION || type == TMACRO);
-  Obj *r = alloc(root, &block, type, sizeof(Obj *) * 3);
+  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
+  Obj *r = alloc(root, block, type, sizeof(Obj *) * 3);
   r->params = *params;
   r->body = *body;
   r->env = *env;
@@ -400,7 +405,8 @@ static Obj *make_function(void *root, Obj **env, int type, Obj **params, Obj **b
 }
 
 struct Obj *make_env(void *root, Obj **vars, Obj **up) {
-  Obj *r = alloc(root, &block, TENV, sizeof(Obj *) * 2);
+  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
+  Obj *r = alloc(root, block, TENV, sizeof(Obj *) * 2);
   r->vars = *vars;
   r->up = *up;
   return r;
@@ -1028,8 +1034,9 @@ void * lisp_main(void * arg) {
   // Memory allocation
   cur_heap = alloc_semispace("minilisp_heap1.map");
   next_heap = alloc_semispace("minilisp_heap2.map");
-  block.memory = cur_heap;
-  block.mem_nused = 0;
+  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
+  block->memory = cur_heap;
+  block->mem_nused = 0;
 
   // Constants and primitives
   Symbols = Nil;
@@ -1058,6 +1065,8 @@ struct THREAD LispThread;
 char LispThreadStack[STACK_SIZE];
 
 int main() {
+struct ALLOC_BLOCK block;
+
   KernelInit();
   SerialStartup();
   SchedulerStartup();
@@ -1068,7 +1077,7 @@ int main() {
       STACK_SIZE,
       lisp_main,
       NULL,
-      NULL,
+      &block,
       true);
   KernelStart();
   return 0;
