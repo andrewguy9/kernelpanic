@@ -6,5 +6,6 @@
 void SerialStartup();
 COUNT SerialWrite(char * buf, COUNT len);
 COUNT SerialRead(char * buf, COUNT len);
+_Bool SerialPeak(char * out);
 
 #endif
