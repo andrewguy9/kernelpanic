@@ -1,5 +1,3 @@
-// This software is in the public domain.
-
 #include"kernel/startup.h"
 #include"kernel/scheduler.h"
 #include "utils/utils.h"
