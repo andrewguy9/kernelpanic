@@ -131,8 +131,7 @@ static Obj *Symbols;
 // Memory management
 //======================================================================
 
-// The size of the heap in byte
-// TODO move into alloc_block
+// The size of the heap in bytes
 #define MEMORY_SIZE 65536
 
 
@@ -148,6 +147,8 @@ struct ALLOC_BLOCK {
 
   void *cur_heap;
   void *next_heap;
+
+  size_t memory_size;
 
   // Flags to debug GC
   _Bool gc_running;
@@ -238,12 +239,12 @@ static Obj *alloc(void *root, struct ALLOC_BLOCK * block, int type, size_t size)
     gc(root);
 
   // Otherwise, run GC only when the available memory is not large enough.
-  if (!block->always_gc && MEMORY_SIZE < block->mem_nused + size)
+  if (!block->always_gc && block->memory_size < block->mem_nused + size)
     gc(root);
 
   // Terminate the program if we couldn't satisfy the memory request. This can happen if the
   // requested size was too large or the from-space was filled with too many live objects.
-  if (MEMORY_SIZE < block->mem_nused + size)
+  if (block->memory_size < block->mem_nused + size)
     error("Memory exhausted");
 
   // Allocate the object.
@@ -274,7 +275,7 @@ static inline Obj *forward(Obj *obj) {
   // If the object's address is not in the from-space, the object is not managed by GC nor it
   // has already been moved to the to-space.
   ptrdiff_t offset = (uint8_t *)obj - (uint8_t *)block->from_space;
-  if (offset < 0 || MEMORY_SIZE <= offset)
+  if (offset < 0 || block->memory_size <= offset)
     return obj;
 
   // The pointer is pointing to the from-space, but the object there was a tombstone. Follow the
@@ -294,8 +295,8 @@ static inline Obj *forward(Obj *obj) {
   return newloc;
 }
 
-static void *alloc_semispace(char * tag) {
-  return HalMap(tag, NULL, MEMORY_SIZE);
+static void *alloc_semispace(char * tag, size_t size) {
+  return HalMap(tag, NULL, size);
 }
 
 // Copies the root objects.
@@ -1036,8 +1037,9 @@ THREAD_MAIN lisp_main;
 void * lisp_main(void * arg) {
   // Memory allocation
   struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
-  block->cur_heap = alloc_semispace("minilisp_heap1.map");
-  block->next_heap = alloc_semispace("minilisp_heap2.map");
+  block->cur_heap = alloc_semispace("minilisp_heap1.map", MEMORY_SIZE);
+  block->next_heap = alloc_semispace("minilisp_heap2.map", MEMORY_SIZE);
+  block->memory_size = MEMORY_SIZE;
   block->memory = block->cur_heap;
   block->mem_nused = 0;
   // Debug flags
