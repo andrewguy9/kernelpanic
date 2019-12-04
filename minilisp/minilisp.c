@@ -122,11 +122,6 @@ static Obj *Nil = &(Obj){ TNIL };
 static Obj *Dot = &(Obj){ TDOT };
 static Obj *Cparen = &(Obj){ TCPAREN };
 
-// The list containing all symbols. Such data structure is traditionally called the "obarray", but I
-// avoid using it as a variable name as this is not an array but a list.
-// TODO move into struct
-static Obj *Symbols;
-
 //======================================================================
 // Memory management
 //======================================================================
@@ -154,6 +149,10 @@ struct ALLOC_BLOCK {
   _Bool gc_running;
   _Bool debug_gc;
   _Bool always_gc;
+
+  // The list containing all symbols. Such data structure is traditionally called the "obarray", but I
+  // avoid using it as a variable name as this is not an array but a list.
+  Obj *Symbols;
 
 };
 
@@ -301,8 +300,8 @@ static void *alloc_semispace(char * tag, size_t size) {
 
 // Copies the root objects.
 static void forward_root_objects(void *root) {
-  //TODO get from thread_local
-  Symbols = forward(Symbols);
+  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
+  block->Symbols = forward(block->Symbols);
   for (void **frame = root; frame; frame = *(void ***)frame)
     for (int i = 1; frame[i] != ROOT_END; i++)
       if (frame[i])
@@ -486,14 +485,13 @@ static Obj *read_list(void *root) {
 // May create a new symbol. If there's a symbol with the same name, it will not create a new symbol
 // but return the existing one.
 static Obj *intern(void *root, char *name) {
-  //TODO get symbols from thread_local.
-  for (Obj *p = Symbols; p != Nil; p = p->cdr)
+  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
+  for (Obj *p = block->Symbols; p != Nil; p = p->cdr)
     if (strcmp(name, p->car->name) == 0)
       return p->car;
   DEFINE1(sym);
   *sym = make_symbol(root, name);
-  //TODO store symbols into thread local.
-  Symbols = cons(root, sym, &Symbols);
+  block->Symbols = cons(root, sym, &block->Symbols);
   return *sym;
 }
 
@@ -1048,8 +1046,7 @@ void * lisp_main(void * arg) {
 
 
   // Constants and primitives
-  // TODO symbols should be part of thread local.
-  Symbols = Nil;
+  block->Symbols = Nil;
   void *root = NULL;
   DEFINE2(env, expr);
   *env = make_env(root, &Nil, &Nil);
