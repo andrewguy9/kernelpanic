@@ -132,6 +132,7 @@ static Obj *Symbols;
 //======================================================================
 
 // The size of the heap in byte
+// TODO move into alloc_block
 #define MEMORY_SIZE 65536
 
 
