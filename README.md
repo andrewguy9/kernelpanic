@@ -8,11 +8,20 @@ Features:
 
 * Small memory footprint (<2k RAM, <30k flash with kernel and application code)
 * Differed interrupt processing for real-time performance
-* Support for semaphores, mutexs, Dual mode locks, gather scatter locks, and signals
+* Support for semaphores, mutex, Dual mode locks, gather scatter locks, and signals
 * Pre-emptive Thread Scheduling
 * Worker threads
 * Programmable Watchdog.
 * Machine independent implementation (all machine specifics are in one file)
+* Embedded lisp interpreter and serial repl.
+
+Building:
+===
+
+* `make pc` builds kernel and tests in debug build mode.
+* `make pc_fre` builds kernel and tests in release mode.
+* `./regression -r $runs -b $threads -t $seconds` will run regression tests.
+* `./benchmark -r $runs -b $threads branch1 branch2` will run performance tests and reports.
 
 Supported Architectures:
 ===
