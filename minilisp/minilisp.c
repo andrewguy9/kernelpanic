@@ -1024,27 +1024,29 @@ static void define_primitives(void *root, Obj **env) {
 // Entry point
 //======================================================================
 
-// Returns true if the environment variable is defined and not the empty string.
-//TODO candidate for removal.
-static bool getEnvFlag(char *name) {
-  char *val = getenv(name);
-  return val && val[0];
-}
-
-THREAD_MAIN lisp_main;
-void * lisp_main(void * arg) {
+void lisp_init(
+    struct ALLOC_BLOCK * block,
+    void * heap1,
+    void * heap2,
+    size_t heap_size,
+    _Bool debug_gc,
+    _Bool always_gc) {
   // Memory allocation
-  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
-  block->cur_heap = alloc_semispace("minilisp_heap1.map", MEMORY_SIZE);
-  block->next_heap = alloc_semispace("minilisp_heap2.map", MEMORY_SIZE);
-  block->memory_size = MEMORY_SIZE;
+  block->cur_heap = heap1;
+  block->next_heap = heap2;
+  block->memory_size = heap_size;
   block->memory = block->cur_heap;
   block->mem_nused = 0;
   // Debug flags
-  block->debug_gc = getEnvFlag("MINILISP_DEBUG_GC");
-  block->always_gc = getEnvFlag("MINILISP_ALWAYS_GC");
+  block->debug_gc = debug_gc;
+  block->always_gc = always_gc;
 
+}
 
+THREAD_MAIN lisp_repl_main;
+void * lisp_repl_main(void * arg) {
+
+  struct ALLOC_BLOCK * block = THREAD_LOCAL_GET(struct ALLOC_BLOCK *);
   // Constants and primitives
   block->Symbols = Nil;
   void *root = NULL;
@@ -1073,16 +1075,22 @@ char LispThreadStack[STACK_SIZE];
 
 int main() {
   struct ALLOC_BLOCK block;
-
   KernelInit();
   SerialStartup();
   SchedulerStartup();
+  lisp_init(
+      &block,
+      alloc_semispace("minilisp_heap1.map", MEMORY_SIZE),
+      alloc_semispace("minilisp_heap2.map", MEMORY_SIZE),
+      MEMORY_SIZE,
+      false,
+      false);
   SchedulerCreateThread(
       &LispThread,
       255,
       LispThreadStack,
       STACK_SIZE,
-      lisp_main,
+      lisp_repl_main,
       NULL,
       &block,
       true);
