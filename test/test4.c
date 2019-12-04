@@ -101,6 +101,7 @@ int main()
                         STACK_SIZE,
                         SleeperMain,
                         NULL,
+                        NULL,
                         true);
 
         KernelStart();

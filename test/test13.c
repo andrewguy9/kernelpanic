@@ -48,6 +48,7 @@ int main(int argc, char ** argv)
       STACK_SIZE,
       PrimesMain,
       PRIME_TAG1,
+      NULL,
       true);
 
   SchedulerCreateThread(
@@ -57,6 +58,7 @@ int main(int argc, char ** argv)
       STACK_SIZE,
       PrimesMain,
       PRIME_TAG1,
+      NULL,
       true);
 
   KernelStart();

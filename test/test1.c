@@ -69,6 +69,7 @@ int main()
                         STACK_SIZE,
                         Test1ThreadMain,
                         &Value1,
+                        NULL,
                         true);
 
         SchedulerCreateThread(
@@ -78,6 +79,7 @@ int main()
                         STACK_SIZE,
                         Test1ThreadMain,
                         &Value2,
+                        NULL,
                         true);
 
         SchedulerCreateThread(
@@ -87,6 +89,7 @@ int main()
                         STACK_SIZE,
                         Test1ThreadMain,
                         &Value3,
+                        NULL,
                         true);
 
         KernelStart();

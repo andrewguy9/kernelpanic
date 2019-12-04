@@ -177,6 +177,7 @@ void WorkerCreateWorker(
                         stackSize,
                         WorkerThreadMain,
                         queue,
+                        NULL,
                         true);
 }
 

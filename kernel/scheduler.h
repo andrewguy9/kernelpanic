@@ -38,11 +38,16 @@ void SchedulerCreateThread(
                 COUNT stackSize,
                 THREAD_MAIN main,
                 void * Argument,
+                void * Local,
                 _Bool start);
 
 struct LOCKING_CONTEXT * SchedulerGetLockingContext();
 
 void * SchedulerJoinThread(struct THREAD * thread);
 void SchedulerReleaseThread(struct THREAD * thread);
+
+void * ThreadLocalGet();
+#define THREAD_LOCAL_GET(type) ( (type) ThreadLocalGet() )
+void ThreadLocalSet(void * val);
 
 #endif
