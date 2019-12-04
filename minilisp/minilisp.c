@@ -9,8 +9,6 @@
 #include <stdio.h> //EOF vsnprintf
 #include <string.h> //memcpy strlen strcmp strchr
 
-#define STACK_SIZE HAL_MIN_STACK_SIZE
-
 static char peek(void) {
   char c;
   do {} while(! SerialPeak(&c));
@@ -123,10 +121,6 @@ static Obj *Cparen = &(Obj){ TCPAREN };
 //======================================================================
 // Memory management
 //======================================================================
-
-// The size of the heap in bytes
-#define MEMORY_SIZE 65536
-
 
 struct ALLOC_BLOCK {
   // The pointer pointing to the beginning of the current heap
@@ -1070,6 +1064,11 @@ void * lisp_repl_main(void * arg) {
 
 struct THREAD LispThread;
 char LispThreadStack[STACK_SIZE];
+
+#define STACK_SIZE HAL_MIN_STACK_SIZE
+
+// The size of the heap in bytes
+#define MEMORY_SIZE 65536
 
 int main() {
   struct ALLOC_BLOCK block;
