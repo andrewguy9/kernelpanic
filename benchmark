@@ -62,6 +62,6 @@ do
   echo "building"
   make pc pc_fre > /dev/null
   ./perf --batch "$batch" --runs "$runs" --jobid "$jobid" "${tests[@]}"
-  ./perf_report "$jobid" "$b1" "$b2"
+  ./perf_report "$b1" "$b2"
 done
 
