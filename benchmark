@@ -1,37 +1,29 @@
 #!/bin/bash
 
-USAGE="$0 [-r=x] [-b=y] branch1 [branch2 ...]"
-
-OPTS=$(getopt r:b:h $*)
-
-if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
-
-set -- $OPTS
+USAGE="$0 [-r=runs] [-b=batch_size] branch1 [branch2 ...]"
 
 runs=3
 batch=1
 
-for i
-do
-    case "$i" in
-    -h)
+while getopts "r:b:h" opt; do
+  case ${opt} in
+    h)
       echo "help: $USAGE"
       exit 0
       ;;
-    -r)
-      runs=$2
-      shift 2
+    r)
+      runs=$OPTARG
       ;;
-    -b)
-      batch=$2
-      shift 2
+    b)
+      batch=$OPTARG
       ;;
-    --)
-      shift
-      break
+    \? )
+      echo "Usage: $USAGE"
+      exit 1
       ;;
-    esac
+  esac
 done
+shift $((OPTIND -1))
 
 if [ "$#" -lt 1 ]; then
     echo "illegal number of parameters"
@@ -40,7 +32,6 @@ if [ "$#" -lt 1 ]; then
 fi
 
 jobid=$(uuidgen)
-
 
 dirty=$(git status --porcelain | perl -ne '/^ M (.*)/&& print "$1, "')
 if [ "$dirty" ]
@@ -52,12 +43,16 @@ fi
 b1=$1
 shift
 
+while IFS= read -r line; do
+    tests+=("$line")
+done < <(cat ./performance.txt)
+
 echo "cleaning"
 make clean > /dev/null
 git checkout "$b1"
 echo "building"
 make pc pc_fre > /dev/null
-./perf --batch "$batch" --runs "$runs" "$jobid" $(cat ./performance.txt)
+./perf --batch "$batch" --runs "$runs" --jobid "$jobid" "${tests[@]}"
 
 for b2 in "$@";
 do
@@ -66,7 +61,7 @@ do
   git checkout "$b2"
   echo "building"
   make pc pc_fre > /dev/null
-  ./perf.pl --batch "$batch" --runs "$runs" "$jobid" $(cat ./performance.txt)
-  ./perf_report $jobid $b1 $b2
+  ./perf.pl --batch "$batch" --runs "$runs" --jobid "$jobid" "${tests[@]}"
+  ./perf_report "$jobid" "$b1" "$b2"
 done
 
