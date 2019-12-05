@@ -61,7 +61,7 @@ do
   git checkout "$b2"
   echo "building"
   make pc pc_fre > /dev/null
-  ./perf.pl --batch "$batch" --runs "$runs" --jobid "$jobid" "${tests[@]}"
+  ./perf --batch "$batch" --runs "$runs" --jobid "$jobid" "${tests[@]}"
   ./perf_report "$jobid" "$b1" "$b2"
 done
 
