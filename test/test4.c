@@ -24,14 +24,14 @@ char SleeperStack[STACK_SIZE];
 //Define Timer
 struct HANDLER_OBJECT Timer;
 
-COUNT TimerCycles;//Times we have run the test.
+volatile COUNT TimerCycles;//Times we have run the test.
 
 //Crit Function
 HANDLER_FUNCTION CritHandler;
 _Bool CritHandler( struct HANDLER_OBJECT * handler )
 {
 	ASSERT( SchedulerIsCritical() );
-	if( !SchedulerIsThreadBlocked( &SleeperThread ) ) {
+	if( TimerCycles != (COUNT) handler->Context ) {
 		KernelPanic( );
 	}
 
@@ -45,7 +45,7 @@ _Bool TimerHandler( struct HANDLER_OBJECT * handler )
 	CritInterruptRegisterHandler(
 			handler,
 			CritHandler,
-			NULL );
+			handler->Context);
 
 	return false;
 }
@@ -64,10 +64,13 @@ void * SleeperMain(void * unused)
 					& Timer,
 					Sequence[cur] - 1,
 					TimerHandler,
-					NULL);
+					(void *) TimerCycles);
 
 			//Go to sleep:
 			Sleep( Sequence[cur] );
+
+			//Increase our iteration count.
+			TimerCycles++;
 
 			//Check to see if the timer fired before we woke.
 			IsrDisable(IRQ_LEVEL_MAX);
@@ -76,9 +79,6 @@ void * SleeperMain(void * unused)
 				KernelPanic( );
 			}
 			IsrEnable(IRQ_LEVEL_MAX);
-
-			//Increase our iteration count.
-			TimerCycles++;
 		}
 	}
         return NULL;
