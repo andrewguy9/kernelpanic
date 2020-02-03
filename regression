@@ -104,5 +104,6 @@ exit($status);
 
 sub runtest {
   my $test_name = shift @_;
+  $ENV{'LLVM_PROFILE_FILE'}="$test_name.%p.profraw";
   exec "./perf.py", "--until=$timeout", $jobid, $branch, $commit, $dirty_str, $test_name;
 }

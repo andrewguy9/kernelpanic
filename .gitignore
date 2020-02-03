@@ -5,4 +5,4 @@ tags
 *.map
 .DS_Store
 perf.csv
-default.profraw
+*.profraw
