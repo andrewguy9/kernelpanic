@@ -64,7 +64,7 @@ def get_stack(program, core):
     stack += "-" * 80
     return stack
 
-def get_perf(program, pid):
+def get_coverage(program, pid):
     perf_command = ["./coverage.sh", str(program), str(pid)]
     report = subprocess.check_output(perf_command)
     return report
@@ -91,7 +91,7 @@ else: # parent
     user_time = usage.ru_utime
     sys_time = usage.ru_stime
     total_time = user_time + sys_time
-    get_perf(test_name, test_pid)
+    get_coverage(test_name, test_pid)
     if status != 0:
         src_core = find_core(test_pid)
         dst_core = "./%s.%s.core" % (test_name, test_pid)
