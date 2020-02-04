@@ -76,9 +76,13 @@ else: # parent
     def alarm_handler(signum, frame):
         if args.timeout:
             os.kill(child, signal.SIGINT)
+            (pid, status, usage) = os.wait4(child, 0)
+            get_coverage(test_name, pid)
             exit_with_msg(test_name, child, "TIMEOUT", 1)
         elif args.until:
             os.kill(child, signal.SIGINT)
+            (pid, status, usage) = os.wait4(child, 0)
+            get_coverage(test_name, pid)
             exit_with_msg(test_name, child, "SUCCESS", 0)
     signal.signal(signal.SIGALRM, alarm_handler)
     if args.timeout:
