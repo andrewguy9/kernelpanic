@@ -30,8 +30,8 @@ ISR_HANDLER* IsrHandlerTable[IRQ_LEVEL_COUNT];
 //Run at kernel startup to initialize flags.
 void IsrStartup()
 {
-        INDEX i;
-        for(i = 0; i < IRQ_LEVEL_COUNT; i++) {
+        HalIsrInit();
+        for(INDEX i = 0; i < IRQ_LEVEL_COUNT; i++) {
                 IsrDisabledCount[i] = 0;
                 IsrHandlerTable[i] = NULL;
         }
