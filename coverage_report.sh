@@ -9,5 +9,6 @@ first_test=$(first "${perf_tests[@]}")
 rest_tests=( $(rest "${perf_tests[@]}") )
 tests_str=$(join_by "," "${rest_tests[@]}")
 
+#TODO use xcrun only on Darwin.
 $(xcrun --find llvm-profdata) merge -sparse pc_dbg_kern__test*.out.*.profdata -o combined.profdata
 $(xcrun --find llvm-cov) report "$first_test" -object="$tests_str" -instr-profile combined.profdata

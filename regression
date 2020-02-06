@@ -93,6 +93,7 @@ while (@tests || $running > 0) {
     }
   } else {
     my $pid = wait;
+    # TODO Exit code for cancelled pids should be 1, and thats ok.
     if ($? != 0) {
       $status = 1;
     }

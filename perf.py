@@ -78,11 +78,13 @@ else: # parent
             os.kill(child, signal.SIGINT)
             (pid, status, usage) = os.wait4(child, 0)
             get_coverage(test_name, pid)
+            #TODO we are masking exit code of test
             exit_with_msg(test_name, child, "TIMEOUT", 1)
         elif args.until:
             os.kill(child, signal.SIGINT)
             (pid, status, usage) = os.wait4(child, 0)
             get_coverage(test_name, pid)
+            #TODO we are masking exit code of test
             exit_with_msg(test_name, child, "SUCCESS", 0)
     signal.signal(signal.SIGALRM, alarm_handler)
     if args.timeout:

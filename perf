@@ -104,6 +104,7 @@ exit($status);
 
 sub runtest {
   my $test_name = shift @_;
+  #TODO we can put this env variable into the test running harness directly.
   $ENV{'LLVM_PROFILE_FILE'}="$test_name.%p.profraw";
   exec "./perf.py", "--timeout=$timeout" , $jobid, $branch, $commit, $dirty_str, $test_name;
 }

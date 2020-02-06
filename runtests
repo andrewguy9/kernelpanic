@@ -64,3 +64,4 @@ echo "Running performance tests"
 ./perf       --batch $batch --runs $runs --jobid "$jobid"
 echo "Performance compared to $dst_branch"
 ./perf_report $dst_branch HEAD
+#TODO compare coverage
