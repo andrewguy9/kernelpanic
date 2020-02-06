@@ -9,6 +9,8 @@
  * Value2 = 2 * Value3.
  */
 
+#define ITERATIONS 1000000
+
 //
 //Main routine for threads.
 //
@@ -16,15 +18,16 @@
 THREAD_MAIN Test1ThreadMain;
 void * Test1ThreadMain( void * arg )
 {
+        SchedulerShutdown( );
 	COUNT * var = (COUNT *) arg;
-	volatile unsigned char a = 0;
 	while( 1 )
 	{
 		(*var)++;
-		for(a=1;a>0;a++);
-
+		for(unsigned char a=1;a>0;a++) {}
+                if (*var > ITERATIONS) {
+                  return NULL;
+                }
 	}
-        return NULL;
 }
 
 //
