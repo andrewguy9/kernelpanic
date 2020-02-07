@@ -65,8 +65,8 @@ def get_stack(program, core):
     return stack
 
 def get_coverage(program, pid):
-    perf_command = ["./coverage.sh", str(program), str(pid)]
-    report = subprocess.check_output(perf_command)
+    coverage_command = ["./coverage.sh", str(program), str(pid)]
+    report = subprocess.check_output(coverage_command)
     return report
 
 child = os.fork()
