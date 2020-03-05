@@ -1,14 +1,30 @@
 #!/bin/bash
 
+profdata=$(xcrun --find llvm-profdata)
+llvm_cov=$(xcrun --find llvm-cov)
+
 function join_by { local IFS="$1"; shift; echo "$*"; }
 function first { echo "$1"; }
 function rest { shift; echo "$@"; }
 
-tests=( $(cat performance.txt regression.txt | grep dbg) )
-first_test=$(first "${tests[@]}")
-rest_tests=( $(rest "${tests[@]}") )
-tests_str=$(join_by "," "${rest_tests[@]}")
+tests=${*}
+first_test=$(first ${tests[@]})
+rest_tests=$(rest ${tests[@]})
+tests_str=$(join_by "," ${rest_tests[@]})
+datas=()
+
+shopt -s nullglob
+for test in $tests
+do
+  for raw in "$test".*.profraw
+  do
+    data="${raw%.profraw}.profdata"
+    $profdata merge --sparse "$raw" -o "$data"
+    datas=("${datas[@]}" $data)
+  done
+done
 
 #TODO use xcrun only on Darwin.
-$(xcrun --find llvm-profdata) merge -sparse pc_dbg_kern__test*.out.*.profdata -o combined.profdata
-$(xcrun --find llvm-cov) report "$first_test" -object="$tests_str" -instr-profile combined.profdata
+#TODO we are not globbing the test specific data.
+$profdata merge -sparse "${datas[@]}" -o combined.profdata
+$llvm_cov report "$first_test" -object="$tests_str" -instr-profile combined.profdata
