@@ -18,7 +18,6 @@ KERN_PREFIX = kern_
 ##############################################
 #c flags
 ifeq ($(shell uname), Darwin)
-# TODO Should we create coverage versions of dbg and fre and run those for coverage?
 PC_CFLAGS  = -g -Wall -Werror -I "$(PWD)" -fprofile-instr-generate -fcoverage-mapping
 PC_CFLAGS_FAST = $(PC_CFLAGS) -O3
 AVR_CFLAGS = -Wall -Werror -mmcu=atmega128 -O2
