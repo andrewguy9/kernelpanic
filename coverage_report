@@ -3,6 +3,9 @@ jobid1=$1
 baseline_branch=$2
 feature_branch=$3
 
+#TODO add param checks
+#TODO add help detector
+
 read -r -d '' sql <<- _EOM_
 create table coverage(
   job text,
