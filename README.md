@@ -44,3 +44,21 @@ To enable coredumps:
 sudo su
 echo %e.%p.core > /proc/sys/kernel/core_pattern
 ```
+
+Debugging:
+===
+
+lldb
+---
+
+Panic uses signals to simulate hardware interrupts. LLDB captures signals and presents them to the user. Generally, when using LLDB you should disable signal handling so that Panic can do it's work.
+
+`process handle SIGNAL_X -n false -p true -s false`
+
+In most cases you should ignore the following signals:
+```
+SIGINFO
+SIGALRM
+SIGUSR1
+SIGUSR2
+```
