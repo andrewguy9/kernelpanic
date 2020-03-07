@@ -32,13 +32,15 @@ while getopts "r:b:h" opt; do
 done
 shift $((OPTIND -1))
 
+starting_branch=$(git rev-parse --abbrev-ref HEAD)
+
 if [ "$#" -lt 1 ]; then
     echo "must specify a branch to compare against (master?)"
     echo "$USAGE"
     exit 2
   elif [ "$#" -lt 2 ]; then
-    echo "comparing against HEAD"
-    branches=("HEAD" "${*}")
+    echo "comparing against $starting_branch"
+    branches=("${*}" "$starting_branch")
   else
     branches=("${@}")
 fi
@@ -93,3 +95,6 @@ do
   echo "Coverage report"
   ./coverage_report "$jobid" "$dst_branch" "$branch"
 done
+
+echo "Restoring $starting_branch"
+git checkout "$starting_branch"
