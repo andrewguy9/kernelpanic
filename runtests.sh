@@ -38,7 +38,7 @@ if [ "$#" -lt 1 ]; then
     exit 2
   elif [ "$#" -lt 2 ]; then
     echo "comparing against HEAD"
-    branches=("${*}" "HEAD")
+    branches=("HEAD" "${*}")
   else
     branches=("${@}")
 fi
