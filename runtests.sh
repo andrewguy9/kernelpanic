@@ -55,7 +55,6 @@ done
 
 jobid=$(uuidgen)
 
-
 dirty=$(git status --porcelain | perl -ne '/^ M (.*)/&& print "$1, "')
 if [ "$dirty" ]
 then

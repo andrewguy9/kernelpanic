@@ -32,8 +32,21 @@ Building:
 
 * `make pc` builds kernel and tests in debug build mode.
 * `make pc_fre` builds kernel and tests in release mode.
-* `./stress -r $runs -b $threads -t $seconds` will run stress tests for the specified time.
-* `./benchmark -r $runs -b $threads branch1 branch2` will run performance tests and reports.
+* Run the performance test suite:
+```
+./perf -h
+Usage: ./perf [--runs i] [--batch i] [--time i] [--debugger s] [--coredir s] [--jobid s] [--help] <test> ...
+```
+* Run the stress test suite:
+```
+./stress -h
+Usage: ./stress [--runs i] [--batch i] [--time i] [--debugger s] [--coredir s] [--jobid s] [--help] <test> ...
+```
+* Run the whole suite, and generate reports:
+```
+./runtests.sh -h
+help: ./runtests.sh [-r=runs] [-b=batch_size] dst_branch [branch ...]
+```
 
 Ubuntu Linux:
 ---
