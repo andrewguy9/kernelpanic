@@ -30,7 +30,7 @@ SELECT test,
        Count(case when commit_hash = '${rev1}' then branch end) as ${branch1},
        Count(case when commit_hash = '${rev2}' then branch end) as ${branch2}
 FROM   perf
-WHERE commit_hash in ('806c6c2', 'df0ad48')
+WHERE commit_hash in ('${rev1}', '${rev2}')
 GROUP BY test
 ORDER BY test;
 TESTS_SQL

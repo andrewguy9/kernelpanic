@@ -25,6 +25,5 @@ do
 done
 
 #TODO use xcrun only on Darwin.
-#TODO we are not globbing the test specific data.
 $profdata merge -sparse "${datas[@]}" -o combined.profdata
 $llvm_cov report "$first_test" -object="$tests_str" -instr-profile combined.profdata

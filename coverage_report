@@ -1,0 +1,44 @@
+#!/bin/bash
+jobid1=$1
+baseline_branch=$2
+feature_branch=$3
+
+read -r -d '' sql <<- _EOM_
+create table coverage(
+  job text,
+  branch text,
+  commit_hash text,
+  dirty text,
+  filename text,
+  regions int,
+  missed_regions int,
+  region_cover float,
+  functions int,
+  missed_functions int,
+  function_cover float,
+  lines int,
+  missed_lines int,
+  line_cover float);
+.separator ","
+.headers on
+.mode column
+.import coverage.csv coverage
+select
+  baseline.filename as filename,
+  baseline.region_cover as region_baseline,
+  feature.region_cover as region_feature,
+  feature.region_cover - baseline.region_cover as region_change,
+  baseline.function_cover as function_baseline,
+  feature.function_cover as function_feature,
+  feature.function_cover - baseline.function_cover as function_change,
+  baseline.line_cover as line_baseline,
+  feature.line_cover as line_feature,
+  feature.line_cover - baseline.line_cover as line_change
+from coverage baseline
+JOIN coverage feature on baseline.filename = feature.filename
+WHERE baseline.job = "${jobid1}" AND baseline.branch = "${baseline_branch}" AND
+  feature.job = "${jobid1}" AND feature.branch = "${feature_branch}" AND
+  (ABS(line_change) > 0.1 OR ABS(function_change) > 0.1 OR ABS(region_change) > 0.1 OR baseline.filename = "TOTAL")
+_EOM_
+
+echo "$sql" | sqlite3
