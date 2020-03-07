@@ -32,7 +32,7 @@ Building:
 
 * `make pc` builds kernel and tests in debug build mode.
 * `make pc_fre` builds kernel and tests in release mode.
-* `./regression -r $runs -b $threads -t $seconds` will run regression tests.
+* `./stress -r $runs -b $threads -t $seconds` will run stress tests for the specified time.
 * `./benchmark -r $runs -b $threads branch1 branch2` will run performance tests and reports.
 
 Ubuntu Linux:
