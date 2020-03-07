@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#TODO use xcrun only on Darwin.
 profdata=$(xcrun --find llvm-profdata)
 llvm_cov=$(xcrun --find llvm-cov)
 
@@ -24,6 +25,7 @@ do
   done
 done
 
-#TODO use xcrun only on Darwin.
-$profdata merge -sparse "${datas[@]}" -o combined.profdata
-$llvm_cov report "$first_test" -object="$tests_str" -instr-profile combined.profdata
+if [ ${#datas[@]} -ne 0 ]; then
+  $profdata merge -sparse "${datas[@]}" -o combined.profdata
+  $llvm_cov report "$first_test" -object="$tests_str" -instr-profile combined.profdata
+fi
