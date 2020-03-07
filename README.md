@@ -75,3 +75,11 @@ SIGALRM
 SIGUSR1
 SIGUSR2
 ```
+
+UNIX:
+---
+
+Exit Codes:
+* `0` - Kernel shut down.
+* `1` - Kernel was reset by reset button, or `SIGINT` on UNIX.
+* Other - Kernel panicked . On UNIX, a crash is generated due to call to `abort()`.
