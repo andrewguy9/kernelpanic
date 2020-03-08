@@ -8,7 +8,7 @@ if (@ARGV) {
 }
 
 my $setup = <<'SETUP_SQL';
-create table perf(job text, branch text, commit_hash text, dirty text, test text, real float, user float, sys float);
+create table perf(job text, branch text, commit_hash text, dirty text, test text, real float, user float, sys float, status int, result text);
 .separator ","
 .headers on
 .mode column

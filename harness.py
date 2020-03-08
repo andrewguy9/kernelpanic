@@ -24,12 +24,27 @@ test_name = child_args[0]
 test_path = "./"+test_name
 child_args[0] = test_path
 
-def exit_with_msg(test,pid, msg, status, stack=""):
+def exit_with_msg(test, pid, msg, status, usage, stack=""):
     output = "Test %s(%s)... %s" % (test_name, pid, msg)
     if stack:
         output += "\n"
         output += stack
     print output
+    user_time = usage.ru_utime
+    sys_time = usage.ru_stime
+    total_time = user_time + sys_time
+    with open("perf.csv", "a+") as data:
+        print >> data, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" % (
+                args.jobid,
+                args.branch,
+                args.commit,
+                args.dirty,
+                test,
+                total_time,
+                user_time,
+                sys_time,
+                status,
+                msg)
     exit(status)
 
 def find_core(pid):
@@ -69,16 +84,13 @@ if child == 0: # child
     os.execvp(test_path, child_args)
 else: # parent
     def alarm_handler(signum, frame):
+        os.kill(child, signal.SIGINT)
+        (pid, status, usage) = os.wait4(child, 0)
         if args.timeout:
-            os.kill(child, signal.SIGINT)
-            (pid, status, usage) = os.wait4(child, 0)
-            #TODO we are masking exit code of test
-            exit_with_msg(test_name, child, "TIMEOUT", 1)
+            result = "TIMEOUT"
         elif args.until:
-            os.kill(child, signal.SIGINT)
-            (pid, status, usage) = os.wait4(child, 0)
-            #TODO we are masking exit code of test
-            exit_with_msg(test_name, child, "SUCCESS", 0)
+            result = "SUCCESS"
+        exit_with_msg(test_name, child, result, status, usage)
     signal.signal(signal.SIGALRM, alarm_handler)
     if args.timeout:
         signal.alarm(args.timeout)
@@ -87,15 +99,10 @@ else: # parent
     (pid, status, usage) = os.wait4(child, 0)
     signal.alarm(0)
     test_pid = pid
-    user_time = usage.ru_utime
-    sys_time = usage.ru_stime
-    total_time = user_time + sys_time
-    if status != 0:
+    if not (status == 0 or status == 1):
         src_core = find_core(test_pid)
         dst_core = "./%s.%s.core" % (test_name, test_pid)
         core_path = move_core(dst_core, src_core)
         stack = get_stack(test_name, core_path)
-        exit_with_msg(test_name, test_pid, "FAILED", status, stack)
-    with open("perf.csv", "a+") as data:
-        print >> data, "%s,%s,%s,%s,%s,%s,%s,%s" % (args.jobid,args.branch,args.commit,args.dirty,test_name,total_time, user_time, sys_time)
-        exit_with_msg(test_name, test_pid, "SUCCESS", status)
+        exit_with_msg(test_name, test_pid, "FAILED", status, usage, stack)
+    exit_with_msg(test_name, test_pid, "SUCCESS", status, usage)
