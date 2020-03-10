@@ -7,7 +7,6 @@
 
 #ifdef LINUX
 #define HAL_MIN_STACK_SIZE 32768
-#define _GNU_SOURCE // Enable access to linux specific sigset operations.
 #endif
 
 #ifdef BSD

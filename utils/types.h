@@ -29,14 +29,14 @@ struct ATOMIC_TUPLE
 
 union ATOMIC_UNION
 {
-        DOUBLE_COUNT Atomic;
-        struct ATOMIC_TUPLE Tuple;
+        volatile DOUBLE_COUNT Atomic;
+        volatile struct ATOMIC_TUPLE Tuple;
 };
 
 ATOMIC AtomicGetAndAnd(ATOMIC * var, ATOMIC val);
 ATOMIC AtomicGetAndOr(ATOMIC * var, ATOMIC val);
 ATOMIC CompareAndSwap(ATOMIC * var, ATOMIC old, ATOMIC next);
-DOUBLE_COUNT DoubleCompareAndSwap(DOUBLE_COUNT * var, DOUBLE_COUNT old, DOUBLE_COUNT next);
+DOUBLE_COUNT DoubleCompareAndSwap(volatile DOUBLE_COUNT * var, DOUBLE_COUNT old, DOUBLE_COUNT next);
 
 #define AtomicGetAndSet(var) (AtomicGetAndOr(var, 1))
 #define AtomicGetAndClear(var) (AtomicGetAndAnd(var, 0))
