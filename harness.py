@@ -82,7 +82,6 @@ def get_stack(program, core):
 
 child = os.fork()
 if child == 0: # child
-    print test_path, child_args
     os.execvp(test_path, child_args)
 else: # parent
     def alarm_handler(signum, frame):
