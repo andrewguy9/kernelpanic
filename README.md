@@ -58,6 +58,13 @@ sudo su
 echo %e.%p.core > /proc/sys/kernel/core_pattern
 ```
 
+Mac OSX:
+---
+By default, `/cores` is not writable. Make it writable 
+```
+sudo chmod o+w /cores/
+```
+
 Debugging:
 ===
 
