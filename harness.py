@@ -82,7 +82,9 @@ def get_stack(program, core):
 
 child = os.fork()
 if child == 0: # child
-    os.execvp(test_path, child_args)
+    childenv = dict(os.environ)
+    childenv['LLVM_PROFILE_FILE'] = "%s.%p.profraw" % test_name
+    os.execvpe(test_path, child_args, childenv)
 else: # parent
     def alarm_handler(signum, frame):
         os.kill(child, signal.SIGINT)
