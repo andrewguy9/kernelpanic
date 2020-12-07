@@ -1,10 +1,38 @@
 #!/bin/bash
+
+USAGE="$0 [-h] jobid dst_branch branch"
+
+while getopts ":ha" opt
+do
+  case ${opt} in
+    a)
+      echo "yoyo -a got passed"
+      ;;
+    h)
+      echo "help: $USAGE"
+      exit 0
+      ;;
+    [?])
+      echo "Usage: $USAGE"
+      exit 1
+      ;;
+    *)
+      echo "Usage: $USAGE"
+      exit 1
+      ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if [ "$#" -lt 3 ]; then
+    echo "Wrong number of args $#, must specify jobid, dst_branch and branch"
+    echo "$USAGE"
+    exit 2
+fi
+
 jobid1=$1
 baseline_branch=$2
 feature_branch=$3
-
-#TODO add param checks
-#TODO add help detector
 
 read -r -d '' sql <<- _EOM_
 create table coverage(

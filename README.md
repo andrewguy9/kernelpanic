@@ -45,7 +45,7 @@ Usage: ./stress [--runs i] [--batch i] [--time i] [--debugger s] [--coredir s] [
 * Run the whole suite, and generate reports:
 ```
 ./runtests.sh -h
-help: ./runtests.sh [-r=runs] [-b=batch_size] dst_branch [branch ...]
+help: ./runtests.sh [-r runs] [-b batch_size] dst_branch [branch ...]
 ```
 
 Ubuntu Linux:
@@ -60,7 +60,7 @@ echo %e.%p.core > /proc/sys/kernel/core_pattern
 
 Mac OSX:
 ---
-By default, `/cores` is not writable. Make it writable 
+By default, `/cores` is not writable. Make it writable.
 ```
 sudo chmod o+w /cores/
 ```

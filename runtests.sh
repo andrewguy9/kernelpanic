@@ -2,7 +2,7 @@
 
 set -e
 
-USAGE="$0 [-r=runs] [-b=batch_size] dst_branch [branch ...]"
+USAGE="$0 [-r runs] [-b batch_size] dst_branch [branch ...]"
 
 runs=3
 batch=1
