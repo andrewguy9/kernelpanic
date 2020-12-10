@@ -23,7 +23,7 @@ args = parser.parse_args()
 
 child_args = args.testarg
 test_name = os.path.normpath(child_args[0])
-test_path = os.path.join('.', test_name)
+test_path = os.path.abspath(os.path.join('.', test_name))
 child_args[0] = test_path
 debugger = args.debugger
 coredir = args.coredir
@@ -83,7 +83,9 @@ def get_stack(program, core):
 child = os.fork()
 if child == 0: # child
     childenv = dict(os.environ)
-    childenv['LLVM_PROFILE_FILE'] = "%s.%p.profraw" % test_name
+    childenv['LLVM_PROFILE_FILE'] = "%s.%%p.profraw" % test_name
+    print("test  path is ", test_path)
+    print(childenv)
     os.execvpe(test_path, child_args, childenv)
 else: # parent
     def alarm_handler(signum, frame):
