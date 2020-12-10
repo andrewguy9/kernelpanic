@@ -110,6 +110,5 @@ exit($status);
 
 sub runtest {
   my $test_name = shift @_;
-  print "running test $test_name\n";
   exec "./harness.py", "--timeout=$timeout", "--debugger=$debugger", "--coredir=$coredir", $jobid, $branch, $commit, $dirty_str, $test_name;
 }

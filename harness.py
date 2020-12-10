@@ -84,8 +84,6 @@ child = os.fork()
 if child == 0: # child
     childenv = dict(os.environ)
     childenv['LLVM_PROFILE_FILE'] = "%s.%%p.profraw" % test_name
-    print("test  path is ", test_path)
-    print(childenv)
     os.execvpe(test_path, child_args, childenv)
 else: # parent
     def alarm_handler(signum, frame):
