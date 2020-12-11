@@ -104,5 +104,5 @@ exit($status);
 
 sub runtest {
   my $test_name = shift @_;
-  exec "./perf.py", "--timeout=$timeout" , $jobid, $branch, $commit, $dirty_str, $test_name;
+  exec "./perf.py", "--timeout=$timeout", $coredir, $jobid, $branch, $commit, $dirty_str, $test_name;
 }
