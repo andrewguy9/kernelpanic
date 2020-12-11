@@ -6,7 +6,6 @@
 #include <stdarg.h> //va_start va_end
 #include <stdio.h> //EOF vsnprintf
 #include <string.h> //memcpy strlen strcmp strchr
-#include <stdint.h>
 
 static char peek(void) {
   char c;
