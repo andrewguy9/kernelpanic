@@ -24,7 +24,7 @@ if ($^O eq "darwin") {
 } elsif ($^O eq "linux") {
   $coredir = '.';
 }
-chomp(my $jobid = `uuidgen`);
+chomp(my $jobid = `uuid`);
 
 # Getopt::Long::Configure ('bundling_override');
 GetOptions (

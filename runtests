@@ -41,7 +41,7 @@ if [ "$#" -lt 1 ]; then
     exit 2
 fi
 
-jobid=$(uuidgen)
+jobid=$(uuid)
 
 
 dirty=$(git status --porcelain | perl -ne '/^ M (.*)/&& print "$1, "')
