@@ -20,7 +20,7 @@ void AvlAdd( WEIGHT weight, struct WEIGHTED_LINK * Node, struct AVL_TREE * Tree 
 	}
 	else 
 	{
-		while( TRUE )
+		while( true )
 		{
 			if( Node->Weight > parent->Weight )
 			{

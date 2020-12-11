@@ -1,3 +1,7 @@
 *.o
 *.out
 *.core
+tags
+*.map
+.DS_Store
+perf.csv

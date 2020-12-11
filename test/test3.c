@@ -24,7 +24,7 @@ COUNT TimesWritten;
 COUNT TimesRead;
 
 THREAD_MAIN Writer;
-void Writer( void * arg )
+void * Writer( void * arg )
 {
 	struct LOCKING_CONTEXT block;
 	INDEX sequenceIndex=0;
@@ -56,22 +56,23 @@ void Writer( void * arg )
 		TimesWritten++;
 		SchedulerForceSwitch();
 	}
+        return NULL;
 }
 
 THREAD_MAIN Reader;
-void Reader( void * arg )
+void * Reader( void * arg )
 {
 	INDEX index;
 
 	int first,second;
-	BOOL ready = FALSE;
+	_Bool ready = false;
 
 	while( ! ready )
 	{
 		SchedulerStartCritical();
 		if( TimesWritten > 0 )
 		{
-			ready = TRUE;
+			ready = true;
 			SchedulerEndCritical();
 		}
 		else
@@ -103,6 +104,7 @@ void Reader( void * arg )
 		TimesRead++;
 		SchedulerForceSwitch();
 	}
+        return NULL;
 }
 
 struct THREAD Writer1;
@@ -128,6 +130,8 @@ int main()
         TimesRead = 0;
         TimesWritten = 0;
 
+        ResourceInit(& BufferLock, RESOURCE_SHARED);
+
         SchedulerCreateThread(
                         & Reader1,
                         5,
@@ -135,7 +139,8 @@ int main()
                         STACK_SIZE,
                         Reader,
                         NULL,
-                        TRUE);
+                        NULL,
+                        true);
         SchedulerCreateThread(
                         & Reader2,
                         5,
@@ -143,7 +148,8 @@ int main()
                         STACK_SIZE,
                         Reader,
                         NULL,
-                        TRUE);
+                        NULL,
+                        true);
         SchedulerCreateThread(
                         & Reader3,
                         5,
@@ -151,7 +157,8 @@ int main()
                         STACK_SIZE,
                         Reader,
                         NULL,
-                        TRUE);
+                        NULL,
+                        true);
         SchedulerCreateThread(
                         & Writer1,
                         5,
@@ -159,7 +166,8 @@ int main()
                         STACK_SIZE,
                         Writer,
                         NULL,
-                        TRUE);
+                        NULL,
+                        true);
         SchedulerCreateThread(
                         & Writer2,
                         5,
@@ -167,7 +175,8 @@ int main()
                         STACK_SIZE,
                         Writer,
                         NULL,
-                        TRUE);
+                        NULL,
+                        true);
 
         KernelStart();
         return 0;

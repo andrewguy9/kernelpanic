@@ -42,7 +42,7 @@ void SemaphoreUp( struct SEMAPHORE * lock )
         struct LOCKING_CONTEXT * context;
         LockingStart();
         if ( ! LinkedListIsEmpty( & lock->WaitingThreads ) ) {
-                context = BASE_OBJECT(
+                context = container_of(
                                 LinkedListPop( &lock->WaitingThreads ),
                                 struct LOCKING_CONTEXT,
                                 Link);

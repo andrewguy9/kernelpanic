@@ -61,7 +61,7 @@ struct HANDLER_OBJECT;
 //Handler Functions return true if they have completed and want the owning component
 //to mark them as completed. If false is retured then ownership has transitioned to a
 //new component and the structure should no longer be touched.
-typedef BOOL (HANDLER_FUNCTION)( struct HANDLER_OBJECT * HandlerObj );
+typedef _Bool (HANDLER_FUNCTION)( struct HANDLER_OBJECT * HandlerObj );
 //Handler Complete Functions are executed syncronously when a handler moves into the
 //finished state.
 typedef void (HANDLER_COMPLETE_FUNCTION)( struct HANDLER_OBJECT * HandlerObj );
@@ -91,5 +91,5 @@ void HandlerRun(struct HANDLER_OBJECT * handler );
 //HandlerFinish to reset him to the HANDLER_READY state.
 void HandlerFinish( struct HANDLER_OBJECT * handler );
 //Used to determine if a handler has run to completion.
-BOOL HandlerIsFinished( struct HANDLER_OBJECT * handler );
+_Bool HandlerIsFinished( struct HANDLER_OBJECT * handler );
 #endif

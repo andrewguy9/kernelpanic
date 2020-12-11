@@ -11,7 +11,7 @@ avr:
 avr_fre:
 	$(MAKE_PROG) $(AVR_FRE_STRING) -f makefile.main umouse
 pc:
-	$(MAKE_PROG) $(PC_STRING) -f makefile.main umouse
+	$(MAKE_PROG) $(PC_STRING) -f makefile.main umouse minilisp
 pc_fre:
 	$(MAKE_PROG) $(PC_FRE_STRING) -f makefile.main umouse
 
@@ -21,3 +21,4 @@ clean:
 	$(MAKE_PROG) -e DIR=kernel cleandir
 	$(MAKE_PROG) -e DIR=test cleandir
 	$(MAKE_PROG) -e DIR=umouse cleandir
+	$(MAKE_PROG) -e DIR=minilisp cleandir

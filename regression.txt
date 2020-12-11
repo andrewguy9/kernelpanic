@@ -1,5 +1,4 @@
 pc_dbg_kern__test0.out
-pc_dbg_kern__test1.out
 pc_dbg_kern__test2.out
 pc_dbg_kern__test3.out
 pc_dbg_kern__test4.out

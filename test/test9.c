@@ -32,7 +32,7 @@ struct THREAD_CONTEXT
 //
 
 THREAD_MAIN TestThreadMain;
-void TestThreadMain( void * arg )
+void * TestThreadMain( void * arg )
 {
         struct THREAD_CONTEXT * context = (struct THREAD_CONTEXT *) arg;
 
@@ -43,6 +43,7 @@ void TestThreadMain( void * arg )
                 context->Value++;
                 WatchdogNotify(context->WatchdogId);
         }
+        return NULL;
 }
 
 //
@@ -87,7 +88,8 @@ int main()
                         STACK_SIZE,
                         TestThreadMain,
                         &Value1,
-                        TRUE);
+                        NULL,
+                        true);
 
         SchedulerCreateThread(
                         &TestThreadDivide,
@@ -96,7 +98,8 @@ int main()
                         STACK_SIZE,
                         TestThreadMain,
                         &Value2,
-                        TRUE);
+                        NULL,
+                        true);
 
         SchedulerCreateThread(
                         &TestThreadExp,
@@ -105,7 +108,8 @@ int main()
                         STACK_SIZE,
                         TestThreadMain,
                         &Value3,
-                        TRUE);
+                        NULL,
+                        true);
 
         //Enable the watchdog
         WatchdogEnable( TIMEOUT );

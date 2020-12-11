@@ -21,6 +21,7 @@
 //
 
 volatile COUNT IsrDisabledCount[IRQ_LEVEL_COUNT];
+ISR_HANDLER* IsrHandlerTable[IRQ_LEVEL_COUNT];
 
 //
 //Unit Management
@@ -32,6 +33,7 @@ void IsrStartup()
         INDEX i;
         for(i = 0; i < IRQ_LEVEL_COUNT; i++) {
                 IsrDisabledCount[i] = 0;
+                IsrHandlerTable[i] = NULL;
         }
 }
 
@@ -39,9 +41,16 @@ void IsrStartup()
 //Register new ISR
 //
 
+void IsrHandlerWrapper(enum IRQ_LEVEL level) {
+        IsrDisable(level);
+        IsrHandlerTable[level]();
+        IsrEnable(level);
+}
+
 void IsrRegisterHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
 {
-        HalRegisterIsrHandler( handler, which, level );
+        IsrHandlerTable[level] = handler;
+        HalRegisterIsrHandler( IsrHandlerWrapper, which, level );
 }
 
 //
@@ -54,7 +63,7 @@ void IsrRegisterHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level
 void IsrDisable(enum IRQ_LEVEL level)
 {
         if( IsrDisabledCount[level] == 0 ) {
-                IsrDefer( level, FALSE );
+                IsrDefer( level, false );
         }
 
         IsrDisabledCount[level]++;
@@ -75,7 +84,7 @@ void IsrEnable(enum IRQ_LEVEL level)
                 //IsrDisable call we will need to change the
                 //interrupt mask. We should call IsrDefer
                 //so that the correct mask can be selected.
-                IsrDefer( level, TRUE );
+                IsrDefer( level, true );
         }
 }
 
@@ -105,7 +114,7 @@ void IsrDecrement(enum IRQ_LEVEL level)
  * Should be called only by assertions as this
  * is not gauranteed to produce accurate results.
  */
-BOOL IsrIsAtomic(enum IRQ_LEVEL level)
+_Bool IsrIsAtomic(enum IRQ_LEVEL level)
 {
         //
         //If HalIsIrqAtomic(level) for a level is true,
@@ -126,33 +135,33 @@ BOOL IsrIsAtomic(enum IRQ_LEVEL level)
                         //Some level higher than level is atomic.
                         //That means that level itself is atomic.
                         ASSERT( HalIsIrqAtomic( l ) );
-                        return TRUE;
+                        return true;
                 }
         }
-        return FALSE;
+        return false;
 }
 
 /*
  * Should be called only by assertions at top and bottom
  * of gcs.
  */
-BOOL IsrIsEdge(enum IRQ_LEVEL level)
+_Bool IsrIsEdge(enum IRQ_LEVEL level)
 {
         if( HalIsIrqAtomic( level ) && IsrDisabledCount[level] == 0 ) {
-                return TRUE;
+                return true;
         } else {
-                return FALSE;
+                return false;
         }
 }
 #endif //DEBUG
 
-BOOL IsrCheckLevel( enum IRQ_LEVEL changingLevel, enum IRQ_LEVEL candidateLevel, BOOL enable)
+_Bool IsrCheckLevel( enum IRQ_LEVEL changingLevel, enum IRQ_LEVEL candidateLevel, _Bool enable)
 {
         if( IsrDisabledCount[candidateLevel] > 0 || (candidateLevel == changingLevel && ! enable) ) {
                 HalSetIrq(candidateLevel);
-                return TRUE;
+                return true;
         } else {
-                return FALSE;
+                return false;
         }
 }
 
@@ -165,7 +174,7 @@ BOOL IsrCheckLevel( enum IRQ_LEVEL changingLevel, enum IRQ_LEVEL candidateLevel,
  * enable is true if we are lowering the disabled count.
  * enable is false if we are raising the disabled count.
  */
-void IsrDefer( enum IRQ_LEVEL level, BOOL enable )
+void IsrDefer( enum IRQ_LEVEL level, _Bool enable )
 {
         enum IRQ_LEVEL l;
         for(l = IRQ_LEVEL_COUNT - 1; l > IRQ_LEVEL_NONE; l--) {

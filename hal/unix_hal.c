@@ -3,14 +3,14 @@
 
 #include<sys/time.h>
 #include<string.h>
-#include<signal.h>
-
 #include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>
 #include<fcntl.h>
 #include<errno.h>
 #include<termios.h>
+#include<sys/mman.h>
+#include<stdarg.h>
 
 //-----------------------------------------------------------------------------
 //-------------------------- GLOBALS ------------------------------------------
@@ -26,10 +26,8 @@ struct itimerval WatchdogInterval;
 //Stack Management
 //
 
-STACK_INIT_ROUTINE * StackInitRoutine;
-
 struct MACHINE_CONTEXT * halTempContext;
-volatile BOOL halTempContextProcessed;
+volatile _Bool halTempContextProcessed;
 
 
 //
@@ -50,29 +48,16 @@ void HalIsrFinalize();
  * sa_mask is the mask to apply.
  * sa_flags is used for special masking rules/alt stack settings.
  */
-struct sigaction HalIrqTable[IRQ_LEVEL_COUNT];
-
-/*
- * HalIsrHandler uses this table to call the user specified handler.
- */
-ISR_HANDLER * HalIsrJumpTable[IRQ_LEVEL_COUNT];
-
-/*
- * HalIsrHandler uses this table to go from a signal to an IRQ.
- *
- * Key - IRQ level.
- * Value - Signal Number.
- *
- * HalIsrHandler will scan from the start of the array to the end.
- * When it finds the same signal number, then that index is the index it should call
- * from the HalIsrJumpTable.
- */
+struct sigaction HalIrqToSigaction[IRQ_LEVEL_COUNT];
 INDEX HalIrqToSignal[IRQ_LEVEL_COUNT];
+
+HAL_ISR_HANDLER * HalSignalToHandler[NSIG];
+enum IRQ_LEVEL HalSignalToIrq[NSIG];
 
 //Create a mask for debugging
 #ifdef DEBUG
 sigset_t HalCurrrentIrqMask;
-BOOL HalCurrrentIrqMaskValid;
+_Bool HalCurrrentIrqMaskValid;
 #endif //DEBUG
 
 //
@@ -142,25 +127,29 @@ void HalBlockSignal( void * which );
 void HalStackTrampoline( int SignalNumber )
 {
         int status;
+        //Save stack startup state before releaseing the tempContext.
+        STACK_INIT_ROUTINE * foo = halTempContext->Foo;
+        void * arg = halTempContext->Arg;
+
         status = _setjmp( halTempContext->Registers );
 
         if( status == 0 ) {
                 //Because status was 0 we know that this is the creation of
                 //the stack frame. We can use the locals to construct the frame.
 
-                halTempContextProcessed = TRUE;
+                halTempContextProcessed = true;
                 halTempContext = NULL;
                 return;
         } else {
                 //If we get here, then someone has jumped into a newly created thread.
                 //Test to make sure we are atomic
-                ASSERT( HalIsIrqAtomic(IRQ_LEVEL_TIMER) );
+                ASSERT( HalIsIrqAtomic(IRQ_LEVEL_MAX) );
 
-                StackInitRoutine();
+                foo(arg);
 
                 //Returning from a function which was invoked by siglongjmp is not
                 //supported. Foo should never retrun.
-                HalPanic("Tried to return from StackInitRoutine!\n", 0 );
+                HalPanic("Tried to return from trampoline!");
                 return;
         }
 }
@@ -179,41 +168,36 @@ void HalStackTrampoline( int SignalNumber )
  */
 void HalIsrHandler( int SignalNumber )
 {
-        INDEX index;
-        enum IRQ_LEVEL irq;
+        enum IRQ_LEVEL irq = HalSignalToIrq[SignalNumber];
+        HAL_ISR_HANDLER * handler = HalSignalToHandler[SignalNumber];
 
+        ASSERT (SignalNumber >= 0 && SignalNumber < NSIG);
+        if (handler == NULL) {
+                HalPanic("Signal delivered for which no Irq was registered");
+        }
+        ASSERT (handler != NULL);
+        ASSERT (irq != IRQ_LEVEL_NONE);
 #ifdef DEBUG
         HalUpdateIsrDebugInfo();
 #endif
-
-        //We dont know which irq is associated with SignalNumber, so lets find it.
-        for(index = 0; index < IRQ_LEVEL_COUNT; index++) {
-                if( HalIrqToSignal[index] == SignalNumber ) {
-                        //We found it, call the appropriate ISR.
-                        irq = index;
-                        HalIsrJumpTable[irq]();
+        handler(irq);
 #ifdef DEBUG
-                        //We are about to return into an unknown frame.
-                        //I can't predict what the irq will be there.
-                        HalInvalidateIsrDebugInfo();
+        //We are about to return into an unknown frame.
+        //I can't predict what the irq will be there.
+        HalInvalidateIsrDebugInfo();
 #endif
-                        return;
-                }
-        }
-
-        HalPanic("Signal delivered for which no Irq was registered", SignalNumber);
 }
 
 #ifdef DEBUG
 void HalUpdateIsrDebugInfo()
 {
-        HalCurrrentIrqMaskValid = TRUE;
+        HalCurrrentIrqMaskValid = true;
         sigprocmask(0, NULL, &HalCurrrentIrqMask);
 }
 
 void HalInvalidateIsrDebugInfo()
 {
-        HalCurrrentIrqMaskValid = FALSE;
+        HalCurrrentIrqMaskValid = false;
 }
 #endif
 
@@ -227,9 +211,15 @@ void HalClearSignals()
         INDEX i;
 
         for(i=0; i < IRQ_LEVEL_COUNT; i++) {
-                HalIrqTable[i].sa_handler = NULL;
-                sigemptyset(&HalIrqTable[i].sa_mask);
-                HalIrqTable[i].sa_flags = 0;
+                HalIrqToSignal[i] = 0;
+                HalIrqToSigaction[i].sa_handler = NULL;
+                sigemptyset(&HalIrqToSigaction[i].sa_mask);
+                HalIrqToSigaction[i].sa_flags = 0;
+        }
+
+        for(i=0; i<NSIG; i++) {
+                HalSignalToHandler[i] = NULL;
+                HalSignalToIrq[i] = IRQ_LEVEL_NONE;
         }
 }
 
@@ -245,7 +235,7 @@ void HalBlockSignal( void * which )
         INDEX signum = (INDEX) which;
 
         for(i=0; i < IRQ_LEVEL_COUNT; i++) {
-                sigaddset(&HalIrqTable[i].sa_mask, signum);
+                sigaddset(&HalIrqToSigaction[i].sa_mask, signum);
         }
 }
 
@@ -257,10 +247,28 @@ void HalBlockSignal( void * which )
 //Hal Utilities
 //
 
-void HalPanic(char file[], int line)
+void HalPanicFn(char file[], int line, char msg[])
 {
-        printf("PANIC: %s:%d, errno %d\n", file, line, errno);
-        abort();
+  HalError("PANIC: %s:%d %s\n", file, line, msg);
+}
+
+#define HalPanicErrno(msg) HalPanicErrnoFn(__FILE__, __LINE__, msg)
+
+void HalPanicErrnoFn(char file[], int line, char msg[])
+{
+  HalError("PANIC: %s:%d errno %s: %s\n", file, line, strerror(errno), msg);
+}
+
+void __attribute((noreturn)) HalError(char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vprintf(fmt, ap);
+  va_end(ap);
+  abort();
+}
+
+void HalShutdownNow() {
+  exit(0);
 }
 
 void HalSleepProcessor()
@@ -294,72 +302,83 @@ void HalPetWatchdog( TIME when )
         WatchdogInterval.it_interval.tv_usec = 0;
         WatchdogInterval.it_value.tv_sec = 0;
         WatchdogInterval.it_value.tv_usec = when * 1000;
-        ASSUME(setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL ), 0);
+        CHECK(setitimer( ITIMER_VIRTUAL, &WatchdogInterval, NULL ) == 0);
 }
 
 //
 //Stack Management
 //
 
-void HalContextStartup( STACK_INIT_ROUTINE * stackInitRoutine )
-{
-        StackInitRoutine = stackInitRoutine;
-}
-
 void HalCreateStackFrame(
                 struct MACHINE_CONTEXT * Context,
                 void * stack,
+                COUNT stackSize,
                 STACK_INIT_ROUTINE foo,
-                COUNT stackSize)
+                void * arg)
 {
+        int status;
         char * cstack = stack;
         stack_t newStack;
         sigset_t oldSet;
         sigset_t trampolineMask;
         struct sigaction switchStackAction;
 
-        sigemptyset( &trampolineMask );
-        sigaddset( &trampolineMask, HAL_ISR_TRAMPOLINE );
-
-#ifdef DEBUG
-        //Set up the stack boundry.
-        Context->High = (char *) (cstack + stackSize);
-        Context->Low = cstack;
-#endif
+        CHECK(sigemptyset( &oldSet ) == 0);
+        CHECK(sigemptyset( &trampolineMask ) == 0);
+        CHECK(sigaddset( &trampolineMask, HAL_ISR_TRAMPOLINE ) == 0);
 
         Context->Foo = foo;
+        Context->Arg = arg;
 
         //We are about to bootstrap the new thread. Because we have to modify global
         //state here, we must make sure no interrupts occur until after we are bootstrapped.
         //We do all of this under the nose of the Isr unit.
-        sigprocmask(SIG_BLOCK, &HalIrqTable[IRQ_LEVEL_MAX].sa_mask, &oldSet);
+        sigprocmask(SIG_BLOCK, &HalIrqToSigaction[IRQ_LEVEL_MAX].sa_mask, &oldSet);
 
         //NOTE: We use the interrupt mask here, because we want to block all operations.
         switchStackAction.sa_handler = HalStackTrampoline;
-        switchStackAction.sa_mask = HalIrqTable[IRQ_LEVEL_MAX].sa_mask;
+        switchStackAction.sa_mask = HalIrqToSigaction[IRQ_LEVEL_MAX].sa_mask;
         switchStackAction.sa_flags = SA_ONSTACK;
         sigaction(HAL_ISR_TRAMPOLINE, &switchStackAction, NULL );
 
         halTempContext = Context;
-        halTempContextProcessed = FALSE;
+        halTempContextProcessed = false;
 
         newStack.ss_sp = cstack;
         newStack.ss_size = stackSize;
         newStack.ss_flags = 0;
-        ASSUME(sigaltstack( &newStack, NULL ), 0);
+        status = sigaltstack( &newStack, NULL );
+	if (status != 0) {
+		HalPanicErrno("Failed to turn on sigaltstack.");
+	}
 
-        //At this point we know that we are atomic.
-        //All signal types are blocked.
-        //We will unblock the Trampoine signal, and make
-        //sure that it was delivered.
-        sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL );
 
-        raise( HAL_ISR_TRAMPOLINE );
+        status = raise( HAL_ISR_TRAMPOLINE );
+        if (status != 0) {
+                HalPanicErrno("Failed raise stack bootstrap signal");
+        }
 
-        while( ! halTempContextProcessed );
+        //At this point we know that we can't be interrupted.
+        //The trampoline signal has been triggered.
+        //All signals are blocked.
+        //We will unblock the Trampoine signal so it gets delivered.
+        CHECK(sigprocmask( SIG_UNBLOCK, &trampolineMask, NULL ) == 0);
+
+        //Make sure that the signal was delivered.
+        if (!halTempContextProcessed) {
+                HalPanic("Failed to bootstrap new stack via signal");
+        }
+
+	//Now that trampoline has fired, we can get back to the thread with longjump.
+	//Lets turn off sigaltstack.
+        newStack.ss_flags = SS_DISABLE;
+        status = sigaltstack( &newStack, NULL );
+	if (status != 0) {
+		HalPanicErrno("Failed to turn off sigaltstack.");
+	}
 
         //Now that we have bootstrapped the new thread, lets restore the old mask.
-        sigprocmask(SIG_SETMASK, &oldSet, NULL);
+        CHECK(sigprocmask(SIG_SETMASK, &oldSet, NULL) == 0);
 }
 
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
@@ -369,12 +388,6 @@ void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context )
         ASSERT( status == 0 );//We should never wake here.
 #else
         _setjmp( Context->Registers );
-#endif
-
-#ifdef DEBUG
-        //The stack bounderies are infinite for the initial stack.
-        Context->High = (char *) -1;
-        Context->Low = (char *) 0;
 #endif
 }
 
@@ -433,7 +446,7 @@ TIME HalTimeDelta(struct timeval *time1, struct timeval *time2)
 void HalInitClock()
 {
         //Set the startup time.
-        ASSUME(gettimeofday(&HalStartupTime, NULL), 0);
+        CHECK(gettimeofday(&HalStartupTime, NULL) == 0);
 }
 
 void HalSetTimer(TIME delta)
@@ -458,7 +471,7 @@ void HalSetTimer(TIME delta)
         TimerInterval.it_value.tv_sec = seconds;
         TimerInterval.it_value.tv_usec = micros;
 
-        ASSUME(setitimer( ITIMER_REAL, &TimerInterval, NULL ), 0);
+        CHECK(setitimer( ITIMER_REAL, &TimerInterval, NULL ) == 0);
 }
 
 void HalResetClock()
@@ -470,7 +483,7 @@ void HalResetClock()
 TIME HalGetTime()
 {
         struct timeval sysTime;
-        ASSUME(gettimeofday(&sysTime, NULL), 0);
+        CHECK(gettimeofday(&sysTime, NULL) == 0);
 
         return HalTimeDelta(&HalStartupTime, &sysTime);
 }
@@ -479,39 +492,73 @@ TIME HalGetTime()
 //IRQ Management
 //
 
-#define HACK 1
+#undef SIGNAL_HACK
 
 #ifdef DEBUG
-#if HACK
 #ifdef LINUX
-sigset_t sigset_xor(sigset_t a, sigset_t b) {
-	int i;
+sigset_t sigset_and(sigset_t a, sigset_t b) {
+	int status;
 	sigset_t result;
-	for (i = 0; i < _SIGSET_NWORDS; i++) {
+	status = sigemptyset(&result);
+	CHECK(status == 0);
+	status = sigandset(&result, &a, &b);
+	CHECK(status == 0);
+	return result;
+}
+
+sigset_t sigset_or(sigset_t a, sigset_t b) {
+	int status;
+	sigset_t result;
+	status = sigemptyset(&result);
+	CHECK(status == 0);
+	status = sigorset(&result, &a, &b);
+	CHECK(status == 0);
+	return result;
+}
+
+_Bool sigset_empty(sigset_t a) {
+	return sigisemptyset(&a);
+}
+#ifdef SIGNAL_HACK // Use function which touch linux struct internals.
+sigset_t sigset_xor(sigset_t a, sigset_t b) {
+	sigset_t result;
+	for (int i = 0; i < _SIGSET_NWORDS; i++) {
 		result.__val[i] = a.__val[i] ^ b.__val[i];
 	}
 	return result;
 }
-
-sigset_t sigset_and(sigset_t a, sigset_t b) {
+#else // Use linux singal interface only.
+sigset_t sigset_not(sigset_t a) {
 	int i;
+	int status;
 	sigset_t result;
-	for (i = 0; i< _SIGSET_NWORDS; i++) {
-		result.__val[i] = a.__val[i] & b.__val[i];
-	}
-	return result;
+	status = sigemptyset(&result);
+	CHECK(status == 0);
+        for (i=1; i <= __SIGRTMAX; i++) {
+                status = sigismember(&a, i);
+                if (status == 0) {
+                  //Not set, so set in result.
+                  status = sigaddset(&result, i);
+                  CHECK(status == 0);
+                } else if (status == 1) {
+                  //Set, so unset.
+                  status = sigdelset(&result, i);
+                  CHECK(status == 0);
+                } else if (status == -1) {
+                  HalPanicErrno("Failed to test signal membership.");
+                }
+        }
+        return result;
 }
 
-BOOL sigset_empty(sigset_t a) {
-	int i;
-	for (i = 0; i< _SIGSET_NWORDS; i++) {
-		if (a.__val[i] != 0) {
-			return FALSE;
-		}
-	}
-	return TRUE;
+sigset_t sigset_xor(sigset_t a, sigset_t b) {
+        sigset_t result;
+        result = sigset_and( sigset_not( sigset_and(a, b)), sigset_or(a, b));
+        return result;
 }
-#else
+#endif // SIGNAL_HACK
+
+#else // OSX
 sigset_t sigset_xor(sigset_t a, sigset_t b) {
 	return a ^ b;
 }
@@ -519,15 +566,14 @@ sigset_t sigset_and(sigset_t a, sigset_t b) {
 	return a & b;
 }
 
-BOOL sigset_empty(sigset_t a) {
+_Bool sigset_empty(sigset_t a) {
 	return !a;
 }
-#endif
-#endif //HACK
+#endif // LINUX
 /*
  * Returns true if the system is running at at least IRQ level.
  */
-BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
+_Bool HalIsIrqAtomic(enum IRQ_LEVEL level)
 {
         sigset_t curSet;
         int status;
@@ -536,20 +582,14 @@ BOOL HalIsIrqAtomic(enum IRQ_LEVEL level)
         ASSERT(status == 0);
 
         HalUpdateIsrDebugInfo();
-	
-	// empty -> 0, !0 -> true
-	// not empty -> !0, !!0 -> false
-#if HACK
-        return sigset_empty(sigset_and(sigset_xor(HalIrqTable[level].sa_mask,curSet), HalIrqTable[level].sa_mask));
-#else
-	return !((HalIrqTable[level].sa_mask ^ curSet) & HalIrqTable[level].sa_mask);
-#endif
+
+        return sigset_empty(sigset_and(sigset_xor(HalIrqToSigaction[level].sa_mask,curSet), HalIrqToSigaction[level].sa_mask));
 }
 #endif //DEBUG
 
 void HalSetIrq(enum IRQ_LEVEL irq)
 {
-        sigprocmask( SIG_SETMASK, &HalIrqTable[irq].sa_mask, NULL);
+        sigprocmask( SIG_SETMASK, &HalIrqToSigaction[irq].sa_mask, NULL);
 
 #ifdef DEBUG
         HalUpdateIsrDebugInfo();
@@ -582,7 +622,7 @@ void HalIsrInit()
  * which - the location which indicates what hardware event happed.
  * level - what irq to assign to the hardware event.
  */
-void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
+void HalRegisterIsrHandler( HAL_ISR_HANDLER handler, void * which, enum IRQ_LEVEL level)
 {
 
         INDEX i;
@@ -591,12 +631,13 @@ void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL le
         ASSERT(HalIsIrqAtomic(IRQ_LEVEL_MAX));
 
         for(i=level; i < IRQ_LEVEL_COUNT; i++) {
-                sigaddset(&HalIrqTable[i].sa_mask, signum);
+                sigaddset(&HalIrqToSigaction[i].sa_mask, signum);
         }
 
         HalIrqToSignal[level] = signum;
-        HalIsrJumpTable[level] = handler;
-        HalIrqTable[level].sa_handler = HalIsrHandler;
+        HalSignalToHandler[signum] = handler;
+        HalSignalToIrq[signum] = level;
+        HalIrqToSigaction[level].sa_handler = HalIsrHandler;
 
         HalIsrFinalize();
         HalSetIrq(IRQ_LEVEL_MAX);
@@ -608,7 +649,7 @@ void HalIsrFinalize()
 
         for(level = IRQ_LEVEL_NONE; level < IRQ_LEVEL_COUNT; level++) {
                 if(HalIrqToSignal[level] != 0) {
-                        ASSUME( sigaction(HalIrqToSignal[level], &HalIrqTable[level], NULL), 0 );
+                        CHECK( sigaction(HalIrqToSignal[level], &HalIrqToSigaction[level], NULL) == 0 );
                 }
         }
 }
@@ -623,10 +664,10 @@ void HalStartSerial()
 
         // Open the term for reading and writing.
         if( (serialInFd = open(SERIAL_INPUT_DEVICE, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0 ) {
-                HalPanic("failed to open input fd", errno); //TODO fix
+                HalPanicErrno("failed to open input fd");
         }
         if( (serialOutFd = open(SERIAL_OUTPUT_DEVICE, O_WRONLY | O_NOCTTY | O_NONBLOCK) ) < 0 ) {
-                HalPanic("failed to open output fd", errno); //TODO fix
+                HalPanicErrno("failed to open output fd");
         }
 
         //Get the term settings
@@ -676,25 +717,25 @@ void HalStartSerial()
         fcntl(serialOutFd, F_SETFL, oflags | FASYNC);
 }
 
-BOOL HalSerialGetChar(char * out)
+_Bool HalSerialGetChar(char * out)
 {
         int readlen = read(serialInFd, out, sizeof(char));
 
         if(readlen > 0) {
-                return TRUE;
+                return true;
         } else if(readlen == 0) {
                 //We are allowed to recieve zero bytes from the serial.
-                return FALSE;
+                return false;
         } else {
                 if(errno == EINTR) {
-                        return FALSE; //We are allowed to be interrupted by another signal.
+                        return false; //We are allowed to be interrupted by another signal.
                 } else if(errno == EAGAIN) {
-                        return FALSE;
+                        return false;
                 } else if(errno == EWOULDBLOCK) {
-                        return FALSE;
+                        return false;
                 } else {
-                        HalPanic("Recieved error from STDIN!\n", errno );
-                        return FALSE;
+                        HalPanicErrno("Recieved error from STDIN!");
+                        return false;
                 }
         }
 }
@@ -706,8 +747,39 @@ void HalSerialWriteChar(char data)
         if( writelen > 0 ) {
 
         } else if(writelen == 0) {
-                HalPanic("Wrote 0 to STDOUT\n", 0);
+                HalPanic("Wrote 0 to STDOUT");
         } else {
-                HalPanic("Failed to write to STDOUT", errno); //TODO fix
+                HalPanicErrno("Failed to write to STDOUT");
         }
+}
+
+void * HalMap(char * tag, void * addr, COUNT len)
+{
+	void * ptr;
+	int status;
+	int fd = open(tag, O_CREAT|O_RDWR, 0666);
+	if (fd == -1) {
+		HalPanicErrno("Failed to open file");
+	}
+	status = ftruncate(fd, len);
+	if (status != 0) {
+		HalPanicErrno("Failed to truncate file");
+	}
+	ptr = mmap(
+			addr,
+			len,
+			PROT_READ|PROT_WRITE|PROT_EXEC,
+			MAP_FILE|MAP_SHARED, // MAP_HASSEMAPHORE?
+			fd,
+			0
+		  );
+	if (ptr == MAP_FAILED) {
+		HalPanicErrno("Failed to create mapping");
+	}
+
+	status = close(fd);
+	if (status != 0) {
+		HalPanicErrno("Failed to close file");
+	}
+	return ptr;
 }

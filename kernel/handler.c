@@ -40,7 +40,7 @@ void HandlerFinish( struct HANDLER_OBJECT * handler )
         }
 }
 
-BOOL HandlerIsFinished( struct HANDLER_OBJECT * handler )
+_Bool HandlerIsFinished( struct HANDLER_OBJECT * handler )
 {
         return handler->State == HANDLER_READY;
 }

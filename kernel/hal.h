@@ -14,15 +14,11 @@
 
 //STACK_INIT_ROUTINE is a routine which will be called to create a new
 //stack entry in a new stack frame.
-typedef void (STACK_INIT_ROUTINE) (void);
+typedef void (STACK_INIT_ROUTINE) (void * arg);
 
 //MACHINE_CONTEXT is a structure which will be used to hold thead state
 //between context switches. This context will be machine specific.
 struct MACHINE_CONTEXT;
-
-//ISR_HANDLER is the prototype all kernel interrupt handlers should use.
-//they will be invoked either directly by hardware, or hal wrapper functionality.
-typedef void ISR_HANDLER();
 
 enum IRQ_LEVEL {
     IRQ_LEVEL_NONE,
@@ -37,6 +33,8 @@ enum IRQ_LEVEL {
     IRQ_LEVEL_MAX = IRQ_LEVEL_TIMER,//Value of the highest atomic IRQ.
 };
 
+typedef void HAL_ISR_HANDLER(enum IRQ_LEVEL);
+
 //
 //Prototypes
 //
@@ -44,24 +42,27 @@ enum IRQ_LEVEL {
 void HalInitClock();
 void HalSetTimer(TIME delta);
 void HalWatchdogInit();
-void HalContextStartup( STACK_INIT_ROUTINE * stackInitRoutine );
 void HalIsrInit();
-void HalRegisterIsrHandler( ISR_HANDLER handler, void * which, enum IRQ_LEVEL level );
+void HalRegisterIsrHandler( HAL_ISR_HANDLER handler, void * which, enum IRQ_LEVEL level );
 
 void HalStartup();
 
 void HalPetWatchdog( );
 void HalStartInterrupt();
 void HalEndInterrupt();
-void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize);
+void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, COUNT stackSize, STACK_INIT_ROUTINE foo, void * arg);
 void HalGetInitialStackFrame( struct MACHINE_CONTEXT * Context );
-void HalPanic(char file[], int line);
+#define HalPanic(msg) HalPanicFn(__FILE__, __LINE__, msg)
+void HalPanicFn(char file[], int line, char msg[]);
+void __attribute((noreturn)) HalError(char *fmt, ...);
+void HalShutdownNow();
 void HalSleepProcessor();
 void HalRaiseInterrupt(enum IRQ_LEVEL level);
 void HalSetIrq(enum IRQ_LEVEL irq);
 void HalStartSerial();
-BOOL HalSerialGetChar(char * out);
+_Bool HalSerialGetChar(char * out);
 void HalSerialWriteChar(char data);
+void * HalMap(char * tag, void * addr, COUNT len);
 
 TIME HalGetTime();
 

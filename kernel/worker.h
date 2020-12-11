@@ -29,7 +29,7 @@ struct WORKER_ITEM
         WORKER_FUNCTION * Foo;
         struct LOCKING_CONTEXT LockingContext;
         void * Context;
-        BOOL Finished;//TODO IT WOULD BE NICE TO MOVE TO A DIFFERENT FINISHED MECHANISM, SAY READY LIKE THE HANDLERS?
+        _Bool Finished;//TODO IT WOULD BE NICE TO MOVE TO A DIFFERENT FINISHED MECHANISM, SAY READY LIKE THE HANDLERS?
 };
 
 void WorkerCreateWorker(
@@ -39,7 +39,7 @@ void WorkerCreateWorker(
 
 void WorkerInitItem( struct WORKER_QUEUE * queue, WORKER_FUNCTION foo, void * context, struct WORKER_ITEM * item  );
 
-BOOL WorkerItemIsFinished( struct WORKER_ITEM * item );
+_Bool WorkerItemIsFinished( struct WORKER_ITEM * item );
 
 void * WorkerGetContext( struct WORKER_ITEM * item );
 

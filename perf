@@ -1,0 +1,108 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+use File::Copy;
+use List::Util qw[min max];
+use Getopt::Long;
+use File::Basename;
+use File::Which;
+
+#Get options
+my $timeout="600";
+my $batchsize = 1;
+my $runs = 1;
+my $debugger;
+if (which('gdb')) {
+  $debugger = 'gdb';
+} elsif (which('lldb')) {
+  $debugger = 'lldb';
+}
+my $coredir;
+if ($^O eq "darwin") {
+  $coredir = '/cores';
+} elsif ($^O eq "linux") {
+  $coredir = '.';
+}
+chomp(my $jobid = `uuidgen`);
+
+# Getopt::Long::Configure ('bundling_override');
+GetOptions (
+  'runs=i' => \$runs,
+  'batch=i' => \$batchsize,
+  'time=i' => \$timeout,
+  'debugger=s' => \$debugger,
+  'coredir=s' => \$coredir,
+  'jobid=s' => \$jobid,
+);
+
+print "Timeout $timeout\n";
+print "BatchSize $batchsize\n";
+print "Runs $runs\n";
+print "Debugger $debugger\n";
+print "Core dir $coredir\n";
+print "Jobid $jobid\n";
+
+#Set STDOUT to flush right away
+local $| = 1;
+
+my @tests = ();
+if (@ARGV) {
+  push @tests, @ARGV;
+} else {
+  print "Sourcing tests from performance.txt\n";
+  open(REGRESSION_TESTS, "performance.txt");
+
+  while( my $test = <REGRESSION_TESTS> ) {
+    chomp( $test );
+    push @tests, $test;
+  }
+}
+@tests = (@tests) x $runs;
+
+my $branch;
+my $commit;
+my $branch_output=`git branch -v`;
+foreach (split(/\n/,$branch_output)) {
+  if ($_ =~ /^\*\s+(\S+)\s+(\S+)/) {
+    ($branch, $commit) = ($1,$2);
+  }
+}
+
+my $git_status = `git status --porcelain`;
+my @dirty;
+foreach (split(/\n/, $git_status)) {
+  if ($_ =~ /^ M (.*)/) {
+    push(@dirty, $1);
+  }
+}
+my $dirty_str = join(";", @dirty);
+
+# Run tests
+my $running = 0;
+my $status = 0;
+while (@tests || $running > 0) {
+  if ($running < $batchsize && @tests) {
+    my $test = pop @tests;
+
+    my $pid = fork();
+    if ($pid == 0) {
+      runtest($test);
+    } else {
+      $running++;
+    }
+  } else {
+    my $pid = wait;
+    if ($? != 0) {
+      $status = 1;
+    }
+    $running--;
+  }
+}
+print "done\n";
+exit($status);
+
+sub runtest {
+  my $test_name = shift @_;
+  exec "./perf.py", "--timeout=$timeout" , $jobid, $branch, $commit, $dirty_str, $test_name;
+}

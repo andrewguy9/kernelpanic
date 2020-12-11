@@ -35,7 +35,7 @@ volatile int TotalStall;
 //
 
 THREAD_MAIN DeathThreadMain;
-void DeathThreadMain( void * arg )
+void * DeathThreadMain( void * arg )
 {
 	if( DeathCount != 0 )
 	{
@@ -44,12 +44,13 @@ void DeathThreadMain( void * arg )
 
 	DeathCount++;
 	TotalDeath++;
+        return NULL;
 }
 
 THREAD_MAIN StallThreadMain;
-void StallThreadMain( void * arg )
+void * StallThreadMain( void * arg )
 {
-	while(TRUE)
+	while(true)
 	{
 		if(StallCount != 0 )
 		{
@@ -65,38 +66,35 @@ void StallThreadMain( void * arg )
 
 	//We should never get here.
 	KernelPanic();
+        return NULL;
 }
 
 THREAD_MAIN RestartThreadMain;
-void RestartThreadMain( void * arg )
+void * RestartThreadMain( void * arg )
 {
-        while(TRUE)
+        while(true)
         {
+                SchedulerJoinThread(&DeathThread);
                 SchedulerStartCritical();
+                ASSERT( SchedulerIsThreadDead( &DeathThread ) );
+                SchedulerCreateThread(
+                    &DeathThread,
+                    1,
+                    DeathThreadStack,
+                    STACK_SIZE,
+                    DeathThreadMain,
+                    NULL,
+                    NULL,
+                    true);
+                DeathCount--;
 
-                if( SchedulerIsThreadDead( &DeathThread ) )
-                {
-                        SchedulerCreateThread(
-                                        &DeathThread,
-                                        1,
-                                        DeathThreadStack,
-                                        STACK_SIZE,
-                                        DeathThreadMain,
-                                        NULL,
-                                        TRUE);
-
-                        DeathCount--;
-                }
-
-                if( SchedulerIsThreadBlocked( &StallThread ) )
-                {
+                if( SchedulerIsThreadBlocked( &StallThread ) ) {
                         SchedulerResumeThread( &StallThread );
-
                         StallCount--;
                 }
-
                 SchedulerEndCritical();
         }
+        return NULL;
 }
 
 //
@@ -124,7 +122,8 @@ int main()
                         STACK_SIZE,
                         DeathThreadMain,
                         NULL,
-                        TRUE);
+                        NULL,
+                        true);
 
         SchedulerCreateThread(
                         &StallThread,
@@ -133,7 +132,8 @@ int main()
                         STACK_SIZE,
                         StallThreadMain,
                         NULL,
-                        TRUE);
+                        NULL,
+                        true);
 
         SchedulerCreateThread(
                         &RestartThread,
@@ -142,7 +142,8 @@ int main()
                         STACK_SIZE,
                         RestartThreadMain,
                         NULL,
-                        TRUE);
+                        NULL,
+                        true);
 
         KernelStart();
         return 0;

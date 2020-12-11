@@ -14,7 +14,7 @@
 #define BUF_SIZE 512
 
 THREAD_MAIN TestThreadMain;
-void TestThreadMain( void * arg )
+void * TestThreadMain( void * arg )
 {
         char buf[BUF_SIZE];
         COUNT read;
@@ -27,6 +27,7 @@ void TestThreadMain( void * arg )
                         SerialWrite(buf, read);
                 }
         }
+        return NULL;
 }
 
 
@@ -59,7 +60,8 @@ int main()
                         STACK_SIZE,
                         TestThreadMain,
                         NULL,
-                        TRUE);
+                        NULL,
+                        true);
 
         KernelStart();
         return 0;

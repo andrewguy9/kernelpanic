@@ -46,7 +46,7 @@ COUNT NonBlocking;
 //
 
 THREAD_MAIN ProducerMain;
-void ProducerMain(void * unused)
+void * ProducerMain(void * unused)
 {
 	while(1)
 	{
@@ -55,20 +55,22 @@ void ProducerMain(void * unused)
 		SchedulerStartCritical();
 		SchedulerForceSwitch();
 	}
+        return NULL;
 }
 
 THREAD_MAIN ConsumerBlockingMain;
-void ConsumerBlockingMain(void * unused)
+void * ConsumerBlockingMain(void * unused)
 {
 	while(1)
 	{
 		SemaphoreDown( &Lock, NULL );
 		Blocking++;
 	}
+        return NULL;
 }
 
 THREAD_MAIN ConsumerNonBlockingMain;
-void ConsumerNonBlockingMain(void * unused)
+void * ConsumerNonBlockingMain(void * unused)
 {
 	struct LOCKING_CONTEXT context;
 	LockingInit( & context, LockingBlockNonBlocking, LockingWakeNonBlocking ); 
@@ -78,6 +80,7 @@ void ConsumerNonBlockingMain(void * unused)
 		while( !LockingIsAcquired( &context ) );
 		NonBlocking++;
 	}
+        return NULL;
 }
 
 int main()
@@ -95,7 +98,8 @@ int main()
                         STACK_SIZE ,
                         ProducerMain ,
                         NULL,
-                        TRUE );
+                        NULL,
+                        true );
 
         SchedulerCreateThread(
                         &ConsumerBlocking,
@@ -104,7 +108,8 @@ int main()
                         STACK_SIZE ,
                         ConsumerBlockingMain,
                         NULL,
-                        TRUE );
+                        NULL,
+                        true );
 
         SchedulerCreateThread(
                         &ConsumerNonBlocking ,
@@ -113,7 +118,8 @@ int main()
                         STACK_SIZE ,
                         ConsumerNonBlockingMain ,
                         NULL,
-                        TRUE );
+                        NULL,
+                        true );
 
         KernelStart();
         return 0;

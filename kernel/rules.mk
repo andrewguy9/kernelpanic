@@ -47,3 +47,7 @@ kernel/$(TARGET)_handler.o: kernel/handler.c kernel/handler.h
 kernel/$(TARGET)_serial.o: kernel/serial.c kernel/serial.h
 
 kernel/$(TARGET)_generation.o: kernel/generation.c kernel/generation.h
+
+kernel/$(TARGET)_coroutine.o: kernel/coroutine.c kernel/coroutine.h
+
+kernel/$(TARGET)_minilisp.o: kernel/minilisp.c kernel/minilisp.h

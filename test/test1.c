@@ -9,20 +9,24 @@
  * Value2 = 2 * Value3.
  */
 
+#define ITERATIONS 1000000
+
 //
 //Main routine for threads.
 //
 
 THREAD_MAIN Test1ThreadMain;
-void Test1ThreadMain( void * arg )
+void * Test1ThreadMain( void * arg )
 {
+        SchedulerShutdown( );
 	COUNT * var = (COUNT *) arg;
-	volatile unsigned char a = 0;
 	while( 1 )
 	{
 		(*var)++;
-		for(a=1;a>0;a++);
-
+		for(unsigned char a=1;a>0;a++) {}
+                if (*var > ITERATIONS) {
+                  return NULL;
+                }
 	}
 }
 
@@ -68,7 +72,8 @@ int main()
                         STACK_SIZE,
                         Test1ThreadMain,
                         &Value1,
-                        TRUE);
+                        NULL,
+                        true);
 
         SchedulerCreateThread(
                         &TestThread2,
@@ -77,7 +82,8 @@ int main()
                         STACK_SIZE,
                         Test1ThreadMain,
                         &Value2,
-                        TRUE);
+                        NULL,
+                        true);
 
         SchedulerCreateThread(
                         &TestThread3,
@@ -86,7 +92,8 @@ int main()
                         STACK_SIZE,
                         Test1ThreadMain,
                         &Value3,
-                        TRUE);
+                        NULL,
+                        true);
 
         KernelStart();
         return 0;

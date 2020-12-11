@@ -2,16 +2,8 @@
 #define UTILS_H
 
 #include"types.h"
-
-//
-//IFDEF DEFINITIONS
-//
-#ifndef NULL
-#define NULL ((void *) 0)
-#endif
-
-#define FALSE ((BOOL) 0)
-#define TRUE ((BOOL)(! FALSE ))
+#include<stdbool.h>
+#include"stddef.h"
 
 //
 //MATH MACROS
@@ -20,14 +12,12 @@
 #define MIN( a, b ) ((a)<(b) ? (a) : (b) )
 #define CLAMP(value, max, min) (MIN(MAX(min, value), max))
 #define ASSENDING( a, b, c ) ((a) <= (b) && (b) <= (c))
-//Returns the byte offset of FIELD in TYPE
-#define OFFSET_OF( type, field ) ((INDEX)(&(((type *)0)->field)))
 //Returns a pointer to the base structure 
 //given a pointer to a field.
-#define BASE_OBJECT( ptr, base, field ) ((base*)((INDEX)(ptr) - OFFSET_OF(base,field)))
+#define container_of( ptr, base, field ) ((base*)((INDEX)(ptr) - offsetof(base,field)))
 
 //
-//  Assert and Assume
+//  Assert and Check
 //
 
 #ifdef DEBUG
@@ -38,11 +28,12 @@
 #include<stdio.h>
 #include<stdlib.h>
 #define ASSERT( condition ) \
-	if( !(condition) )      \
-		printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__)
+  ((void)((condition) ? \
+   0 : \
+   printf("assert FAILED in file %s, line %d\n", __FILE__, __LINE__)))
 
-//This is a app build. Assumes result in a app and printf/exit.
-#define ASSUME( expression, result ) (ASSERT( (condition) == (result) ))
+//This is a app build. CHECKs result in a app and printf/exit.
+#define CHECK( expression ) ((void) (ASSERT (expression) ))
 
 #endif //APP_BUILD
 
@@ -51,20 +42,21 @@
 //This is a kernel build. Asserts result in a kernel panic.
 #include"kernel/panic.h"
 #define ASSERT( condition ) \
-	if( ! (condition) ) \
-		Panic( __FILE__, __LINE__ )
+    ((void)((condition) ? \
+     0 : \
+     Panic( __FILE__, __LINE__ )))
 
-#define ASSUME( expression, result ) ASSERT(expression == result )
+#define CHECK( expression ) ((void) ASSERT(expression))
 
 #endif //ifdef KERNEL_BUILD
 
 #else //ifdef DEBUG
 
 //This is a fre build, no asserts enabled.
-#define ASSERT( condition ) 
+#define ASSERT( condition ) ((void) (NULL))
 
-//This is a fre build, ASSUME runs expression, but no check.
-#define ASSUME( expression, result ) (expression)
+//This is a fre build, CHECK runs expression, but no ASSERT
+#define CHECK( expression ) ((void)(expression))
 
 #endif //ifdef DEBUG
 

@@ -2,6 +2,7 @@
 #include"scheduler.h"
 #include"timer.h"
 #include"critinterrupt.h"
+#include"signal.h"
 
 /*
  * This function is called by the SleepTimerHandler when
@@ -9,14 +10,14 @@
  * a critical section so it can wake a thread.
  */
 HANDLER_FUNCTION SleepCritHandler;
-BOOL SleepCritHandler( struct HANDLER_OBJECT * handler )
+_Bool SleepCritHandler( struct HANDLER_OBJECT * handler )
 {
-        struct THREAD * thread = handler->Context;
+  struct SIGNAL * sleepSignal = handler->Context;
 
-        ASSERT( SchedulerIsCritical() );
-        SchedulerResumeThread( thread );
+  ASSERT( SchedulerIsCritical() );
+  SignalSet(sleepSignal);
 
-        return TRUE;
+  return true;
 }
 
 /*
@@ -27,14 +28,14 @@ BOOL SleepCritHandler( struct HANDLER_OBJECT * handler )
  * We will schedule a critical handler which can wake threads.
  */
 HANDLER_FUNCTION SleepTimerHandler;
-BOOL SleepTimerHandler( struct HANDLER_OBJECT * timer )
+_Bool SleepTimerHandler( struct HANDLER_OBJECT * timer )
 {
-        CritInterruptRegisterHandler(
-                        timer,
-                        SleepCritHandler,
-                        timer->Context );
+  CritInterruptRegisterHandler(
+      timer,
+      SleepCritHandler,
+      timer->Context );
 
-        return FALSE;
+  return false;
 }
 
 /*
@@ -49,28 +50,11 @@ BOOL SleepTimerHandler( struct HANDLER_OBJECT * timer )
  */
 void Sleep( COUNT time )
 {
-        struct HANDLER_OBJECT timer;
-        struct THREAD * thread;
+  struct SIGNAL sleepSignal;
+  struct HANDLER_OBJECT timer;
 
-        //The handler will have to know which thread to wake.
-        thread = SchedulerGetActiveThread();
-
-        //We have to enter a critical section because if the timer
-        //fires immediatly, we cannot let the worker try to wake the
-        //thread before it has gone to sleep.
-        SchedulerStartCritical();
-
-        //Zero out timer.
-        HandlerInit( &timer );
-
-        //Register the timer.
-        TimerRegister( &timer, time, SleepTimerHandler, thread );//TODO TIMER REGISTER SHOULD HAPPEN AFTER WE BLOCKED.
-
-        //Sleep the current thread.
-        SchedulerBlockThread();
-
-        //Force the switch.
-        SchedulerForceSwitch();
-
-        //If we reach this point, then we have been awakened!
+  SignalInit(&sleepSignal, false);
+  HandlerInit( &timer );
+  TimerRegister( &timer, time, SleepTimerHandler, &sleepSignal);
+  SignalWaitForSignal(&sleepSignal, NULL);
 }

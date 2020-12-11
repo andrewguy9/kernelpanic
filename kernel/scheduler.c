@@ -74,6 +74,14 @@ volatile TIME QuantumStartTime;
 struct HANDLER_OBJECT SchedulerCritObject;
 struct MUTEX SchedulerMutex;
 
+//Count of the threads which have not returned.
+//Used for shutdown tracking.
+
+COUNT RunningThreads;
+
+//Track if we are shutting down.
+_Bool Shutdown;
+
 void PostCritHandler(struct HANDLER_OBJECT * obj )
 {
         ASSERT(obj == &SchedulerCritObject);
@@ -94,6 +102,7 @@ struct THREAD IdleThread;
  * Returns a pointer to the current thread. Should only
  * be called by a thread, never in interrupt.
  */
+//TODO CALLED ONLY FROM SLEEP UNIT, CAN THIS BE INTERNAL?
 struct THREAD * SchedulerGetActiveThread()
 {
         return ActiveThread;
@@ -108,7 +117,7 @@ void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 
 #ifdef DEBUG
         //The context is embeded in a thread, extract it.
-        struct THREAD * thread = BASE_OBJECT( context,
+        struct THREAD * thread = container_of( context,
                         struct THREAD,
                         LockingContext);
 
@@ -126,7 +135,7 @@ void SchedulerBlockOnLock( struct LOCKING_CONTEXT * context )
 void SchedulerWakeOnLock( struct LOCKING_CONTEXT * context )
 {
         //The context is embeded in a thread, extract it.
-        struct THREAD * thread = BASE_OBJECT( context,
+        struct THREAD * thread = container_of( context,
                         struct THREAD,
                         LockingContext);
 
@@ -171,6 +180,7 @@ void SchedulerForceSwitch()
 /*
  * Takes a blocked thread and adds it back into active circulation.
  */
+//TODO THIS IS USED FOR LOCKING WAKE. CAN IT BE INTERNAL FUNCTION?
 void SchedulerResumeThread( struct THREAD * thread )
 {
         ASSERT( CritInterruptIsAtomic() );
@@ -181,14 +191,14 @@ void SchedulerResumeThread( struct THREAD * thread )
         LinkedListEnqueue( &thread->Link.LinkedListLink, &RunQueue );
 }
 
-BOOL SchedulerIsThreadDead( struct THREAD * thread )
+_Bool SchedulerIsThreadDead( struct THREAD * thread )
 {
         ASSERT( CritInterruptIsAtomic() );
 
         return thread->State == THREAD_STATE_DONE;
 }
 
-BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
+_Bool SchedulerIsThreadBlocked( struct THREAD * thread )
 {
         ASSERT( CritInterruptIsAtomic() );
 
@@ -204,6 +214,7 @@ BOOL SchedulerIsThreadBlocked( struct THREAD * thread )
  * Threads which call SchedulerBlockThread should have some
  * mechanism to wake the thread later.
  */
+//TODO USED IN SLEEP AND LOCK MANAGEMENT. COULD BE INTENRAL FUNCTION?
 void SchedulerBlockThread( )
 {
         ASSERT( CritInterruptIsAtomic() );
@@ -239,7 +250,7 @@ void SchedulerSwitch()
         ActiveThread = NextThread;
         NextThread = NULL;
 
-        ContextSwitch(&oldThread->MachineContext, &newThread->MachineContext);
+        ContextSwitch(&oldThread->Stack, &newThread->Stack);
 
         ASSERT( ! TimerIsAtomic() );
         ASSERT( CritInterruptIsAtomic() );//TODO SEE NOTE ABOVE.
@@ -266,7 +277,7 @@ void Schedule()
         //Pick the next thread
         if ( ! LinkedListIsEmpty( &RunQueue ) ) {
                 //there are threads waiting, run one
-                NextThread = BASE_OBJECT( LinkedListPop( &RunQueue ),
+                NextThread = container_of( LinkedListPop( &RunQueue ),
                                 struct THREAD,
                                 Link);
         } else {
@@ -300,7 +311,7 @@ void SchedulerNeedsSwitch()
  * mark the quantum as expired so that when the
  * critical section does end we can force a switch.
  */
-BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
+_Bool SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
 {
         TIME currentTime = TimeGet();
 
@@ -320,7 +331,7 @@ BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
                         NULL );
 
         //We return false here because we have re-registered the timer.
-        return FALSE;
+        return false;
 }
 
 /*
@@ -329,7 +340,7 @@ BOOL SchedulerTimerHandler( struct HANDLER_OBJECT * handler )
  * It can be scheduled be queued by the scheduler timer firing
  * or a thread yielding.
  */
-BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
+_Bool SchedulerCritHandler( struct HANDLER_OBJECT * handler )
 {
         //Only the global SchedulerCritObject should invoke this callback.
         ASSERT( handler == &SchedulerCritObject );
@@ -354,14 +365,11 @@ BOOL SchedulerCritHandler( struct HANDLER_OBJECT * handler )
         //This will release any held resources.
         SchedulerSwitch();
 
-        return TRUE;
+        return true;
 }
 
 void SchedulerStartup()
 {
-        //Setup the hal to use the scheduler.
-        ContextStartup( SchedulerThreadStartup );
-
         //Initialize queues
         LinkedListInit( &RunQueue );
 
@@ -373,9 +381,12 @@ void SchedulerStartup()
                         NULL);
 
         //Initialize the crit handler
-        MutexInit( &SchedulerMutex, FALSE );
+        MutexInit( &SchedulerMutex, false );
 
         QuantumStartTime = TimeGet();
+
+        RunningThreads = 0;
+        Shutdown = false;
 
         //Create a thread for idle loop.
         SchedulerCreateThread( &IdleThread, //Thread
@@ -384,10 +395,24 @@ void SchedulerStartup()
                         0, //Stack Size
                         NULL, //Main
                         NULL, //Argument
-                        FALSE );//Start
+                        NULL, //Local
+                        false );//Start
 
         //Initialize context unit.
         ActiveThread = &IdleThread;
+}
+
+void SchedulerShutdown( ) {
+        SchedulerStartCritical();
+        Shutdown = true;
+        SchedulerEndCritical();
+}
+
+_Bool SchedulerIsShuttingDown( ) {
+        SchedulerStartCritical();
+        _Bool result = Shutdown;
+        SchedulerEndCritical();
+        return result;
 }
 
 /*
@@ -402,7 +427,7 @@ struct LOCKING_CONTEXT * SchedulerGetLockingContext()
         return &ActiveThread->LockingContext;
 }
 
-void SchedulerThreadStartup( void )
+void SchedulerThreadStartup( void * arg )
 {
         struct THREAD * thread;
 
@@ -414,8 +439,9 @@ void SchedulerThreadStartup( void )
         //which were held across the context switch,
         //namely the SchedulerCritObject, and the SchedulerMutex.
 
-        //Get the thread (set before the context switch)
-        thread = SchedulerGetActiveThread();
+        thread = arg;
+
+        ASSERT (SchedulerGetActiveThread() == thread);
 
         //We should be in a critical section because we context switched here,
         //leaking the raise.
@@ -431,15 +457,28 @@ void SchedulerThreadStartup( void )
         ASSERT( !CritInterruptIsAtomic() );
 
         //run the thread.
-        thread->Main( thread->Argument );
+        thread->Result = thread->Main( thread->Argument );
 
-        //The new thread's main returned. We must ensure that
-        //we do not return from the trampoline, so force the
-        //kernel to switch to another thread. Also move the
-        //thread into THREAD_STATE_DONE so that he is never
-        //rescheduled.
+        //Release threads waiting to join this thread.
+        ResourceUnlockExclusive(&thread->ResultLock);
+
+        //Re-acquire the result structure, so that thread can die.
+        ResourceLockExclusive(&thread->ResultLock, NULL);
+
+        //The new thread's main returned!
         SchedulerStartCritical();
         thread->State = THREAD_STATE_DONE;
+
+        //Check to see if we have shutdown the last active thread.
+        RunningThreads--;
+        if (Shutdown && RunningThreads == 1) {
+          //Shutting down and only idle thread left.
+          HalShutdownNow();
+        }
+
+        //We must ensure that we do not return from the trampoline,
+        //so force the kernel to switch to another thread. Also move the
+        //thread into THREAD_STATE_DONE so that he is never rescheduled.
         SchedulerForceSwitch();
 
         //We should never get here.
@@ -453,19 +492,25 @@ void SchedulerCreateThread(
                 char * stack,
                 COUNT stackSize,
                 THREAD_MAIN main,
-                void * Argument,
-                BOOL start)
+                void * argument,
+                void * local,
+                _Bool start)
 {
         ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
+
+        RunningThreads++;
 
         //Populate thread struct
         thread->Priority = priority;
         LockingInit( & thread->LockingContext, SchedulerBlockOnLock, SchedulerWakeOnLock );
+        ResourceInit(& thread->ResultLock, RESOURCE_EXCLUSIVE);
         thread->Main = main;
-        thread->Argument = Argument;
+        thread->Argument = argument;
+        thread->Local = local;
+        thread->Result = NULL;
 
         //initialize stack
-        ContextInit( &(thread->MachineContext), stack, stackSize, SchedulerThreadStartup );
+        ContextInit( &thread->Stack, stack, stackSize, SchedulerThreadStartup, thread );
 
         //Add thread to queue.
         if ( start ) {
@@ -474,5 +519,33 @@ void SchedulerCreateThread(
         } else {
                 thread->State = THREAD_STATE_BLOCKED;
         }
+}
+
+void * SchedulerJoinThread(struct THREAD * thread) {
+  ResourceLockShared( & thread->ResultLock, NULL);
+  return thread->Result;
+}
+
+void SchedulerReleaseThread(struct THREAD * thread) {
+  ResourceUnlockShared( & thread->ResultLock);
+}
+
+void * ThreadLocalGet()
+{
+        CritInterruptDisable();
+        ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
+        struct THREAD * thread = SchedulerGetActiveThread();
+        void * local = thread->Local;
+        CritInterruptEnable();
+        return local;
+}
+
+void ThreadLocalSet(void * val)
+{
+        CritInterruptDisable();
+        ASSERT( HalIsIrqAtomic(IRQ_LEVEL_CRIT) );
+        struct THREAD * thread = SchedulerGetActiveThread();
+        thread->Local = val;
+        CritInterruptEnable();
 }
 

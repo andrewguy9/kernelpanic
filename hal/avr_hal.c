@@ -139,7 +139,7 @@ void HalInitClock()
 	TCCR0 |= TMR_PRESCALE_1024;
 }
 
-void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, STACK_INIT_ROUTINE foo, COUNT stackSize)
+void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, COUNT stackSize, STACK_INIT_ROUTINE foo)
 {	
 	char reg;
 	char * sp = (char *) stack;
@@ -220,9 +220,9 @@ void HalContextSwitch( )
 	HAL_RESTORE_STATE
 }
 
-void HalPanic(char file[], int line)
+void HalPanicFn(char file[], int line, char msg[])
 {
-	BOOL failed = TRUE;
+	_Bool failed = true;
 
 	while( failed );
 }

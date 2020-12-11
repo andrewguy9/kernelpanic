@@ -9,11 +9,11 @@
 /*
  * Updates a generation with a new value from a high IRQ.
  */
-BOOL GenerationUpdateHandler(struct HANDLER_OBJECT * HandlerObj)
+_Bool GenerationUpdateHandler(struct HANDLER_OBJECT * HandlerObj)
 {
         struct GENERATION_CONTEXT * context = HandlerObj->Context;
         GenerationUpdate(context->Generation, context->NewValue);
-        return TRUE;
+        return true;
 }
 
 /*
@@ -50,7 +50,7 @@ void GenerationUpdate(struct GENERATION * gen, COUNT value)
 
         gen->Generation = value;
         while (! LinkedListIsEmpty( &gen->WaitingThreads) ) {
-                context = BASE_OBJECT(
+                context = container_of(
                                 LinkedListPop(&gen->WaitingThreads),
                                 struct LOCKING_CONTEXT,
                                 Link);

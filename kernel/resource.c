@@ -51,7 +51,7 @@ void ResourceWakeThreads( struct RESOURCE * lock )
         struct LOCKING_CONTEXT * cur;
         do {
                 //Get the locking context at top of queue
-                cur = BASE_OBJECT( LinkedListPeek( & lock->WaitingThreads ),
+                cur = container_of( LinkedListPeek( & lock->WaitingThreads ),
                                 struct LOCKING_CONTEXT,
                                 Link.LinkedListLink );
 
@@ -82,9 +82,9 @@ void ResourceWakeThreads( struct RESOURCE * lock )
 //Public Functions
 //
 
-void ResourceInit( struct RESOURCE * lock )
+void ResourceInit( struct RESOURCE * lock, enum RESOURCE_STATE state)
 {
-        lock->State = RESOURCE_SHARED;
+        lock->State = state;
         LinkedListInit( &lock->WaitingThreads );
         lock->NumShared = 0;
 }

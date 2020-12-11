@@ -38,8 +38,8 @@ struct MAP
 	COUNT Width;
 };
 
-BOOL MapInit( struct MAP * map, BITMAP_WORD * wallBuff, COUNT buffLen, COUNT height, COUNT width );
-BOOL MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map );
-void MapSetWall( INDEX x, INDEX y, enum DIRECTION dir, BOOL state, struct MAP * map );
+_Bool MapInit( struct MAP * map, BITMAP_WORD * wallBuff, COUNT buffLen, COUNT height, COUNT width );
+_Bool MapGetWall( INDEX x, INDEX y, enum DIRECTION dir, struct MAP * map );
+void MapSetWall( INDEX x, INDEX y, enum DIRECTION dir, _Bool state, struct MAP * map );
 
 #endif

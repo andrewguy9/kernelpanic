@@ -38,21 +38,19 @@ struct ATOMIC_LIST SoftInterruptHandlerList;
 void SoftInterruptStartup()
 {
         AtomicListInit( &SoftInterruptHandlerList );
-        HalRegisterIsrHandler( SoftInterrupt, (void *) HAL_ISR_SOFT, IRQ_LEVEL_SOFT );
+        IsrRegisterHandler( SoftInterrupt, (void *) HAL_ISR_SOFT, IRQ_LEVEL_SOFT );
 }
 
 void SoftInterrupt()
 {
         struct ATOMIC_LIST_LINK * link;
         struct HANDLER_OBJECT * handler;
-        BOOL isComplete;
+        _Bool isComplete;
         HANDLER_FUNCTION * func;
-
-        SoftInterruptIncrement();
 
         //TODO TOO MUCH DUPLICATION.
         while( (link = AtomicListPop(&SoftInterruptHandlerList)) ) {
-                handler = BASE_OBJECT(
+                handler = container_of(
                                 link,
                                 struct HANDLER_OBJECT,
                                 Link );
@@ -66,8 +64,6 @@ void SoftInterrupt()
                 }
 
         }
-
-        SoftInterruptDecrement();
 }
 
 void SoftInterruptRegisterHandler(
