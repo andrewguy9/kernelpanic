@@ -62,3 +62,7 @@ SIGALRM
 SIGUSR1
 SIGUSR2
 ```
+
+Notes:
+===
+Have to install `libfile-which-perl` on Raspbian.
