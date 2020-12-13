@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser(description='Test wrapper which collects stats 
 timing_group = parser.add_mutually_exclusive_group()
 timing_group.add_argument('--timeout', dest='timeout', type=int)
 timing_group.add_argument('--until', dest='until', type=int)
+parser.add_argument('--debugger', dest='debugger', type=str)
 parser.add_argument('coresdir', type=str, help='path to cores directory')
 parser.add_argument('jobid', type=str, help='id of the test pass')
 parser.add_argument('branch', type=str, help='which branch is being tested')
@@ -20,6 +21,7 @@ parser.add_argument('dirty', type=str, help='which files are dirty.')
 parser.add_argument('testarg', type=str, nargs='+', help='test arguments')
 args = parser.parse_args()
 
+debugger = args.debugger
 coresdir = args.coresdir
 child_args = args.testarg
 test_name = child_args[0]
@@ -50,7 +52,6 @@ def move_core(dst_core, src_core):
     return dst_core
 
 def get_stack(program, core):
-    debugger = "lldb"
     if core is None:
         return None
     #TODO i need a debugger var.
