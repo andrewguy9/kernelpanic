@@ -66,3 +66,4 @@ SIGUSR2
 Notes:
 ===
 Have to install `libfile-which-perl` on Raspbian.
+Have to install 'sudo yum install perl-File-Which' in RedHat.
