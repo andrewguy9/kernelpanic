@@ -27,6 +27,27 @@ Supported Process OSes:
 Mac OSX
 Linux
 
+Installing Dependencies:
+===
+
+Build requires GCC or CLang.
+
+Tests require:
+* Python 2.7
+* Perl
+* Bash
+* SQLite
+
+Libraries:
+
+Debian
+---
+Install Perl which library: `sudo apt-get install libfile-which-perl`.
+
+RedHat
+---
+Install Perl which library: 'sudo yum install perl-File-Which' in RedHat.
+
 Building:
 ===
 
@@ -62,8 +83,3 @@ SIGALRM
 SIGUSR1
 SIGUSR2
 ```
-
-Notes:
-===
-Have to install `libfile-which-perl` on Raspbian.
-Have to install 'sudo yum install perl-File-Which' in RedHat.
