@@ -535,7 +535,7 @@ sigset_t sigset_not(sigset_t a) {
 	sigset_t result;
 	status = sigemptyset(&result);
 	CHECK(status == 0);
-        for (i=SIGRTMIN; i <= SIGRTMAX; i++) {
+        for (i=1; i <= SIGRTMAX; i++) {
                 status = sigismember(&a, i);
                 if (status == 0) {
                   //Not set, so set in result.
