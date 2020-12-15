@@ -493,7 +493,7 @@ TIME HalGetTime()
 //IRQ Management
 //
 
-#undef SIGNAL_HACK
+#define SIGNAL_HACK
 
 #ifdef DEBUG
 #ifdef LINUX
