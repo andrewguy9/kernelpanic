@@ -493,7 +493,7 @@ TIME HalGetTime()
 //IRQ Management
 //
 
-#define SIGNAL_HACK
+#undef SIGNAL_HACK
 
 #ifdef DEBUG
 #ifdef LINUX
@@ -535,7 +535,8 @@ sigset_t sigset_not(sigset_t a) {
 	sigset_t result;
 	status = sigemptyset(&result);
 	CHECK(status == 0);
-        for (i=1; i <= SIGRTMIN-1; i++) {
+	int end = SIGRTMIN-2;
+        for (i=1; i < end; i++) {
                 status = sigismember(&a, i);
                 if (status == 0) {
                   //Not set, so set in result.
