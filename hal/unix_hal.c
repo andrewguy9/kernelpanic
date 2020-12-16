@@ -577,15 +577,27 @@ _Bool sigset_empty(sigset_t a) {
  */
 _Bool HalIsIrqAtomic(enum IRQ_LEVEL level)
 {
-        sigset_t levelSet, curSet;
+        sigset_t fullSet, levelSet, curSet;
         int status;
 
+        status = sigfillset(&fullSet);
+        ASSERT(status == 0);
         levelSet = HalIrqToSigaction[level].sa_mask;
         status = sigprocmask(0, NULL, &curSet);
         ASSERT(status == 0);
 
+#ifdef LEGACY_CHECK
         HalUpdateIsrDebugInfo();
         return sigset_empty(sigset_and(sigset_xor(levelSet, curSet), levelSet));
+#else
+        // int sigEnd = SIGRTMIN-2;
+        for (int sig = 1; sigismember(&fullSet, sig); sig++) {
+          if (sigismember(&levelSet, sig) && !sigismember(&curSet, sig)) {
+            return false;
+          }
+        }
+        return true;
+#endif
 }
 #endif //DEBUG
 
