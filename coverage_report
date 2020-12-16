@@ -56,15 +56,15 @@ create table coverage(
 .import coverage.csv coverage
 select
   baseline.filename as filename,
-  baseline.region_cover as region_baseline,
-  feature.region_cover as region_feature,
-  feature.region_cover - baseline.region_cover as region_change,
-  baseline.function_cover as function_baseline,
-  feature.function_cover as function_feature,
-  feature.function_cover - baseline.function_cover as function_change,
-  baseline.line_cover as line_baseline,
-  feature.line_cover as line_feature,
-  feature.line_cover - baseline.line_cover as line_change
+  printf("%  .2f", baseline.region_cover) as region_baseline,
+  printf("%  .2f", feature.region_cover) as region_feature,
+  printf("%  .2f", feature.region_cover - baseline.region_cover) as region_change,
+  printf("%  .2f", baseline.function_cover) as function_baseline,
+  printf("%  .2f", feature.function_cover) as function_feature,
+  printf("%  .2f", feature.function_cover - baseline.function_cover) as function_change,
+  printf("%  .2f", baseline.line_cover) as line_baseline,
+  printf("%  .2f", feature.line_cover) as line_feature,
+  printf("%  .2f", feature.line_cover - baseline.line_cover) as line_change
 from coverage baseline
 JOIN coverage feature on baseline.filename = feature.filename
 WHERE baseline.job = "${jobid1}" AND baseline.branch = "${baseline_branch}" AND
