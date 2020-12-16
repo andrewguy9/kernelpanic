@@ -28,4 +28,5 @@ done
 if [ ${#datas[@]} -ne 0 ]; then
   $profdata merge -sparse "${datas[@]}" -o combined.profdata
   $llvm_cov report "$first_test" -object="$tests_str" -instr-profile combined.profdata
+  $llvm_cov show "$first_test" -object="$tests_str" -format html -output-dir coverage --instr-profile ./combined.profdata
 fi
