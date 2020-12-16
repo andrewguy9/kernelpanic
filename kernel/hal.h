@@ -1,6 +1,7 @@
 #ifndef HAL_H
 #define HAL_H
 
+#include"utils/defs.h"
 #include"utils/utils.h"
 
 /*

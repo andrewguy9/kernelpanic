@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser(description='Test wrapper which collects stats 
 timing_group = parser.add_mutually_exclusive_group()
 timing_group.add_argument('--timeout', dest='timeout', type=int)
 timing_group.add_argument('--until', dest='until', type=int)
+parser.add_argument('coresdir', type=str, help='path to cores directory')
 parser.add_argument('jobid', type=str, help='id of the test pass')
 parser.add_argument('branch', type=str, help='which branch is being tested')
 parser.add_argument('commit', type=str, help='which commit is being tested')
@@ -19,6 +20,7 @@ parser.add_argument('dirty', type=str, help='which files are dirty.')
 parser.add_argument('testarg', type=str, nargs='+', help='test arguments')
 args = parser.parse_args()
 
+coresdir = args.coresdir
 child_args = args.testarg
 test_name = child_args[0]
 test_path = "./"+test_name
@@ -33,12 +35,12 @@ def exit_with_msg(test,pid, msg, status, stack=""):
     exit(status)
 
 def find_core(pid):
-    os.listdir("/cores")
-    names = os.listdir("/cores") #TODO need to get passed coresdir.
+    os.listdir(coresdir)
+    names = os.listdir(coresdir)
     matches = fnmatch.filter(names, "*%s*" % pid)
     if len(matches) == 0:
         return None
-    return os.path.join("/cores", matches[0]) #TODO use coredir var.
+    return os.path.join(coresdir, matches[0])
 
 def move_core(dst_core, src_core):
     if src_core is None:
