@@ -1,4 +1,3 @@
-#include"utils/defs.h"
 #include"kernel/hal.h"
 #include"kernel/thread.h"
 
