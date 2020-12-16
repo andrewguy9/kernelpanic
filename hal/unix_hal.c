@@ -493,85 +493,7 @@ TIME HalGetTime()
 //IRQ Management
 //
 
-#undef SIGNAL_HACK
-
 #ifdef DEBUG
-#ifdef LINUX
-sigset_t sigset_and(sigset_t a, sigset_t b) {
-	int status;
-	sigset_t result;
-	status = sigemptyset(&result);
-	CHECK(status == 0);
-	status = sigandset(&result, &a, &b);
-	CHECK(status == 0);
-	return result;
-}
-
-sigset_t sigset_or(sigset_t a, sigset_t b) {
-	int status;
-	sigset_t result;
-	status = sigemptyset(&result);
-	CHECK(status == 0);
-	status = sigorset(&result, &a, &b);
-	CHECK(status == 0);
-	return result;
-}
-
-_Bool sigset_empty(sigset_t a) {
-	return sigisemptyset(&a);
-}
-#ifdef SIGNAL_HACK // Use function which touch linux struct internals.
-sigset_t sigset_xor(sigset_t a, sigset_t b) {
-	sigset_t result;
-	for (int i = 0; i < _SIGSET_NWORDS; i++) {
-		result.__val[i] = a.__val[i] ^ b.__val[i];
-	}
-	return result;
-}
-#else // Use linux singal interface only.
-sigset_t sigset_not(sigset_t a) {
-	int i;
-	int status;
-	sigset_t result;
-	status = sigemptyset(&result);
-	CHECK(status == 0);
-	int end = SIGRTMIN-2;
-        for (i=1; i < end; i++) {
-                status = sigismember(&a, i);
-                if (status == 0) {
-                  //Not set, so set in result.
-                  status = sigaddset(&result, i);
-                  CHECK(status == 0);
-                } else if (status == 1) {
-                  //Set, so unset.
-                  status = sigdelset(&result, i);
-                  CHECK(status == 0);
-                } else if (status == -1) {
-                  HalPanicErrno("Failed to test signal membership.");
-                }
-        }
-        return result;
-}
-
-sigset_t sigset_xor(sigset_t a, sigset_t b) {
-        sigset_t result;
-        result = sigset_and( sigset_not( sigset_and(a, b)), sigset_or(a, b));
-        return result;
-}
-#endif // SIGNAL_HACK
-
-#else // OSX
-sigset_t sigset_xor(sigset_t a, sigset_t b) {
-	return a ^ b;
-}
-sigset_t sigset_and(sigset_t a, sigset_t b) {
-	return a & b;
-}
-
-_Bool sigset_empty(sigset_t a) {
-	return !a;
-}
-#endif // LINUX
 /*
  * Returns true if the system is running at at least IRQ level.
  */
@@ -586,18 +508,12 @@ _Bool HalIsIrqAtomic(enum IRQ_LEVEL level)
         status = sigprocmask(0, NULL, &curSet);
         ASSERT(status == 0);
 
-#ifdef LEGACY_CHECK
-        HalUpdateIsrDebugInfo();
-        return sigset_empty(sigset_and(sigset_xor(levelSet, curSet), levelSet));
-#else
-        // int sigEnd = SIGRTMIN-2;
         for (int sig = 1; sigismember(&fullSet, sig); sig++) {
           if (sigismember(&levelSet, sig) && !sigismember(&curSet, sig)) {
             return false;
           }
         }
         return true;
-#endif
 }
 #endif //DEBUG
 
