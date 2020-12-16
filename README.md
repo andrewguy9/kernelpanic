@@ -43,6 +43,7 @@ Libraries:
 Debian
 ---
 Install Perl which library: `sudo apt-get install libfile-which-perl`.
+Install uuid generator `sudo apt-get install uuid-runtime`.
 
 RedHat
 ---
@@ -83,3 +84,4 @@ SIGALRM
 SIGUSR1
 SIGUSR2
 ```
+
