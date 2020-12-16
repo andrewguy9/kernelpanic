@@ -2,6 +2,7 @@
 
 set -e
 
+#TODO no branch option would be nice, but we have nothing to compare against.
 USAGE="$0 [-r runs] [-b batch_size] dst_branch [branch ...]"
 
 runs=3
