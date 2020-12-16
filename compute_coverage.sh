@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#TODO use parameter parsing and usage checks.
 #TODO use xcrun only on Darwin.
 profdata=$(xcrun --find llvm-profdata)
 llvm_cov=$(xcrun --find llvm-cov)
