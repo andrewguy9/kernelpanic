@@ -111,5 +111,5 @@ exit($status);
 
 sub runtest {
   my $test_name = shift @_;
-  exec "./harness.py", "--until=$timeout", "--debugger=$debugger", "--coredir=$coredir", $jobid, $branch, $commit, $dirty_str, $test_name;
+  exec "./harness.py", "--until=$timeout", "--debugger=$debugger", "$coredir", "$jobid", "$branch", "$commit", "$dirty_str", "$test_name";
 }

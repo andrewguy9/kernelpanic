@@ -12,8 +12,8 @@ parser = argparse.ArgumentParser(description='Test wrapper which collects stats 
 timing_group = parser.add_mutually_exclusive_group()
 timing_group.add_argument('--timeout', dest='timeout', type=int)
 timing_group.add_argument('--until', dest='until', type=int)
-parser.add_argument('--debugger', type=str, help='Which debugger to use')
-parser.add_argument('--coredir', type=str, help='Where to find core files')
+parser.add_argument('--debugger', dest='debugger', type=str, help='Which debugger to use')
+parser.add_argument('coresdir', type=str, help='path to cores directory')
 parser.add_argument('jobid', type=str, help='id of the test pass')
 parser.add_argument('branch', type=str, help='which branch is being tested')
 parser.add_argument('commit', type=str, help='which commit is being tested')
@@ -21,12 +21,12 @@ parser.add_argument('dirty', type=str, help='which files are dirty')
 parser.add_argument('testarg', type=str, nargs='+', help='test arguments')
 args = parser.parse_args()
 
+debugger = args.debugger
+coresdir = args.coresdir
 child_args = args.testarg
 test_name = os.path.normpath(child_args[0])
 test_path = os.path.abspath(os.path.join('.', test_name))
 child_args[0] = test_path
-debugger = args.debugger
-coredir = args.coredir
 
 def exit_with_msg(test, pid, msg, status, usage, stack=""):
     output = "Test %s(%s)... %s" % (test_name, pid, msg)
@@ -52,7 +52,7 @@ def exit_with_msg(test, pid, msg, status, usage, stack=""):
     exit(status)
 
 def find_core(pid):
-    names = os.listdir(coredir)
+    names = os.listdir(coresdir)
     matches = fnmatch.filter(names, "*%s*" % pid)
     if len(matches) == 0:
         return None

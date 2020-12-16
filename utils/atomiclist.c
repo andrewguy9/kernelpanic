@@ -15,6 +15,7 @@ void AtomicListPush( struct ATOMIC_LIST_LINK * node, struct ATOMIC_LIST * list )
 struct ATOMIC_LIST_LINK * AtomicListPop( struct ATOMIC_LIST * list )
 {
         union ATOMIC_UNION oldHead;
+        struct ATOMIC_TUPLE oldTuple;
         union ATOMIC_UNION newHead;
 
         struct ATOMIC_LIST_LINK * node;
@@ -24,8 +25,9 @@ struct ATOMIC_LIST_LINK * AtomicListPop( struct ATOMIC_LIST * list )
         do {
                 // Get access to logical head.
                 oldHead.Atomic = list->Head.Atomic;
-                node = oldHead.Tuple.Pointer;
-                generation = oldHead.Tuple.Generation;
+                oldTuple = oldHead.Tuple;
+                node = oldTuple.Pointer;
+                generation = oldTuple.Generation;
 
                 if(node == NULL) {
                         return NULL;
