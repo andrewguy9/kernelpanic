@@ -500,14 +500,13 @@ TIME HalGetTime()
 _Bool HalIsIrqAtomic(enum IRQ_LEVEL level)
 {
         sigset_t fullSet, levelSet, curSet;
-        int status;
 
-        status = sigfillset(&fullSet);
-        ASSERT(status == 0);
+        CHECK(0 == sigfillset(&fullSet));
         levelSet = HalIrqToSigaction[level].sa_mask;
-        status = sigprocmask(0, NULL, &curSet);
-        ASSERT(status == 0);
+        CHECK(0 == sigprocmask(0, NULL, &curSet));
 
+        /* If a signal is blocked in the IRQ level, it must be blocked in the current mask.
+         * otherwise we could recieve an interrupt which breaks atomicity. */
         for (int sig = 1; sigismember(&fullSet, sig); sig++) {
           if (sigismember(&levelSet, sig) && !sigismember(&curSet, sig)) {
             return false;
