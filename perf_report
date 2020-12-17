@@ -44,9 +44,9 @@ TESTS_SQL
 my $query = <<QUERY_SQL;
 select
   b1.test as test,
-  printf("%  .2f", b1.rt) as "baseline_avg",
-  printf("%  .2f", b2.rt) as "feature_avg",
-  printf("%  .2f", b2.rt-b1.rt) as delta,
+  b1.rt as "baseline_avg",
+  b2.rt as "feature_avg",
+  b2.rt-b1.rt as delta,
   cast(100*(b2.rt-b1.rt)/b1.rt as int) as percent
 from (select test,avg(real) as rt from perf where commit_hash='${rev1}' group by commit_hash,test) as b1
 inner join (select test,avg(real) as rt from perf where commit_hash='${rev2}' group by commit_hash,test) as b2
