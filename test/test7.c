@@ -1,6 +1,6 @@
 #include"kernel/startup.h"
 #include"kernel/scheduler.h"
-#include"kernel/gather.h"
+#include"kernel/barrier.h"
 #include"kernel/panic.h"
 #include"kernel/hal.h"
 #include"utils/utils.h"
@@ -9,7 +9,7 @@
 
 #define NUM_THREADS 7
 
-struct GATHER Gather;
+struct BARRIER Barrier;
 
 #define STACK_SIZE HAL_MIN_STACK_SIZE
 
@@ -78,7 +78,7 @@ void * BlockingMain(void * arg) {
 
   while(true) {
     DoTransition( index );
-    GatherSync( & Gather, NULL );
+    BarrierSync( & Barrier, NULL );
   }
   return NULL;
 }
@@ -97,7 +97,7 @@ void * WaitMain(void * arg) {
   while(true) {
     DoTransition( index );
 
-    GatherSync( & Gather, &context );
+    BarrierSync( & Barrier, &context );
 
     while( ! LockingIsAcquired( &context ) ) {
       SchedulerStartCritical();
@@ -120,7 +120,7 @@ void * SpinMain(void * arg) {
 
   while(true) {
     DoTransition( index );
-    GatherSync( & Gather, &context );
+    BarrierSync( & Barrier, &context );
     while( !LockingIsAcquired( & context ) );
 
   }
@@ -137,7 +137,7 @@ void * ValidateMain(void * arg) {
 
   while(true) {
     _Bool * array = DoTransition( index );
-    GatherSync( & Gather, NULL );
+    BarrierSync( & Barrier, NULL );
     ValidateState( array );
   }
   return NULL;
@@ -155,7 +155,7 @@ int main() {
 
   SchedulerStartup();
 
-  GatherInit( &Gather, NUM_THREADS );
+  BarrierInit( &Barrier, NUM_THREADS );
 
   SchedulerCreateThread(
       &BlockThread1,

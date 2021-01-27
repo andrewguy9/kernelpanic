@@ -1,51 +1,51 @@
-#include"gather.h"
+#include"barrier.h"
 
 /*
  * Unit Description
  *
- * Gather is a syncronization mechanism which allow
+ * Barrier is a syncronization mechanism which allow
  * multiple threads to syncronize their actions.
  *
- * Gather is like an inverted semaphore. It is initialized
- * to wait for n threads. Each thread walls GatherSync and is 
+ * Barrier is like an inverted semaphore. It is initialized
+ * to wait for n threads. Each thread walls BarrierSync and is 
  * blocked until all n threads are blocked. Then the lock awakens
  * all of them at the same time. This is useful if you need
  * multiple threads to move in lock step.
  */
 
 /*
- * Initializes the gather structure.
- * Count is the number of threads the gather lock will block.
- * This should not be called on an active gather lock.
+ * Initializes the barrier structure.
+ * Count is the number of threads the barrier lock will block.
+ * This should not be called on an active barrier lock.
  */
-void GatherInit( struct GATHER * gather, COUNT count )
+void BarrierInit( struct BARRIER * barrier, COUNT count )
 {
-        gather->Needed = count;
-        gather->Present = 0;
-        LinkedListInit( & gather->List );
+        barrier->Needed = count;
+        barrier->Present = 0;
+        LinkedListInit( & barrier->List );
 }
 
 /*
- * Blocks the thread until all the threads have called GatherSync.
- * When the final thread arrives, the lock will wake all threads in the gather.
+ * Blocks the thread until all the threads have called BarrierSync.
+ * When the final thread arrives, the lock will wake all threads in the barrier.
  */
-void GatherSync( struct GATHER * gather, struct LOCKING_CONTEXT * context )
+void BarrierSync( struct BARRIER * barrier, struct LOCKING_CONTEXT * context )
 {
         LockingStart();
 
         //Mark that new thread has arrived
-        gather->Present++;
+        barrier->Present++;
         //see if everyone is here
-        if( gather->Needed == gather->Present ) {
+        if( barrier->Needed == barrier->Present ) {
                 //everyone is here
-                gather->Present = 0;
+                barrier->Present = 0;
                 //tell new guy that he can continue
                 LockingAcquire( context );
                 //Tell everyone waiting they can continue.
-                while( ! LinkedListIsEmpty( & gather->List ) ) {
+                while( ! LinkedListIsEmpty( & barrier->List ) ) {
                         struct LOCKING_CONTEXT * curContext;
                         curContext = container_of(
-                                        LinkedListPop( &gather->List ),
+                                        LinkedListPop( &barrier->List ),
                                         struct LOCKING_CONTEXT,
                                         Link);
                         LockingAcquire( curContext );
@@ -60,7 +60,7 @@ void GatherSync( struct GATHER * gather, struct LOCKING_CONTEXT * context )
                 link = LockingBlock( NULL, context );
 
                 //We need to store ourself away for later retreval.
-                LinkedListEnqueue( &link->LinkedListLink, &gather->List );
+                LinkedListEnqueue( &link->LinkedListLink, &barrier->List );
 
                 //We may need to switch threads.
                 LockingEnd();
