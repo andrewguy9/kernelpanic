@@ -2,10 +2,30 @@
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   profdata=$(xcrun --find llvm-profdata)
+  if [ "$?" -ne 0 ]
+  then
+    >&2 echo "Cannot find llvm-profdata"
+    exit 1
+  fi
   llvm_cov=$(xcrun --find llvm-cov)
+  if [ "$?" -ne 0 ]
+  then
+    >&2 echo "Cannot find llvm-cov"
+    exit 1
+  fi
 else
-  profdata=true
-  llvm_cov=true
+  profdata=$(which llvm-profdata)
+  if [ "$?" -ne 0 ]
+  then
+    >&2 echo "Cannot find llvm-profdata"
+    exit 1
+  fi
+  llvm_cov=$(which llvm-cov)
+  if [ "$?" -ne 0 ]
+  then
+    >&2 echo "Cannot find llvm-cov"
+    exit 1
+  fi
 fi
 
 function join_by { local IFS="$1"; shift; echo "$*"; }
