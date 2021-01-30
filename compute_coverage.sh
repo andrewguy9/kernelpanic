@@ -1,27 +1,23 @@
 #!/bin/bash
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  profdata=$(xcrun --find llvm-profdata)
-  if [ "$?" -ne 0 ]
+  if profdata=$(xcrun --find llvm-profdata)
   then
     >&2 echo "Cannot find llvm-profdata"
     exit 1
   fi
-  llvm_cov=$(xcrun --find llvm-cov)
-  if [ "$?" -ne 0 ]
+  if llvm_cov=$(xcrun --find llvm-cov])"$?"
   then
     >&2 echo "Cannot find llvm-cov"
     exit 1
   fi
 else
-  profdata=$(which llvm-profdata)
-  if [ "$?" -ne 0 ]
+  if profdata=$(which llvm-profdata)
   then
     >&2 echo "Cannot find llvm-profdata"
     exit 1
   fi
-  llvm_cov=$(which llvm-cov)
-  if [ "$?" -ne 0 ]
+  if llvm_cov=$(which llvm-cov)
   then
     >&2 echo "Cannot find llvm-cov"
     exit 1
