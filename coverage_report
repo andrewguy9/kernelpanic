@@ -69,4 +69,5 @@ WHERE baseline.job = "${jobid1}" AND baseline.branch = "${baseline_branch}" AND
   (ABS(line_change) > 0.1 OR ABS(function_change) > 0.1 OR ABS(region_change) > 0.1 OR baseline.filename = "TOTAL")
 _EOM_
 
+touch coverage.csv
 echo "$sql" | sqlite3

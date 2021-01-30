@@ -82,7 +82,9 @@ function process {
   ./stress --batch "$batch" --runs "$runs" --jobid "$jobid" --time 10
   echo "Running performance tests"
   ./perf       --batch "$batch" --runs "$runs" --jobid "$jobid"
-  ./compute_coverage.sh "$(cat performance.txt stress.txt)" | ./parse_coverage.pl --job "$jobid" >> coverage.csv
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    ./compute_coverage.sh "$(cat performance.txt stress.txt)" | ./parse_coverage.pl --job "$jobid" >> coverage.csv
+  fi
 }
 
 dst_branch=$(first ${branches[@]})

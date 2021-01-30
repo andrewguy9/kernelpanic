@@ -1,14 +1,38 @@
 #!/bin/bash
 
-#TODO use parameter parsing and usage checks.
-#TODO use xcrun only on Darwin.
-profdata=$(xcrun --find llvm-profdata)
-llvm_cov=$(xcrun --find llvm-cov)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  profdata=$(xcrun --find llvm-profdata)
+  if [ "$?" -ne 0 ]
+  then
+    >&2 echo "Cannot find llvm-profdata"
+    exit 1
+  fi
+  llvm_cov=$(xcrun --find llvm-cov)
+  if [ "$?" -ne 0 ]
+  then
+    >&2 echo "Cannot find llvm-cov"
+    exit 1
+  fi
+else
+  profdata=$(which llvm-profdata)
+  if [ "$?" -ne 0 ]
+  then
+    >&2 echo "Cannot find llvm-profdata"
+    exit 1
+  fi
+  llvm_cov=$(which llvm-cov)
+  if [ "$?" -ne 0 ]
+  then
+    >&2 echo "Cannot find llvm-cov"
+    exit 1
+  fi
+fi
 
 function join_by { local IFS="$1"; shift; echo "$*"; }
 function first { echo "$1"; }
 function rest { shift; echo "$@"; }
 
+#TODO use parameter parsing and usage checks.
 tests=${*}
 first_test=$(first ${tests[@]})
 rest_tests=$(rest ${tests[@]})
