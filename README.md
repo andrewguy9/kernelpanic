@@ -8,7 +8,7 @@ Features:
 
 * Small memory footprint (<2k RAM, <30k flash with kernel and application code)
 * Differed interrupt processing for real-time performance
-* Support for semaphores, mutex, Dual mode locks, gather scatter locks, and signals
+* Support for semaphores, mutex, Dual mode locks, barrier locks, and signals
 * Pre-emptive Thread Scheduling
 * Worker threads
 * Programmable Watchdog.

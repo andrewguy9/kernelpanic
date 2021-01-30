@@ -3,7 +3,7 @@
 #include"kernel/startup.h"
 #include"kernel/scheduler.h"
 #include"kernel/panic.h"
-#include"kernel/gather.h"
+#include"kernel/barrier.h"
 
 #define PRIME_TAG1 "test13_primes1.map"
 #define PRIME_TAG2 "test13_primes2.map"
@@ -16,7 +16,7 @@ struct THREAD PrimesThread1;
 char PrimesStack2[STACK_SIZE];
 struct THREAD PrimesThread2;
 
-struct GATHER PrimesGather;
+struct BARRIER PrimesBarrier;
 
 THREAD_MAIN PrimesMain;
 void * PrimesMain(void * context) {
@@ -26,7 +26,7 @@ void * PrimesMain(void * context) {
   int * primes_buffer = HalMap(tag, NULL, sizeof(int) * buffer_size);
   enum PRIMES_STATUS status = findPrimes(max, primes_buffer, buffer_size);
   if (status == PRIMES_OK) {
-    GatherSync( &PrimesGather, NULL);
+    BarrierSync( &PrimesBarrier, NULL);
     SchedulerShutdown();
     return NULL;
   } else {
@@ -39,7 +39,7 @@ int main(int argc, char ** argv)
 {
   KernelInit();
   SchedulerStartup();
-  GatherInit( &PrimesGather, 2);
+  BarrierInit( &PrimesBarrier, 2);
 
   SchedulerCreateThread(
       &PrimesThread1,
