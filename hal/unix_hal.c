@@ -1,4 +1,3 @@
-#include"utils/defs.h"
 #include"kernel/hal.h"
 #include"kernel/thread.h"
 
@@ -268,7 +267,7 @@ void __attribute((noreturn)) HalError(char *fmt, ...) {
   abort();
 }
 
-void HalShutdownNow() {
+void __attribute((noreturn)) HalShutdownNow() {
   exit(0);
 }
 
@@ -284,6 +283,11 @@ void HalSleepProcessor()
 
 void HalStartup()
 {
+}
+
+void __attribute((noreturn)) HalReset(enum IRQ_LEVEL level)
+{
+  exit(1);
 }
 
 //

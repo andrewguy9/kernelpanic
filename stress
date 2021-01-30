@@ -25,6 +25,7 @@ if ($^O eq "darwin") {
   $coredir = '.';
 }
 chomp(my $jobid = `uuidgen`);
+my $help;
 
 # Getopt::Long::Configure ('bundling_override');
 GetOptions (
@@ -34,7 +35,12 @@ GetOptions (
   'debugger=s' => \$debugger,
   'coredir=s' => \$coredir,
   'jobid=s' => \$jobid,
+  'help' => \$help,
 );
+
+if ($help) {
+  die "Usage: $0 [--runs i] [--batch i] [--time i] [--debugger s] [--coredir s] [--jobid s] [--help] <test> ...\n"
+}
 
 print "Timeout $timeout\n";
 print "BatchSize $batchsize\n";
@@ -50,10 +56,10 @@ my @tests = ();
 if (@ARGV) {
   push @tests, @ARGV;
 } else {
-  print "Sourcing tests from regression.txt\n";
-  open(REGRESSION_TESTS, "regression.txt");
+  print "Sourcing tests from stress.txt\n";
+  open(STRESS_TESTS, "stress.txt");
 
-  while( my $test = <REGRESSION_TESTS> ) {
+  while( my $test = <STRESS_TESTS> ) {
     chomp( $test );
     push @tests, $test;
   }
@@ -93,6 +99,7 @@ while (@tests || $running > 0) {
     }
   } else {
     my $pid = wait;
+    # TODO Exit code for cancelled pids should be 1, and thats ok.
     if ($? != 0) {
       $status = 1;
     }
@@ -104,5 +111,5 @@ exit($status);
 
 sub runtest {
   my $test_name = shift @_;
-  exec "./perf.py", "--until=$timeout", "--debugger=$debugger", $coredir, $jobid, $branch, $commit, $dirty_str, $test_name;
+  exec "./harness.py", "--until=$timeout", "--debugger=$debugger", "$coredir", "$jobid", "$branch", "$commit", "$dirty_str", "$test_name";
 }

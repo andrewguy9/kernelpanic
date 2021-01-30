@@ -8,7 +8,7 @@ if (@ARGV) {
 }
 
 my $setup = <<'SETUP_SQL';
-create table perf(job text, branch text, commit_hash text, dirty text, test text, real float, user float, sys float);
+create table perf(job text, branch text, commit_hash text, dirty text, test text, real float, user float, sys float, status int, result text);
 .separator ","
 .headers on
 .mode column
@@ -26,20 +26,26 @@ if ($? != 0) {die("failed to find rev for $branch2")};
 #print "$rev1, $rev2\n";
 
 my $test_counts = <<TESTS_SQL;
-SELECT test,
-       Count(case when commit_hash = '${rev1}' then branch end) as ${branch1},
-       Count(case when commit_hash = '${rev2}' then branch end) as ${branch2}
-FROM   perf
-WHERE commit_hash in ('806c6c2', 'df0ad48')
-GROUP BY test
-ORDER BY test;
+SELECT
+    test,
+    Count(*) as runs,
+    Count(CASE WHEN result = 'SUCCESS' THEN 1 END) as success,
+    Count(CASE WHEN result = 'TIMEOUT' THEN 1 END) as timeout,
+    Count(CASE WHEN result = 'FAILED' THEN 1 END) as failed,
+    COUNT(CASE WHEN result = 'SUCCESS' THEN 1 END) * 100.0 / Count(*) as percent
+FROM
+    perf
+WHERE
+    commit_hash in ('${rev2}')
+GROUP BY
+    test;
 TESTS_SQL
 
 my $query = <<QUERY_SQL;
 select
   b1.test as test,
-  b1.rt as "${branch1}_avg",
-  b2.rt as "${branch2}_avg",
+  b1.rt as "baseline_avg",
+  b2.rt as "feature_avg",
   b2.rt-b1.rt as delta,
   cast(100*(b2.rt-b1.rt)/b1.rt as int) as percent
 from (select test,avg(real) as rt from perf where commit_hash='${rev1}' group by commit_hash,test) as b1

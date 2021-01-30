@@ -18,7 +18,7 @@ KERN_PREFIX = kern_
 ##############################################
 #c flags
 ifeq ($(shell uname), Darwin)
-PC_CFLAGS  = -g -Wall -Werror -I "$(PWD)"
+PC_CFLAGS  = -g -Wall -Werror -I "$(PWD)" -fprofile-instr-generate -fcoverage-mapping
 PC_CFLAGS_FAST = $(PC_CFLAGS) -O3
 AVR_CFLAGS = -Wall -Werror -mmcu=atmega128 -O2
 AVR_CFLAGS_FAST = $(AVR_CFLAGS) -O3
@@ -105,6 +105,8 @@ AVR_FRE_STRING = -e TARGET="$(AVR_PREFIX)$(FRE_PREFIX)$(KERN_PREFIX)" -e CFLAGS=
 	rm -f $(DIR)/*.aws
 	rm -f $(DIR)/*.core.
 	rm -f $(DIR)/*.map
+	rm -f $(DIR)/*.profraw
+	rm -f $(DIR)/*.profdata
 ###########################
 # tags 
 ctags: 

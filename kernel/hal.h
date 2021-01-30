@@ -1,7 +1,6 @@
 #ifndef HAL_H
 #define HAL_H
 
-#include"utils/defs.h"
 #include"utils/utils.h"
 
 /*
@@ -29,6 +28,7 @@ enum IRQ_LEVEL {
     IRQ_LEVEL_SERIAL_READ,
     IRQ_LEVEL_TIMER,
     IRQ_LEVEL_WATCHDOG,
+    IRQ_LEVEL_RESET,
     IRQ_LEVEL_COUNT, //The number of defined IRQs.
 
     IRQ_LEVEL_MAX = IRQ_LEVEL_TIMER,//Value of the highest atomic IRQ.
@@ -47,6 +47,7 @@ void HalIsrInit();
 void HalRegisterIsrHandler( HAL_ISR_HANDLER handler, void * which, enum IRQ_LEVEL level );
 
 void HalStartup();
+HAL_ISR_HANDLER HalReset;
 
 void HalPetWatchdog( );
 void HalStartInterrupt();

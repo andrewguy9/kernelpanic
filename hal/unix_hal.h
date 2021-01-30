@@ -1,4 +1,3 @@
-#include"utils/defs.h"
 #include"utils/bitmap.h"
 #include"utils/counter.h"
 
@@ -31,6 +30,7 @@
 #define HAL_ISR_CRIT         SIGUSR2
 #define HAL_ISR_SERIAL_WRITE SIGWINCH
 #define HAL_ISR_SERIAL_READ  SIGIO
+#define HAL_ISR_RESET        SIGINT
 #endif
 
 #ifdef LINUX
@@ -41,6 +41,7 @@
 #define HAL_ISR_CRIT         SIGUSR2
 #define HAL_ISR_SERIAL_WRITE SIGWINCH
 #define HAL_ISR_SERIAL_READ  SIGIO
+#define HAL_ISR_RESET        SIGINT
 #endif
 
 #ifdef BSD
@@ -51,6 +52,7 @@
 #define HAL_ISR_CRIT         SIGUSR2
 #define HAL_ISR_SERIAL_WRITE SIGWINCH
 #define HAL_ISR_SERIAL_READ  SIGIO
+#define HAL_ISR_RESET        SIGINT
 #endif
 
 /*

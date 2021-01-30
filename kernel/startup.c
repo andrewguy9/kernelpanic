@@ -17,7 +17,7 @@
  */
 void KernelInit()
 {//entry point for kernel...
-        HalIsrInit();
+        HalStartup();
 
         IsrStartup();
         //TODO THIS IS A STARTUP HACK, WE SHOULD FIX IT.
@@ -25,6 +25,7 @@ void KernelInit()
 
         CritInterruptStartup();
         SoftInterruptStartup();
+        HalRegisterIsrHandler(HalReset, (void*) HAL_ISR_RESET, IRQ_LEVEL_RESET);
 
         TimerStartup();//TODO THE TIMER REGISTERED IN THIS FUNCTION IS RACING THE CALL WE MAKE TO IsrDisable.
 }

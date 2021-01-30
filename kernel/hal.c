@@ -1,3 +1,4 @@
+#include "utils/options.h"
 #include "hal.h"
 // This is a remote change!
 /*
