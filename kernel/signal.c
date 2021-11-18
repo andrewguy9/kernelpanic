@@ -14,6 +14,11 @@
  * or call SignalUnset to move it to the "not singaled" state.
  * both of these routines can be called no matter what the
  * signal's current state is.
+ *
+ * TODO This unit is not safe. There is no semantic for knowing that people have left the critical section.
+ * Say you start with everyone blocked. You set the signal, and everyone proceeds into the ciritical section.
+ * Then the signal is unset to cause blocking to start again. We have no reliable way to know that everyone
+ * has cleared out of the ciritcal section.
  */
 
 
