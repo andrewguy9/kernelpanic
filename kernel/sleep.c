@@ -53,7 +53,7 @@ void Sleep( COUNT time )
   struct SEMAPHORE sleepSemaphore;
   struct HANDLER_OBJECT timer;
 
-  SemaphoreInit(&sleepSemaphore, 1);
+  SemaphoreInit(&sleepSemaphore, 0);
   HandlerInit( &timer );
   TimerRegister( &timer, time, SleepTimerHandler, &sleepSemaphore);
   SemaphoreDown(&sleepSemaphore, NULL);
