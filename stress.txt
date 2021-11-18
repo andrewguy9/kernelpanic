@@ -8,4 +8,3 @@ pc_dbg_kern__test7.out
 pc_dbg_kern__test8.out
 pc_dbg_kern__test9.out
 pc_dbg_kern__test11.out
-pc_dbg_kern__test12.out
