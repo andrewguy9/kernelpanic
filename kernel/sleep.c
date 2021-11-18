@@ -2,7 +2,7 @@
 #include"scheduler.h"
 #include"timer.h"
 #include"critinterrupt.h"
-#include"signal.h"
+#include"semaphore.h"
 
 /*
  * This function is called by the SleepTimerHandler when
@@ -12,10 +12,10 @@
 HANDLER_FUNCTION SleepCritHandler;
 _Bool SleepCritHandler( struct HANDLER_OBJECT * handler )
 {
-  struct SIGNAL * sleepSignal = handler->Context;
+  struct SEMAPHORE * sleepSemaphore = handler->Context;
 
   ASSERT( SchedulerIsCritical() );
-  SignalSet(sleepSignal);
+  SemaphoreUp(sleepSemaphore);
 
   return true;
 }
@@ -50,11 +50,11 @@ _Bool SleepTimerHandler( struct HANDLER_OBJECT * timer )
  */
 void Sleep( COUNT time )
 {
-  struct SIGNAL sleepSignal;
+  struct SEMAPHORE sleepSemaphore;
   struct HANDLER_OBJECT timer;
 
-  SignalInit(&sleepSignal, false);
+  SemaphoreInit(&sleepSemaphore, 1);
   HandlerInit( &timer );
-  TimerRegister( &timer, time, SleepTimerHandler, &sleepSignal);
-  SignalWaitForSignal(&sleepSignal, NULL);
+  TimerRegister( &timer, time, SleepTimerHandler, &sleepSemaphore);
+  SemaphoreDown(&sleepSemaphore, NULL);
 }

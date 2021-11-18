@@ -7,7 +7,7 @@
  * multiple threads to syncronize their actions.
  *
  * Barrier is like an inverted semaphore. It is initialized
- * to wait for n threads. Each thread walls BarrierSync and is 
+ * to wait for n threads. Each thread calls BarrierSync and is
  * blocked until all n threads are blocked. Then the lock awakens
  * all of them at the same time. This is useful if you need
  * multiple threads to move in lock step.
