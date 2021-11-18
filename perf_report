@@ -26,6 +26,7 @@ if ($? != 0) {die("failed to find rev for $branch2")};
 #print "$rev1, $rev2\n";
 
 my $test_counts = <<TESTS_SQL;
+.width 30
 SELECT
     test,
     Count(*) as runs,
@@ -42,6 +43,7 @@ GROUP BY
 TESTS_SQL
 
 my $query = <<QUERY_SQL;
+.width 30
 select
   b1.test as test,
   b1.rt as "baseline_avg",

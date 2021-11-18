@@ -32,6 +32,7 @@ baseline_branch=$2
 feature_branch=$3
 
 read -r -d '' sql <<- _EOM_
+.width 30
 create table coverage(
   job text,
   branch text,
