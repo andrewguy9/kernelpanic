@@ -49,7 +49,7 @@ void HalRegisterIsrHandler( HAL_ISR_HANDLER handler, void * which, enum IRQ_LEVE
 void HalStartup();
 HAL_ISR_HANDLER HalReset;
 
-void HalPetWatchdog( );
+void HalPetWatchdog(TIME);
 void HalStartInterrupt();
 void HalEndInterrupt();
 void HalCreateStackFrame( struct MACHINE_CONTEXT * Context, void * stack, COUNT stackSize, STACK_INIT_ROUTINE foo, void * arg);

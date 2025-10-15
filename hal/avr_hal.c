@@ -262,7 +262,7 @@ void HalEnableWatchdog( int timeout )
 	}
 }
 
-void HalPetWatchdog( )
+void HalPetWatchdog( TIME when )
 {
 	wdt_reset();
 }
