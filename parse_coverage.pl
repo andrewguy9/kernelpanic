@@ -1,81 +1,132 @@
-#!/usr/bin/perl
+#!/usr/bin/env python3
 
-use warnings;
-use strict;
-use Getopt::Long;
+import argparse
+import re
+import subprocess
+import sys
 
-my $job;
+from test_tools import results_db
 
-GetOptions (
-  'job=s' => \$job,
-);
 
-my $branch;
-my $commit;
-my $branch_output=`git branch -v`;
-foreach (split(/\n/,$branch_output)) {
-  if ($_ =~ /^\*\s+(\S+)\s+(\S+)/) {
-    ($branch, $commit) = ($1,$2);
-  }
-}
+COVERAGE_COLUMNS = 13
 
-my $git_status = `git status --porcelain`;
-my @dirty;
-foreach (split(/\n/, $git_status)) {
-  if ($_ =~ /^ M (.*)/) {
-    push(@dirty, $1);
-  }
-}
-my $dirty_str = join(";", @dirty);
 
-# Parse the report from STDIN.
-my @stats = ();
+def parse_args():
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--job", dest="job")
+    return parser.parse_args()
 
-# Consome the labels
-my $labels = readline;
-chomp($labels);
-# Consume the dash header
-readline;
-# Consume the file stats...
-while (my $file_stats = readline) {
-  chomp($file_stats);
-  if (not $file_stats) {
-    last;
-  }
-  $file_stats =~ s/%//g;
-  my @file_stats = split(/\s+/, $file_stats);
-  push @stats, [@file_stats];
-}
-# Consume blank line
-# Consumed by above last breakout.
 
-# Consume no function warning
-readline;
+def git_output(*args):
+    return subprocess.check_output(("git",) + args, text=True).strip()
 
-# Consume no coverage files...
-while (my $file_stats = readline) {
-  chomp($file_stats);
-  if ($file_stats =~ /^-+$/) {
-    last;
-  }
-  $file_stats =~ s/%//g;
-  my @file_stats = split(/\s+/, $file_stats);
-  $file_stats[3]=100.0;
-  $file_stats[6]=100.0;
-  $file_stats[9]=100.0;
-  push @stats, [@file_stats];
-}
-# Consome the dashes footer
-# Consumed by above last statement.
 
-# Consume the total
-my $file_stats = readline;
-chomp($file_stats);
-$file_stats =~ s/%//g;
-my @file_stats = split(/\s+/, $file_stats);
-push @stats, [@file_stats];
+def branch_and_commit():
+    try:
+        branch = git_output("symbolic-ref", "--quiet", "--short", "HEAD")
+    except subprocess.CalledProcessError:
+        branch = git_output("rev-parse", "--short", "HEAD")
+    commit = git_output("rev-parse", "--short", "HEAD")
+    return branch, commit
 
-# Turn report into csv lines.
-foreach (@stats) {
-  print "$job,$branch,$commit,$dirty_str," . join(",", @$_) . "\n";
-}
+
+def dirty_string():
+    dirty = []
+    status_output = git_output("status", "--porcelain")
+    for line in status_output.splitlines():
+        match = re.match(r"^ M (.*)", line)
+        if match:
+            dirty.append(match.group(1))
+    return ";".join(dirty)
+
+
+def split_stats(line):
+    return line.replace("%", "").split()
+
+
+def parse_coverage_report(lines):
+    stats = []
+    index = 0
+
+    if index < len(lines):
+        index += 1
+    if index < len(lines):
+        index += 1
+
+    while index < len(lines):
+        line = lines[index].strip()
+        index += 1
+        if not line:
+            break
+        stats.append(split_stats(line))
+
+    if index < len(lines):
+        index += 1
+
+    while index < len(lines):
+        line = lines[index].strip()
+        index += 1
+        if re.match(r"^-+$", line):
+            break
+        row = split_stats(line)
+        if row:
+            row[3] = "100.0"
+            row[6] = "100.0"
+            row[9] = "100.0"
+            if len(row) > 12:
+                row[12] = "100.0"
+            stats.append(row)
+
+    if index < len(lines):
+        stats.append(split_stats(lines[index].strip()))
+
+    return stats
+
+
+def normalize_row(row):
+    if len(row) != COVERAGE_COLUMNS:
+        raise ValueError(
+            f"Expected {COVERAGE_COLUMNS} coverage columns, found {len(row)}: {row}"
+        )
+    return row
+
+
+def insert_rows(job, branch, commit, dirty, rows):
+    with results_db.connect() as connection:
+        connection.executemany(
+            """
+            INSERT INTO coverage (
+              job,
+              branch,
+              commit_hash,
+              dirty,
+              filename,
+              regions,
+              missed_regions,
+              region_cover,
+              functions,
+              missed_functions,
+              function_cover,
+              lines,
+              missed_lines,
+              line_cover,
+              branches,
+              missed_branches,
+              branch_cover
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            ([job, branch, commit, dirty] + normalize_row(row) for row in rows))
+
+
+def main():
+    args = parse_args()
+    branch, commit = branch_and_commit()
+    dirty = dirty_string()
+
+    stats = parse_coverage_report(sys.stdin.read().splitlines())
+    insert_rows(args.job, branch, commit, dirty, stats)
+
+
+if __name__ == "__main__":
+    main()

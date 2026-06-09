@@ -4,8 +4,9 @@
 tags
 *.map
 .DS_Store
-perf.csv
 coverage
-coverage.csv
+test-results.sqlite
 *.profraw
 *.profdata
+__pycache__/
+*.pyc

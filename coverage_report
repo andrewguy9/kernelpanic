@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USAGE="$0 [-h] jobid dst_branch branch"
+USAGE="$0 [-h] jobid commit [feature_commit]"
 
 while getopts ":h" opt
 do
@@ -21,36 +21,73 @@ do
 done
 shift $((OPTIND - 1))
 
-if [ "$#" -lt 3 ]; then
-    echo "Wrong number of args $#, must specify jobid, dst_branch and branch"
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+    echo "Wrong number of args $#, must specify jobid and one or two commits"
     echo "$USAGE"
     exit 2
 fi
 
 jobid1=$1
-baseline_branch=$2
-feature_branch=$3
+if ! baseline_commit=$(git rev-parse --short "$2^{commit}" 2> /dev/null); then
+  echo "Invalid commit $2"
+  exit 3
+fi
+if [ "$#" -eq 3 ]; then
+  if ! feature_commit=$(git rev-parse --short "$3^{commit}" 2> /dev/null); then
+    echo "Invalid commit $3"
+    exit 3
+  fi
+fi
 
 read -r -d '' sql <<- _EOM_
-create table coverage(
-  job text,
-  branch text,
-  commit_hash text,
-  dirty text,
-  filename text,
-  regions int,
-  missed_regions int,
-  region_cover float,
-  functions int,
-  missed_functions int,
-  function_cover float,
-  lines int,
-  missed_lines int,
-  line_cover float);
-.separator ","
 .headers on
 .mode column
-.import coverage.csv coverage
+CREATE TABLE IF NOT EXISTS coverage (
+  job TEXT,
+  branch TEXT,
+  commit_hash TEXT,
+  dirty TEXT,
+  filename TEXT,
+  regions INTEGER,
+  missed_regions INTEGER,
+  region_cover REAL,
+  functions INTEGER,
+  missed_functions INTEGER,
+  function_cover REAL,
+  lines INTEGER,
+  missed_lines INTEGER,
+  line_cover REAL,
+  branches INTEGER,
+  missed_branches INTEGER,
+  branch_cover REAL
+);
+with summarized_coverage as (
+  select
+    job,
+    filename,
+    commit_hash,
+    avg(region_cover) as region_cover,
+    avg(function_cover) as function_cover,
+    avg(line_cover) as line_cover,
+    avg(branch_cover) as branch_cover
+  from coverage
+  group by job, commit_hash, filename
+)
+_EOM_
+
+if [ "$#" -eq 2 ]; then
+read -r -d '' report_sql <<- _EOM_
+select
+  filename,
+  printf("%  .2f", region_cover) as region_cover,
+  printf("%  .2f", function_cover) as function_cover,
+  printf("%  .2f", line_cover) as line_cover,
+  printf("%  .2f", branch_cover) as branch_cover
+from summarized_coverage
+WHERE job = "${jobid1}" AND commit_hash = "${baseline_commit}" AND filename = "TOTAL"
+_EOM_
+else
+read -r -d '' report_sql <<- _EOM_
 select
   baseline.filename as filename,
   printf("%  .2f", baseline.region_cover) as region_baseline,
@@ -61,13 +98,16 @@ select
   printf("%  .2f", feature.function_cover - baseline.function_cover) as function_change,
   printf("%  .2f", baseline.line_cover) as line_baseline,
   printf("%  .2f", feature.line_cover) as line_feature,
-  printf("%  .2f", feature.line_cover - baseline.line_cover) as line_change
-from coverage baseline
-JOIN coverage feature on baseline.filename = feature.filename
-WHERE baseline.job = "${jobid1}" AND baseline.branch = "${baseline_branch}" AND
-  feature.job = "${jobid1}" AND feature.branch = "${feature_branch}" AND
-  (ABS(line_change) > 0.1 OR ABS(function_change) > 0.1 OR ABS(region_change) > 0.1 OR baseline.filename = "TOTAL")
+  printf("%  .2f", feature.line_cover - baseline.line_cover) as line_change,
+  printf("%  .2f", baseline.branch_cover) as branch_baseline,
+  printf("%  .2f", feature.branch_cover) as branch_feature,
+  printf("%  .2f", feature.branch_cover - baseline.branch_cover) as branch_change
+from summarized_coverage baseline
+JOIN summarized_coverage feature on baseline.filename = feature.filename
+WHERE baseline.job = "${jobid1}" AND baseline.commit_hash = "${baseline_commit}" AND
+  feature.job = "${jobid1}" AND feature.commit_hash = "${feature_commit}" AND
+  (ABS(branch_change) > 0.1 OR ABS(line_change) > 0.1 OR ABS(function_change) > 0.1 OR ABS(region_change) > 0.1 OR baseline.filename = "TOTAL")
 _EOM_
+fi
 
-touch coverage.csv
-echo "$sql" | sqlite3
+printf "%s\n%s\n" "$sql" "$report_sql" | sqlite3 test-results.sqlite

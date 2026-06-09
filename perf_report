@@ -1,63 +1,114 @@
-#!/usr/bin/perl
-use warnings;
-use strict;
+#!/usr/bin/env python3
 
-my @branches = ();
-if (@ARGV) {
-  push @branches, @ARGV;
-}
+import argparse
+import subprocess
 
-my $setup = <<'SETUP_SQL';
-create table perf(job text, branch text, commit_hash text, dirty text, test text, real float, user float, sys float, status int, result text);
-.separator ","
-.headers on
-.mode column
-.import perf.csv perf
-SETUP_SQL
+from test_tools import results_db
 
-my $branch1 = $ARGV[0];
-my $branch2 = $ARGV[1];
-#print "$branch1, $branch2\n";
 
-chomp (my $rev1=`git rev-parse --short $branch1`);
-if ($? != 0) {die("failed to find rev for $branch1")};
-chomp (my $rev2=`git rev-parse --short $branch2`);
-if ($? != 0) {die("failed to find rev for $branch2")};
-#print "$rev1, $rev2\n";
+def rev_parse(rev):
+    try:
+        return subprocess.check_output(
+            ("git", "rev-parse", "--short", "%s^{commit}" % rev),
+            text=True,
+            stderr=subprocess.DEVNULL).strip()
+    except subprocess.CalledProcessError:
+        raise SystemExit("failed to find commit for %s" % rev)
 
-my $test_counts = <<TESTS_SQL;
-SELECT
-    test,
-    Count(*) as runs,
-    Count(CASE WHEN result = 'SUCCESS' THEN 1 END) as success,
-    Count(CASE WHEN result = 'TIMEOUT' THEN 1 END) as timeout,
-    Count(CASE WHEN result = 'FAILED' THEN 1 END) as failed,
-    COUNT(CASE WHEN result = 'SUCCESS' THEN 1 END) * 100.0 / Count(*) as percent
-FROM
-    perf
-WHERE
-    commit_hash in ('${rev2}')
-GROUP BY
-    test;
-TESTS_SQL
 
-my $query = <<QUERY_SQL;
-select
-  b1.test as test,
-  b1.rt as "baseline_avg",
-  b2.rt as "feature_avg",
-  b2.rt-b1.rt as delta,
-  cast(100*(b2.rt-b1.rt)/b1.rt as int) as percent
-from (select test,avg(real) as rt from perf where commit_hash='${rev1}' group by commit_hash,test) as b1
-inner join (select test,avg(real) as rt from perf where commit_hash='${rev2}' group by commit_hash,test) as b2
-on b1.test = b2.test
-order by test;
-QUERY_SQL
+def parse_args():
+    parser = argparse.ArgumentParser(
+        usage="%(prog)s [--job jobid] <rev> | %(prog)s [--job jobid] <baseline_rev> <feature_rev>")
+    parser.add_argument("--job")
+    parser.add_argument("revs", nargs="+")
+    args = parser.parse_args()
+    if len(args.revs) > 2:
+        parser.error("expected one summary rev or two comparison revs")
+    return args
 
-my $sql = "$setup\n$test_counts\n$query";
 
-#print "$sql\n";
-#TODO could be nice to get stddev of tests.
-my $result = `echo "$sql" | sqlite3`;
-print "$result\n";
-if ($? != 0) {die("Failed to run query")}
+def print_table(headers, rows):
+    if not rows:
+        return
+
+    widths = [len(header) for header in headers]
+    string_rows = []
+    for row in rows:
+        string_row = ["" if value is None else str(value) for value in row]
+        string_rows.append(string_row)
+        widths = [max(width, len(value)) for width, value in zip(widths, string_row)]
+
+    print("  ".join(header.ljust(width) for header, width in zip(headers, widths)))
+    print("  ".join("-" * width for width in widths))
+    for row in string_rows:
+        print("  ".join(value.ljust(width) for value, width in zip(row, widths)))
+
+
+def job_filter(job):
+    if job is None:
+        return "", ()
+    return " AND job = ?", (job,)
+
+
+def test_counts(connection, commit, job=None):
+    job_clause, job_args = job_filter(job)
+    cursor = connection.execute(
+        """
+        SELECT
+            test,
+            Count(*) as runs,
+            Count(CASE WHEN result = 'SUCCESS' THEN 1 END) as success,
+            Count(CASE WHEN result = 'TIMEOUT' THEN 1 END) as timeout,
+            Count(CASE WHEN result = 'FAILED' THEN 1 END) as failed,
+            COUNT(CASE WHEN result = 'SUCCESS' THEN 1 END) * 100.0 / Count(*) as percent
+        FROM
+            perf
+        WHERE
+            commit_hash = ?
+            %s
+        GROUP BY
+            test
+        ORDER BY
+            test
+        """ % job_clause,
+        (commit,) + job_args)
+    return [description[0] for description in cursor.description], cursor.fetchall()
+
+
+def perf_comparison(connection, baseline_commit, feature_commit, job=None):
+    job_clause, job_args = job_filter(job)
+    cursor = connection.execute(
+        """
+        select
+          b1.test as test,
+          b1.rt as baseline_avg,
+          b2.rt as feature_avg,
+          b2.rt-b1.rt as delta,
+          cast(100*(b2.rt-b1.rt)/b1.rt as int) as percent
+        from (select test,avg(real) as rt from perf where commit_hash=? %s group by commit_hash,test) as b1
+        inner join (select test,avg(real) as rt from perf where commit_hash=? %s group by commit_hash,test) as b2
+        on b1.test = b2.test
+        order by test
+        """ % (job_clause, job_clause),
+        (baseline_commit,) + job_args + (feature_commit,) + job_args)
+    return [description[0] for description in cursor.description], cursor.fetchall()
+
+
+def main():
+    args = parse_args()
+
+    commits = [rev_parse(rev) for rev in args.revs]
+
+    with results_db.connect() as connection:
+        headers, rows = test_counts(connection, commits[-1], args.job)
+        print_table(headers, rows)
+        print()
+        if len(commits) == 2:
+            headers, rows = perf_comparison(
+                connection, commits[0], commits[1], args.job)
+            print_table(headers, rows)
+            print()
+
+
+if __name__ == "__main__":
+    main()
